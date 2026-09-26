@@ -152,3 +152,33 @@ def test_a_full_journal_lets_a_restart_rebuild_the_same_experience(data, tmp_pat
                for r in db.query("SELECT payload FROM evaluations") for e in json.loads(r["payload"])["evaluations"]]
     assert all(not e.traded for e in rebuilt)
     assert shadows + trades == res["learning"]["resolved"] + res["learning"]["pending"]
+
+
+def test_every_trade_can_be_reconstructed_from_the_journal(data, tmp_path):
+    """Decision -> agents -> risk verdict -> intent -> position -> trade -> episode -> post-mortem, all linked."""
+    import json
+
+    from aitrader.memory.db import Database
+
+    res = run(cfg("recon", db_path=str(tmp_path / "r.db")), data)
+    db = Database(tmp_path / "r.db")
+    trades = db.query("SELECT * FROM trades")
+    assert len(trades) == res["counts"]["closed"] and trades
+    for tr in trades:
+        did = tr["decision_id"]
+        dec = db.one("SELECT * FROM decisions WHERE id=?", (did,))
+        assert dec is not None and dec["decision"] in ("BUY", "SELL")
+        payload = json.loads(dec["payload"])
+        assert payload["versions"]["features"] and payload["entry"] is not None and payload["stop_loss"] is not None
+        agents = {r["agent"] for r in db.query("SELECT agent FROM agent_reports WHERE decision_id=?", (did,))}
+        assert {"market", "setup", "risk", "adversary", "reviewer"} <= agents
+        verdict = db.one("SELECT * FROM risk_verdicts WHERE decision_id=?", (did,))
+        assert verdict is not None and verdict["approved"] == 1
+        intent = db.one("SELECT * FROM intents WHERE decision_id=?", (did,))
+        pos = db.one("SELECT * FROM positions WHERE id=?", (tr["position_id"],))
+        assert intent is not None and pos is not None and pos["intent_id"] == intent["id"]
+        ep = db.one("SELECT * FROM episodes WHERE decision_id=? AND kind='TRADE'", (did,))
+        assert ep is not None
+        assert db.one("SELECT 1 FROM postmortems WHERE episode_id=?", (ep["id"],)) is not None
+    assert all(db.verify_chain(tb)[0] for tb in ("decisions", "agent_reports", "risk_verdicts", "trades",
+                                                   "episodes", "postmortems"))

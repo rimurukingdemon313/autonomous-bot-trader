@@ -271,7 +271,9 @@ function renderResearch(r) {
   $("research").querySelector("tbody").innerHTML = r.trials.map((t) =>
     `<tr><td class="small">${esc(t.id)}</td><td>${esc(t.status)}</td><td class="num">${t.tests}</td><td>${esc(t.registered.slice(0, 10))}</td></tr>`).join("");
   const p = r.pr001;
-  $("pr001").innerHTML = p ? `<h3>PR-001 ablation (2010–2016, out of sample)</h3><div class="table-wrap"><table><thead><tr><th>Variant</th><th class="num">Trades</th><th class="num">Avg R</th><th class="num">t</th><th class="num">Win</th><th class="num">Max DD</th></tr></thead><tbody>${
+  const v = r.pr001_verdicts;
+  const verdictLine = v ? `<div class="small">Pre-registered verdicts: ${Object.entries(v).map(([k, x]) => `${esc(k.split("_")[0])} <b class="${x === "PASS" ? "pos" : "neg"}">${esc(x)}</b>`).join(" · ")}</div>` : `<div class="small muted">Verdicts: not judged yet.</div>`;
+  $("pr001").innerHTML = p ? `<h3>PR-001 ablation — judged period 2010–2016</h3>${verdictLine}<div class="small muted">A agents only · B + memory · C + learning (full system) · R random. Rows ending “-nohalt” are the exploratory arm: no verdict.</div><div class="table-wrap"><table><thead><tr><th>Variant</th><th class="num">Trades</th><th class="num">Avg R</th><th class="num">t</th><th class="num">Win</th><th class="num">Max DD</th></tr></thead><tbody>${
     Object.entries(p).map(([k, v]) => { const o = v.metrics.overall; return `<tr><td>${esc(k)}</td><td class="num">${o.n}</td><td class="num">${o.n ? signed(o.avg_R) : NA}</td><td class="num">${o.t ?? NA}</td><td class="num">${o.n ? pct(o.win_rate) : NA}</td><td class="num">${v.metrics.equity.max_drawdown_pct}%</td></tr>`; }).join("")}</tbody></table></div>` : "";
 }
 

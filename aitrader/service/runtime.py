@@ -528,9 +528,15 @@ class Runtime:
                    "registered": t.registered.isoformat(), "preregistration": t.preregistration,
                    "result": (reg.verdict_of(t.id).result if reg.verdict_of(t.id) else t.result)} for t in reg.trials]
         summary = ROOT / "research" / "results" / "PR-001-summary.json"
+        judgement = ROOT / "research" / "results" / "PR-001-judgement.json"
+        verdicts = None
+        if judgement.exists():
+            j = json.loads(judgement.read_text())["verdicts"]
+            verdicts = {k: v["verdict"] for k, v in j.items()}
         return {"trials": trials, "holdout": {"start": str(reg.holdout.start), "spent": reg.holdout_spent()},
                 "next_threshold_t": round(reg.threshold_for_next(reg.holdout.universe), 3),
-                "pr001": json.loads(summary.read_text()) if summary.exists() else None}
+                "pr001": json.loads(summary.read_text()) if summary.exists() else None,
+                "pr001_verdicts": verdicts}
 
     def events(self, since: int = 0, limit: int = 200) -> list[dict]:
         rows = self.db.query("SELECT seq, ts, type, ref, payload FROM events WHERE seq>? ORDER BY seq DESC LIMIT ?",
