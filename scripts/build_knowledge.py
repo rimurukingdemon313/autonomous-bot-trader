@@ -54,8 +54,11 @@ def regime_persistence(regime: RegimeModel, mats: dict, series: dict, cutoff: in
         for a, b in zip(labels[:-1], labels[1:]):
             seen[a] += 1
             same[a] += a == b
+    total = sum(counts.values()) or 1
     return {"counts": counts, "persistence": {k: round(same[k] / seen[k], 3) if seen[k] else None for k in LABELS},
-            "note": "probability the next decision (4 H1 bars later) has the same label"}
+            "chance": {k: round(counts[k] / total, 3) for k in LABELS},
+            "note": "persistence = probability the next decision (4 H1 bars later) has the same label; "
+                    "chance = that probability if labels were drawn independently at their frequencies"}
 
 
 def main() -> int:
