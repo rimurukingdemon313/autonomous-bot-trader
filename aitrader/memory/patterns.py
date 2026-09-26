@@ -181,8 +181,12 @@ class PatternMemory:
 
     # ── persistence ─────────────────────────────────────────────────────
 
-    def save(self, path) -> None:
+    def save(self, path, compact: bool = False) -> None:
+        """`compact` stores features and outcomes as float16 (~3 significant digits):
+        ample for standardised distances and R outcomes, a quarter of the size."""
         x, out, avail, meta, _ = self._arrays()
+        if compact:
+            x, out = x.astype(np.float16), out.astype(np.float16)
         np.savez_compressed(path, x=x, out=out, avail=avail, meta=meta, mean=self.mean, std=self.std,
                             actions=np.array(self.action_keys), symbols=np.array(self._symbols),
                             typical=np.array([self.typical_distance]), version=np.array([self.version]))
@@ -193,5 +197,6 @@ class PatternMemory:
             mem = cls(z["mean"], z["std"], tuple(str(a) for a in z["actions"]), float(z["typical"][0]),
                       str(z["version"][0]))
             mem._symbols = [str(s) for s in z["symbols"]]
-            mem._x, mem._out, mem._avail, mem._meta = [z["x"]], [z["out"]], [z["avail"]], [z["meta"]]
+            mem._x, mem._out = [z["x"].astype(np.float32)], [z["out"].astype(np.float32)]
+            mem._avail, mem._meta = [z["avail"]], [z["meta"]]
         return mem

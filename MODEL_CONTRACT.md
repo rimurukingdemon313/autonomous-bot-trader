@@ -116,3 +116,15 @@ because the leak is in the model's weights. Therefore:
 The threshold that turns a model's estimate into BUY / SELL / NO_TRADE is
 part of the model version. It is chosen on validation data only, and never
 on out-of-sample or holdout data.
+
+## 9. Amendment 1 — how an LLM opinion enters a decision (implemented)
+
+An LLM's directional opinion is evidence with a weight equal to its
+**measured forward reliability**: zero until, over at least 50 resolved
+cases on each side, the outcomes of trades it opposed are shown to be worse
+than those it agreed with (`ExperienceView.agent_reliability`). An opposing
+opinion raises the required edge by that weight; an agreeing one lowers
+nothing. LLM objections come from a closed vocabulary and may block a trade.
+This keeps the LLM genuinely in the decision while keeping §7 true: nothing
+it says is trusted before it has been measured on data it could not have
+seen.

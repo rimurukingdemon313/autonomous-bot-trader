@@ -54,3 +54,17 @@ def get(symbol: str) -> Instrument:
         return UNIVERSE[symbol.upper()]
     except KeyError:
         raise KeyError(f"unknown instrument {symbol!r}; known: {', '.join(sorted(UNIVERSE))}") from None
+
+
+def price_scale(symbol: str, raw_median: float) -> float:
+    """The single power of ten that puts a raw median price inside the band.
+
+    Exactly one must fit. None, or more than one, is an error: a wrong scale
+    raises nothing downstream and silently measures the wrong magnitude
+    everywhere (costs in pips, spreads, the band checks themselves).
+    """
+    inst = get(symbol)
+    fits = [10.0 ** k for k in range(-6, 5) if inst.in_band(raw_median * 10.0 ** k)]
+    if len(fits) != 1:
+        raise ValueError(f"{symbol}: raw median {raw_median:g} fits {len(fits)} scales {fits}; refusing to guess")
+    return fits[0]

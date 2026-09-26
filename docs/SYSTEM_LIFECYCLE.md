@@ -42,3 +42,13 @@ RESEARCH → BACKTEST → OUT-OF-SAMPLE → ROBUSTNESS → FINAL HOLDOUT → PAP
 The system's reported status is one of: RESEARCH, PAPER_READY, PAPER,
 DEMO_READY, DEMO, LIVE_READY. LIVE_READY is used only when the evidence
 genuinely supports it.
+
+## Amendment 1 — forward testing of an unvalidated candidate
+
+Running an unvalidated system in PAPER, or on a broker DEMO account, is
+allowed as a **forward test**: no money is at risk, and it produces the only
+evidence no one could have seen in advance. It is recorded under the
+system's version stamp, labelled on the dashboard as unvalidated, and never
+counted as validation of a historical claim. It does not move the candidate
+up the lifecycle: LIVE still requires every gate above, and `MODE=LIVE` is
+refused by the software.

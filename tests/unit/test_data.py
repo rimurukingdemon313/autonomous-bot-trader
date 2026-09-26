@@ -178,3 +178,12 @@ def test_validation_refuses_off_grid_timestamps():
 def test_unknown_instrument_is_refused_by_name():
     with pytest.raises(KeyError, match="unknown instrument"):
         instruments.get("FOOBAR")
+
+
+def test_price_scale_is_derived_and_must_be_unique():
+    assert instruments.price_scale("USDJPY", 0.772) == 100.0
+    assert instruments.price_scale("XAUUSD", 16.2) == 100.0
+    assert instruments.price_scale("EURUSD", 1.09) == 1.0
+    assert instruments.price_scale("EURUSD", 109305.0) == 1e-5
+    with pytest.raises(ValueError, match="refusing"):
+        instruments.price_scale("EURUSD", 3.5)  # 0.35 is below the band, 3.5 above it

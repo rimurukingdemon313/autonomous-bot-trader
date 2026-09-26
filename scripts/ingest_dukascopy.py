@@ -22,6 +22,7 @@ import sys
 import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -147,6 +148,13 @@ def ingest_pair(pair: str, out: Path) -> dict:
     for year, sha in years.items():
         r = ingest_year(pair, year, sha)
         cols = r.pop("columns_data")
+        # A year's branch is authoritative only for bars inside that year:
+        # branches overlap at their edges, and taking both copies produced
+        # out-of-order timestamps (EURUSD, 4 times).
+        lo, hi = int(datetime(year, 1, 1, tzinfo=timezone.utc).timestamp()), int(datetime(year + 1, 1, 1, tzinfo=timezone.utc).timestamp())
+        inside = (cols["open_time"] >= lo) & (cols["open_time"] < hi)
+        r["bars_outside_year_dropped"] = int((~inside).sum())
+        cols = {k: v[inside] for k, v in cols.items()}
         if len(cols["open_time"]):
             parts.append(BarSeries.from_columns(pair, "M15", SOURCE, **cols))
         a = TickAudit(**r.pop("audit"))
@@ -157,6 +165,16 @@ def ingest_pair(pair: str, out: Path) -> dict:
         print(f"  {pair} {year}: {a.kept:,} ticks, {len(cols['open_time']):,} bars", flush=True)
 
     series = BarSeries.concat(parts)
+    order = np.argsort(series.open_time, kind="stable")
+    series = series.take(order)
+    # Price scale is derived, never assumed: this source stores JPY pairs and
+    # gold divided by 100 (USDJPY 0.772 for 77.2).
+    scale = instruments.price_scale(pair, float(np.median(series.mid_close)))
+    if scale != 1.0:
+        series = BarSeries.from_columns(pair, "M15", SOURCE, **{
+            f: (getattr(series, f) * scale if f not in ("open_time", "ticks") else getattr(series, f))
+            for f in ("open_time", "bid_open", "bid_high", "bid_low", "bid_close", "ask_open", "ask_high",
+                      "ask_low", "ask_close", "ticks", "spread_mean", "spread_max")})
     # Years are separate branches; an overlap at a boundary would be a
     # duplicate bar. Keep the first occurrence and count the rest.
     keep = np.concatenate(([True], np.diff(series.open_time) > 0))
@@ -171,7 +189,7 @@ def ingest_pair(pair: str, out: Path) -> dict:
     return {
         "symbol": pair, "timeframe": "M15", "source": SOURCE,
         "source_repo": REPO.format(pair=pair), "years": meta,
-        "file": path.name, "content_sha256": digest, "bars": len(series),
+        "file": path.name, "content_sha256": digest, "bars": len(series), "price_scale": scale,
         "duplicate_bars_dropped": dup, "tick_audit": audit.as_dict(),
         "week_open_hour_utc_histogram": hours, "week_open_weekday_histogram": days,
         "quality": report.as_dict(), "seconds": round(time.time() - t0, 1),

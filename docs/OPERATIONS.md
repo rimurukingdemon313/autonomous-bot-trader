@@ -1,0 +1,74 @@
+# Operations: running on Railway (paper or demo)
+
+## What runs
+
+One process (`python -m aitrader`):
+
+- HTTP API + dashboard on `$PORT` (`/` dashboard, `/healthz` health, `/api/*`);
+- the scheduler: a full decision cycle 90 s after every H1 close;
+- the position monitor: every 20 s, newly closed bars are applied to the
+  paper account's stops/targets and to the outcome tracker.
+
+State lives in **one SQLite file under `DATA_DIR`** plus the live pattern
+memory (`memory_live.npz`). Mount a Railway **Volume** at `/data` so a
+restart or redeploy keeps every trade, decision, lesson and reflection.
+
+## Deploy
+
+1. Railway -> New Project -> Deploy from GitHub repo
+   `rimurukingdemon313/autonomous-bot-trader`. The `Dockerfile` and
+   `railway.json` are picked up automatically (health check `/healthz`,
+   restart on failure).
+2. Add a **Volume**, mount path `/data`.
+3. Variables (Railway -> Variables; never in the repository) — see
+   `.env.example` for the full list. Minimum for paper trading on live data:
+   `MODE=PAPER`, `DATA_DIR=/data`, `DASHBOARD_TOKEN` (a long random string),
+   and the four `TRADELOCKER_*` credentials of a **demo** account.
+4. Open the service URL: the dashboard. The status bar must show
+   `DATA: CONNECTED`, `DATABASE: HEALTHY`, `KNOWLEDGE: LOADED`.
+
+Without TradeLocker credentials the service still starts and reports
+`DATA: NOT CONNECTED`; it makes no decisions on invented prices.
+
+## Modes
+
+| MODE | Market data | Orders | Account |
+|---|---|---|---|
+| `PAPER` | TradeLocker (live) | simulated in-process | virtual, `PAPER_START_BALANCE` (default $20,000) |
+| `DEMO` | TradeLocker (live) | TradeLocker **demo** account, after the two-signal demo check | the broker's demo balance |
+| `LIVE` | — | **refused at startup** | — |
+
+Both PAPER and DEMO are **forward tests** of an unvalidated system while
+PR-001 has not passed (docs/SYSTEM_LIFECYCLE.md, "Forward testing"). They
+generate the only evidence no one could have seen in advance.
+
+## Controls
+
+| Action | Token? | Effect |
+|---|---|---|
+| Emergency stop | no | kill switch on: no new orders until cleared |
+| Pause | no | no new decisions become orders |
+| Resume / Clear stop / Scan now / Revert knowledge | **yes** (`DASHBOARD_TOKEN`) | refused without it; refused entirely if no token is configured |
+
+Open positions keep their broker-side stop and target when paused or stopped.
+
+## Restart and recovery
+
+On startup, before any decision: open the database, restore experience and
+lessons from the immutable episodes, load the knowledge base, and reconcile
+with the broker (intents with unknown outcomes are resolved by querying the
+broker, never by resending). If reconciliation fails or finds positions the
+system did not open, trading starts **paused** and the dashboard says why.
+
+## Logs
+
+One JSON object per line on stdout (Railway -> Deployments -> Logs).
+Secrets are redacted at the sink: values of `TRADELOCKER_PASSWORD`,
+`TRADELOCKER_EMAIL`, `AI_API_KEY`, `DASHBOARD_TOKEN`, bearer tokens and JWTs.
+
+## Rebuilding the knowledge base (research machine, not Railway)
+
+    pip install -r requirements-research.txt
+    python scripts/ingest_dukascopy.py          # ~1 hour, writes data/processed + data/manifest.json
+    python scripts/build_knowledge.py           # writes models/artifacts/*
+    python scripts/run_pr001.py                 # the pre-registered experiment
