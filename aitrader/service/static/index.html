@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>AI Trader Console</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <div class="brand"><strong>AI Trader</strong> <span id="mode" class="chip">…</span></div>
+  <div class="status-row" id="status-row" aria-live="polite"></div>
+  <div class="clock"><span id="clock">—</span> UTC · up <span id="uptime">—</span></div>
+</header>
+
+<main class="grid">
+  <!-- CONTROLS -->
+  <section class="card controls" aria-label="Controls">
+    <h2>Controls</h2>
+    <div class="btns">
+      <button class="danger" id="btn-kill" title="Always available, no token needed">■ Emergency stop</button>
+      <button id="btn-pause" title="Always available, no token needed">❚❚ Pause</button>
+      <button id="btn-resume" class="needs-token">▶ Resume</button>
+      <button id="btn-clear" class="needs-token">Clear stop</button>
+      <button id="btn-scan" class="needs-token">Scan now</button>
+    </div>
+    <label class="token">Dashboard token <input id="token" type="password" autocomplete="off" placeholder="only for resume / clear / scan"></label>
+    <p class="muted small" id="control-msg"></p>
+  </section>
+
+  <!-- ACCOUNT -->
+  <section class="card" aria-label="Account">
+    <h2>Account</h2>
+    <div class="tiles" id="account"></div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section class="card wide" aria-label="Decision pipeline">
+    <h2>AI decision pipeline <span class="muted small" id="pipe-symbol"></span></h2>
+    <ol class="pipeline" id="pipeline"></ol>
+    <p class="decision-line" id="decision-line">—</p>
+  </section>
+
+  <!-- MARKET -->
+  <section class="card wide" aria-label="Markets">
+    <h2>Markets</h2>
+    <div class="table-wrap"><table id="market"><thead><tr>
+      <th>Symbol</th><th class="num">Bid</th><th class="num">Ask</th><th class="num">Spread</th><th>Regime</th><th>Vol</th><th>State</th><th>Last decision</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- CHART -->
+  <section class="card wide viz-root" aria-label="Price chart">
+    <h2>Price · <span id="chart-symbol">—</span> <span class="muted small">H1 mid · hollow = up, filled = down</span></h2>
+    <div class="chart" id="chart"><p class="muted">Select a market.</p></div>
+  </section>
+
+  <!-- AGENTS -->
+  <section class="card wide" aria-label="Agent opinions">
+    <h2>Agent opinions</h2>
+    <div id="agents" class="agents"><p class="muted">No decision recorded yet.</p></div>
+  </section>
+
+  <!-- RISK -->
+  <section class="card" aria-label="Risk engine">
+    <h2>Risk engine <span class="muted small">final authority</span></h2>
+    <div id="risk"></div>
+  </section>
+
+  <!-- TRADES -->
+  <section class="card" aria-label="Trades">
+    <h2>Open positions</h2>
+    <div id="open-trades"><p class="muted">None.</p></div>
+    <h3>Recent closed trades</h3>
+    <div class="table-wrap"><table id="closed"><thead><tr><th>Symbol</th><th>Side</th><th class="num">R</th><th>Exit</th><th>Why</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- PERFORMANCE -->
+  <section class="card wide viz-root" aria-label="Performance">
+    <h2>Performance</h2>
+    <div class="tiles" id="perf-tiles"></div>
+    <div class="chart small-chart" id="equity"></div>
+    <div class="chart small-chart" id="drawdown"></div>
+    <div class="table-wrap"><table id="by-regime"><thead><tr><th>Regime</th><th class="num">Trades</th><th class="num">Avg R</th><th class="num">Win</th><th>Sample</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- MEMORY & LEARNING -->
+  <section class="card wide" aria-label="Memory and learning">
+    <h2>Memory &amp; learning</h2>
+    <div class="tiles" id="memory-tiles"></div>
+    <h3>Lessons <span class="muted small">candidate → validated only on later, out-of-sample outcomes</span></h3>
+    <div class="table-wrap"><table id="lessons"><thead><tr><th>Lesson</th><th>Status</th><th>v</th><th class="num">Evidence</th></tr></thead><tbody></tbody></table></div>
+    <h3>Latest reflection</h3>
+    <div id="reflection" class="muted">None yet.</div>
+  </section>
+
+  <!-- RESEARCH -->
+  <section class="card wide" aria-label="Research">
+    <h2>Research registry</h2>
+    <p class="muted small" id="research-meta"></p>
+    <div class="table-wrap"><table id="research"><thead><tr><th>Experiment</th><th>Status</th><th class="num">Tests</th><th>Registered</th></tr></thead><tbody></tbody></table></div>
+    <div id="pr001"></div>
+  </section>
+
+  <!-- HEALTH -->
+  <section class="card wide" aria-label="System health">
+    <h2>System health &amp; events</h2>
+    <div class="tiles" id="health"></div>
+    <ol class="events" id="events"></ol>
+  </section>
+</main>
+<footer class="muted small foot">Paper/demo only. Every number on this page comes from the running system; a missing value is shown as N/A, never as zero.</footer>
+<script src="app.js"></script>
+</body>
+</html>
