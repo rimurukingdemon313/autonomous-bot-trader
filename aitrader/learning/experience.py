@@ -34,7 +34,8 @@ from dataclasses import dataclass, field
 from statistics import NormalDist
 from typing import Callable
 
-LEARNING_VERSION = "learning-1.0.0"
+#: 1.1.0: `restore` (operator revert by appended versions). Learning itself is unchanged.
+LEARNING_VERSION = "learning-1.1.0"
 
 
 @dataclass

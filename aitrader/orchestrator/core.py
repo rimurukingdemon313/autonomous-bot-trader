@@ -46,7 +46,9 @@ from ..research.labels import TEMPLATE_BY_KEY, CostModel, atr24
 from ..risk.engine import AccountState, RiskEngine
 from .tracker import ACTIONS, OutcomeTracker, Tracked
 
-ORCHESTRATOR_VERSION = "orchestrator-1.0.0"
+#: 1.1.0: journals shadow outcomes (journal="full"); knowledge versions only ever increase.
+#: Backtest decisions are unchanged from 1.0.0.
+ORCHESTRATOR_VERSION = "orchestrator-1.1.0"
 
 
 class NullKnowledge:
