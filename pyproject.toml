@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aitrader"
+version = "0.1.0"
+description = "Autonomous AI trading research and decision system"
+requires-python = ">=3.11"
+# Production inference depends on numpy only (MODEL_CONTRACT.md §4).
+dependencies = ["numpy>=1.26"]
+
+[project.optional-dependencies]
+# Research-only tooling: ingestion of raw tick files.
+research = ["pandas>=2.0"]
+test = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["aitrader*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
