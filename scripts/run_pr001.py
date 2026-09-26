@@ -2,6 +2,7 @@
 
     python scripts/run_pr001.py            # all four variants, in parallel
     python scripts/run_pr001.py --only C
+    python scripts/run_pr001.py --nohalt   # Amendment 1: exploratory arm, no verdict
 
 Reads bars through the DataStore, which truncates at the sealed holdout.
 Writes full results to data/results/PR-001/ (not committed: large) and a
@@ -23,6 +24,7 @@ from aitrader.backtest.runner import BacktestConfig, epoch, run  # noqa: E402
 from aitrader.data.store import DataStore  # noqa: E402
 from aitrader.decision.synthesis import SynthesisConfig  # noqa: E402
 from aitrader.research.registry import Holdout  # noqa: E402
+from aitrader.risk.engine import RiskLimits  # noqa: E402
 
 SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
            "EURGBP", "EURJPY", "GBPJPY", "EURCHF", "AUDJPY"]
@@ -34,11 +36,18 @@ VARIANTS = {
 }
 
 
+#: Amendment 1: the exploratory arm differs from the primary run in this one limit.
+NOHALT = "-nohalt"
+
+
 def one(name: str) -> dict:
     store = DataStore(ROOT / "data" / "processed", Holdout.load(ROOT / "research" / "holdout.json"))
     series = {s: store.load(s, "H1") for s in SYMBOLS}
+    variant = dict(VARIANTS[name.removesuffix(NOHALT)])
+    if name.endswith(NOHALT):
+        variant["risk"] = RiskLimits(max_drawdown_pct=100.0)
     cfg = BacktestConfig(name=name, symbols=SYMBOLS, warmup_start=epoch(2007), start=epoch(2010), end=epoch(2017),
-                         every=4, **VARIANTS[name])
+                         every=4, **variant)
     res = run(cfg, series, progress=lambda m: print(m, flush=True))
     out = ROOT / "data" / "results" / "PR-001"
     out.mkdir(parents=True, exist_ok=True)
@@ -49,8 +58,9 @@ def one(name: str) -> dict:
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--only", default="")
+    p.add_argument("--nohalt", action="store_true", help="Amendment 1 exploratory arm (no verdict)")
     args = p.parse_args()
-    names = [n for n in VARIANTS if not args.only or n in args.only.split(",")]
+    names = [n + (NOHALT if args.nohalt else "") for n in VARIANTS if not args.only or n in args.only.split(",")]
     with ProcessPoolExecutor(max_workers=min(4, len(names))) as pool:
         results = dict(zip(names, pool.map(one, names)))
     summary_path = ROOT / "research" / "results" / "PR-001-summary.json"

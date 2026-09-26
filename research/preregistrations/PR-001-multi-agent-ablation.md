@@ -91,6 +91,34 @@ not used; the strictest, Bonferroni over three, is used for all.)
   win rate, average win/loss, consecutive losses, trades, exposure, and
   breakdowns by year, instrument, regime and setup family.
 
+## Amendment 1 — before any run on the judged period
+
+Written after a timing run on warm-up data only (GBPUSD, EURGBP, USDCAD,
+AUDUSD, 2008-07 → 2009-07; the "fit" segment above) and before any
+decision on 2010-2016 was computed.
+
+**What the timing run showed.** The 8 % drawdown halt fired after 102
+trades; the next 53 approved-by-everything-else candidates were refused
+with `halted: human action required`. In operation a person reviews and
+clears a halt. In a replay no one does, so the first 8 % drawdown ends the
+experiment for good, and every later year contributes no trades.
+
+**The primary run is unchanged.** The verdicts H1-H4 are judged on the
+run with the halt, exactly as written above. A system that halts in its
+first year has not shown an edge; that is a correct reading of H1.
+
+**Added: an exploratory arm, no verdict.** The same four variants are run
+again with the drawdown halt disabled (`max_drawdown_pct = 100`), every
+other parameter identical, so the per-trade expectancy of each variant is
+measured over the whole judged period rather than until the first halt.
+
+- It produces **no verdict** and cannot rescue H1-H4: nothing in it passes
+  or fails.
+- It is registered separately (`PR-001x-nohalt-exploratory`, tests = 0,
+  role `select`), so its exposure of 2010-2016 is on the record.
+- Any hypothesis it suggests must be pre-registered anew and judged on
+  data it did not see.
+
 ## RESULTS
 
 *(to be appended after the run, judged by the rules above)*
