@@ -134,3 +134,21 @@ def test_ablation_variants_run_through_the_same_risk_engine(data):
         assert r["chains_ok"]
         # every executed trade went through a risk verdict
         assert r["counts"]["executed"] <= r["counts"]["trade_decisions"]
+
+
+def test_a_full_journal_lets_a_restart_rebuild_the_same_experience(data, tmp_path):
+    """What the service journals is enough to rebuild every resolved outcome, skipped candidates included."""
+    import json
+
+    from aitrader.learning.experience import Evaluation
+    from aitrader.memory.db import Database
+
+    res = run(cfg("journal", journal="full", db_path=str(tmp_path / "j.db")), data)
+    db = Database(tmp_path / "j.db")
+    shadows = sum(len(json.loads(r["payload"])["evaluations"]) for r in db.query("SELECT payload FROM evaluations"))
+    trades = len(db.query("SELECT 1 FROM episodes WHERE kind='TRADE'"))
+    assert shadows > 0
+    rebuilt = [Evaluation(**{**e, "objections": tuple(e["objections"])})
+               for r in db.query("SELECT payload FROM evaluations") for e in json.loads(r["payload"])["evaluations"]]
+    assert all(not e.traded for e in rebuilt)
+    assert shadows + trades == res["learning"]["resolved"] + res["learning"]["pending"]

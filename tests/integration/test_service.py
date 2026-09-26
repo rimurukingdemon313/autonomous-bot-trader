@@ -195,3 +195,68 @@ def test_state_survives_a_restart(tmp_path):
     rt2, _ = build(tmp_path)
     assert rt2.db.get_kv("kill_switch")["active"] is True
     assert rt2.db.one("SELECT kind FROM episodes WHERE decision_id='d-x'")["kind"] == "NO_TRADE"
+
+
+def test_learning_revert_is_a_new_version_survives_restart_and_learning_continues(tmp_path):
+    rt, clock = build(tmp_path)
+    ex, orch, t0 = rt.experience, rt.orch, clock()
+
+    def change(lid, status, t, **kw):
+        return ex._new_version(lid, status, t, context=["trend", 1, "RANGING", "HIGH_VOL"], created=t, **kw)
+
+    assert orch._commit_knowledge([change("L:a", "CANDIDATE", t0)], t0) == 1
+    assert orch._commit_knowledge([change("L:a", "VALIDATED", t0 + 10), change("L:b", "CANDIDATE", t0 + 10)], t0 + 10) == 2
+
+    rep = rt.revert_knowledge(1)
+    assert rep["new_version"] == 3 and orch.knowledge_version == 3
+    assert ex.lessons["L:a"][-1]["status"] == "CANDIDATE" and ex.lessons["L:a"][-1]["version"] == 3
+    assert ex.lessons["L:b"][-1]["status"] == "RETIRED"
+    # Learning carries on without reusing a version number anywhere.
+    assert orch._commit_knowledge([change("L:a", "VALIDATED", t0 + 20)], t0 + 20) == 4
+    with pytest.raises(ValueError):
+        rt.revert_knowledge(99)
+
+    rt2, _ = build(tmp_path)
+    assert rt2.orch.knowledge_version == 4
+    assert rt2.experience.lessons["L:a"][-1]["status"] == "VALIDATED"
+    assert rt2.experience.lessons["L:b"][-1]["status"] == "RETIRED"
+    assert [r["version"] for r in rt2.db.query("SELECT version FROM knowledge_versions ORDER BY seq")] == [1, 2, 3, 4]
+    assert all(rt2.db.verify_chain(tb)[0] for tb in ("lessons", "knowledge_versions"))
+
+
+def test_skipped_candidates_outcomes_survive_a_restart(tmp_path):
+    from aitrader.learning.experience import Evaluation
+
+    rt, clock = build(tmp_path)
+    e = Evaluation("d-1", "EURUSD", clock() - 7200, clock() - 3600, "trend", "T1:BUY", 1, "RANGING", "HIGH_VOL",
+                   "london", ("SPREAD_WIDE",), False, -0.4, 0.1, 0.5, {"adversary_llm": "SELL"})
+    import dataclasses
+    rt.db.append("evaluations", {"decision_id": "d-1", "payload": {"evaluations": [dataclasses.asdict(e)]}})
+    rt2, _ = build(tmp_path)
+    assert rt2.experience.summary()["resolved"] == 1
+    got = rt2.experience.resolved[0]
+    assert got == e
+
+
+def test_cycles_monitoring_and_scans_never_overlap(tmp_path):
+    """A dashboard scan during a scheduled cycle must wait, not run beside it."""
+    import time as _time
+
+    rt, _ = build(tmp_path)
+    rt.regime = object()  # any loaded model: the cycle below is a stand-in
+    inside, peak = [0], [0]
+
+    def slow_cycle(t, symbols=None):
+        inside[0] += 1
+        peak[0] = max(peak[0], inside[0])
+        _time.sleep(0.15)
+        inside[0] -= 1
+        return {"t": t, "decisions": []}
+
+    rt.orch.cycle = slow_cycle
+    threads = [threading.Thread(target=rt.run_cycle) for _ in range(3)] + [threading.Thread(target=rt.monitor_once)]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+    assert peak[0] == 1

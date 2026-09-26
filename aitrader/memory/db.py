@@ -32,12 +32,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # 2: evaluations (shadow outcomes, for restart)
 
 IMMUTABLE = (
     "events", "decisions", "agent_reports", "risk_verdicts", "trades", "episodes",
     "postmortems", "reflections", "lessons", "knowledge_versions", "experiments",
-    "experiment_verdicts", "performance_snapshots",
+    "experiment_verdicts", "performance_snapshots", "evaluations",
 )
 
 _SCHEMA = """
@@ -118,6 +118,10 @@ CREATE TABLE IF NOT EXISTS experiment_verdicts (
 CREATE TABLE IF NOT EXISTS performance_snapshots (
   seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL,
   payload TEXT NOT NULL, prev_hash TEXT NOT NULL, hash TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS evaluations (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL,
+  decision_id TEXT NOT NULL, payload TEXT NOT NULL, prev_hash TEXT NOT NULL, hash TEXT NOT NULL);
 
 CREATE TABLE IF NOT EXISTS paper_account (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated REAL NOT NULL);
 """

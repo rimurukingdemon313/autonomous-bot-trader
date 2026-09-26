@@ -21,6 +21,7 @@ Event types written to the immutable log (a subset in backtests, see
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import time
 import traceback
@@ -282,14 +283,21 @@ class Orchestrator:
         outcomes = np.array([[by_action[a].r for a in self.memory.action_keys]], dtype=float)
         resolved_at = max(leg.exit_time for leg in tr.legs)
         self.memory.add(tr.features[None, :], outcomes, np.array([resolved_at]), tr.symbol, np.array([tr.decision_time]))
+        shadows = []
         for c in tr.context["candidates"]:
             if c["traded"]:
                 continue  # its real result arrives with the closed trade
             leg = by_action[c["action"]]
-            self.experience.record(Evaluation(
+            e = Evaluation(
                 tr.key, tr.symbol, tr.decision_time, leg.exit_time, c["family"], c["action"], c["direction"],
                 tr.context["regime"], tr.context["vol"], session_of(tr.decision_time), tuple(c["objections"]),
-                False, float(leg.r), c["predicted_r"], c["predicted_win"], dict(tr.context["llm"])))
+                False, float(leg.r), c["predicted_r"], c["predicted_win"], dict(tr.context["llm"]))
+            self.experience.record(e)
+            shadows.append(e)
+        if shadows and self.cfg.journal == "full":
+            # Journalled so a restart rebuilds the same experience, skipped candidates included.
+            self.db.append("evaluations", {"decision_id": tr.key, "payload": {
+                "evaluations": [dataclasses.asdict(e) for e in shadows]}})
         if tr.context.get("journal") and self.cfg.journal == "full" and tr.context["decision"] == "NO_TRADE":
             with self.db.tx() as conn:
                 if not conn.execute("SELECT 1 FROM episodes WHERE decision_id=?", (tr.key,)).fetchone():
@@ -370,14 +378,33 @@ class Orchestrator:
         self._last_learn = t
         changes = self.experience.learn(t)
         if changes:
-            self.knowledge_version += 1
-            self.versions["knowledge"] = self.knowledge_version
-            active = [v[-1]["lesson_id"] for v in self.experience.lessons.values() if v[-1]["status"] == "VALIDATED"]
-            self.db.append("knowledge_versions", {"version": self.knowledge_version, "payload": {
-                "t": t, "changes": [{"lesson": c["lesson_id"], "version": c["version"], "status": c["status"]} for c in changes],
-                "active_lessons": active, "parent": self.knowledge_version - 1}})
-            self._event("KNOWLEDGE_VERSION_UPDATED", {"version": self.knowledge_version, "active": active}, key=True)
+            self._commit_knowledge(changes, t)
         return changes
+
+    def _commit_knowledge(self, changes: list[dict], t: int, **extra) -> int:
+        """Record lesson changes as a new knowledge version. Versions only ever increase."""
+        latest = (self.db.one("SELECT MAX(version) AS v FROM knowledge_versions") or {}).get("v") or 0
+        parent = self.knowledge_version
+        self.knowledge_version = max(latest, parent) + 1
+        self.versions["knowledge"] = self.knowledge_version
+        active = [v[-1]["lesson_id"] for v in self.experience.lessons.values() if v[-1]["status"] == "VALIDATED"]
+        self.db.append("knowledge_versions", {"version": self.knowledge_version, "payload": {
+            "t": t, "changes": [{"lesson": c["lesson_id"], "version": c["version"], "status": c["status"]} for c in changes],
+            "active_lessons": active, "parent": parent, **extra}})
+        self._event("KNOWLEDGE_VERSION_UPDATED", {"version": self.knowledge_version, "active": active, **extra}, key=True)
+        return self.knowledge_version
+
+    def revert_knowledge(self, target: int, t: int) -> dict:
+        """Undo every lesson change made after knowledge version `target`, as a NEW version."""
+        if not 0 <= target <= self.knowledge_version:
+            raise ValueError(f"version must be between 0 and {self.knowledge_version}")
+        undone = set()
+        for row in self.db.query("SELECT payload FROM knowledge_versions WHERE version>? ORDER BY version", (target,)):
+            undone |= {(c["lesson"], c["version"]) for c in json.loads(row["payload"]).get("changes", [])}
+        changes = self.experience.restore(undone, t)
+        version = self._commit_knowledge(changes, t, revert_to=target)
+        return {"reverted_to": target, "new_version": version,
+                "changes": [{"lesson": c["lesson_id"], "version": c["version"], "status": c["status"]} for c in changes]}
 
     def reflect(self, t: int) -> dict:
         self._trades_since_reflect = 0

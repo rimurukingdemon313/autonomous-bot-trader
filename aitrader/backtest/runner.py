@@ -60,6 +60,7 @@ class BacktestConfig:
     risk: RiskLimits = field(default_factory=RiskLimits)
     start_balance: float = 20_000.0
     db_path: str = ":memory:"
+    journal: str = "trades"  # "full" also journals every NO_TRADE and shadow outcome, as the service does
 
 
 class _Clock:
@@ -127,7 +128,7 @@ def run(cfg: BacktestConfig, series: dict[str, BarSeries], progress: Callable[[s
     experience = ExperienceView()
     versions = {**stamp(), "synthesis_mode": cfg.synthesis.mode, "learning": cfg.learning_enabled, "backtest": cfg.name}
     orch = Orchestrator(
-        OrchestratorConfig(cfg.symbols, mode="BACKTEST", journal="trades", events="key",
+        OrchestratorConfig(cfg.symbols, mode="BACKTEST", journal=cfg.journal, events="key",
                            start_balance=cfg.start_balance, costs=cfg.costs, learning_enabled=cfg.learning_enabled),
         db=db, feed=feed, broker=broker, brain=brain, risk=RiskEngine(replace(cfg.risk, max_quote_age_s=3600)),
         execution=execution, experience=experience, memory=memory,

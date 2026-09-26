@@ -136,6 +136,10 @@ class Runtime:
                       "llm": self.llm.config.public()["model"] or "none"})
         self.health: dict = {"reconcile": None, "last_cycle": None, "last_cycle_error": None, "cycles": 0}
         self._stop = threading.Event()
+        # One writer of orchestrator state at a time: the scheduler, a dashboard
+        # "scan now", bar monitoring and a knowledge revert would otherwise race,
+        # and two cycles could each see no open position and each open one.
+        self._cycle_lock = threading.RLock()
         self._threads: list[threading.Thread] = []
         self._last_bar_seen: dict[str, int] = {}
         self._reconcile_at_start()
@@ -207,7 +211,11 @@ class Runtime:
     def _replay_experience(self) -> None:
         """Rebuild point-in-time experience from the immutable episodes after a restart."""
         from ..learning.experience import Evaluation, session_of
-        n = 0
+        n = shadows = 0
+        for row in self.db.query("SELECT payload FROM evaluations ORDER BY seq"):
+            for e in json.loads(row["payload"])["evaluations"]:
+                self.experience.record(Evaluation(**{**e, "objections": tuple(e["objections"])}))
+                shadows += 1
         for row in self.db.query("SELECT payload FROM episodes WHERE kind='TRADE' ORDER BY seq"):
             p = json.loads(row["payload"])
             d = p.get("decision") or {}
@@ -224,7 +232,8 @@ class Runtime:
         for row in self.db.query("SELECT payload FROM lessons ORDER BY seq"):
             v = json.loads(row["payload"])
             self.experience.lessons.setdefault(v["lesson_id"], []).append(v)
-        log_event("STARTUP", f"experience restored: {n} closed trades, {len(self.experience.lessons)} lessons")
+        log_event("STARTUP", f"experience restored: {n} closed trades, {shadows} shadow outcomes, "
+                             f"{len(self.experience.lessons)} lessons")
 
     def _reconcile_at_start(self) -> None:
         try:
@@ -252,7 +261,10 @@ class Runtime:
 
     def run_cycle(self, t: int | None = None, decide: bool = True) -> dict:
         """One cycle. `decide=False` only advances bookkeeping: outcomes, closures, time exits."""
-        t = int(t or self.clock())
+        with self._cycle_lock:
+            return self._run_cycle_locked(int(t or self.clock()), decide)
+
+    def _run_cycle_locked(self, t: int, decide: bool) -> dict:
         if self.regime is None:
             self.health["last_cycle_error"] = (f"no regime model: knowledge base "
                                                f"{self.knowledge_meta.get('integrity', 'MISSING')}, no decisions made")
@@ -269,6 +281,10 @@ class Runtime:
 
     def monitor_once(self) -> None:
         """Feed newly closed bars to the paper broker and the outcome tracker."""
+        with self._cycle_lock:
+            self._monitor_locked()
+
+    def _monitor_locked(self) -> None:
         now = self.clock()
         for s in self.cfg.symbols:
             bars = self.feed.bars(s, now, 3)
@@ -331,22 +347,14 @@ class Runtime:
         self.db.set_kv("halted", False, reason="operator cleared halt (authenticated)")
 
     def revert_knowledge(self, version: int) -> dict:
-        """Reversible learning: deactivate every lesson change after `version`."""
-        rows = self.db.query("SELECT payload FROM knowledge_versions WHERE version>? ORDER BY version", (version,))
-        reverted = []
-        for r in rows:
-            for ch in json.loads(r["payload"]).get("changes", []):
-                versions = self.experience.lessons.get(ch["lesson"], [])
-                keep = [v for v in versions if v["version"] < ch["version"]]
-                if len(keep) != len(versions):
-                    self.experience.lessons[ch["lesson"]] = keep
-                    reverted.append(ch)
-        self.orch.knowledge_version = version
-        latest = (self.db.one("SELECT MAX(version) AS v FROM knowledge_versions") or {}).get("v") or 0
-        self.db.append("knowledge_versions", {"version": latest + 1,
-                                              "payload": {"t": self.clock(), "revert_to": version, "reverted": reverted}})
-        self.db.event("KNOWLEDGE_VERSION_REVERTED", {"to": version, "reverted": reverted})
-        return {"reverted": reverted, "active_version": version}
+        """Reversible learning (authenticated): undo every lesson change after `version`.
+
+        The revert is itself a new, higher knowledge version; nothing is deleted.
+        """
+        with self._cycle_lock:
+            rep = self.orch.revert_knowledge(int(version), self.clock())
+        self.db.event("KNOWLEDGE_VERSION_REVERTED", rep)
+        return rep
 
     # ── read models for the API ─────────────────────────────────────────
 

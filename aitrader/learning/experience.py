@@ -256,6 +256,33 @@ class ExperienceView:
                     changes.append(self._new_version(lid, "RETIRED", t, retirement=ev))
         return changes
 
+    def restore(self, undone: set[tuple[str, int]], t: int) -> list[dict]:
+        """Undo lesson changes by APPENDING versions, never by deleting them.
+
+        Each lesson touched by an undone change gets a new version, effective
+        at t, carrying its state from before those changes; a lesson that did
+        not exist before them is RETIRED. Version numbers are never reused, so
+        the immutable lessons table and a restart both see the revert.
+        """
+        out = []
+        for lid in sorted({lesson for lesson, _ in undone}):
+            versions = self.lessons.get(lid, [])
+            if not versions:
+                continue
+            keep = [v for v in versions if (lid, v["version"]) not in undone]
+            target, cur = (keep[-1] if keep else None), versions[-1]
+            if target is None:
+                if cur["status"] in ("RETIRED", "REJECTED"):
+                    continue
+                out.append(self._new_version(lid, "RETIRED", t, reverted=True,
+                                             reason="operator revert: the lesson did not exist at the target version"))
+            elif cur["status"] != target["status"]:
+                data = {k: v for k, v in target.items()
+                        if k not in ("lesson_id", "version", "status", "effective", "learning_version")}
+                out.append(self._new_version(lid, target["status"], t, **{**data, "reverted": True,
+                                             "reason": f"operator revert: restored version {target['version']}"}))
+        return out
+
     def summary(self) -> dict:
         counts: dict[str, int] = {}
         for versions in self.lessons.values():

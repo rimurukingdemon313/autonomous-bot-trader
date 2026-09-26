@@ -181,7 +181,10 @@ def make_handler(rt: Runtime, token: str):
                         v = int(body.get("version"))
                     except (TypeError, ValueError):
                         return self._send(400, {"error": "version must be an integer"})
-                    return self._send(200, rt.revert_knowledge(v))
+                    try:
+                        return self._send(200, rt.revert_knowledge(v))
+                    except ValueError as exc:
+                        return self._send(400, {"error": str(exc)})
             return self._send(404, {"error": "not found"})
 
     return Handler
