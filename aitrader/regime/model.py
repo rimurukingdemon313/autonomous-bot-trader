@@ -117,7 +117,9 @@ class RegimeModel:
         dist = self.familiarity(values)
         familiar = bool(np.isfinite(dist) and dist <= self.familiarity_threshold)
         if not familiar:
-            reasons.append(f"unfamiliar state: distance {dist:.2f} > {self.familiarity_threshold:.2f}")
+            missing = [f for f in self.features if not np.isfinite(values.get(f, np.nan))]
+            reasons.append(f"unfamiliar state: missing inputs {missing}" if missing else
+                           f"unfamiliar state: distance {dist:.2f} > {self.familiarity_threshold:.2f}")
         if not all(np.isfinite(v) for v in (vr, er, slope, spread)):
             return RegimeState("ABNORMAL", "NORMAL_VOL", 0, True, dist, False, tuple(reasons + ["missing regime inputs"]))
 

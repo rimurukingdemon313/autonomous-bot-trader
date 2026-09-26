@@ -135,3 +135,16 @@ def test_memory_round_trips_through_a_file(tmp_path):
 
 def test_analog_features_all_exist_in_the_store():
     assert all(f in INDEX for f in ANALOG_FEATURES)
+
+
+def test_an_unfamiliar_verdict_names_the_inputs_it_could_not_read():
+    """A live feed without tick volume must say so, not look like a strange market."""
+    rng = np.random.default_rng(3)
+    from aitrader.features.store import NAMES
+    m = rng.normal(size=(2000, len(NAMES)))
+    model = RegimeModel.fit(m, np.arange(2000), trained_until=10_000)
+    vals = {n: float(m[5, i]) for i, n in enumerate(NAMES)}
+    vals["tick_activity"] = float("nan")
+    st = model.classify(vals)
+    assert not st.familiar
+    assert any("tick_activity" in r for r in st.reasons)

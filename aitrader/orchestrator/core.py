@@ -91,7 +91,9 @@ class Orchestrator:
         self.experience.on_lesson = self._on_lesson
         self._last_learn = 0
         self._trades_since_reflect = 0
-        self._postmortems: list[dict] = []
+        # Reflection reads recent post-mortems; after a restart they come from the journal.
+        self._postmortems: list[dict] = [json.loads(r["payload"]) for r in db.query(
+            "SELECT payload FROM (SELECT seq, payload FROM postmortems ORDER BY seq DESC LIMIT 500) ORDER BY seq")]
         self._closed_r: list[float] = [r["r"] for r in db.query("SELECT r FROM trades ORDER BY seq") if r["r"] is not None]
         self.knowledge_version = (db.one("SELECT MAX(version) AS v FROM knowledge_versions") or {}).get("v") or 0
         self.versions["knowledge"] = self.knowledge_version

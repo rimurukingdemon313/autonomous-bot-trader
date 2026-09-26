@@ -260,3 +260,11 @@ def test_cycles_monitoring_and_scans_never_overlap(tmp_path):
     for th in threads:
         th.join()
     assert peak[0] == 1
+
+
+def test_postmortems_survive_a_restart_for_reflection(tmp_path):
+    rt, _ = build(tmp_path)
+    for i in range(3):
+        rt.db.append("postmortems", {"episode_id": f"ep-{i}", "payload": {"cause": "STOP_BEFORE_THESIS", "i": i}})
+    rt2, _ = build(tmp_path)
+    assert [p["i"] for p in rt2.orch._postmortems] == [0, 1, 2]
