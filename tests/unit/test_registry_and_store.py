@@ -73,7 +73,11 @@ def test_committed_registry_and_seal_are_consistent():
     h = Holdout.load(ROOT / "research" / "holdout.json")
     reg = Registry.load(ROOT / "research" / "registry.jsonl", h)
     assert reg.tests_on(h.universe) >= 16
-    assert reg.is_unseen(h.universe, date(2007, 1, 1), date(2012, 11, 1))
+    # The archive never touched 2007 .. 2012-10 (this project's own registered
+    # experiments may, and are counted like any other).
+    archive = [t for t in reg.touching(h.universe, date(2007, 1, 1), date(2012, 11, 1))
+               if t.registered < h.sealed_at]
+    assert archive == []
     # Nothing registered after the seal may have touched the holdout except
     # a final test (none exists yet).
     post = [t for t in reg.touching(h.universe, h.start, date.max) if t.registered >= h.sealed_at]
