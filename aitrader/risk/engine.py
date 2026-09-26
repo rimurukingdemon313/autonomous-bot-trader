@@ -1,0 +1,248 @@
+"""The deterministic risk engine: final authority, only source of size.
+
+The AI proposes; this decides whether anything is sent, and at what size
+(RISK_CONTRACT.md). Properties, each tested:
+
+- It is the ONLY code that computes a position size or a risk amount.
+- Size depends on equity, the stop distance and the limits. It does NOT
+  depend on the decision's confidence, expected edge or anything else the
+  AI says about itself: a more confident AI cannot buy a bigger position.
+- Risk may be reduced by adverse state (loss streak, drawdown) and is never
+  increased by it. There is no martingale and no "recover the loss" branch.
+- Fail closed: unreadable kill switch, unknown equity, stale or missing
+  quote, missing instrument spec -> rejected.
+- Every check is recorded, passed or failed, so a rejection names its cause.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from math import floor
+
+RISK_VERSION = "risk-1.0.0"
+
+#: No configuration can take per-trade risk above this.
+HARD_MAX_RISK_PCT = 1.0
+
+
+@dataclass(frozen=True)
+class FundedRules:
+    """A funded/prop account's constraints, supplied by the operator. Never guessed."""
+
+    name: str
+    daily_loss_pct: float | None = None
+    max_loss_pct: float | None = None  # from the starting balance
+    trailing_drawdown_pct: float | None = None  # from the equity peak
+    max_risk_per_trade_pct: float | None = None
+    no_weekend_holding: bool = False
+    max_lots: float | None = None
+
+
+@dataclass(frozen=True)
+class RiskLimits:
+    risk_per_trade_pct: float = 0.5
+    daily_loss_limit_pct: float = 2.0
+    max_drawdown_pct: float = 8.0
+    max_open_positions: int = 3
+    max_positions_per_currency: int = 2
+    max_leverage: float = 10.0
+    max_spread_to_stop: float = 0.25
+    min_reward_risk: float = 1.2
+    min_stop_spreads: float = 3.0
+    max_quote_age_s: int = 30
+    loss_streak_step: int = 3  # every N consecutive losses halves risk...
+    loss_streak_floor: float = 0.25  # ...down to this multiple
+    funded: FundedRules | None = None
+
+    def effective_risk_pct(self) -> float:
+        pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT)
+        if self.funded and self.funded.max_risk_per_trade_pct is not None:
+            pct = min(pct, self.funded.max_risk_per_trade_pct)
+        return max(0.0, pct)
+
+
+@dataclass(frozen=True)
+class InstrumentSpec:
+    symbol: str
+    contract_size: float  # units of base per lot
+    min_lot: float
+    lot_step: float
+    max_lot: float
+    #: account-currency value of a 1.0 move in price, per unit of base
+    value_per_price_unit: float
+    tradable: bool = True
+
+
+@dataclass(frozen=True)
+class Quote:
+    symbol: str
+    bid: float
+    ask: float
+    time: int
+
+
+@dataclass
+class AccountState:
+    equity: float | None
+    balance: float | None
+    day_start_equity: float | None
+    peak_equity: float | None
+    start_balance: float | None
+    open_positions: list[dict] = field(default_factory=list)  # symbol, side, qty, risk_amount, notional
+    closed_r: list[float] = field(default_factory=list)  # closed-trade R, oldest first
+    kill_switch: bool | None = False  # None = could not be read
+    paused: bool = False
+    halted: bool = False
+
+
+@dataclass
+class Check:
+    name: str
+    passed: bool
+    detail: str
+
+
+@dataclass
+class RiskVerdict:
+    decision_id: str
+    approved: bool
+    qty: float = 0.0
+    risk_amount: float = 0.0
+    risk_pct: float = 0.0
+    entry_ref: float | None = None
+    stop: float | None = None
+    target: float | None = None
+    checks: list[Check] = field(default_factory=list)
+    halt: str | None = None
+    version: str = RISK_VERSION
+
+    @property
+    def reasons(self) -> list[str]:
+        return [f"{c.name}: {c.detail}" for c in self.checks if not c.passed]
+
+    def as_dict(self) -> dict:
+        d = asdict(self)
+        d["reasons"] = self.reasons
+        return d
+
+
+def streak_multiplier(closed_r: list[float], step: int, floor_: float) -> float:
+    """Risk multiple after the current run of consecutive losses. Never above 1."""
+    run = 0
+    for r in reversed(closed_r):
+        if r is None:
+            break
+        if r < 0:
+            run += 1
+        else:
+            break
+    return max(floor_, 0.5 ** (run // step)) if step > 0 else 1.0
+
+
+class RiskEngine:
+    def __init__(self, limits: RiskLimits = RiskLimits()) -> None:
+        self.limits = limits
+
+    def evaluate(self, decision, account: AccountState, spec: InstrumentSpec | None, quote: Quote | None,
+                 now: int, executed_ids: set[str] | frozenset = frozenset()) -> RiskVerdict:
+        L = self.limits
+        v = RiskVerdict(decision.id, False)
+        checks = v.checks
+
+        def check(name: str, ok: bool, detail: str) -> bool:
+            checks.append(Check(name, bool(ok), detail))
+            return bool(ok)
+
+        # ── switches and state: fail closed ─────────────────────────────
+        ok = check("kill_switch", account.kill_switch is False,
+                   "active" if account.kill_switch else ("unreadable: treated as active" if account.kill_switch is None else "off"))
+        ok &= check("paused", not account.paused, "trading paused" if account.paused else "running")
+        ok &= check("halted", not account.halted, "halted: human action required" if account.halted else "not halted")
+        ok &= check("decision", decision.decision in ("BUY", "SELL"), f"decision is {decision.decision}")
+        ok &= check("duplicate", decision.id not in executed_ids, "decision already executed" if decision.id in executed_ids else "new")
+        eq = account.equity
+        ok &= check("equity", eq is not None and eq > 0, f"equity {eq}")
+        ok &= check("spec", spec is not None and spec.tradable, "instrument spec missing or not tradable" if not (spec and spec.tradable) else "ok")
+        fresh = quote is not None and quote.bid > 0 and quote.ask >= quote.bid and now - quote.time <= L.max_quote_age_s
+        ok &= check("quote", fresh, "no quote" if quote is None else f"age {now - quote.time}s, bid {quote.bid}, ask {quote.ask}")
+        if not ok:
+            return v
+
+        side = 1 if decision.decision == "BUY" else -1
+        entry = quote.ask if side > 0 else quote.bid
+        stop, target = decision.stop_loss, decision.take_profit
+        spread = quote.ask - quote.bid
+        v.entry_ref, v.stop, v.target = entry, stop, target
+
+        # ── the trade itself ────────────────────────────────────────────
+        ok &= check("stop_side", stop is not None and (entry - stop) * side > 0,
+                    f"stop {stop} vs live entry {entry}")
+        ok &= check("target_side", target is not None and (target - entry) * side > 0,
+                    f"target {target} vs live entry {entry}")
+        if not ok:
+            return v
+        stop_dist = abs(entry - stop)
+        rr = abs(target - entry) / stop_dist
+        ok &= check("reward_risk", rr >= L.min_reward_risk, f"{rr:.2f} vs minimum {L.min_reward_risk}")
+        ok &= check("stop_distance", stop_dist >= L.min_stop_spreads * spread,
+                    f"stop {stop_dist:.6g} vs {L.min_stop_spreads} x spread {spread:.6g}")
+        ok &= check("spread", spread / stop_dist <= L.max_spread_to_stop,
+                    f"spread is {spread / stop_dist:.1%} of the stop (max {L.max_spread_to_stop:.0%})")
+
+        # ── account limits ──────────────────────────────────────────────
+        dse = account.day_start_equity or eq
+        day = (eq - dse) / dse * 100 if dse else 0.0
+        daily_limit = L.daily_loss_limit_pct
+        if L.funded and L.funded.daily_loss_pct is not None:
+            daily_limit = min(daily_limit, L.funded.daily_loss_pct)
+        ok &= check("daily_loss", day > -daily_limit, f"today {day:+.2f}% vs limit -{daily_limit}%")
+        peak = account.peak_equity or eq
+        dd = (eq - peak) / peak * 100 if peak else 0.0
+        max_dd = L.max_drawdown_pct
+        if L.funded and L.funded.trailing_drawdown_pct is not None:
+            max_dd = min(max_dd, L.funded.trailing_drawdown_pct)
+        if not check("drawdown", dd > -max_dd, f"drawdown {dd:.2f}% vs limit -{max_dd}%"):
+            v.halt = f"max drawdown {dd:.2f}% breached"
+        if L.funded and L.funded.max_loss_pct is not None and account.start_balance:
+            total = (eq - account.start_balance) / account.start_balance * 100
+            ok &= check("funded_max_loss", total > -L.funded.max_loss_pct,
+                        f"total {total:+.2f}% vs funded limit -{L.funded.max_loss_pct}%")
+        ok = ok and v.halt is None
+        opens = account.open_positions
+        ok &= check("open_positions", len(opens) < L.max_open_positions, f"{len(opens)} open, max {L.max_open_positions}")
+        ok &= check("same_symbol", all(p["symbol"] != decision.instrument for p in opens),
+                    "a position in this instrument is already open" if any(p["symbol"] == decision.instrument for p in opens) else "none open")
+        ccy = {decision.instrument[:3], decision.instrument[3:]}
+        per_ccy = max((sum(1 for p in opens if c in (p["symbol"][:3], p["symbol"][3:])) for c in ccy), default=0)
+        ok &= check("currency_exposure", per_ccy < L.max_positions_per_currency,
+                    f"{per_ccy} open positions share a currency, max {L.max_positions_per_currency}")
+        if L.funded and L.funded.no_weekend_holding:
+            wd = datetime.fromtimestamp(now, timezone.utc)
+            ok &= check("funded_weekend", not (wd.weekday() == 4 and wd.hour >= 16), "no new positions late Friday")
+        if not ok:
+            return v
+
+        # ── size: equity x risk%, never the AI's opinion ────────────────
+        mult = streak_multiplier(account.closed_r, L.loss_streak_step, L.loss_streak_floor)
+        risk_pct = L.effective_risk_pct() * mult
+        risk_amount = eq * risk_pct / 100.0
+        per_lot = stop_dist * spec.value_per_price_unit * spec.contract_size
+        raw = risk_amount / per_lot if per_lot > 0 else 0.0
+        lots = floor(raw / spec.lot_step + 1e-9) * spec.lot_step
+        lots = min(lots, spec.max_lot, L.funded.max_lots if (L.funded and L.funded.max_lots) else spec.max_lot)
+        ok &= check("min_lot", lots >= spec.min_lot,
+                    f"{raw:.4f} lots needed for {risk_pct:.3f}% risk; broker minimum {spec.min_lot}")
+        if not ok:
+            return v
+        actual = lots * per_lot
+        notional = lots * spec.contract_size * entry * spec.value_per_price_unit
+        exposure = sum(p.get("notional", 0.0) for p in opens) + notional
+        ok &= check("leverage", exposure / eq <= L.max_leverage, f"{exposure / eq:.2f}x vs max {L.max_leverage}x")
+        ok &= check("risk_ceiling", actual <= eq * HARD_MAX_RISK_PCT / 100 + 1e-9,
+                    f"risk {actual:.2f} vs ceiling {eq * HARD_MAX_RISK_PCT / 100:.2f}")
+        if not ok:
+            return v
+        checks.append(Check("streak", True, f"risk multiplier {mult:.2f} after recent losses (never above 1)"))
+        v.approved, v.qty, v.risk_amount, v.risk_pct = True, round(lots, 8), actual, actual / eq * 100
+        return v
