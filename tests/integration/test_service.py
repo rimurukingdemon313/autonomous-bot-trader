@@ -9,6 +9,8 @@ import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -268,3 +270,38 @@ def test_postmortems_survive_a_restart_for_reflection(tmp_path):
         rt.db.append("postmortems", {"episode_id": f"ep-{i}", "payload": {"cause": "STOP_BEFORE_THESIS", "i": i}})
     rt2, _ = build(tmp_path)
     assert [p["i"] for p in rt2.orch._postmortems] == [0, 1, 2]
+
+
+def test_a_failed_startup_serves_its_reason_and_never_trades(tmp_path):
+    """Startup incomplete: no trading, but health answers 503 with why (the real process, over HTTP)."""
+    import os
+    import socket
+    import subprocess
+    import sys
+    import time as _time
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    blocker = tmp_path / "not-a-directory"
+    blocker.write_text("x")
+    env = {**os.environ, "MODE": "PAPER", "PORT": str(port), "DATA_DIR": str(blocker / "data"),
+           "DASHBOARD_TOKEN": "t", "PYTHONPATH": str(Path(__file__).resolve().parents[2])}
+    proc = subprocess.Popen([sys.executable, "-m", "aitrader"], env=env, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    try:
+        for _ in range(100):
+            try:
+                urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=1)
+            except urllib.error.HTTPError as e:
+                body = json.loads(e.read())
+                assert e.code == 503 and body["system"] == "STARTUP_FAILED"
+                assert "DATA_DIR" in body["reason"]
+                break
+            except OSError:
+                _time.sleep(0.1)
+        else:
+            raise AssertionError("the failed service never answered")
+    finally:
+        proc.kill()
+        proc.wait()

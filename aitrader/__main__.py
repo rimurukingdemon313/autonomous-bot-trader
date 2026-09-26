@@ -15,8 +15,15 @@ def main() -> int:
         log_event("STARTUP", f"configuration refused: {exc}", severity="critical")
         return 2
     from .service.runtime import Runtime
-    from .service.server import serve
-    serve(Runtime(cfg))
+    from .service.server import serve, serve_startup_failure
+    try:
+        rt = Runtime(cfg)
+    except Exception as exc:  # startup incomplete: no trading, but the failure must be visible
+        reason = f"{type(exc).__name__}: {exc} (DATA_DIR={cfg.data_dir})"
+        log_event("STARTUP", f"startup failed, not trading: {reason}", severity="critical")
+        serve_startup_failure(cfg.port, reason)
+        return 3
+    serve(rt)
     return 0
 
 

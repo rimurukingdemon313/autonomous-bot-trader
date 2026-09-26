@@ -26,6 +26,8 @@ Commands that reproduce the evidence:
 | 10 | An unfamiliar-state verdict from missing inputs looked like a strange market | an operator could not tell a feed without tick volume from a real outlier | the reason names the missing inputs | `test_an_unfamiliar_verdict_names_the_inputs_it_could_not_read` |
 | 11 | Reflection read post-mortems from memory only | after a restart, loss-cause history restarted from zero | the last 500 post-mortems are reloaded from the journal at start | `test_postmortems_survive_a_restart_for_reflection` |
 | 12 | The mutation audit itself left compiled mutants cached (same-size edit, same second) | a later run tested a mutant, not the code | no bytecode written during the audit; the module's cache is removed on restore | — |
+| 13 | The image ran as a non-root user, and Railway mounts volumes as root | on Railway the service could not create its database and crashed on start; found by building the image and mounting a root-owned directory at `/data` | `docker-entrypoint.sh` gives `/data` to uid 10001, then drops privileges before the service starts | checked in a local container: root-owned volume, database created under uid 10001, process runs as 10001, survives `docker restart` |
+| 14 | A startup failure crashed the process, so nothing answered | the platform showed a crash loop with no reason at the URL | the service serves 503 with the reason (naming `DATA_DIR`) and never trades | `test_a_failed_startup_serves_its_reason_and_never_trades` (the real process, over HTTP) |
 
 ## 2. Security
 
@@ -39,7 +41,7 @@ Commands that reproduce the evidence:
 | Controls | stop and pause need no token (making things safer is never locked); resume, clear-stop, scan, revert and verify need `DASHBOARD_TOKEN`, compared in constant time; with no token configured they are refused, not open | `test_resuming_or_initiating_needs_the_token`, `test_with_no_token_configured_dangerous_controls_are_refused_not_open`; mutant `token` |
 | Cross-site | no CORS headers: a browser cannot read the API from another origin, and a cross-origin request carrying the token header fails its preflight. A plain cross-site POST can only reach pause and kill, which are safe by design | `service/server.py` |
 | Static files | path traversal refused | `test_static_dashboard_is_served_and_path_traversal_is_refused` |
-| Container | non-root user, numpy only, health check | `Dockerfile` |
+| Container | the service runs as uid 10001 (root only long enough to take ownership of the volume), numpy only, health check | `Dockerfile`, `docker-entrypoint.sh`; checked in a built image |
 
 **Not done:** no external penetration test. There is no rate limiting on
 the token check. A long random token (see OPERATIONS.md) is the defence.
@@ -115,7 +117,7 @@ would still need the sealed holdout.
 | 14 | Is execution isolated from reasoning? | **Yes** | execution receives an approved verdict and may only refuse it |
 | 15 | Is duplicate execution protected? | **Yes** | deterministic client ids; `decision_id` UNIQUE on intents; a write is never resent; the cycle lock (defect 1) |
 | 16 | Does the system fail closed? | **Yes** | missing data, an agent error, a malformed model reply, an unreadable kill switch, a missing or mismatched knowledge base, unverified demo status: each leads to no trade (mutation audit) |
-| 17 | Does Railway restart recovery work? | **Verified locally, not on Railway** | state, kill switch, paper account, lessons, experience and intents survive a restart in tests; an intent interrupted mid-submit is reconciled by query. A real Railway redeploy has not been exercised from here |
+| 17 | Does Railway restart recovery work? | **Verified in the production image locally, not on Railway itself** | the image was built from the Dockerfile and run with a root-owned volume at `/data`, as Railway mounts one: healthy, knowledge VERIFIED, and state kept across `docker restart`. The tests cover the kill switch, paper account, lessons, experience and intents across a restart, and an intent interrupted mid-submit is reconciled by query. A real Railway deploy has not been exercised from here |
 | 18 | Is the dashboard using real backend state? | **Yes** | every panel reads an endpoint; missing values show N/A; no generated or sample data in the frontend |
 | 19 | Are secrets protected? | **Yes** | section 2 |
 | 20 | Can every trade decision be reconstructed later? | **Yes** | `test_every_trade_can_be_reconstructed_from_the_journal`; `GET /api/decisions/{id}` |
@@ -124,7 +126,9 @@ would still need the sealed holdout.
 
 - The TradeLocker adapter against the real API. The network policy blocks
   TradeLocker, so it is tested against a fake transport only.
-- A Railway deployment, and a restart there.
+- A Railway deployment itself. The production image was built and run
+  locally, with a root-owned volume and a restart. Railway's own build and
+  volume were not exercised.
 - Any language model. Weights and model APIs are unreachable, so the LLM
   layer is tested against a fake transport only.
 - Live-feed semantics. TradeLocker's spread is the current quote spread,

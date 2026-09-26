@@ -212,3 +212,28 @@ def serve(rt: Runtime, host: str = "0.0.0.0") -> None:
     rt.start()
     log_event("STARTUP", f"serving on {host}:{rt.cfg.port}", mode=rt.cfg.mode)
     httpd.serve_forever()
+
+
+def serve_startup_failure(port: int, reason: str) -> None:
+    """Startup failed: answer every request with 503 and the reason, and never trade.
+
+    The platform's health check fails, so the deploy is marked unhealthy,
+    and anyone opening the URL reads why instead of a connection error.
+    """
+    body = json.dumps({"ok": False, "system": "STARTUP_FAILED", "reason": reason}).encode()
+
+    class Failed(BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            pass
+
+        def _reply(self):
+            self.send_response(503)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
+        do_GET = do_POST = _reply
+
+    ThreadingHTTPServer(("0.0.0.0", port), Failed).serve_forever()

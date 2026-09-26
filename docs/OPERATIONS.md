@@ -23,7 +23,9 @@ restart or redeploy keeps every trade, decision, lesson and reflection.
    `rimurukingdemon313/autonomous-bot-trader`. The `Dockerfile` and
    `railway.json` are picked up automatically (health check `/healthz`,
    restart on failure).
-2. Add a **Volume**, mount path `/data`.
+2. Add a **Volume**, mount path `/data`. Railway mounts it owned by root;
+   the image's entrypoint hands it to the service user (uid 10001) and drops
+   root before the service starts. No extra setting is needed.
 3. Variables (Railway -> Variables; never in the repository) — see
    `.env.example` for the full list. Minimum for paper trading on live data:
    `MODE=PAPER`, `DATA_DIR=/data`, `DASHBOARD_TOKEN` (a long random string),
@@ -33,6 +35,11 @@ restart or redeploy keeps every trade, decision, lesson and reflection.
 
 Without TradeLocker credentials the service still starts and reports
 `DATA: NOT CONNECTED`; it makes no decisions on invented prices.
+
+If startup fails (for example the volume is not writable), the service
+does not trade. It answers every request with HTTP 503 and the reason
+(`{"system": "STARTUP_FAILED", "reason": ...}`), and the deploy's health
+check fails, so the reason is on the URL and in the logs.
 
 ## Modes
 
