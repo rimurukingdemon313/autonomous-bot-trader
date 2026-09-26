@@ -1,24 +1,29 @@
 # decision/
 
-**Status: empty. Phase 7.**
+**Status: implemented** in [`aitrader/decision/synthesis.py`](../aitrader/decision/synthesis.py)
+and [`aitrader/agents/`](../aitrader/agents/).
 
-## Purpose
-Turn model estimates into a single structured decision, **BUY**, **SELL**
-or **NO_TRADE**, and journal it before anything else happens.
+Five agents give a point-in-time view of the same evidence packet:
+**Market** (regime, familiarity), **Setup** (candidate action templates),
+**Risk** (costs and spread against the stop), **Adversary** (the case
+against, from a closed objection vocabulary) and **Reviewer** (analogue
+evidence and lessons). `brain.py` runs them; each has a deterministic core,
+and an optional language-model layer can only add objections.
 
-## Responsibilities (when built)
-- The decision record: decision, instrument, timeframe, timestamp, market
-  state, regime, familiarity, thesis, supporting and contradicting
-  evidence, entry, stop, target, exit logic, invalidation, probability,
-  expected R after costs with uncertainty, NO_TRADE reason, and every
-  version stamp.
-- NO_TRADE by default whenever evidence is insufficient, state is
-  unfamiliar, or any input is missing or malformed.
+The synthesis is **not a vote**. It is anchored on the lower bound of the
+historical-analogue expectancy (mean − 1.28 × SE over the k nearest
+resolved situations). MAJOR objections subtract their measured penalty.
+Any BLOCKING objection, an unfamiliar state, missing input or a malformed
+model reply gives **NO_TRADE**.
 
-## Boundaries
-- Never sets position size or risk amount.
-- Never forces a trade to meet a count, a target or a schedule.
-- Never sends anything to the broker. Its output goes to the risk engine.
+The decision record carries the direction, entry, stop, target,
+invalidation, expected R with its uncertainty, supporting and
+contradicting evidence, the NO_TRADE reason and every version stamp. It
+never carries a size: that is the risk engine's alone.
+
+Modes `rules` and `random` exist for the PR-001 ablation (variants A and R).
+
+Tests: `tests/unit/test_agents.py`, `tests/integration/test_pipeline.py`.
 
 ## Binding contracts
-[PROJECT_SPEC.md](../PROJECT_SPEC.md) §4, §8 · [RISK_CONTRACT.md](../RISK_CONTRACT.md)
+[ARCHITECTURE.md](../ARCHITECTURE.md) · [MODEL_CONTRACT.md](../MODEL_CONTRACT.md)

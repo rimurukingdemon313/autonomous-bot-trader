@@ -1,22 +1,20 @@
 # execution/
 
-**Status: empty. Phase 9.**
+**Status: implemented** in [`aitrader/execution/engine.py`](../aitrader/execution/engine.py).
 
-## Purpose
-Turn an approved, sized decision into exactly one broker action, and
-establish what actually happened.
+- The **intent is written before the order is sent**, with a deterministic
+  client id derived from the decision.
+- Right before submission it re-checks the kill switch (an unreadable one
+  counts as active), pause, account type, tradability, and that the live
+  price is still on the right side of the stop.
+- **No write is ever retried.** `AmbiguousExecution` leaves the intent
+  `UNKNOWN`; the only recovery is to find the order at the broker by its
+  client id. It is never resent.
+- On restart, every `UNKNOWN` intent is reconciled before any new decision.
+  Positions the system did not open start it **paused**.
+- It cannot change direction, size, stop or target. It can only refuse.
 
-## Responsibilities (when built)
-- Idempotent, duplicate-safe, state-aware, reconnect-safe order handling.
-- The intent is persisted before any order is sent.
-- Reconciliation on restart before any new order.
-- Final pre-submission checks: account type, kill switch, spread,
-  tradability, and that the order still matches its approval.
-
-## Boundaries
-- **Writes are never retried.** An ambiguous outcome is resolved by querying
-  the broker.
-- It may not change direction, size, stop or target. It may only refuse.
+Tests: `tests/unit/test_execution.py`, `tests/unit/test_tradelocker_adapter.py`.
 
 ## Binding contracts
-[EXECUTION_CONTRACT.md](../EXECUTION_CONTRACT.md) · [RISK_CONTRACT.md](../RISK_CONTRACT.md)
+[EXECUTION_CONTRACT.md](../EXECUTION_CONTRACT.md)

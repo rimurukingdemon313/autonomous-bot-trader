@@ -60,7 +60,6 @@ class BacktestConfig:
     risk: RiskLimits = field(default_factory=RiskLimits)
     start_balance: float = 20_000.0
     db_path: str = ":memory:"
-    delay_bars: int = 0
 
 
 class _Clock:

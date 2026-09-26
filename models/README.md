@@ -1,22 +1,32 @@
 # models/
 
-**Status: empty. Phase 5 and later.**
+**Status: the research knowledge base is built by
+[`scripts/build_knowledge.py`](../scripts/build_knowledge.py) into
+`models/artifacts/`.**
 
-## Purpose
-Model cards and references to frozen model artifacts. Large binary
-artifacts are not committed to Git; their content hashes and cards are.
+| File | What it is |
+|---|---|
+| `artifacts/memory.npz` | Historical-analogue memory: one row per past decision situation (18 standardised features) with the realised R of every action template, and the time each outcome became known. float16 on disk. |
+| `artifacts/regime.json` | Regime quantiles and the familiarity distribution, fitted on training rows only. |
+| `artifacts/knowledge_card.json` | The card: data range (always before the sealed holdout), symbols, dataset hashes, feature/label/memory/regime versions, code commit, the SHA-256 of the two files above, and its **status**. |
 
-## Responsibilities (when built)
-- One card per model version: ID, version, training / validation /
-  out-of-sample periods, feature, data, code and research versions,
-  hyperparameters, validation results, calibration, known limits, status.
-- Artifacts are immutable and identified by content hash.
+## Loading rules (enforced in `aitrader/service/runtime.py`)
 
-## Boundaries
-- Production loads only VALIDATED or FROZEN artifacts, and verifies the
-  hash. A missing or mismatched artifact means NO_TRADE, never a fallback.
-- No model modifies itself in production.
-- No model computes position size or risk.
+- The service loads the base only if SHA-256(`memory.npz` + `regime.json`)
+  equals the card's `sha256`. A missing card or file, or a different hash,
+  loads **nothing**: no regime model means no cycle decides. The dashboard
+  shows `KNOWLEDGE: MISSING | INCOMPLETE | MISMATCH`.
+- The card's status is shown as it is. A `RESEARCH_CANDIDATE` may run in
+  paper or demo as a forward test (docs/SYSTEM_LIFECYCLE.md, Amendment 1),
+  labelled unvalidated. LIVE needs a VALIDATED status and every gate.
+- The running system grows its own memory from forward outcomes
+  (`DATA_DIR/memory_live.npz`). It never rewrites the base.
+- No model computes a position size or a risk amount.
+
+## Language models
+
+No model weights live here. The optional language-model layer is a
+provider configured by environment variables (docs/AI_MODELS.md).
 
 ## Binding contracts
 [MODEL_CONTRACT.md](../MODEL_CONTRACT.md) · [docs/VERSIONING.md](../docs/VERSIONING.md)

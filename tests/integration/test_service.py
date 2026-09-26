@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 import urllib.error
@@ -27,14 +28,15 @@ class Clock:
     def __call__(self): return self.t
 
 
-def build(tmp_path, token=TOKEN):
+def build(tmp_path, token=TOKEN, knowledge_dir=None):
     data = {"EURUSD": market("EURUSD", START, 24 * 7 * 20, 1, 1.30), "GBPUSD": market("GBPUSD", START, 24 * 7 * 20, 2, 1.55)}
     feed = ReplayFeed(data)
     clock = Clock(int(data["EURUSD"].available_at[2000]))
     cfg = ServiceConfig(mode="PAPER", data_dir=str(tmp_path), port=0, symbols=("EURUSD", "GBPUSD"),
                         dashboard_token=token)
     broker = PaperBroker(feed, clock, None, start_balance=20_000)
-    rt = Runtime(cfg, feed=feed, broker=broker, clock=clock)
+    # Never the repository's own models/artifacts: a test must not depend on what was last built.
+    rt = Runtime(cfg, feed=feed, broker=broker, clock=clock, knowledge_dir=knowledge_dir or tmp_path / "no-kb")
     broker.db = rt.db
     return rt, clock
 
@@ -78,6 +80,42 @@ def test_missing_knowledge_is_reported_not_papered_over(server):
     assert rep["decisions"] == []
     st = call(base, "/api/status")[1]
     assert "knowledge" in st["last_cycle_error"] or st["components"]["regime_model"] in ("MISSING", "LOADED")
+
+
+def _write_kb(d, tamper=False):
+    from aitrader.features.store import compute_matrix
+    from aitrader.memory.patterns import PatternMemory
+    from aitrader.orchestrator.tracker import ACTIONS
+    from aitrader.regime.model import RegimeModel
+
+    s = market("EURUSD", START, 24 * 7 * 20, 1, 1.30)
+    reg = RegimeModel.fit(compute_matrix(s), s.available_at, trained_until=int(s.available_at[-1]))
+    d.mkdir()
+    PatternMemory(np.zeros(18), np.ones(18), ACTIONS).save(d / "memory.npz")
+    (d / "regime.json").write_text(reg.to_json())
+    digest = hashlib.sha256((d / "memory.npz").read_bytes() + (d / "regime.json").read_bytes()).hexdigest()
+    (d / "knowledge_card.json").write_text(json.dumps({"id": "kb-test", "hash": digest[:16], "sha256": digest}))
+    if tamper:
+        (d / "regime.json").write_text(reg.to_json() + " ")
+
+
+def test_a_knowledge_base_loads_only_if_it_matches_its_card(tmp_path):
+    _write_kb(tmp_path / "good")
+    rt, _ = build(tmp_path / "a", knowledge_dir=tmp_path / "good")
+    assert rt.regime is not None and rt.knowledge_meta["integrity"] == "VERIFIED"
+    assert rt.orch.versions["knowledge_base"] == rt.knowledge_meta["hash"]
+
+    _write_kb(tmp_path / "bad", tamper=True)
+    rt, _ = build(tmp_path / "b", knowledge_dir=tmp_path / "bad")
+    assert rt.regime is None and rt.knowledge_meta["integrity"] == "MISMATCH"
+    assert rt.orch.versions["knowledge_base"] == "none"
+    assert rt.run_cycle()["decisions"] == []
+    assert "MISMATCH" in rt.health["last_cycle_error"]
+
+    (tmp_path / "partial").mkdir()
+    (tmp_path / "partial" / "regime.json").write_text((tmp_path / "good" / "regime.json").read_text())
+    rt, _ = build(tmp_path / "c", knowledge_dir=tmp_path / "partial")
+    assert rt.regime is None and rt.knowledge_meta["integrity"] == "INCOMPLETE"
 
 
 def test_stopping_is_always_allowed_without_a_token(server):

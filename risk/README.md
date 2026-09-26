@@ -1,23 +1,25 @@
 # risk/
 
-**Status: empty. Phase 8.**
+**Status: implemented** in [`aitrader/risk/engine.py`](../aitrader/risk/engine.py):
+the only code that approves a trade or computes a size.
 
-## Purpose
-The independent risk engine: the final authority on whether a proposal is
-executed, and the only code that computes a size.
+Checks, each recorded with its measured value in the verdict:
 
-## Responsibilities (when built)
-Per-trade risk, daily loss, maximum drawdown, leverage, exposure,
-concurrent positions, spread, slippage, abnormal conditions, duplicate
-orders, broker and API failures, emergency shutdown, and a funded-account
-compliance layer (rules supplied by the owner).
+- per-trade risk (default 0.5 %, hard ceiling 1 % whatever the config);
+- daily loss 2 %;
+- maximum drawdown 8 %, which **halts** until a person clears it;
+- 3 open positions, 2 per currency, one per instrument;
+- leverage, spread against the stop, minimum reward:risk, minimum stop in
+  spreads, quote age, instrument tradability;
+- a funded-account layer whose rules the operator supplies; the stricter
+  limit always wins.
 
-## Boundaries
-- Cannot be bypassed by any flag, caller, confidence level or
-  configuration.
-- Risk decreases in response to adverse state, and **never increases**. No
-  martingale, no revenge sizing.
-- Fails closed.
+A losing streak halves risk every 3 losses down to 0.25×. **Nothing
+increases risk**: no martingale, no recovery sizing. Any input it cannot
+read gives a rejection.
+
+Tests: `tests/unit/test_risk.py` (including that risk never rises after
+losses).
 
 ## Binding contracts
 [RISK_CONTRACT.md](../RISK_CONTRACT.md)

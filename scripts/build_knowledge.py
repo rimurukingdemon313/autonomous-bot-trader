@@ -24,14 +24,38 @@ sys.path.insert(0, str(ROOT))
 
 from aitrader.backtest.runner import EMBARGO_S, seed_memory  # noqa: E402
 from aitrader.data.store import DataStore  # noqa: E402
-from aitrader.features.store import FEATURE_VERSION, compute_matrix  # noqa: E402
+from aitrader.features.store import FEATURE_VERSION, INDEX, compute_matrix  # noqa: E402
 from aitrader.memory.patterns import MEMORY_VERSION  # noqa: E402
-from aitrader.regime.model import RegimeModel  # noqa: E402
+from aitrader.regime.model import LABELS, RegimeModel, regime_report  # noqa: E402
 from aitrader.research.labels import LABEL_VERSION, CostModel  # noqa: E402
 from aitrader.research.registry import Holdout  # noqa: E402
 
 SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
            "EURGBP", "EURJPY", "GBPJPY", "EURCHF", "AUDJPY"]
+
+
+def regime_persistence(regime: RegimeModel, mats: dict, series: dict, cutoff: int) -> dict:
+    """Counts and persistence of each label on the training rows, one decision every 4 bars.
+
+    Persistence is measured within each instrument's own sequence and then
+    pooled: the last label of one instrument is not followed by the first
+    of the next.
+    """
+    same = {k: 0 for k in LABELS}
+    seen = {k: 0 for k in LABELS}
+    counts = {k: 0 for k in LABELS}
+    for s, m in mats.items():
+        t = series[s].available_at
+        idx = np.nonzero(t <= cutoff)[0][::4]
+        labels = [regime.classify({f: float(m[i, j]) for f, j in INDEX.items()}).label for i in idx]
+        rep = regime_report(labels)
+        for k in LABELS:
+            counts[k] += rep["counts"][k]
+        for a, b in zip(labels[:-1], labels[1:]):
+            seen[a] += 1
+            same[a] += a == b
+    return {"counts": counts, "persistence": {k: round(same[k] / seen[k], 3) if seen[k] else None for k in LABELS},
+            "note": "probability the next decision (4 H1 bars later) has the same label"}
 
 
 def main() -> int:
@@ -46,6 +70,7 @@ def main() -> int:
         rows.append(m[t <= cutoff])
         times.append(t[t <= cutoff])
     regime = RegimeModel.fit(np.concatenate(rows), np.concatenate(times), trained_until=cutoff)
+    persistence = regime_persistence(regime, mats, series, cutoff)
     start = min(int(v.available_at[0]) for v in series.values())
     memory = seed_memory(series, mats, start, holdout.start_epoch(), 4, CostModel())
     out = ROOT / "models" / "artifacts"
@@ -63,7 +88,9 @@ def main() -> int:
                  "until_exclusive": str(holdout.start), "timeframe": "H1 (complete bars from M15)",
                  "manifest_hashes": {s: manifest["datasets"][s]["content_sha256"][:16] for s in SYMBOLS}},
         "features": FEATURE_VERSION, "labels": LABEL_VERSION, "memory": MEMORY_VERSION,
-        "regime": {"version": regime.version, "trained_until": regime.trained_until, "n_train": regime.n_train},
+        "regime": {"version": regime.version, "trained_until": regime.trained_until, "n_train": regime.n_train,
+                   "training_report": persistence,
+                   "informativeness": "not measured here; R by regime is reported per variant in PR-001"},
         "patterns": len(memory), "decision_every_bars": 4,
         "status": "RESEARCH_CANDIDATE",
         "status_note": "Not validated. Its research verdict is PR-001 (research/preregistrations). "

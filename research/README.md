@@ -1,24 +1,24 @@
 # research/
 
-**Status: empty. Phase 3 and later.**
+The research record that travels with the code.
 
-## Purpose
-The home of experiment definitions, pre-registrations, the experiment
-registry, and research results.
+| Path | What it is |
+|---|---|
+| [`registry.jsonl`](registry.jsonl) | The append-only **experiment registry** ([`aitrader/research/registry.py`](../aitrader/research/registry.py)): every trial, the market periods it used and in which role (fit / select / judge), its test count, and every verdict as a separate line. The archive's earlier verdicts are imported as declared exposure. |
+| [`holdout.json`](holdout.json) | The sealed final holdout (fx-majors from 2017-01-01): single use, by a pre-registered final test only. |
+| [`preregistrations/`](preregistrations/) | Pre-registration documents, committed **before** their experiments ran. Amendments are appended before the judged run, never after. |
+| `results/` | Summaries of completed experiments (full per-trade output stays under `data/results/`, not committed). |
 
-## Responsibilities (when built)
-- Hold the append-only **experiment registry**: every hypothesis, the data
-  ranges it used and their roles (fit, select, judge), the number of
-  configurations run, and every verdict.
-- Hold pre-registration documents, committed before their experiments run.
-- Keep every result reproducible from its commit, data version and registry
-  entry.
+## Rules the code enforces
 
-## Boundaries
-- Research never changes the running system. It produces **candidate**
-  versions, which go through the lifecycle.
-- Failed experiments are never deleted.
-- The final holdout is used only by the documented final test.
+- Ids are never reused and entries are never back-dated.
+- A verdict is refused on a trial that already has one.
+- Significance thresholds count every test on the same universe and
+  period (Bonferroni), archive included.
+- Any use of the holdout after the seal needs a pre-registration, and a
+  second use raises `HoldoutSpent`.
+
+Tests: `tests/unit/test_registry_and_store.py`.
 
 ## Binding contracts
 [RESEARCH_CONTRACT.md](../RESEARCH_CONTRACT.md) ·

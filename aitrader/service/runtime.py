@@ -16,6 +16,7 @@ fails, trading starts PAUSED and the dashboard says why.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 import time
@@ -100,8 +101,10 @@ class LiveFeedAdapter:
 
 
 class Runtime:
-    def __init__(self, cfg: ServiceConfig, *, feed=None, broker=None, clock=None) -> None:
+    def __init__(self, cfg: ServiceConfig, *, feed=None, broker=None, clock=None,
+                 knowledge_dir: Path | None = None) -> None:
         self.cfg = cfg
+        self.knowledge_dir = Path(knowledge_dir) if knowledge_dir is not None else KNOWLEDGE_DIR
         self.started = time.time()
         self.clock = clock or (lambda: int(time.time()))
         Path(cfg.data_dir).mkdir(parents=True, exist_ok=True)
@@ -124,7 +127,8 @@ class Runtime:
             brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=BrainConfig.from_env()),
             risk=RiskEngine(cfg.risk), execution=self.execution, experience=self.experience,
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
-            versions={**stamp(), "knowledge_base": self.knowledge_meta.get("hash", "none"),
+            versions={**stamp(), "knowledge_base": (self.knowledge_meta.get("hash", "none")
+                                                     if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
                       "llm": self.llm.config.public()["model"] or "none"})
         self.health: dict = {"reconcile": None, "last_cycle": None, "last_cycle_error": None, "cycles": 0}
         self._stop = threading.Event()
@@ -165,25 +169,36 @@ class Runtime:
             self.broker = PaperBroker(self.feed, self.clock, self.db, start_balance=self.cfg.start_balance)
 
     def _load_knowledge(self):
-        meta: dict = {}
-        mem_path, reg_path = KNOWLEDGE_DIR / "memory.npz", KNOWLEDGE_DIR / "regime.json"
-        card = KNOWLEDGE_DIR / "knowledge_card.json"
-        if card.exists():
-            meta = json.loads(card.read_text())
+        """Load the research knowledge base only if its files are the ones its card describes.
+
+        The card's sha256 covers memory.npz + regime.json. A missing card, a
+        missing file or a different hash loads NOTHING: the regime model stays
+        missing, so no cycle decides (MODEL_CONTRACT.md, models/README.md).
+        A live memory on the volume is this system's own forward experience,
+        grown from a verified base; it replaces the base's memory only once
+        the base itself has verified.
+        """
+        kdir = self.knowledge_dir
+        mem_path, reg_path, card = kdir / "memory.npz", kdir / "regime.json", kdir / "knowledge_card.json"
+        empty = PatternMemory(np.zeros(18), np.ones(18), ACTIONS)
+        present = [f.name for f in (card, mem_path, reg_path) if f.exists()]
+        if not present:
+            log_event("STARTUP", "no knowledge base found: no decisions will be made", severity="warning")
+            return empty, None, {"integrity": "MISSING"}
+        if len(present) < 3:
+            log_event("STARTUP", f"incomplete knowledge base (found {present}): refused", severity="critical")
+            return empty, None, {"integrity": "INCOMPLETE", "found": present}
+        meta = json.loads(card.read_text())
+        digest = hashlib.sha256(mem_path.read_bytes() + reg_path.read_bytes()).hexdigest()
+        if digest != meta.get("sha256"):
+            log_event("STARTUP", "knowledge base does not match its card: refused", severity="critical",
+                      expected=str(meta.get("sha256"))[:16], actual=digest[:16])
+            return empty, None, {**meta, "integrity": "MISMATCH", "actual_sha256": digest}
+        meta = {**meta, "integrity": "VERIFIED"}
         live_mem = Path(self.cfg.data_dir) / "memory_live.npz"
-        if live_mem.exists():
-            memory = PatternMemory.load(live_mem)
-        elif mem_path.exists():
-            memory = PatternMemory.load(mem_path)
-        else:
-            memory = PatternMemory(np.zeros(18), np.ones(18), ACTIONS)
-            log_event("STARTUP", "no knowledge base found: memory is empty, so no candidate can clear the evidence bar",
-                      severity="warning")
-        if reg_path.exists():
-            regime = RegimeModel.from_json(reg_path.read_text())
-        else:
-            regime = None
-        return memory, regime, meta
+        memory = PatternMemory.load(live_mem if live_mem.exists() else mem_path)
+        meta["memory_source"] = "live (grown forward from the verified base)" if live_mem.exists() else "base"
+        return memory, RegimeModel.from_json(reg_path.read_text()), meta
 
     def _replay_experience(self) -> None:
         """Rebuild point-in-time experience from the immutable episodes after a restart."""
@@ -222,7 +237,8 @@ class Runtime:
     def run_cycle(self, t: int | None = None) -> dict:
         t = int(t or self.clock())
         if self.regime is None:
-            self.health["last_cycle_error"] = "no regime model: knowledge base missing, no decisions made"
+            self.health["last_cycle_error"] = (f"no regime model: knowledge base "
+                                               f"{self.knowledge_meta.get('integrity', 'MISSING')}, no decisions made")
             return {"t": t, "decisions": []}
         try:
             rep = self.orch.cycle(t)
@@ -341,7 +357,8 @@ class Runtime:
                 "broker": broker_state, "demo_verification": demo,
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
                 "database": "HEALTHY" if db_ok else "UNAVAILABLE", "db_latency_ms": db_ms,
-                "knowledge_base": self.knowledge_meta or "MISSING",
+                "knowledge_base": self.knowledge_meta,
+                "knowledge_integrity": self.knowledge_meta.get("integrity", "MISSING"),
                 "regime_model": "LOADED" if self.regime is not None else "MISSING",
             },
             "last_market_update": feed_ok, "last_cycle": self.health.get("last_cycle"),

@@ -41,7 +41,7 @@ function renderStatus(s) {
     chip("BROKER", c.broker, lvl(c.broker, ["CONNECTED", "PAPER"], ["NOT"])),
     chip("AI", c.ai, lvl(c.ai, ["READY"], [])),
     chip("DATABASE", c.database, c.database === "HEALTHY" ? "good" : "critical"),
-    chip("KNOWLEDGE", c.regime_model === "LOADED" ? "LOADED" : "MISSING", c.regime_model === "LOADED" ? "good" : "critical"),
+    chip("KNOWLEDGE", c.regime_model === "LOADED" ? "LOADED" : (c.knowledge_integrity || "MISSING"), c.regime_model === "LOADED" ? "good" : "critical"),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
     s.paused ? chip("TRADING", "PAUSED", "warning") : chip("TRADING", "running", "good"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",

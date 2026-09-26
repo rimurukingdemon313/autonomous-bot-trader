@@ -1,21 +1,20 @@
 # regime/
 
-**Status: empty. Phase 6.**
+**Status: implemented** in [`aitrader/regime/model.py`](../aitrader/regime/model.py).
 
-## Purpose
-Describe the market context, and decide how **familiar** the current
-state is compared with the data the models learned from.
-
-## Responsibilities (when built)
-- Regime descriptions (for example trend, range, high or low volatility,
-  transition, abnormal), **only where the data supports them**: they must
-  be persistent and informative, or they are dropped.
-- A familiarity / out-of-distribution measure. An unfamiliar state forces
+- Labels (trending up or down, ranging, transition, abnormal; low, normal
+  or high volatility) come from **quantiles of the training rows only**,
+  stored with the model version.
+- **Familiarity**: Mahalanobis distance to the training distribution. Beyond
+  the training 99.5th percentile the state is UNFAMILIAR and the decision is
   NO_TRADE.
+- Persistence of each label on the training data is written to the
+  knowledge card (`scripts/build_knowledge.py`). Whether a label is
+  informative is measured, not assumed: PR-001 reports R by regime for
+  every variant. A label that proves uninformative stays a description; it
+  gates nothing except ABNORMAL and UNFAMILIAR.
 
-## Boundaries
-- No fixed list of regimes is assumed.
-- Regime boundaries are fitted on training data only.
+Tests: `tests/unit/test_regime_and_patterns.py`.
 
 ## Binding contracts
-[VALIDATION_CONTRACT.md](../VALIDATION_CONTRACT.md) · [MODEL_CONTRACT.md](../MODEL_CONTRACT.md) §2
+[VALIDATION_CONTRACT.md](../VALIDATION_CONTRACT.md)
