@@ -82,6 +82,8 @@ def test_blocking_conditions_force_no_trade_whatever_the_evidence(kw, code):
     th = brain().think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}, **kw), V)
     assert th.decision.decision == "NO_TRADE"
     assert code in th.decision.no_trade_reason
+    # A market-wide block stops the decision before any candidate is weighed.
+    assert th.decision.no_trade_reason.startswith("blocked:")
 
 
 def test_a_crashing_agent_fails_closed():

@@ -121,6 +121,19 @@ def test_leverage_limit():
     assert not v.approved and any(r.startswith("leverage") for r in v.reasons)
 
 
+def test_a_losing_streak_actually_reduces_risk_and_a_win_resets_it():
+    assert streak_multiplier([-1.0, -1.0], 3, 0.25) == 1.0
+    assert streak_multiplier([-1.0] * 3, 3, 0.25) == 0.5
+    assert streak_multiplier([-1.0] * 6, 3, 0.25) == 0.25
+    assert streak_multiplier([-1.0] * 30, 3, 0.25) == 0.25  # floor, never zero
+    assert streak_multiplier([-1.0] * 3 + [1.5], 3, 0.25) == 1.0
+    e = RiskEngine()
+    fresh = e.evaluate(decision(), account(closed_r=[]), SPEC, Q, NOW)
+    after3 = e.evaluate(decision(), account(closed_r=[-1.0] * 3), SPEC, Q, NOW)
+    assert fresh.approved and after3.approved
+    assert after3.qty < fresh.qty
+
+
 def test_risk_only_ever_decreases_after_losses():
     """No martingale, no revenge: along any sequence, a loss never raises risk."""
     rng = np.random.default_rng(0)

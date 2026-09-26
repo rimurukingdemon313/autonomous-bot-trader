@@ -12,12 +12,21 @@ reference.
 
 ## Transfer policy
 
-- **No code has been copied** from the archive into this repository.
-- Something may be transferred later **only after review and explicit
+- Something may be transferred **only after review and explicit
   approval**, one component at a time, with its tests, and it must satisfy
   this project's contracts as they stand, not the archive's.
 - A transferred component gets a new version in this project and records
   its origin.
+
+### Transfer record
+
+| Component | Approved | What changed on transfer | Where |
+|---|---|---|---|
+| TradeLocker client, HTTP transport, history, symbols, models, demo guard | the owner approved the full build ("everything is approved, continue until done") | imports rewritten to `_compat.py`; its errors are this system's broker errors; **the demo guard no longer accepts an account name as positive demo evidence** (a name can only fail the check) | `aitrader/broker/tradelocker/` |
+
+Nothing else was transferred. The archive's strategy code, risk engine,
+executor and dashboard were not; its research verdicts were imported into
+`research/registry.jsonl` as declared exposure.
 
 ## What the archive established
 

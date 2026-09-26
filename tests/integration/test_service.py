@@ -163,8 +163,10 @@ def test_static_dashboard_is_served_and_path_traversal_is_refused(server):
 
 
 def test_live_mode_is_refused_at_configuration():
-    with pytest.raises(ServiceConfigError, match="LIVE"):
+    with pytest.raises(ServiceConfigError, match="MODE=LIVE is not available"):
         ServiceConfig.from_env({"MODE": "LIVE"})
+    with pytest.raises(ServiceConfigError, match="PAPER or DEMO"):
+        ServiceConfig.from_env({"MODE": "REAL"})
 
 
 def test_risk_configuration_cannot_exceed_the_ceiling():

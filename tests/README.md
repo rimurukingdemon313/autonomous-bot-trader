@@ -1,23 +1,27 @@
 # tests/
 
-**Status: empty.** No trading tests exist in Phase 0, because there is no
-code to test. This file defines what will be required.
+`bash scripts/check.sh` runs the whole suite; every commit is gated on its
+exit code. `python scripts/mutation_audit.py` removes each safety guard in
+turn and requires a test to fail (results: docs/MUTATION_AUDIT.md).
 
-## Required categories
+## Where each required category lives
 
-| Category | What it proves |
-|---|---|
-| **Unit** | each component behaves correctly in isolation, on inputs whose correct output is known by construction |
-| **Integration** | components work together along the real path: data → features → decision → risk → execution, against a fake broker |
-| **Causality** | every feature, label consumer and decision gives the same value at T on full history and on history truncated at T |
-| **Leakage** | injected leaks are detected: future close, high, low, volume, label, normalization statistics, and future-selected parameters; plus timestamp, resampling, rolling-window, normalization, feature-selection, hyperparameter and model-selection leakage |
-| **Data integrity** | the time convention, price scale, gaps, duplicates, ordering and quality flags; that nothing is invented |
-| **Model** | calibration, abstention on unfamiliar states, artifact hash verification, that a missing artifact means NO_TRADE |
-| **Risk** | every limit; risk never increases after losses; no path bypasses the risk engine; fail-closed behaviour |
-| **Execution** | idempotency, duplicate refusal, ambiguous outcomes resolved by query and never by resend, final pre-submission checks |
-| **Persistence** | journals are append-only; state survives restart; nothing is lost or duplicated |
-| **Recovery** | restart mid-order, lost connection, partial state: reconciliation before any new order |
-| **Adversarial** | deliberate attempts to break guarantees: injected leaks, malformed model or LLM output, contradictory evidence, stale data, clock skew |
+| Category | What it proves | Tests |
+|---|---|---|
+| **Unit** | each component on inputs whose right answer is known by construction | `unit/*` |
+| **Integration** | data → features → agents → synthesis → risk → execution → paper broker → outcome tracking → learning, on constructed markets | `integration/test_pipeline.py` |
+| **Causality** | features at *i* equal features on history truncated at *i*; changing the future does not change any past decision | `unit/test_features.py`, `integration/test_pipeline.py` |
+| **Leakage** | injected leaks (a one-bar-ahead close, future high, low and activity, whole-series normalisation, a centred window) are caught by the checker; memory counts an outcome (a label) only after it resolved; the regime model sees training rows only; the loader stops at the sealed holdout | `unit/test_features.py`, `unit/test_regime_and_patterns.py`, `unit/test_registry_and_store.py` |
+| **Data integrity** | tick filtering and counting, the measured clock, price scale, ordering, grid, crossed quotes, complete-bar resampling at the New York close | `unit/test_data.py` |
+| **Model** | abstention on unfamiliar and abnormal states; the knowledge base loads only if it matches its card; malformed or out-of-vocabulary language-model replies are discarded | `unit/test_agents.py`, `unit/test_regime_and_patterns.py`, `integration/test_service.py` |
+| **Risk** | every limit; risk falls after losses and never rises; the 1 % ceiling | `unit/test_risk.py` |
+| **Execution** | intent before order, duplicate refusal, ambiguous outcome resolved by query and never by resend, final pre-submission checks, reconcile on restart | `unit/test_execution.py`, `unit/test_tradelocker_adapter.py` |
+| **Persistence** | immutable tables refuse update and delete; hash chains detect tampering; state survives restart | `unit/test_db.py`, `integration/test_service.py` |
+| **Adversarial** | leaks, malformed model output, a crashing agent, a name that says "demo", contradictory demo evidence, a stale price beyond the stop | across the files above |
+
+**Not covered.** Probability calibration is reported by the backtest, not
+asserted by a test. The TradeLocker adapter runs against a fake transport;
+it has not been run against the real API from here.
 
 ## Rules
 

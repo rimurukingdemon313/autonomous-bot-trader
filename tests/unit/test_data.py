@@ -187,3 +187,7 @@ def test_price_scale_is_derived_and_must_be_unique():
     assert instruments.price_scale("EURUSD", 109305.0) == 1e-5
     with pytest.raises(ValueError, match="refusing"):
         instruments.price_scale("EURUSD", 3.5)  # 0.35 is below the band, 3.5 above it
+    with pytest.raises(ValueError, match="fits 2 scales"):
+        instruments.price_scale("USDJPY", 4.0)  # 40 and 400 are both plausible
+    with pytest.raises(ValueError, match="fits 2 scales"):
+        instruments.price_scale("XAUUSD", 3.0)  # 300 and 3000 are both plausible
