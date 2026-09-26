@@ -48,6 +48,10 @@ from .config import ServiceConfig
 ROOT = Path(__file__).resolve().parents[2]
 KNOWLEDGE_DIR = ROOT / "models" / "artifacts"
 
+#: 1.1.0: decide only every `decision_every_bars` H1 closes (the tested cadence);
+#: bookkeeping still runs every hour. 1.0.0 decided every hour.
+SERVICE_VERSION = "service-1.1.0"
+
 
 class OfflineFeed:
     """No market data source configured: every read says so, nothing is invented."""
@@ -127,7 +131,7 @@ class Runtime:
             brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=BrainConfig.from_env()),
             risk=RiskEngine(cfg.risk), execution=self.execution, experience=self.experience,
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
-            versions={**stamp(), "knowledge_base": (self.knowledge_meta.get("hash", "none")
+            versions={**stamp(), "service": SERVICE_VERSION, "knowledge_base": (self.knowledge_meta.get("hash", "none")
                                                      if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
                       "llm": self.llm.config.public()["model"] or "none"})
         self.health: dict = {"reconcile": None, "last_cycle": None, "last_cycle_error": None, "cycles": 0}
@@ -234,14 +238,27 @@ class Runtime:
 
     # ── scheduler ───────────────────────────────────────────────────────
 
-    def run_cycle(self, t: int | None = None) -> dict:
+    @property
+    def decide_every_bars(self) -> int:
+        """The cadence the knowledge base was built and tested with (its card), 4 H1 bars by default.
+
+        Deciding more often than the research did would run a system whose
+        trade frequency and position overlap were never measured.
+        """
+        return max(1, int(self.knowledge_meta.get("decision_every_bars", 4)))
+
+    def is_decision_hour(self, t: int) -> bool:
+        return ((t - self.cfg.cycle_delay_s) // 3600) % self.decide_every_bars == 0
+
+    def run_cycle(self, t: int | None = None, decide: bool = True) -> dict:
+        """One cycle. `decide=False` only advances bookkeeping: outcomes, closures, time exits."""
         t = int(t or self.clock())
         if self.regime is None:
             self.health["last_cycle_error"] = (f"no regime model: knowledge base "
                                                f"{self.knowledge_meta.get('integrity', 'MISSING')}, no decisions made")
             return {"t": t, "decisions": []}
         try:
-            rep = self.orch.cycle(t)
+            rep = self.orch.cycle(t, None if decide else [])
             self.health.update(last_cycle=t, last_cycle_error=None, cycles=self.health["cycles"] + 1)
             self.memory.save(Path(self.cfg.data_dir) / "memory_live.npz")
             return rep
@@ -273,7 +290,7 @@ class Runtime:
             try:
                 self.monitor_once()
                 if self.clock() >= next_cycle:
-                    self.run_cycle()
+                    self.run_cycle(decide=self.is_decision_hour(next_cycle))
                     next_cycle = self._next_cycle_time()
             except Exception as exc:
                 self.health["last_cycle_error"] = f"{type(exc).__name__}: {exc}"

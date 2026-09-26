@@ -118,6 +118,20 @@ def test_a_knowledge_base_loads_only_if_it_matches_its_card(tmp_path):
     assert rt.regime is None and rt.knowledge_meta["integrity"] == "INCOMPLETE"
 
 
+def test_the_service_decides_at_the_cadence_the_knowledge_was_tested_with(tmp_path):
+    rt, clock = build(tmp_path)
+    assert rt.decide_every_bars == 4  # no card: the research default
+    delay = rt.cfg.cycle_delay_s
+    base = 1_600_000_000 // 86400 * 86400  # a midnight UTC
+    hours = [h for h in range(24) if rt.is_decision_hour(base + h * 3600 + delay)]
+    assert hours == [0, 4, 8, 12, 16, 20]
+    rt.knowledge_meta = {**rt.knowledge_meta, "decision_every_bars": 2}
+    assert sum(rt.is_decision_hour(base + h * 3600 + delay) for h in range(24)) == 12
+    # A bookkeeping-only cycle decides nothing.
+    rep = rt.run_cycle(decide=False)
+    assert rep.get("decisions", []) == []
+
+
 def test_stopping_is_always_allowed_without_a_token(server):
     rt, base, _ = server
     assert call(base, "/api/control/pause", "POST")[0] == 200

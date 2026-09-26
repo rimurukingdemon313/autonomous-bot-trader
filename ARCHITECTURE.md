@@ -1,8 +1,9 @@
 # Architecture
 
-High-level architecture only. There is no implementation in Phase 0, and
-this document deliberately names no libraries, no algorithms and no
-indicators: those are chosen later, on evidence.
+The layers, their responsibilities and their authority were fixed in
+Phase 0, before any code existed. **What was built, and where, is at the
+end:** [Implementation map](#implementation-map) and
+[Amendment 1: bounded runtime learning](#amendment-1--bounded-runtime-learning).
 
 ---
 
@@ -205,3 +206,81 @@ RESEARCH / TRAINING / BACKTESTING        PRODUCTION INFERENCE / PAPER / DEMO
 Model families, feature sets, indicators, timeframes, instruments,
 databases, languages beyond what the contracts require, and hosting. These
 are chosen in their phases, on evidence, and the choices are recorded.
+
+---
+
+## Implementation map
+
+```
+ ReplayFeed / TradeLocker feed ──► Orchestrator (aitrader/orchestrator/core.py), one cycle per closed H1 bar
+                                     │
+   features (23, causal) ──► regime + familiarity ──► pattern memory: k nearest RESOLVED past situations
+                                     │
+         ┌──────────── five agents, one point-in-time evidence packet ────────────┐
+         │ Market        Setup          Risk          Adversary       Reviewer    │
+         │ regime,       candidate      cost/spread   the case        analogues,  │
+         │ familiarity   templates      vs stop       against         lessons     │
+         └──── optional language-model layer: may only ADD objections ───────────┘
+                                     │
+   Evidence synthesis (not a vote): analogue lower-bound expectancy − measured penalties
+                                     │  BUY / SELL / NO_TRADE, journalled before risk sees it
+   Risk engine ──► sole sizing authority; may refuse; halts on drawdown
+                                     │
+   Execution engine ──► intent written first; never resends; reconciles on restart
+                                     │
+   Paper broker or TradeLocker (demo only, two-signal check)
+                                     │
+   Outcome tracker ──► real outcomes of trades + SHADOW outcomes of skipped candidates
+                                     │
+   Learning (experience, lessons, post-mortems, reflections) ──► next cycle's evidence
+```
+
+| Layer (above) | Code | Tests |
+|---|---|---|
+| 1 Market data | `aitrader/data/` (`ticks`, `bars`, `resample`, `store`, `feed`), `broker/tradelocker/adapter.py` for live bars | `unit/test_data.py` |
+| 2 Validation | `aitrader/data/validate.py`, `instruments.price_scale` | `unit/test_data.py` |
+| 3-4 State, features | `aitrader/features/store.py` | `unit/test_features.py` |
+| 5 Regime / context | `aitrader/regime/model.py` | `unit/test_regime_and_patterns.py` |
+| 6 AI research / models | `aitrader/memory/patterns.py` (analogue memory), `aitrader/research/labels.py`, `aitrader/agents/`, `aitrader/llm/provider.py` | `unit/test_agents.py` |
+| 7-8 Opportunity, decision | `aitrader/agents/analysts.py` (setup), `aitrader/decision/synthesis.py` | `unit/test_agents.py` |
+| 9 Risk | `aitrader/risk/engine.py` | `unit/test_risk.py` |
+| 10 Execution | `aitrader/execution/engine.py` | `unit/test_execution.py` |
+| 11 Broker | `aitrader/broker/` (`paper`, `tradelocker/`) | `unit/test_tradelocker_adapter.py` |
+| 12 Journal | `aitrader/memory/db.py`: SQLite, immutable tables with hash chains | `unit/test_db.py` |
+| 13 Learning / research | `aitrader/learning/`, `aitrader/orchestrator/tracker.py`, `aitrader/research/registry.py`, `aitrader/backtest/` | `unit/test_learning.py`, `integration/test_pipeline.py` |
+| Service, dashboard | `aitrader/service/` | `integration/test_service.py` |
+
+Environments: research and backtesting (`scripts/`, `aitrader/backtest/`)
+and the service (`python -m aitrader`) import the **same** feature,
+agent, synthesis, risk and execution code; the backtest drives it with a
+replay clock.
+
+## Amendment 1 — bounded runtime learning
+
+The owner asked for a system that learns from its own outcomes while it
+runs. Layer 13 above says learning "may not change the running system";
+this amendment states exactly how far it may, and nothing else changes.
+
+**Runtime learning MAY change, from resolved outcomes only:**
+
+- the penalty a MAJOR objection adds to the required edge, once that
+  objection has a track record of at least 30 resolved cases: the measured
+  difference in R, clamped to **[0.01, 0.25] R**;
+- whether a **validated lesson** blocks a context. A lesson is validated
+  only on outcomes that resolved after it was discovered, with a
+  Bonferroni-corrected significance test. A validated lesson can only
+  **block**. It is retired when later evidence reverses it;
+- the pattern memory, which grows by one row per resolved situation;
+- the weight of a language model's opinion, which is its measured forward
+  reliability, starting at 0.
+
+**It may NOT change:** position size, risk per trade, any risk limit,
+direction, entry, stop or target of a candidate, the feature definitions,
+the regime model, the action templates, or the demo, risk and execution
+guards. It cannot create a trade that the evidence did not support.
+
+Every change is a new knowledge version, stamped on every later decision,
+listed on the dashboard, and revertible by an authenticated operator
+(`POST /api/control/knowledge/revert`). One win or one loss cannot create,
+validate or retire anything: the thresholds are sample sizes and
+significance.

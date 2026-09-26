@@ -5,7 +5,11 @@
 One process (`python -m aitrader`):
 
 - HTTP API + dashboard on `$PORT` (`/` dashboard, `/healthz` health, `/api/*`);
-- the scheduler: a full decision cycle 90 s after every H1 close;
+- the scheduler: 90 s after every H1 close it resolves outcomes, closures
+  and time exits; every **4th** H1 close (UTC hours 0, 4, 8, …) it also
+  decides. 4 is the cadence the knowledge base was built and tested with,
+  read from its card: deciding more often would run a system whose trade
+  frequency was never measured;
 - the position monitor: every 20 s, newly closed bars are applied to the
   paper account's stops/targets and to the outcome tracker.
 
