@@ -4,18 +4,36 @@ Each phase has a goal, deliverables and an **exit gate**. A phase is not
 complete because its code exists. It is complete when its gate is met, with
 evidence, and the next phase has been approved.
 
-**Only Phase 0 is in progress. No other phase may start until Phase 0 has
-been reviewed and approved.**
+## Where each gate stands
+
+The owner approved the Phase 0 contracts and the full build. Code existing
+is not a gate: this table says which gates are met **with evidence**.
+
+| Phase | Gate | Evidence |
+|---|---|---|
+| 0 Specification | **met** | owner approval |
+| 1 Data | **met**, except the owner's review of the quality report | `data/manifest.json`; `tests/unit/test_data.py`; holdout sealed and its seal mutation-tested |
+| 2 Features | **met** | truncation test on every feature; five kinds of injected leak detected |
+| 3 Research framework | **met** | registry refuses duplicate, back-dated and unregistered post-seal trials; label tests |
+| 4 Validation | **partly met** | expanding walk-forward with a 5-day embargo, point-in-time memory, Bonferroni thresholds. The robustness battery is written into PR-001 but runs only if H1 passes. Leakage through selection is controlled by the registry (every configuration is counted), not by a code test |
+| 5 AI research | **reported** | PR-001, research/preregistrations/PR-001-multi-agent-ablation.md, RESULTS |
+| 6 Regime | **partly met** | familiarity (out-of-distribution) tested and forces NO_TRADE; persistence measured on training rows (knowledge card); informativeness measured as R by regime in PR-001 |
+| 7 Decision | **met** | malformed, missing, contradictory and out-of-range inputs give NO_TRADE (unit tests, mutation audit) |
+| 8 Risk | **met** | `tests/unit/test_risk.py`; docs/MUTATION_AUDIT.md |
+| 9 Execution | **met against a fake broker** | duplicate, ambiguous-outcome and restart tests. Not yet run against the real TradeLocker API |
+| 10 Paper | **not met** | built and runnable as a forward test of an unvalidated candidate (docs/SYSTEM_LIFECYCLE.md, Amendment 1); no paper results exist yet |
+| 11 Demo | **not met** | built behind the two-signal demo check; not run |
+| 12 Live | **not started** | `MODE=LIVE` is refused by the software |
 
 ---
 
-## Phase 0 — Repository + specification  *(current)*
+## Phase 0 — Repository + specification
 **Goal:** agree what is being built, and the rules it must obey, before any
 code exists.
 **Deliverables:** README, specification, architecture, contracts,
 engineering rules, process documents, directory READMEs, templates.
 **Exit gate:** the contracts are reviewed and approved by the owner.
-**Contains no code.**
+**Contained no code.**
 
 ## Phase 1 — Data foundation
 **Goal:** a trustworthy, versioned and auditable market-data layer.
@@ -93,7 +111,8 @@ tests pass against a fake broker.
 ## Phase 10 — Paper trading
 **Goal:** the whole system running on live data, with no orders sent.
 **Entry requires:** the final holdout test run once with a PASS, and owner
-approval.
+approval — as a validated system. An unvalidated candidate may run here as
+a forward test only (docs/SYSTEM_LIFECYCLE.md, Amendment 1).
 **Records:** every decision and NO_TRADE, simulated executions, latency,
 spread, slippage, P/L, drawdown and model version.
 **Exit gate:** paper results fall inside the range the validation
