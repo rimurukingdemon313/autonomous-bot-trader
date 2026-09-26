@@ -56,6 +56,12 @@ SOURCE_GROUPS = {
 
 @dataclass(frozen=True)
 class SynthesisConfig:
+    #: "evidence" is the system. "rules" and "random" exist only as research
+    #: BASELINES (ablation): rules = the agents' family setups without the
+    #: analogue memory; random = random direction at a set frequency.
+    mode: str = "evidence"
+    random_trade_prob: float = 0.0
+    seed: int = 0
     base_margin: float = 0.0  # required lower-bound expectancy, in R, before objections
     default_major_penalty: float = 0.03
     min_penalty: float = 0.01
@@ -118,9 +124,16 @@ def _groups(sources) -> set[str]:
     return {SOURCE_GROUPS.get(s, s) for s in sources}
 
 
+RULE_PRIORITY = ("TREND_PULLBACK", "BREAKOUT", "SWEEP_REVERSAL", "MEAN_REVERSION")
+
+
 class EvidenceSynthesizer:
     def __init__(self, config: SynthesisConfig = SynthesisConfig()) -> None:
+        if config.mode not in ("evidence", "rules", "random"):
+            raise ValueError(f"unknown synthesis mode {config.mode!r}")
         self.config = config
+        import random as _random
+        self._rng = _random.Random(config.seed)
 
     def penalty(self, obj: Objection, ctx: MarketContext) -> tuple[float, str]:
         cfg = self.config
@@ -169,8 +182,12 @@ class EvidenceSynthesizer:
                             contra=[o.as_dict() for o in blocking])
 
         cands = reports["setup"].candidates
+        if cfg.mode == "random":
+            return self._baseline_random(ctx, reports, versions, objections, no_trade)
         if not cands:
             return no_trade("no setup candidate in any family, and no analogue-discovered opportunity")
+        if cfg.mode == "rules":
+            return self._baseline_rules(ctx, reports, versions, cands, objections, no_trade)
 
         best_decision = None
         rejected: list[str] = []
@@ -240,3 +257,39 @@ class EvidenceSynthesizer:
             {"supporting_groups": sorted(sup_groups), "opposing_groups": sorted(opp_groups),
              "n_supporting": len(sup_groups), "n_opposing": len(opp_groups)},
             len(cands), versions)
+
+    # ── research baselines (never the production mode) ──────────────────
+
+    def _trade(self, ctx, reports, versions, cand, thesis, contra) -> Decision:
+        side = "BUY" if cand.direction > 0 else "SELL"
+        return Decision(
+            decision_id(ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, versions), side, ctx.symbol, ctx.timeframe,
+            ctx.t, ctx.mode, {}, ctx.regime.as_dict(), thesis, [], contra, cand.entry, cand.stop, cand.target,
+            f"stop {cand.stop:.5g}, target {cand.target:.5g}, time exit after {cand.max_bars} bars",
+            cand.template, cand.family, cand.expected_r, cand.win_rate, cand.expected_r, cand.lower_r,
+            None, None, 1.0, cand.invalidation, None,
+            {k: {"status": r.status, "stance": r.stance} for k, r in reports.items()}, {}, 1, versions)
+
+    def _baseline_rules(self, ctx, reports, versions, cands, objections, no_trade) -> Decision:
+        """Agents without memory: first family setup (T1) with no blocking or major objection."""
+        for fam in RULE_PRIORITY:
+            for c in cands:
+                if c.family != fam or c.template != "T1":
+                    continue
+                mine = [o for o in objections if o.data.get("action") in (None, c.action)
+                        and o.severity in ("BLOCKING", "MAJOR")]
+                if not mine:
+                    return self._trade(ctx, reports, versions, c, f"RULES BASELINE: {fam} {c.action}", [])
+        return no_trade("rules baseline: no unobjected family setup")
+
+    def _baseline_random(self, ctx, reports, versions, objections, no_trade) -> Decision:
+        """Random direction at a fixed frequency, same templates, same risk engine."""
+        from ..agents.analysts import SetupAnalyst
+        from ..research.labels import TEMPLATE_BY_KEY
+        if self._rng.random() >= self.config.random_trade_prob:
+            return no_trade("random baseline: no trade drawn")
+        d = 1 if self._rng.random() < 0.5 else -1
+        c = SetupAnalyst().candidate(ctx, "RANDOM", d, TEMPLATE_BY_KEY["T1"], "random baseline")
+        if c is None:
+            return no_trade("random baseline: no price")
+        return self._trade(ctx, reports, versions, c, f"RANDOM BASELINE {c.action}", [])
