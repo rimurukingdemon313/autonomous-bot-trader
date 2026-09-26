@@ -104,10 +104,13 @@ def ingest_year(pair: str, year: int, sha: str) -> dict:
                 continue
             # Column order is MEASURED, never assumed: bid <= ask on
             # essentially every tick identifies which column is which.
+            # 95%, not 99%: a month can hold a few percent of crossed quotes
+            # (AUDUSD 2007-07: 2%). Those ticks are dropped and counted by
+            # `aggregate`; they do not make the column order ambiguous.
             le = float(np.mean(c1 <= c2))
-            if le >= 0.99:
+            if le >= 0.95:
                 bid, ask, order = c1, c2, "c1=bid,c2=ask"
-            elif le <= 0.01:
+            elif le <= 0.05:
                 bid, ask, order = c2, c1, "c1=ask,c2=bid"
             else:
                 raise RuntimeError(f"{pair} {year}-{month}: cannot tell bid from ask ({le:.3f} have c1<=c2)")
