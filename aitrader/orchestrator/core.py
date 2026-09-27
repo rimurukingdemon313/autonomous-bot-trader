@@ -39,6 +39,7 @@ from ..decision.synthesis import Decision
 from ..execution.engine import ExecutionEngine
 from ..features.store import LOOKBACK, compute_at
 from ..learning.experience import Evaluation, ExperienceView, session_of
+from ..research.hypotheses import proposals_from_reflection
 from ..learning.review import postmortem, reflect
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
@@ -416,5 +417,16 @@ class Orchestrator:
         rel = {a: self.experience.agent_reliability(a, t) for a in ("adversary_llm", "reviewer_llm")}
         out = reflect(self.experience.resolved, self._postmortems[-500:], t, rel)
         self.db.append("reflections", {"payload": out})
+        # Reflection PROPOSES experiments; it changes no behaviour. Proposals are run,
+        # counted and judged only in the research lab (aitrader/research/lab.py).
+        new = 0
+        for prop in proposals_from_reflection(out, self.experience.lessons):
+            with self.db.tx() as c:
+                if c.execute("SELECT 1 FROM experiments WHERE signature=?", (prop["signature"],)).fetchone():
+                    continue
+                self.db.append("experiments", {"signature": prop["signature"], "payload": prop}, conn=c)
+                new += 1
+        if new:
+            self._event("EXPERIMENTS_PROPOSED", {"t": t, "new": new}, key=True)
         self._event("REFLECTION_COMPLETED", {"t": t, "hypotheses": out.get("hypotheses", [])}, key=True)
         return out

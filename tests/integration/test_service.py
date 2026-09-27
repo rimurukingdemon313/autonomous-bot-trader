@@ -313,3 +313,21 @@ def test_first_start_is_paused_and_only_an_authenticated_resume_starts_trading(t
     rt.resume()
     rt2, _ = build(tmp_path)  # a restart keeps the operator's decision, it does not re-pause
     assert rt2.db.get_kv("paused") is False
+
+
+def test_reflection_journals_experiment_proposals_once_and_changes_nothing(tmp_path, monkeypatch):
+    import aitrader.orchestrator.core as core
+
+    rt, clock = build(tmp_path)
+    fake = {"t": clock(), "hypotheses": [{"kind": "REPEATED_MISTAKE", "cause": "ENTRY_TIMING", "text": "x"}]}
+    monkeypatch.setattr(core, "reflect", lambda *a, **k: dict(fake))
+    before = {k: rt.db.get_kv(k) for k in ("paused", "kill_switch")}
+    kv_before = rt.orch.knowledge_version
+    rt.orch.reflect(clock())
+    rt.orch.reflect(clock())  # the same proposal again: journalled once
+    rows = rt.db.query("SELECT payload FROM experiments")
+    assert len(rows) == 1 and json.loads(rows[0]["payload"])["status"] == "PROPOSED"
+    assert rt.orch.knowledge_version == kv_before  # a proposal is not a lesson and not a version
+    assert {k: rt.db.get_kv(k) for k in ("paused", "kill_switch")} == before
+    assert rt.research()["proposals"][0]["kind"] == "MISTAKE_FEATURE"
+    assert rt.db.verify_chain("experiments")[0]

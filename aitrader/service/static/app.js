@@ -272,6 +272,10 @@ function renderResearch(r) {
   $("research-meta").textContent = `Holdout from ${r.holdout.start}: ${r.holdout.spent ? "SPENT" : "sealed"} · the next test on this data must beat |t| > ${r.next_threshold_t}`;
   $("research").querySelector("tbody").innerHTML = r.trials.map((t) =>
     `<tr><td class="small">${esc(t.id)}</td><td>${esc(t.status)}</td><td class="num">${t.tests}</td><td>${esc(t.registered.slice(0, 10))}</td></tr>`).join("");
+  const props = r.proposals || [];
+  $("proposals").innerHTML = props.length
+    ? `<ul class="small">${props.map((x) => `<li><b>${esc(x.kind)}</b> ${esc(x.statement)} <span class="muted">— ${esc(x.suggested_test)} · ${esc(x.status)}</span></li>`).join("")}</ul>`
+    : `<span class="muted small">None yet. Reflection proposes experiments; only the research lab runs and counts them.</span>`;
   const p = r.pr001;
   const v = r.pr001_verdicts;
   const verdictLine = v ? `<div class="small">Pre-registered verdicts: ${Object.entries(v).map(([k, x]) => `${esc(k.split("_")[0])} <b class="${x === "PASS" ? "pos" : "neg"}">${esc(x)}</b>`).join(" · ")}</div>` : `<div class="small muted">Verdicts: not judged yet.</div>`;

@@ -541,7 +541,9 @@ class Runtime:
         return {"trials": trials, "holdout": {"start": str(reg.holdout.start), "spent": reg.holdout_spent()},
                 "next_threshold_t": round(reg.threshold_for_next(reg.holdout.universe), 3),
                 "pr001": json.loads(summary.read_text()) if summary.exists() else None,
-                "pr001_verdicts": verdicts}
+                "pr001_verdicts": verdicts,
+                "proposals": [json.loads(r["payload"]) for r in self.db.query(
+                    "SELECT payload FROM experiments ORDER BY seq DESC LIMIT 50")]}
 
     def events(self, since: int = 0, limit: int = 200) -> list[dict]:
         rows = self.db.query("SELECT seq, ts, type, ref, payload FROM events WHERE seq>? ORDER BY seq DESC LIMIT ?",
