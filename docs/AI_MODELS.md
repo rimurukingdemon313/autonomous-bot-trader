@@ -115,14 +115,32 @@ One team with several minds, one per provider in `AI_PROVIDERS` (up to
 reach ONE decision. They share the same data, rules and memory as the AI
 trader. For each instrument at each decision:
 
-1. **Discussion.** The members speak one after another. The first reads the
-   market and gives its analysis and the plan it would take. Each next
-   member reads everything said so far and builds on it: it agrees and adds,
-   corrects a mistake, or argues for a better plan to convince the others.
-   The speaking order rotates with every decision.
+1. **Discussion.** Each member has a role, like the desks of one trading
+   firm. They speak in this order:
+
+   | Role | Covers |
+   |---|---|
+   | **TREND** | the big picture: direction on H4 and D1, the team's bias |
+   | **PRICE** | levels, the entry and the stop on M5, M15 and H1 |
+   | **NEWS** | the economic calendar and the session open now: is now a good moment? |
+   | **RISK** | costs, the account, the team's past mistakes and lessons |
+
+   Each member reads everything said so far and builds on it from its role:
+   it agrees and adds, corrects a mistake, or argues for a better plan to
+   convince the others. Roles follow the order of `AI_PROVIDERS`: the first
+   provider is TREND, the second PRICE, and so on. With fewer members, one
+   holds neighbouring roles, and RISK always speaks last. With more, a role
+   gets a second voice.
 2. **Joint decision.** One member (`AI_ROOM_HEAD`, or the first member
    present) reads the whole discussion and writes the team's single plan:
    direction, timeframe, stop, target and holding time, or no trade.
+
+**The calendar.** Every member reads the economic calendar for the pair:
+the ForexFactory weekly feed of scheduled releases. It gives each event's
+time, importance, forecast and previous value, and the session open now.
+It is a schedule, not a headline feed. The feed is downloaded at most
+hourly and kept on the volume. When it cannot be read, the models are told
+it is unavailable, never that nothing is scheduled.
 
 If every member recommends no trade, the joint call is skipped. The
 prompts carry the owner's wish for an active team that trades often,

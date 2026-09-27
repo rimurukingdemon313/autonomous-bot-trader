@@ -30,7 +30,7 @@ function renderRoom(room) {
   if (!room || !(room.members || []).length) return "";
   const plan = (x) => !x || !x.action ? esc(x?.status || "—")
     : `${esc(x.action)}${x.action !== "NO_TRADE" ? ` ${esc(x.timeframe)} SL ${num(x.stop, 5)} TP ${num(x.target, 5)}` : ""}`;
-  const said = (room.discussion || []).map((d, i) => `<li><b>${i + 1}. ${esc(d.member)}</b> <span class="muted small">${esc(d.model || "")}</span><br>
+  const said = (room.discussion || []).map((d, i) => `<li><b>${i + 1}. ${esc(d.role || "")} · ${esc(d.member)}</b> <span class="muted small">${esc(d.model || "")}</span><br>
       <span class="small">${d.action ? plan(d) : `<span class="neg">${esc(d.status)}</span>`}${d.dropped ? ` <span class="neg">(unusable: ${esc(d.dropped)})</span>` : ""}</span>
       ${d.thesis ? `<br><span class="small muted">${esc(d.thesis)}</span>` : ""}
       ${d.to_team ? `<br><span class="small">to the team: ${esc(d.to_team)}</span>` : ""}</li>`).join("");

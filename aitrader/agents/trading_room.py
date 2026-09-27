@@ -3,12 +3,15 @@
 Selected with DECISION_MODE=trading_room (PAPER or DEMO only). The members do
 not vote. They think TOGETHER, in turn, and reach ONE joint decision:
 
-1. DISCUSSION. The members speak one after another. The first reads the
-   market packet and gives its analysis and the plan it would take. Each
-   next member reads the packet AND everything said so far, then builds on
-   it: agrees and adds, corrects a mistake, or argues for a better plan,
-   trying to convince the others. The speaking order rotates with every
-   decision, so no brain always speaks first or last.
+1. DISCUSSION. Each member has a ROLE, like the desks of one trading
+   firm: TREND (the big picture on H4/D1, the team's bias), PRICE (levels,
+   entry and stop on M5/M15/H1), NEWS (the economic calendar and the
+   session: is now a good moment) and RISK (costs, the account, the team's
+   past mistakes and lessons). They speak in that order. Each reads the
+   packet AND everything said so far, then builds on it from its role:
+   agrees and adds, corrects a mistake, or argues for a better plan.
+   Members are assigned roles in AI_PROVIDERS order; with fewer members a
+   member holds several neighbouring roles, with more a role gets a second voice.
 2. JOINT DECISION. One member (AI_ROOM_HEAD, else the first present) reads
    the whole discussion and writes the team's single decision: the plan
    the team converged on, or none.
@@ -46,7 +49,34 @@ from .types import MarketContext
 #: 1.2.0: neutral prompts; a split went to the head; default quorum 1.
 #: 2.0.0 (owner: "one body with four minds"): no independent votes; the members discuss in
 #: turn, each building on the others, and one member writes the team's joint decision.
-ROOM_VERSION = "trading-room-2.0.0"
+#: 2.1.0 (owner: "one is the news, one the price..."): each member has a role; they speak in
+#: role order; the packet carries the economic calendar.
+ROOM_VERSION = "trading-room-2.1.0"
+
+#: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
+ROLES = (
+    ("TREND", "the big picture: direction and momentum on H4 and D1, where price sits in the higher-timeframe "
+              "range, the volatility state. You give the team its bias."),
+    ("PRICE", "price action: structure, key levels, the entry and where the stop belongs on M5, M15 and H1. "
+              "You turn the bias into a precise plan."),
+    ("NEWS", "news and timing: the economic calendar in the JSON (releases for this pair's currencies, how soon, "
+             "how important, forecast vs previous) and the session open now. You judge whether now is a good "
+             "moment and what could move the price. If the calendar is unavailable, say so; never invent news."),
+    ("RISK", "risk and memory: spread and costs against the stop and target, the account, and the team's past "
+             "trades and lessons. You check the plan, fix what is unsafe or repeats a past mistake, and make "
+             "the target realistic."),
+)
+
+
+def assign_roles(members: list[str]) -> dict[str, list[str]]:
+    """Members take roles in order. Fewer members than roles: one member holds several; more: second voices."""
+    names = [r for r, _ in ROLES]
+    if not members:
+        return {}
+    n = len(members)
+    if n <= len(names):  # contiguous blocks, so the last speaker still holds RISK
+        return {m: names[i * len(names) // n:(i + 1) * len(names) // n] for i, m in enumerate(members)}
+    return {m: [names[i % len(names)]] for i, m in enumerate(members)}
 
 _DATA = """Use ONLY the data in the JSON: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
 the account, the quantitative agents' findings (information, not orders), and the team's memory of its past
@@ -63,9 +93,11 @@ tracked). You decide for ONE instrument, now.
 """ + _DATA + """
 """ + _OWNER + """
 
-"discussion" in the JSON holds what your teammates have said so far, in order (empty if you speak first).
-Build on it: agree and add what they missed, correct a mistake, or argue for a better plan and try to
-convince them. Then state the plan you want the team to take.
+YOUR ROLE in the team: {role}
+You see all the data, but contribute above all from your role; your teammates cover the others.
+"discussion" in the JSON holds what your teammates have said so far, in order, with their roles (empty if
+you speak first). Build on it: agree and add what they missed, correct a mistake, or argue for a better plan
+and try to convince them. Then state the plan you want the team to take.
 
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
@@ -77,8 +109,9 @@ JOINT = """You are {name}, writing the JOINT DECISION of your trading team ({mem
 """ + _DATA + """
 """ + _OWNER + """
 
-"discussion" in the JSON holds everything the team said, in order, including you. Write the ONE plan the team
-converged on, combining the best of what was said: the direction, timeframe, stop, target and holding time
+"discussion" in the JSON holds everything the team said, in order, with each member's role: TREND gave the
+bias, PRICE the levels, NEWS the timing, RISK the checks. Write the ONE plan the team converged on, combining
+the best of each role: the direction, timeframe, stop, target and holding time
 the team stands behind, or NO_TRADE if the team concluded there is nothing worth taking.
 
 Reply with ONE JSON object only:
@@ -131,12 +164,11 @@ class TradingRoom:
         return [ep.name for ep in self.llm.config.endpoints()][: self.config.size]
 
     @staticmethod
-    def speaking_order(members: list[str], symbol: str, t: int) -> list[str]:
-        """Rotates with every decision (deterministically), so no brain always speaks first or last."""
-        if not members:
-            return []
-        k = (sum(map(ord, symbol)) + t // 60) % len(members)
-        return members[k:] + members[:k]
+    def speaking_order(roles: dict[str, list[str]]) -> list[str]:
+        """Role order: TREND, then PRICE, then NEWS, then RISK; second voices after the first ones."""
+        rank = {r: i for i, (r, _) in enumerate(ROLES)}
+        first = {m: rank[rs[0]] + (len(ROLES) if m in list(roles)[len(ROLES):] else 0) for m, rs in roles.items()}
+        return sorted(roles, key=lambda m: first[m])
 
     def decide(self, ctx: MarketContext, reports: dict, versions: dict, llm_opinions=None) -> Decision:
         if ctx.mode == "BACKTEST":
@@ -146,9 +178,10 @@ class TradingRoom:
         did = decision_id(ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, v)
         agents = agent_digest(reports)
         members = self.members()
-        order = self.speaking_order(members, ctx.symbol, ctx.t)
-        room: dict = {"members": members, "order": order, "head": None, "discussion": [], "final": {},
-                      "joint": None, "outcome": None}
+        roles = assign_roles(members)
+        order = self.speaking_order(roles)
+        room: dict = {"members": members, "roles": roles, "order": order, "head": None, "discussion": [],
+                      "final": {}, "joint": None, "outcome": None}
 
         def no_trade(reason: str, contra=None) -> Decision:
             room["outcome"] = reason
@@ -162,22 +195,25 @@ class TradingRoom:
 
         # 1. DISCUSSION: in turn, each member reads everything said so far.
         said: list[dict] = []
+        desc = dict(ROLES)
         for m in order:
+            role = " AND ".join(f"{r}, {desc[r]}" for r in roles[m])
             res = self.llm.complete_json(
-                f"room:{m}", SPEAK.format(name=m, n=n, members=names, time=packet["decision_time"]),
+                f"room:{m}", SPEAK.format(name=m, n=n, members=names, time=packet["decision_time"], role=role),
                 {**packet, "you": m, "discussion": list(said)}, validate_speech,
                 cache_key=f"{ctx.symbol}|{ctx.t}|speak|{len(said)}", only=m)
             if not res.ok:
-                room["discussion"].append({"member": m, "status": res.status, "model": res.model})
+                room["discussion"].append({"member": m, "role": "+".join(roles[m]), "status": res.status,
+                                           "model": res.model})
                 continue  # skipped: nobody speaks for it
             view = _view(res.data, res.model)
             if view["action"] != "NO_TRADE":
                 problem = level_problem(ctx, res.data)
                 if problem:
                     view["dropped"] = problem  # recorded; its teammates still read what it argued
-            said.append({"member": m, **{k: view.get(k) for k in (
+            said.append({"member": m, "role": "+".join(roles[m]), **{k: view.get(k) for k in (
                 "action", "timeframe", "stop", "target", "max_hold_hours", "thesis", "to_team", "invalidation")}})
-            room["discussion"].append({"member": m, **view})
+            room["discussion"].append({"member": m, "role": "+".join(roles[m]), **view})
             room["final"][m] = view
         present = [m for m in order if m in room["final"]]
         if not present:

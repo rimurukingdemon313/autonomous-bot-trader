@@ -55,7 +55,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: Backtest decisions are unchanged from 1.0.0.
 #: 1.2.0: in DECISION_MODE=trading_room the memory brief carries each member's forward record.
 #: 1.3.0: the model-trader modes also read completed M5/M15 bars when the feed provides them.
-ORCHESTRATOR_VERSION = "orchestrator-1.3.0"
+#: 1.4.0: ... and the economic calendar for the pair, when one is configured.
+ORCHESTRATOR_VERSION = "orchestrator-1.4.0"
 
 
 class NullKnowledge:
@@ -89,11 +90,12 @@ class Orchestrator:
     def __init__(self, cfg: OrchestratorConfig, *, db: Database, feed, broker, brain: Brain,
                  risk: RiskEngine, execution: ExecutionEngine, experience: ExperienceView,
                  memory: PatternMemory, regime_for: Callable[[int], object], clock: Callable[[], int],
-                 versions: dict) -> None:
+                 versions: dict, news=None) -> None:
         self.cfg, self.db, self.feed, self.broker = cfg, db, feed, broker
         self.brain, self.risk, self.execution = brain, risk, execution
         self.experience, self.memory, self.regime_for = experience, memory, regime_for
         self.clock, self.versions = clock, dict(versions)
+        self.news = news  # economic calendar (live only); the model modes read it
         self.tracker = OutcomeTracker(pip_of, cfg.costs, on_resolved=self._on_resolved)
         self.experience.on_lesson = self._on_lesson
         self._last_learn = 0
@@ -227,6 +229,8 @@ class Orchestrator:
             ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
             if mode == "trading_room":
                 ctx.memory_brief["room_track_records"] = member_records(self.db)
+            if self.news is not None:
+                ctx.news = self.news.for_symbol(symbol, t)
             ks = self.db.get_kv("kill_switch", {"active": True})
             ctx.trading_allowed = not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
                                        or not isinstance(ks, dict) or ks.get("active") is not False)

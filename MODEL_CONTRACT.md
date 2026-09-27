@@ -174,6 +174,9 @@ the team's joint plan. In addition to every rule above:
   and the risk engine sizes it.
 - The whole discussion is journalled on the decision. Each mind's forward
   record (trades it argued for, trades it did not) is measured separately.
+- 2.1: each mind has a role: TREND, PRICE, NEWS or RISK, in that speaking
+  order. Every mind reads the economic calendar, where an unreadable feed
+  is "unknown", never "no events".
 
 Version 1.x of the room had independent proposals, a debate, and a head
 that could only pick one member's trade. The owner replaced it with "one

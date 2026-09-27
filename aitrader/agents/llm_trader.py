@@ -173,6 +173,7 @@ def market_packet(ctx: MarketContext, reports: dict) -> dict:
                          for k, r in reports.items()},
         "regime": {k: val for k, val in ctx.regime.as_dict().items() if k != "reasons"},
         "memory": ctx.memory_brief,
+        "calendar": ctx.news if ctx.news is not None else {"feed": {"status": "NOT_CONFIGURED"}, "events": None},
     }
 
 

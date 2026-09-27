@@ -28,6 +28,7 @@ import numpy as np
 
 from ..agents.brain import Brain, BrainConfig
 from ..agents.trading_room import member_records
+from ..data.calendar import EconomicCalendar
 from ..backtest.metrics import summarise
 from ..broker.paper import PaperBroker
 from ..data.bars import BarSeries
@@ -154,6 +155,8 @@ class Runtime:
             brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=BrainConfig.from_env()),
             risk=RiskEngine(cfg.risk), execution=self.execution, experience=self.experience,
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
+            # The calendar is read from the internet like the broker: only for a live feed.
+            news=(EconomicCalendar(Path(cfg.data_dir) / "calendar_cache.json") if self.tl is not None else None),
             versions={**stamp(), "service": SERVICE_VERSION, "knowledge_base": (self.knowledge_meta.get("hash", "none")
                                                      if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
                       "llm": self.llm.config.public()["model"] or "none"})
@@ -467,6 +470,7 @@ class Runtime:
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
                 "decision_mode": self.orch.brain.config.decision_mode,
                 "decision_interval_min": self.cfg.decision_interval_min or None,
+                "news_calendar": (self.orch.news.state(refresh=False) if self.orch.news is not None else {"status": "NOT_CONFIGURED"}),
                 "symbols_per_cycle": self.cfg.symbols_per_cycle or len(self.cfg.symbols),
                 "ai_trader_record": (TradeMemory(self.db).record()
                                      if self.orch.brain.config.decision_mode in ("llm_trader", "trading_room") else None),

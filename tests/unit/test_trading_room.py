@@ -12,7 +12,7 @@ import urllib.error
 import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
-from aitrader.agents.trading_room import RoomConfig, TradingRoom, member_records
+from aitrader.agents.trading_room import RoomConfig, TradingRoom, assign_roles, member_records
 from aitrader.llm.provider import Endpoint, LLMClient, LLMConfig
 from aitrader.memory.db import Database
 
@@ -35,12 +35,14 @@ class Room:
     def __init__(self, speak, joint=None):
         self.speak, self.joint = speak, joint
         self.calls: list[tuple[str, str, dict]] = []
+        self.systems: list[tuple[str, str]] = []
 
     def transport(self, url, headers, body, timeout):
         member = url.split("//")[1].split(".")[0]
         system, user = body["messages"][0]["content"], json.loads(body["messages"][1]["content"])
         phase = "joint" if "JOINT DECISION" in system else "speak"
         self.calls.append((member, phase, user))
+        self.systems.append((member, system))
         reply = self.joint if phase == "joint" else self.speak.get(member)
         reply = reply(user) if callable(reply) else reply
         if isinstance(reply, int):
@@ -79,9 +81,27 @@ def test_each_mind_reads_everything_said_before_it_and_the_team_writes_one_decis
     assert d.versions["trading_room"].startswith("trading-room-2.")
 
 
-def test_the_speaking_order_rotates_between_decisions():
-    orders = {tuple(TradingRoom.speaking_order(list(MEMBERS), "EURUSD", t)) for t in range(0, 4 * 60, 60)}
-    assert len(orders) == 4 and all(sorted(o) == sorted(MEMBERS) for o in orders)
+@pytest.mark.parametrize("members,roles", [
+    (MEMBERS, {"groq": ["TREND"], "gemini": ["PRICE"], "openrouter": ["NEWS"], "bytez": ["RISK"]}),
+    (("groq", "gemini", "bytez"), {"groq": ["TREND"], "gemini": ["PRICE"], "bytez": ["NEWS", "RISK"]}),
+    (("groq",), {"groq": ["TREND", "PRICE", "NEWS", "RISK"]}),
+])
+def test_every_role_is_covered_whatever_the_team_size_and_risk_speaks_last(members, roles):
+    assert assign_roles(list(members)) == roles
+    order = TradingRoom.speaking_order(roles)
+    assert "RISK" in roles[order[-1]] and "TREND" in roles[order[0]]
+
+
+def test_each_mind_is_told_its_role_and_everyone_reads_the_calendar():
+    room = Room(speak={m: NONE for m in MEMBERS})
+    c = live_ctx()
+    c.news = {"feed": {"status": "FRESH"}, "events": [{"minutes_away": 25, "currency": "USD", "title": "Non-Farm Payrolls",
+                                                     "impact": "High", "forecast": "180K", "previous": "150K"}]}
+    room.brain().think(c, V)
+    systems = {m: b for m, b in room.systems}
+    assert "YOUR ROLE in the team: NEWS" in systems["openrouter"] and "YOUR ROLE in the team: RISK" in systems["bytez"]
+    assert all(u["calendar"]["events"][0]["title"] == "Non-Farm Payrolls" for _, p, u in room.calls)
+    assert [s["role"] for s in room.calls[-1][2]["discussion"]] == ["TREND", "PRICE", "NEWS"]
 
 
 def test_when_every_mind_sees_nothing_no_joint_call_is_made():
