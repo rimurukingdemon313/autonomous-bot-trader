@@ -43,8 +43,8 @@ evidence packet, for the agents listed in `AI_AGENTS` (default:
 | `AI_TIMEOUT_S` | `60` | per call |
 | `AI_MAX_TOKENS` | `1500` | per reply; a cut-off reply is rejected |
 | `AI_MODEL_TRADER` | | the model for the AI trader, if different |
-| `DECISION_MODE` | `evidence` | `llm_trader` = the model proposes trades; `trading_room` = several models hunt, debate and a head picks (below) |
-| `AI_ROOM_SIZE` / `AI_ROOM_QUORUM` / `AI_ROOM_HEAD` | `4` / `2` / first member | trading room only |
+| `DECISION_MODE` | `evidence` | `llm_trader` = the model proposes trades; `trading_room` = several models discuss in turn and write one joint decision (below) |
+| `AI_ROOM_SIZE` / `AI_ROOM_HEAD` | `4` / first member present | trading room only |
 | `AI_DAILY_CALL_BUDGET` | `500` | hard cap per UTC day |
 | `AI_REQUIRED` | `false` | `true` = no LLM, no trade |
 
@@ -110,48 +110,44 @@ win rate, average R, and whether the sample is still insufficient (under
 
 ## The trading room (`DECISION_MODE=trading_room`)
 
-Several models trade together, one per provider in `AI_PROVIDERS` (up to
-`AI_ROOM_SIZE`). They share the same data, rules and memory as the AI
+One team with several minds, one per provider in `AI_PROVIDERS` (up to
+`AI_ROOM_SIZE`). The members do not vote. They think together, in turn, and
+reach ONE decision. They share the same data, rules and memory as the AI
 trader. For each instrument at each decision:
 
-1. **Own view.** Each member reads the market its own way and decides
-   freely, without seeing the others: a trade of its own choosing, or
-   none. If no member wants a trade, the room stops here.
-2. **Debate.** Each member reads every view and gives a final position:
-   keep it, change it, take another member's trade, or stand aside.
-3. **Head.** The head trader (`AI_ROOM_HEAD`, or the first member present)
-   reads the final positions, the critiques and each member's record, and
-   takes ONE member's trade exactly as proposed, or none. Members may
-   disagree, even on direction; weighing that is the head's job.
+1. **Discussion.** The members speak one after another. The first reads the
+   market and gives its analysis and the plan it would take. Each next
+   member reads everything said so far and builds on it: it agrees and adds,
+   corrects a mistake, or argues for a better plan to convince the others.
+   The speaking order rotates with every decision.
+2. **Joint decision.** One member (`AI_ROOM_HEAD`, or the first member
+   present) reads the whole discussion and writes the team's single plan:
+   direction, timeframe, stop, target and holding time, or no trade.
 
-The prompts steer no style, setup or timeframe. The quantitative analysts'
-view of the market is passed on as information, not as a veto.
+If every member recommends no trade, the joint call is skipped. The
+prompts carry the owner's wish for an active team that trades often,
+including short M5/M15 trades. They steer no particular setup, and no
+trade is forced. The quantitative analysts' view of the market is passed
+on as information, not as a veto.
 
 The following rules are enforced in code, not in the prompts:
 
 - **Own voice only.** A member speaks only through its own provider. A
-  member whose provider fails is absent; no other model speaks for it.
-- **Quorum (optional).** With `AI_ROOM_QUORUM=k`, a direction needs k
-  members holding it to be eligible. The default is 1, so any member's
-  trade may be taken. The quorum is capped by how many members are present.
-- **No repairs.** A final trade with a wrong-side or absurd stop is
-  dropped, not repaired.
-- **The head only chooses.** It picks one supporter's trade verbatim. It
-  cannot change a level, invent a trade, or size one.
-- **Lessons block.** A validated lesson against the chosen side blocks the
-  trade.
-- **Pause stops everything.** While paused or stopped, no model is called.
+  member whose provider fails is skipped; no other model speaks for it.
+- **No repairs.** A joint plan with a wrong-side or absurdly far stop is
+  NO_TRADE, not repaired.
+- **Size is not theirs.** The risk engine sizes the plan and may refuse it.
+- **Lessons block.** A validated lesson against the plan's side blocks it.
+- **Pause stops everything.** While paused or stopped, or when the data is
+  bad, no model is called.
 
 The whole discussion is recorded on each decision and shown on the
-dashboard under TRADING ROOM. The status response (`trading_room.records`)
-keeps each member's forward record in two parts: trades it backed and
-trades it did not.
+dashboard under TRADING ROOM, in speaking order, with the joint decision.
+The status response (`trading_room.records`) keeps each member's forward
+record in two parts: trades it argued for, and trades it did not.
 
-**Cost.** Each decision costs one call per member. Only if someone finds a
-trade does it add one debate call per member and one head call. With 4
-members and 12 instruments this is roughly 290 to 650 calls a day. Free
-tiers run out; set `AI_<NAME>_DAILY_BUDGET` for each provider. A member
-whose budget is spent is simply absent.
+**Cost.** Each decision costs one call per member plus one joint call, 5
+with 4 members. When nobody sees a trade, it costs 4.
 
 ## How often it decides (`DECISION_INTERVAL_MIN`, `SYMBOLS_PER_CYCLE`)
 
@@ -178,10 +174,10 @@ When the interval is set:
 **Cost is the real limit.** The number of calls per cycle is:
 
 - **Single trader:** one call per pair analysed.
-- **Trading room:** up to 9 calls per pair (4 hunt, 4 debate, 1 head).
+- **Trading room:** up to 5 calls per pair (4 minds in turn, 1 joint decision).
 
 For example, `DECISION_INTERVAL_MIN=1` with `SYMBOLS_PER_CYCLE=1` in the
-trading room is up to 540 calls an hour. Free tiers run out. When a
+trading room is up to 300 calls an hour. Free tiers run out. When a
 provider's budget is spent, its member is absent. When every member is
 absent, the decision is NO_TRADE until the next UTC day.
 

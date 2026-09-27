@@ -25,20 +25,19 @@ function aiRecord(r) {
   return `${r.trades} trades, win ${Math.round(r.win_rate * 100)}%, ${r.avg_R >= 0 ? "+" : ""}${r.avg_R}R (${r.sample})`;
 }
 
-// What each member of the trading room said, and what it ended as. Presentation only.
+// What the team said, in speaking order, and the joint decision. Presentation only.
 function renderRoom(room) {
   if (!room || !(room.members || []).length) return "";
-  const rows = room.members.map((m) => {
-    const a = room.round1?.[m] || {}, f = room.final?.[m];
-    const pos = (x) => !x ? "—" : x.action ? `${esc(x.action)}${x.action !== "NO_TRADE" ? ` ${esc(x.timeframe)} SL ${num(x.stop, 5)} TP ${num(x.target, 5)}` : ""}` : esc(x.status || "—");
-    const note = f?.dropped ? ` <span class="neg">dropped: ${esc(f.dropped)}</span>` : "";
-    return `<li><b>${esc(m)}${m === room.head ? " (head)" : ""}${m === room.picked ? " ✓" : ""}</b> <span class="muted small">${esc(a.model || "")}</span><br>
-      <span class="small">hunt: ${pos(a)} · final: ${pos(f)}${note}</span>
-      ${f?.thesis || a.thesis ? `<br><span class="small muted">${esc(f?.thesis || a.thesis)}</span>` : ""}
-      ${f?.critique ? `<br><span class="small">critique: ${esc(f.critique)}</span>` : ""}</li>`;
-  }).join("");
-  return `<div class="agent"><h4>TRADING ROOM <span class="muted small">quorum ${room.quorum ?? "—"}</span></h4>
-    <div class="small">${esc(room.outcome || "")}${room.head_reason ? `<br>head: ${esc(room.head_reason)}` : ""}</div><ul>${rows}</ul></div>`;
+  const plan = (x) => !x || !x.action ? esc(x?.status || "—")
+    : `${esc(x.action)}${x.action !== "NO_TRADE" ? ` ${esc(x.timeframe)} SL ${num(x.stop, 5)} TP ${num(x.target, 5)}` : ""}`;
+  const said = (room.discussion || []).map((d, i) => `<li><b>${i + 1}. ${esc(d.member)}</b> <span class="muted small">${esc(d.model || "")}</span><br>
+      <span class="small">${d.action ? plan(d) : `<span class="neg">${esc(d.status)}</span>`}${d.dropped ? ` <span class="neg">(unusable: ${esc(d.dropped)})</span>` : ""}</span>
+      ${d.thesis ? `<br><span class="small muted">${esc(d.thesis)}</span>` : ""}
+      ${d.to_team ? `<br><span class="small">to the team: ${esc(d.to_team)}</span>` : ""}</li>`).join("");
+  const j = room.joint;
+  return `<div class="agent"><h4>TRADING ROOM <span class="muted small">one team, ${room.members.length} minds</span></h4>
+    <div class="small">${esc(room.outcome || "")}</div><ol class="plain">${said}</ol>
+    ${j ? `<div class="small"><b>Joint decision${room.head ? ` (written by ${esc(room.head)})` : ""}:</b> ${plan(j)}<br><span class="muted">${esc(j.thesis || "")}</span></div>` : ""}</div>`;
 }
 
 function chip(label, value, level) {

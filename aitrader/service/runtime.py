@@ -470,7 +470,7 @@ class Runtime:
                 "symbols_per_cycle": self.cfg.symbols_per_cycle or len(self.cfg.symbols),
                 "ai_trader_record": (TradeMemory(self.db).record()
                                      if self.orch.brain.config.decision_mode in ("llm_trader", "trading_room") else None),
-                "trading_room": ({"members": self.orch.brain.room.members(), "quorum": self.orch.brain.config.room.quorum,
+                "trading_room": ({"members": self.orch.brain.room.members(),
                                   "head": self.orch.brain.config.room.head or None,
                                   "records": member_records(self.db)}
                                  if self.orch.brain.config.decision_mode == "trading_room" else None),

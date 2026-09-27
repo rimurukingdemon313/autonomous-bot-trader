@@ -162,21 +162,23 @@ Code: `aitrader/agents/llm_trader.py`, `aitrader/memory/trade_memory.py`.
 Tests: `tests/unit/test_llm_trader.py`, and the end-to-end test in
 `tests/integration/test_service.py`.
 
-### 10.1 The trading room (`DECISION_MODE=trading_room`, owner request, 2026-09-27)
+### 10.1 The trading room (`DECISION_MODE=trading_room`, owner request, 2026-09-27; 2.0 same day)
 
-This is the same contract, with several proposers instead of one. Each
-member is a different provider's model. Members hunt independently, then
-debate. A head trader then picks one member's trade verbatim, or declines.
-In addition to every rule above:
+This is the same contract, with one team of several minds instead of one
+trader. Each mind is a different provider's model. The minds discuss in
+turn, and each reads everything said before it. One of them then writes
+the team's joint plan. In addition to every rule above:
 
-- A member speaks only through its own provider; a failed member is
-  absent.
-- A direction held by fewer than `AI_ROOM_QUORUM` members (default 1,
-  capped by the members present) is not eligible. A split between BUY and
-  SELL is for the head to weigh (§10.3).
-- The head cannot modify, invent or size a trade.
-- The whole discussion is journalled on the decision. Each member's
-  forward record is measured separately.
+- A mind speaks only through its own provider; a failed mind is skipped.
+- The joint plan passes the same checks as a single trader's proposal,
+  and the risk engine sizes it.
+- The whole discussion is journalled on the decision. Each mind's forward
+  record (trades it argued for, trades it did not) is measured separately.
+
+Version 1.x of the room had independent proposals, a debate, and a head
+that could only pick one member's trade. The owner replaced it with "one
+body with four minds". Past decisions carry their version, so their
+records stay attributable.
 
 Code: `aitrader/agents/trading_room.py`. Tests: `tests/unit/test_trading_room.py`.
 
@@ -208,8 +210,8 @@ itself". Changes:
 - **Stop distance.** There is no minimum stop distance of the model layer's
   own; the risk engine's spread-based checks decide what is too tight. A
   stop wider than 12 H1-ATR is still refused as a typo.
-- **Trading room.** A BUY/SELL split no longer forces NO_TRADE; the head
-  decides. The default quorum is 1.
+- **Trading room.** No vote, no quorum. The team discusses and writes one
+  plan (§10.1, room 2.0).
 
 **What does not move.** The risk engine is the only authority on size and
 approval, with all its limits. Also unchanged:

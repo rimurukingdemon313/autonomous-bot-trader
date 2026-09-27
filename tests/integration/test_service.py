@@ -381,27 +381,29 @@ def test_the_llm_trader_trades_through_the_risk_engine_reviews_itself_and_rememb
     assert rt.status()["versions"].get("service")
 
 
-def test_the_trading_room_hunts_debates_and_trades_through_the_risk_engine(tmp_path, monkeypatch):
-    """End to end: three providers hunt, debate, the head picks one member's trade, the risk engine sizes it,
-    and each member's record is measured separately."""
+def test_the_trading_room_discusses_in_turn_and_trades_through_the_risk_engine(tmp_path, monkeypatch):
+    """End to end: three minds discuss in turn, one writes the team's decision, the risk engine sizes it,
+    and each mind's record is measured separately."""
     import aitrader.service.runtime as runtime_mod
     from aitrader.llm.provider import Endpoint, LLMClient, LLMConfig
 
-    heads = []
+    joints = []
+
+    def plan(user, k, **kw):
+        ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
+        return {"action": "BUY", "timeframe": "H1", "stop": ask - k * atr, "target": ask + 2 * k * atr,
+                "max_hold_hours": 12, "thesis": "buy", "invalidation": "stop", "memory_used": "none", **kw}
 
     def reply(member, body):
         system, user = body["messages"][0]["content"], json.loads(body["messages"][1]["content"])
         if "reviewing one of YOUR OWN" in system:
             return {"what_happened": "closed", "was_it_a_mistake": False, "mistake": None, "lesson": None}
-        if "HEAD TRADER" in system:
-            heads.append(user["track_records"])
-            return {"decision": "TRADE", "pick": "gemini", "reason": "wider stop"}
+        if "JOINT DECISION" in system:
+            joints.append(user)
+            return plan(user, 2.0, thesis="team: buy with the wider stop")
         if member == "bytez":
-            return {"action": "NO_TRADE", "thesis": "waiting for the London open"}
-        ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
-        k = 2.0 if member == "gemini" else 1.5
-        return {"action": "BUY", "timeframe": "H1", "stop": ask - k * atr, "target": ask + 2 * k * atr,
-                "max_hold_hours": 12, "thesis": f"{member} buys", "invalidation": "stop", "memory_used": "none"}
+            return {"action": "NO_TRADE", "thesis": "waiting for the London open", "to_team": "too early for me"}
+        return plan(user, 2.0 if member == "gemini" else 1.5, to_team=f"{member}: I see a buy")
 
     def transport(url, headers, body, timeout):
         member = url.split("//")[1].split(".")[0]
@@ -409,7 +411,6 @@ def test_the_trading_room_hunts_debates_and_trades_through_the_risk_engine(tmp_p
 
     cfg = LLMConfig(providers=tuple(Endpoint(m, f"https://{m}.test/v1", "k", f"{m}-m") for m in ("groq", "gemini", "bytez")))
     monkeypatch.setenv("DECISION_MODE", "trading_room")
-    monkeypatch.setenv("AI_ROOM_QUORUM", "2")
     monkeypatch.setattr(runtime_mod, "LLMClient", lambda _cfg: LLMClient(cfg, transport))
     _write_kb(tmp_path / "kb")
     rt, clock = build(tmp_path / "rt", knowledge_dir=tmp_path / "kb")
@@ -420,15 +421,16 @@ def test_the_trading_room_hunts_debates_and_trades_through_the_risk_engine(tmp_p
         rt.run_cycle(decide=rt.is_decision_hour(clock.t))
 
     trades = rt.db.query("SELECT decision_id FROM trades")
-    assert trades, "the room should have traded on the replay"
+    assert trades, "the team should have traded on the replay"
     for tr in trades:
         dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (tr["decision_id"],))["payload"])
         room = dec["independent_evidence"]["room"]
-        assert room["picked"] == "gemini" and room["final"]["bytez"]["action"] == "NO_TRADE"
+        assert room["joint"]["action"] == "BUY" and room["final"]["bytez"]["action"] == "NO_TRADE"
+        assert len(room["discussion"]) == 3
         verdict = rt.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (tr["decision_id"],))
         assert verdict["approved"] == 1 and json.loads(verdict["payload"])["qty"] > 0  # sized by the risk engine
     st = rt.status()["components"]
     assert st["decision_mode"] == "trading_room" and st["trading_room"]["members"] == ["groq", "gemini", "bytez"]
     recs = st["trading_room"]["records"]
     assert recs["gemini"]["supported"]["trades"] == len(trades) and recs["bytez"]["supported"] == {"trades": 0}
-    assert any(h.get("gemini") for h in heads)  # later heads saw the members' records
+    assert all(len(j["discussion"]) == 3 for j in joints)  # the joint decision read the whole discussion
