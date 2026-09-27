@@ -37,6 +37,7 @@ from ..base import (
 from ._compat import TradingConfig
 from .client import TradeLockerBroker
 from .demo_guard import verify_demo
+from .history import TIMEFRAME_MINUTES
 
 ADAPTER_VERSION = "tradelocker-adapter-1.0.0"
 
@@ -126,10 +127,12 @@ class TradeLockerAdapter:
     def symbols(self) -> list[str]:
         return list(self._symbols)
 
-    def bars(self, symbol: str, as_of: int, count: int) -> BarSeries | None:
+    def bars(self, symbol: str, as_of: int, count: int, timeframe: str = "H1") -> BarSeries | None:
+        """The last `count` COMPLETED bars of `timeframe` at `as_of` (M1, M5, M15, H1, H4 or D1)."""
+        tf_s = TIMEFRAME_MINUTES[timeframe] * 60
         try:
             spec = self.client.instrument(symbol)
-            rows = self.client.candles(spec, "H1", count=count + 2)
+            rows = self.client.candles(spec, timeframe, count=count + 2)
         except BrokerError as exc:
             log_event("DATA", f"no bars for {symbol}: {exc}", severity="warning", symbol=symbol)
             return None
@@ -140,7 +143,7 @@ class TradeLockerAdapter:
         rows = sorted(rows, key=lambda r: r["timestamp"])
         t = np.array([int(r["timestamp"].timestamp()) if hasattr(r["timestamp"], "timestamp") else int(r["timestamp"])
                       for r in rows], dtype=np.int64)
-        closed = t + 3600 <= as_of  # a forming bar is never used
+        closed = t + tf_s <= as_of  # a forming bar is never used
         if not closed.any():
             return None
         pick = np.flatnonzero(closed)[-count:]
@@ -152,7 +155,7 @@ class TradeLockerAdapter:
         sm = np.full(len(pick), np.nan)
         sm[-1] = spread
         return BarSeries.from_columns(
-            symbol, "H1", "tradelocker", open_time=t[pick],
+            symbol, timeframe, "tradelocker", open_time=t[pick],
             bid_open=o, bid_high=h, bid_low=low, bid_close=c,
             ask_open=o + spread, ask_high=h + spread, ask_low=low + spread, ask_close=c + spread,
             ticks=vol.astype(np.int64), spread_mean=sm, spread_max=sm)

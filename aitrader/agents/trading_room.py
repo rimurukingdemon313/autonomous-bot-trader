@@ -3,7 +3,7 @@
 Selected with DECISION_MODE=trading_room (PAPER or DEMO only). One decision
 for one instrument runs in three steps:
 
-1. HUNT. Every member reads the same market packet (H1/H4/D1 completed bars,
+1. HUNT. Every member reads the same market packet (M5/M15/H1/H4/D1 completed bars,
    quote, account, the quantitative agents, the shared trade memory) and,
    without seeing the others, proposes the best trade it can find, or
    NO_TRADE naming the setup it is waiting for.
@@ -46,25 +46,27 @@ from .llm_trader import (
 )
 from .types import MarketContext
 
-ROOM_VERSION = "trading-room-1.0.0"
+#: 1.1.0: M5/M15 bars in the packet and as trade timeframes.
+ROOM_VERSION = "trading-room-1.1.0"
 
 HUNT = """You are {name}, one of {n} professional discretionary FX traders in a trading room. Each of you
 runs on a different AI model; your own record is tracked separately from the others'.
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
-Use ONLY the data in the JSON: completed bars on H1, H4 and D1, the live quote, the account, the
+Use ONLY the data in the JSON: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote, the account, the
 quantitative agents' findings, and the room's memory of its past trades (losses first) with the
 reflections written on them. Do not use any knowledge of prices or events after the decision time.
 
-Your job is to HUNT. Search all three timeframes for the best trade on this instrument now: trend
+Your job is to HUNT. Search every timeframe for the best trade on this instrument now: trend
 continuation, a pullback into a level, a breakout and retest, a range edge, a reversal at an
-extreme. When you find one, propose it with the stop where the idea is proven wrong and a target the
+extreme, or a short M5/M15 scalp when the structure there is clean (a small clean profit is a good
+trade; the spread is paid on every trade, so the target must clear it comfortably). When you find one, propose it with the stop where the idea is proven wrong and a target the
 timeframe can realistically reach. A careless trade costs the account; a clear opportunity missed is
 also a failure. If there is honestly nothing, answer NO_TRADE and say in the thesis exactly which
 setup you are waiting for. Do not repeat a mistake the memory shows; say which memory you used.
 You do NOT size positions: a risk engine does that and may refuse the trade.
 
 Reply with ONE JSON object only:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "H1|H4|D1", "stop": <price or null>, "target": <price or null>,
+{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_hours": <1-336 or null>, "thesis": "why, in at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none"}}"""
 
@@ -76,7 +78,7 @@ NO_TRADE. Changing your mind for a better argument is professional; agreeing to 
 The same data rules apply: nothing after the decision time.
 
 Reply with ONE JSON object only, the same fields as before plus a critique:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "H1|H4|D1", "stop": <price or null>, "target": <price or null>,
+{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_hours": <1-336 or null>, "thesis": "your final case, at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "...",
   "critique": "the strongest objection you found to the other proposals, at most 3 sentences"}}"""

@@ -3,8 +3,8 @@
 Selected with DECISION_MODE=llm_trader (PAPER or DEMO only). What it may and
 may not do is fixed here, in code:
 
-MAY: choose BUY, SELL or NO_TRADE; choose the timeframe it reasons on (H1,
-H4 or D1, all built from completed bars only); set the stop, the target and a
+MAY: choose BUY, SELL or NO_TRADE; choose the timeframe it reasons on (M5,
+M15, H1, H4 or D1, all from completed bars only); set the stop, the target and a
 maximum holding time; write its thesis and invalidation. Before deciding it
 reads its own record, its past trades most relevant now (losses first) with
 its own reflections on them, and the validated lessons.
@@ -34,26 +34,28 @@ from ..data.resample import resample
 from ..decision.synthesis import Decision, decision_id
 from .types import MarketContext
 
-LLM_TRADER_VERSION = "llm-trader-1.0.0"
+#: 1.1.0: also reads completed M5 and M15 bars when the broker provides them, and may trade on them.
+LLM_TRADER_VERSION = "llm-trader-1.1.0"
 FAMILY = "LLM_TRADER"
-TIMEFRAMES = ("H1", "H4", "D1")
+TIMEFRAMES = ("M5", "M15", "H1", "H4", "D1")
 MIN_STOP_ATR, MAX_STOP_ATR = 0.3, 12.0  # in H1 ATR: tighter is noise, wider is not a stop
 MAX_HOLD_HOURS = 336
 
 SYSTEM = """You are a professional discretionary FX trader managing a paper account.
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
-Use ONLY the data in the JSON you are given: completed bars on H1, H4 and D1, the live quote,
+Use ONLY the data in the JSON you are given: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
 the account, the quantitative agents' findings, and YOUR OWN MEMORY: your record, your past
 trades most relevant now (losses first) with your own reflections on them, and validated lessons.
 Do not use any knowledge of prices or events after the decision time, even if you have it.
 
 Think like a professional: trade only when the situation is clear, the stop sits where your idea is
-proven wrong, and the target is realistic for the timeframe you chose. NO_TRADE is a normal,
+proven wrong, and the target is realistic for the timeframe you chose. Short M5/M15 trades are welcome
+when the structure there is clear; a small, clean profit is a good trade, but the spread is paid on every trade. NO_TRADE is a normal,
 often correct answer. Do not repeat a mistake your memory shows; say which memory you used.
 You do NOT size positions: a risk engine does that and may refuse your trade.
 
 Reply with ONE JSON object only:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "H1|H4|D1", "stop": <price or null>, "target": <price or null>,
+{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_hours": <1-336 or null>, "thesis": "why, in at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none"}}"""
 
@@ -87,9 +89,15 @@ def _tf_summary(bars: BarSeries, n_show: int) -> dict | None:
             "bars": last}
 
 
-def multi_timeframe(h1: BarSeries, as_of: int) -> dict:
-    """Summaries on H1, H4 and D1, each from COMPLETED bars only (resample never emits a forming bar)."""
-    out = {"H1": _tf_summary(h1, 24)}
+LOWER_SHOW = {"M5": 24, "M15": 16}  # bars shown per lower timeframe
+
+
+def multi_timeframe(h1: BarSeries, as_of: int, lower: dict | None = None) -> dict:
+    """Summaries on M5/M15 (when the broker provides them), H1, H4 and D1, each from COMPLETED
+    bars only: the feed never returns a forming bar and resample never emits one."""
+    out = {tf: _tf_summary(b, LOWER_SHOW[tf]) for tf, b in (lower or {}).items()
+           if tf in LOWER_SHOW and b is not None and len(b)}
+    out["H1"] = _tf_summary(h1, 24)
     for tf, n in (("H4", 18), ("D1", 15)):
         try:
             out[tf] = _tf_summary(resample(h1, tf, as_of=as_of), n)
@@ -105,7 +113,7 @@ def validate_proposal(d: dict) -> str | None:
     if d["action"] == "NO_TRADE":
         return None if isinstance(d.get("thesis", ""), str) else "thesis must be text"
     if d.get("timeframe") not in TIMEFRAMES:
-        return "timeframe must be H1, H4 or D1"
+        return f"timeframe must be one of {', '.join(TIMEFRAMES)}"
     for k in ("stop", "target"):
         if not isinstance(d.get(k), (int, float)) or not np.isfinite(d[k]) or d[k] <= 0:
             return f"{k} must be a positive price"

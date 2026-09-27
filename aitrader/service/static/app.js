@@ -67,7 +67,7 @@ function renderStatus(s) {
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
     s.paused ? chip("TRADING", "PAUSED", "warning") : chip("TRADING", "running", "good"),
     chip("DECIDES", c.decision_mode === "llm_trader" || c.decision_mode === "trading_room"
-      ? `${c.decision_mode === "trading_room" ? `TRADING ROOM (${(c.trading_room?.members || []).length} AIs)` : "AI TRADER"} · ${aiRecord(c.ai_trader_record)}`
+      ? `${c.decision_mode === "trading_room" ? `TRADING ROOM (${(c.trading_room?.members || []).length} AIs)` : "AI TRADER"}${c.decision_interval_min ? ` · every ${c.decision_interval_min} min, ${c.symbols_per_cycle} pairs/cycle` : " · every 4 h"} · ${aiRecord(c.ai_trader_record)}`
       : "EVIDENCE SYNTHESIS", c.decision_mode === "evidence" ? "good" : "warning"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",
     chip("LAST DATA", s.last_market_update ? ts(s.last_market_update) : "never", s.last_market_update ? "good" : "warning"),
@@ -105,10 +105,14 @@ function renderAccount(a) {
 /* ── markets ────────────────────────────────────────────────────────── */
 function renderMarket(rows) {
   if (!selected && rows.length) selected = rows[0].symbol;
+  if (!rows.length) {
+    $("market").querySelector("tbody").innerHTML = `<tr><td colspan="8" class="muted">No pairs configured (SYMBOLS).</td></tr>`;
+    return;
+  }
   $("market").querySelector("tbody").innerHTML = rows.map((r) => {
     const digits = r.symbol.includes("JPY") ? 3 : 5;
     return `<tr data-s="${esc(r.symbol)}" class="${r.symbol === selected ? "sel" : ""}">
-      <td><b>${esc(r.symbol)}</b>${r.exposure ? ` <span class="chip">${esc(r.exposure)}</span>` : ""}</td>
+      <td><b>${esc(r.symbol)}</b>${r.exposure ? ` <span class="chip">${esc(r.exposure)}</span>` : ""}${r.quote_error ? `<br><span class="small neg">${esc(r.quote_error)}</span>` : ""}</td>
       <td class="num">${num(r.bid, digits)}</td><td class="num">${num(r.ask, digits)}</td>
       <td class="num">${r.spread === null ? NA : num(r.spread, digits)}</td>
       <td>${esc(r.regime ?? "—")}</td><td>${esc(r.vol ?? "—")}</td>
@@ -375,7 +379,10 @@ async function refreshSelected() {
 async function refreshFast() {
   await safe(async () => renderStatus(await api("/api/status")));
   await safe(async () => renderAccount(await api("/api/account")));
-  await safe(async () => renderMarket(await api("/api/market")));
+  try { renderMarket(await api("/api/market")); } catch (e) {
+    // Say so instead of leaving an empty table that looks like "no pairs".
+    $("market").querySelector("tbody").innerHTML = `<tr><td colspan="8" class="neg">Market data request failed (${esc(e.status || "")}): ${esc(e.body?.error || e.message)}</td></tr>`;
+  }
   await safe(async () => { renderTrades(await api("/api/trades?status=open"), await api("/api/trades?limit=15")); });
   await safe(async () => renderEvents(await api(`/api/events?since=${lastEventSeq}&limit=60`)));
 }

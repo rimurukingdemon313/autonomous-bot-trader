@@ -71,7 +71,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 | History (decisions, trades, episodes, lessons) is immutable and hash-chained | `memory/db.py` | `test_db.py` |
 
 Every row was checked by **removing the guard and watching a test fail**:
-54 of 54 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
+59 of 59 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
 
 ## Evidence
 
@@ -114,6 +114,10 @@ each close it writes a new review. The risk engine still sizes and may
 refuse every trade. PAPER/DEMO only, never backtested, and its win rate is
 measured live on the dashboard. See [docs/AI_MODELS.md](docs/AI_MODELS.md)
 and MODEL_CONTRACT §10.
+
+`DECISION_INTERVAL_MIN=N` makes either model mode decide every N minutes,
+also reading M5/M15, with `SYMBOLS_PER_CYCLE` pairs per cycle in rotation.
+The evidence system keeps its tested 4-hour cadence.
 
 `DECISION_MODE=trading_room`: one model per provider hunts for a trade,
 they debate, and a head trader picks one member's trade exactly as

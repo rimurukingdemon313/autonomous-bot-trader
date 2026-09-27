@@ -177,3 +177,15 @@ In addition to every rule above:
   forward record is measured separately.
 
 Code: `aitrader/agents/trading_room.py`. Tests: `tests/unit/test_trading_room.py`.
+
+### 10.2 Decision cadence (owner request, 2026-09-27)
+
+`DECISION_INTERVAL_MIN` lets the two model modes decide every N minutes
+(1 to 240) instead of every 4th H1 close. They then also read completed M5
+and M15 bars and may trade on them. The evidence system refuses the
+setting, because its cadence is part of what PR-001 tested. A frequent
+cadence changes how often the models are asked. It changes nothing about
+what they may do: the same checks, the same risk engine, and NO_TRADE
+always allowed. Open paper positions are checked on M1 bars.
+
+Tests: `tests/integration/test_cadence.py`.

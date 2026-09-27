@@ -18,7 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
-PERIOD_SECONDS = {"M15": 900, "H1": 3600, "H4": 14400, "D1": 86400}
+PERIOD_SECONDS = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600, "H4": 14400, "D1": 86400}
 
 FIELDS = (
     "open_time",

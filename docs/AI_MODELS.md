@@ -151,6 +151,38 @@ members and 12 instruments this is roughly 290 to 650 calls a day. Free
 tiers run out; set `AI_<NAME>_DAILY_BUDGET` for each provider. A member
 whose budget is spent is simply absent.
 
+## How often it decides (`DECISION_INTERVAL_MIN`, `SYMBOLS_PER_CYCLE`)
+
+By default the model traders decide at every 4th H1 close, the cadence the
+system was tested at. With `DECISION_INTERVAL_MIN=N` (1 to 240) the
+`llm_trader` and `trading_room` modes decide every N minutes instead. The
+evidence system refuses this setting: it runs at the cadence it was tested
+at, and startup fails with the reason shown.
+
+When the interval is set:
+
+- **More timeframes.** The models also read completed M5 and M15 bars from
+  the broker, and may propose trades on those timeframes.
+- **Faster exits.** Open paper positions are checked on every completed M1
+  bar, so a stop or target is hit within the minute, not at the next H1
+  close. A bar from before a position opened never closes it.
+- **Pair rotation.** `SYMBOLS_PER_CYCLE=k` analyses k pairs per cycle, in
+  rotation, so every pair gets its turn. 0 means all pairs every cycle.
+- **Unchanged.** Every rule stays the same: the risk engine sizes every
+  trade and may refuse it (maximum open positions, daily loss limit,
+  minimum reward:risk), and NO_TRADE is always allowed. Nothing forces a
+  trade.
+
+**Cost is the real limit.** The number of calls per cycle is:
+
+- **Single trader:** one call per pair analysed.
+- **Trading room:** up to 9 calls per pair (4 hunt, 4 debate, 1 head).
+
+For example, `DECISION_INTERVAL_MIN=1` with `SYMBOLS_PER_CYCLE=1` in the
+trading room is up to 540 calls an hour. Free tiers run out. When a
+provider's budget is spent, its member is absent. When every member is
+absent, the decision is NO_TRADE until the next UTC day.
+
 ## Several providers at once
 
 Set `AI_PROVIDERS` to a comma-separated list. The order is the fallback

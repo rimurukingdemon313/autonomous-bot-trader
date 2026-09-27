@@ -39,6 +39,12 @@ class ServiceConfig:
     dashboard_token: str = field(default="", repr=False)
     cycle_delay_s: int = 90  # after each H1 close, give the broker time to publish the bar
     monitor_interval_s: int = 20
+    #: Model-trader modes only: decide every N minutes instead of every 4th H1 close.
+    #: 0 = the tested cadence. The evidence system refuses anything else (runtime).
+    decision_interval_min: int = 0
+    #: Pairs analysed per decision cycle, in rotation; 0 = all. Keeps a frequent
+    #: cadence inside the language-model providers' rate limits.
+    symbols_per_cycle: int = 0
     risk: RiskLimits = field(default_factory=RiskLimits)
 
     @classmethod
@@ -67,12 +73,20 @@ class ServiceConfig:
             max_drawdown_pct=_f(e, "RISK_MAX_DRAWDOWN_PCT", 8.0),
             max_open_positions=int(_f(e, "RISK_MAX_OPEN_POSITIONS", 3)),
             funded=funded)
+        interval = int(_f(e, "DECISION_INTERVAL_MIN", 0))
+        if not 0 <= interval <= 240:
+            raise ServiceConfigError(f"DECISION_INTERVAL_MIN must be 0 (the tested cadence) or 1..240, got {interval}")
+        per_cycle = int(_f(e, "SYMBOLS_PER_CYCLE", 0))
+        if not 0 <= per_cycle <= len(symbols):
+            raise ServiceConfigError(f"SYMBOLS_PER_CYCLE must be 0 (all) or 1..{len(symbols)}, got {per_cycle}")
         return cls(mode=mode, data_dir=e.get("DATA_DIR", "./runtime"), port=int(e.get("PORT", "8080")),
                    symbols=symbols, start_balance=_f(e, "PAPER_START_BALANCE", 20_000.0),
-                   dashboard_token=e.get("DASHBOARD_TOKEN", ""), risk=risk)
+                   dashboard_token=e.get("DASHBOARD_TOKEN", ""), risk=risk,
+                   decision_interval_min=interval, symbols_per_cycle=per_cycle)
 
     def public(self) -> dict:
         return {"mode": self.mode, "symbols": list(self.symbols), "start_balance": self.start_balance,
+                "decision_interval_min": self.decision_interval_min, "symbols_per_cycle": self.symbols_per_cycle,
                 "dashboard_token_configured": bool(self.dashboard_token),
                 "risk": {k: v for k, v in self.risk.__dict__.items() if k != "funded"},
                 "funded": (self.risk.funded.__dict__ if self.risk.funded else None)}

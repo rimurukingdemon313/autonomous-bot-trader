@@ -54,7 +54,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.1.0: journals shadow outcomes (journal="full"); knowledge versions only ever increase.
 #: Backtest decisions are unchanged from 1.0.0.
 #: 1.2.0: in DECISION_MODE=trading_room the memory brief carries each member's forward record.
-ORCHESTRATOR_VERSION = "orchestrator-1.2.0"
+#: 1.3.0: the model-trader modes also read completed M5/M15 bars when the feed provides them.
+ORCHESTRATOR_VERSION = "orchestrator-1.3.0"
 
 
 class NullKnowledge:
@@ -219,7 +220,10 @@ class Orchestrator:
             # COMPLETED bars, its own trade memory, and whether trading is allowed at all
             # (when it is not, the model is not consulted and nothing is spent).
             long = self.feed.bars(symbol, t, 24 * 30)
-            ctx.mtf = multi_timeframe(long, t) if long is not None and len(long) else {}
+            lower = {}
+            if hasattr(self.feed, "bars_tf"):  # a broker feed; the research replay has H1 only
+                lower = {tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M5", 48), ("M15", 32))}
+            ctx.mtf = multi_timeframe(long, t, lower) if long is not None and len(long) else {}
             ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
             if mode == "trading_room":
                 ctx.memory_brief["room_track_records"] = member_records(self.db)

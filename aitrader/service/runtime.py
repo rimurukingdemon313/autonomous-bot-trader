@@ -45,7 +45,7 @@ from ..orchestrator.tracker import ACTIONS
 from ..regime.model import RegimeModel
 from ..risk.engine import RiskEngine
 from ..version import stamp
-from .config import ServiceConfig
+from .config import ServiceConfig, ServiceConfigError
 
 ROOT = Path(__file__).resolve().parents[2]
 KNOWLEDGE_DIR = ROOT / "models" / "artifacts"
@@ -54,7 +54,12 @@ KNOWLEDGE_DIR = ROOT / "models" / "artifacts"
 #: bookkeeping still runs every hour. 1.0.0 decided every hour.
 #: 1.2.0: DECISION_MODE (evidence | llm_trader); the model trader's record in status.
 #: 1.3.0: DECISION_MODE=trading_room; the room's members and each member's record in status.
-SERVICE_VERSION = "service-1.3.0"
+#: 1.4.0: DECISION_INTERVAL_MIN / SYMBOLS_PER_CYCLE for the model-trader modes; open paper
+#: positions are checked on M1 bars between H1 closes; live memory saved at most every 15 min.
+SERVICE_VERSION = "service-1.4.0"
+MODEL_MODES = ("llm_trader", "trading_room")
+FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
+MEMORY_SAVE_EVERY_S = 900
 
 
 class OfflineFeed:
@@ -87,17 +92,26 @@ class LiveFeedAdapter:
     def symbols(self):
         return self.tl.symbols()
 
+    #: How long fetched bars are reused. Decisions can run every minute; an H1 bar
+    #: only changes hourly, so re-fetching it every minute for every pair would
+    #: spend the broker's rate limit on data that has not changed.
+    CACHE_S = {"M1": 60, "M5": 60, "M15": 60, "H1": 300, "H4": 300, "D1": 300}
+
     def bars(self, symbol, as_of, count):
-        key = (symbol, as_of // 60, count)
+        return self.bars_tf(symbol, "H1", as_of, count)
+
+    def bars_tf(self, symbol, timeframe, as_of, count):
+        """Completed bars of any broker timeframe (M1, M5, M15, H1, H4, D1), or None."""
+        key = (symbol, timeframe, as_of // self.CACHE_S.get(timeframe, 60), count)
         if key not in self._cache:
             try:
-                self._cache[key] = self.tl.bars(symbol, as_of, count)
+                self._cache[key] = self.tl.bars(symbol, as_of, count, timeframe)
                 if self._cache[key] is not None:
                     self.last_ok = int(self.clock())
             except Exception as exc:
                 self.last_error = f"{type(exc).__name__}: {exc}"
                 self._cache[key] = None
-            if len(self._cache) > 200:
+            if len(self._cache) > 400:
                 self._cache.pop(next(iter(self._cache)))
         return self._cache[key]
 
@@ -151,6 +165,14 @@ class Runtime:
         self._cycle_lock = threading.RLock()
         self._threads: list[threading.Thread] = []
         self._last_bar_seen: dict[str, int] = {}
+        self._last_fast_seen: dict[str, int] = {}
+        self._rotation = 0
+        self._memory_saved_at = 0.0
+        if cfg.decision_interval_min and self.orch.brain.config.decision_mode not in MODEL_MODES:
+            raise ServiceConfigError(
+                f"DECISION_INTERVAL_MIN={cfg.decision_interval_min} applies only to DECISION_MODE=llm_trader or "
+                "trading_room: the evidence system runs at the cadence it was tested at (every "
+                f"{self.decide_every_bars} H1 closes)")
         self._reconcile_at_start()
 
     # ── wiring ──────────────────────────────────────────────────────────
@@ -268,6 +290,20 @@ class Runtime:
     def is_decision_hour(self, t: int) -> bool:
         return ((t - self.cfg.cycle_delay_s) // 3600) % self.decide_every_bars == 0
 
+    @property
+    def decision_interval_s(self) -> int | None:
+        """Seconds between decisions in the model-trader modes when DECISION_INTERVAL_MIN is set, else None."""
+        return self.cfg.decision_interval_min * 60 if self.cfg.decision_interval_min else None
+
+    def _cycle_symbols(self) -> list[str] | None:
+        """The pairs this decision cycle analyses: all of them, or the next SYMBOLS_PER_CYCLE in rotation."""
+        k, syms = self.cfg.symbols_per_cycle, list(self.cfg.symbols)
+        if not k or k >= len(syms):
+            return None
+        pick = [syms[(self._rotation + i) % len(syms)] for i in range(k)]
+        self._rotation = (self._rotation + k) % len(syms)
+        return pick
+
     def run_cycle(self, t: int | None = None, decide: bool = True) -> dict:
         """One cycle. `decide=False` only advances bookkeeping: outcomes, closures, time exits."""
         with self._cycle_lock:
@@ -279,9 +315,11 @@ class Runtime:
                                                f"{self.knowledge_meta.get('integrity', 'MISSING')}, no decisions made")
             return {"t": t, "decisions": []}
         try:
-            rep = self.orch.cycle(t, None if decide else [])
+            rep = self.orch.cycle(t, self._cycle_symbols() if decide else [])
             self.health.update(last_cycle=t, last_cycle_error=None, cycles=self.health["cycles"] + 1)
-            self.memory.save(Path(self.cfg.data_dir) / "memory_live.npz")
+            if time.time() - self._memory_saved_at >= MEMORY_SAVE_EVERY_S:
+                self.memory.save(Path(self.cfg.data_dir) / "memory_live.npz")
+                self._memory_saved_at = time.time()
             return rep
         except Exception as exc:
             self.health["last_cycle_error"] = f"{type(exc).__name__}: {exc}"
@@ -295,6 +333,7 @@ class Runtime:
 
     def _monitor_locked(self) -> None:
         now = self.clock()
+        self._monitor_fast(now)
         for s in self.cfg.symbols:
             bars = self.feed.bars(s, now, 3)
             if bars is None or len(bars) == 0:
@@ -309,17 +348,53 @@ class Runtime:
                                                                   "ask_open", "ask_high", "ask_low", "ask_close")}}
                 self.orch.on_bar_closed(s, bar)
 
+    def _monitor_fast(self, now: int) -> None:
+        """Open PAPER positions: apply completed M1 bars, so a stop or target is hit within
+        the minute rather than at the next H1 close. A broker account (DEMO) holds its own
+        stops and targets; bars before the position opened are ignored by the paper broker."""
+        if not hasattr(self.broker, "on_bar") or not hasattr(self.feed, "bars_tf"):
+            return
+        open_syms = {p.symbol for p in self.broker.positions()}
+        for s in open_syms:
+            bars = self.feed.bars_tf(s, "M1", now, 5)
+            if bars is None or len(bars) == 0:
+                continue
+            for i in range(len(bars)):
+                close_t = int(bars.available_at[i])
+                if close_t <= self._last_fast_seen.get(s, 0):
+                    continue
+                self._last_fast_seen[s] = close_t
+                self.broker.on_bar(s, {"open_time": int(bars.open_time[i]), "close_time": close_t,
+                                       **{f: float(getattr(bars, f)[i]) for f in (
+                                           "bid_open", "bid_high", "bid_low", "bid_close",
+                                           "ask_open", "ask_high", "ask_low", "ask_close")}})
+
     def _loop(self) -> None:
         next_cycle = self._next_cycle_time()
+        next_decision = self._next_decision_time()
         while not self._stop.is_set():
             try:
                 self.monitor_once()
-                if self.clock() >= next_cycle:
+                now = self.clock()
+                if next_decision is not None:
+                    # Frequent cadence: every cycle decides, and carries the hourly bookkeeping.
+                    if now >= next_decision:
+                        self.run_cycle(decide=True)
+                        next_decision = self._next_decision_time()
+                elif now >= next_cycle:
                     self.run_cycle(decide=self.is_decision_hour(next_cycle))
                     next_cycle = self._next_cycle_time()
             except Exception as exc:
                 self.health["last_cycle_error"] = f"{type(exc).__name__}: {exc}"
-            self._stop.wait(self.cfg.monitor_interval_s)
+            self._stop.wait(min(self.cfg.monitor_interval_s, 5) if next_decision is not None
+                            else self.cfg.monitor_interval_s)
+
+    def _next_decision_time(self) -> int | None:
+        iv = self.decision_interval_s
+        if iv is None:
+            return None
+        now = self.clock()
+        return (now // iv + 1) * iv + FAST_DELAY_S
 
     def _next_cycle_time(self) -> int:
         now = self.clock()
@@ -391,6 +466,8 @@ class Runtime:
                 "broker": broker_state, "demo_verification": demo,
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
                 "decision_mode": self.orch.brain.config.decision_mode,
+                "decision_interval_min": self.cfg.decision_interval_min or None,
+                "symbols_per_cycle": self.cfg.symbols_per_cycle or len(self.cfg.symbols),
                 "ai_trader_record": (TradeMemory(self.db).record()
                                      if self.orch.brain.config.decision_mode in ("llm_trader", "trading_room") else None),
                 "trading_room": ({"members": self.orch.brain.room.members(), "quorum": self.orch.brain.config.room.quorum,
@@ -496,8 +573,14 @@ class Runtime:
         open_syms = {r["symbol"]: r["side"] for r in self.db.query("SELECT symbol, side FROM positions WHERE status='OPEN'")}
         for s in self.cfg.symbols:
             st = self.orch.status["symbols"].get(s, {})
-            q = self.feed.quote(s, now) if hasattr(self.feed, "quote") else None
+            # One pair's failed price must not blank the whole table: that pair shows no
+            # price and says why, the others still show theirs. Nothing is invented.
+            try:
+                q, q_err = (self.feed.quote(s, now) if hasattr(self.feed, "quote") else None), None
+            except Exception as exc:
+                q, q_err = None, f"{type(exc).__name__}: {exc}"[:160]
             out.append({"symbol": s, "bid": q.bid if q else None, "ask": q.ask if q else None,
+                        "quote_error": q_err if q_err else (None if q else "no price available"),
                         "spread": (q.ask - q.bid) if q else None, "quote_time": q.time if q else None,
                         "regime": st.get("regime"), "vol": st.get("vol"), "familiar": st.get("familiar"),
                         "decision": st.get("decision"), "reason": st.get("reason"), "last_decision_t": st.get("t"),
