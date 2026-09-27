@@ -43,7 +43,8 @@ evidence packet, for the agents listed in `AI_AGENTS` (default:
 | `AI_TIMEOUT_S` | `60` | per call |
 | `AI_MAX_TOKENS` | `1500` | per reply; a cut-off reply is rejected |
 | `AI_MODEL_TRADER` | | the model for the AI trader, if different |
-| `DECISION_MODE` | `evidence` | `llm_trader` = the model proposes trades (below) |
+| `DECISION_MODE` | `evidence` | `llm_trader` = the model proposes trades; `trading_room` = several models hunt, debate and a head picks (below) |
+| `AI_ROOM_SIZE` / `AI_ROOM_QUORUM` / `AI_ROOM_HEAD` | `4` / `2` / first member | trading room only |
 | `AI_DAILY_CALL_BUDGET` | `500` | hard cap per UTC day |
 | `AI_REQUIRED` | `false` | `true` = no LLM, no trade |
 
@@ -106,6 +107,49 @@ decisions are NO_TRADE until the next UTC day.
 **Win rate.** The status bar shows the AI trader's live record: trades,
 win rate, average R, and whether the sample is still insufficient (under
 30 trades). That number is the only honest measure of it.
+
+## The trading room (`DECISION_MODE=trading_room`)
+
+Several models trade together, one per provider in `AI_PROVIDERS` (up to
+`AI_ROOM_SIZE`). They share the same data, rules and memory as the AI
+trader. For each instrument at each decision:
+
+1. **Hunt.** Each member searches H1, H4 and D1 for the best trade and
+   proposes it without seeing the others. If there is none, it says which
+   setup it is waiting for. If no member finds a trade, the room stops here.
+2. **Debate.** Each member reads every first proposal, challenges them, and
+   gives a final position: keep it, change it, adopt another member's
+   trade, or stand aside.
+3. **Head.** The head trader (`AI_ROOM_HEAD`, or the first member present)
+   reads the final positions, the critiques and each member's record, and
+   picks ONE member's trade exactly as proposed, or none.
+
+The following rules are enforced in code, not in the prompts:
+
+- **Own voice only.** A member speaks only through its own provider. A
+  member whose provider fails is absent; no other model speaks for it.
+- **A split room does not trade.** Final trades in both directions give
+  NO_TRADE.
+- **Quorum.** A trade needs at least `AI_ROOM_QUORUM` members behind it.
+  The quorum is capped by how many members are present.
+- **No repairs.** A final trade with a wrong-side or absurd stop is
+  dropped, not repaired.
+- **The head only chooses.** It picks one supporter's trade verbatim. It
+  cannot change a level, invent a trade, or size one.
+- **Lessons block.** A validated lesson against the chosen side blocks the
+  trade.
+- **Pause stops everything.** While paused or stopped, no model is called.
+
+The whole discussion is recorded on each decision and shown on the
+dashboard under TRADING ROOM. The status response (`trading_room.records`)
+keeps each member's forward record in two parts: trades it backed and
+trades it did not.
+
+**Cost.** Each decision costs one call per member. Only if someone finds a
+trade does it add one debate call per member and one head call. With 4
+members and 12 instruments this is roughly 290 to 650 calls a day. Free
+tiers run out; set `AI_<NAME>_DAILY_BUDGET` for each provider. A member
+whose budget is spent is simply absent.
 
 ## Several providers at once
 

@@ -160,3 +160,20 @@ stands:
 Code: `aitrader/agents/llm_trader.py`, `aitrader/memory/trade_memory.py`.
 Tests: `tests/unit/test_llm_trader.py`, and the end-to-end test in
 `tests/integration/test_service.py`.
+
+### 10.1 The trading room (`DECISION_MODE=trading_room`, owner request, 2026-09-27)
+
+This is the same contract, with several proposers instead of one. Each
+member is a different provider's model. Members hunt independently, then
+debate. A head trader then picks one member's trade verbatim, or declines.
+In addition to every rule above:
+
+- A member speaks only through its own provider; a failed member is
+  absent.
+- Final trades in both directions mean NO_TRADE.
+- A trade needs `AI_ROOM_QUORUM` supporters, capped by the members present.
+- The head cannot modify, invent or size a trade.
+- The whole discussion is journalled on the decision. Each member's
+  forward record is measured separately.
+
+Code: `aitrader/agents/trading_room.py`. Tests: `tests/unit/test_trading_room.py`.

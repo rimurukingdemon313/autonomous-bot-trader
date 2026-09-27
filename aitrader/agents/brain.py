@@ -29,6 +29,7 @@ from .analysts import (
     AdversarialAnalyst, MarketAnalyst, ReviewerAnalyst, RiskAnalyst, SetupAnalyst, validate_llm_review,
 )
 from .llm_trader import LLMTrader
+from .trading_room import RoomConfig, TradingRoom
 from .types import AGENT_VERSION, AgentReport, MarketContext, Objection
 
 ROLE_PROMPTS = {
@@ -56,7 +57,7 @@ SYSTEM_RULES = (
 )
 
 
-DECISION_MODES = ("evidence", "llm_trader")
+DECISION_MODES = ("evidence", "llm_trader", "trading_room")
 
 
 @dataclass
@@ -69,6 +70,9 @@ class BrainConfig:
     #: "evidence": analogue-anchored synthesis (PR-001's system). "llm_trader": a language
     #: model proposes the trade (agents/llm_trader.py); PAPER/DEMO only, never backtested.
     decision_mode: str = "evidence"
+    #: "trading_room": several models, one per provider, hunt, debate, and a head trader
+    #: picks one member's trade verbatim (agents/trading_room.py). PAPER/DEMO only.
+    room: RoomConfig = field(default_factory=RoomConfig)
 
     def __post_init__(self) -> None:
         if self.decision_mode not in DECISION_MODES:
@@ -79,7 +83,8 @@ class BrainConfig:
     def from_env(cls) -> "BrainConfig":
         agents = tuple(a.strip() for a in os.environ.get("AI_AGENTS", "adversary,reviewer").split(",") if a.strip())
         return cls(llm_agents=agents, llm_required=os.environ.get("AI_REQUIRED", "false").lower() == "true",
-                   decision_mode=os.environ.get("DECISION_MODE", "evidence").strip().lower())
+                   decision_mode=os.environ.get("DECISION_MODE", "evidence").strip().lower(),
+                   room=RoomConfig.from_env())
 
 
 @dataclass
@@ -100,9 +105,10 @@ class Brain:
         self.adversary = adversary or AdversarialAnalyst()
         self.reviewer = reviewer or ReviewerAnalyst()
         self.llm_trader = LLMTrader(llm)
+        self.config = config or BrainConfig()
+        self.room = TradingRoom(llm, self.config.room)
         self.synth = synthesizer or EvidenceSynthesizer()
         self.llm = llm
-        self.config = config or BrainConfig()
         self._pool = ThreadPoolExecutor(max_workers=6, thread_name_prefix="agent") if self.config.parallel else None
 
     def _run(self, name: str, fn, *args) -> AgentReport:
@@ -201,9 +207,10 @@ class Brain:
                                  "reviewer": (self.reviewer.analyze, ctx, cands)})
         reports = {**first, **second}
         t1 = time.perf_counter()
-        if self.config.decision_mode == "llm_trader":
-            opinions = []  # the model IS the trader here: no separate review calls
-            decision = self.llm_trader.decide(ctx, reports, versions)
+        if self.config.decision_mode in ("llm_trader", "trading_room"):
+            opinions = []  # the models ARE the traders here: no separate review calls
+            trader = self.room if self.config.decision_mode == "trading_room" else self.llm_trader
+            decision = trader.decide(ctx, reports, versions)
             t2 = time.perf_counter()
         else:
             opinions = self._llm_reviews(ctx, reports)

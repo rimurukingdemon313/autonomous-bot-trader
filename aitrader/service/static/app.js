@@ -20,6 +20,27 @@ async function api(path, opts = {}) {
   return body;
 }
 
+function aiRecord(r) {
+  if (!r || !r.trades) return "no trades yet";
+  return `${r.trades} trades, win ${Math.round(r.win_rate * 100)}%, ${r.avg_R >= 0 ? "+" : ""}${r.avg_R}R (${r.sample})`;
+}
+
+// What each member of the trading room said, and what it ended as. Presentation only.
+function renderRoom(room) {
+  if (!room || !(room.members || []).length) return "";
+  const rows = room.members.map((m) => {
+    const a = room.round1?.[m] || {}, f = room.final?.[m];
+    const pos = (x) => !x ? "—" : x.action ? `${esc(x.action)}${x.action !== "NO_TRADE" ? ` ${esc(x.timeframe)} SL ${num(x.stop, 5)} TP ${num(x.target, 5)}` : ""}` : esc(x.status || "—");
+    const note = f?.dropped ? ` <span class="neg">dropped: ${esc(f.dropped)}</span>` : "";
+    return `<li><b>${esc(m)}${m === room.head ? " (head)" : ""}${m === room.picked ? " ✓" : ""}</b> <span class="muted small">${esc(a.model || "")}</span><br>
+      <span class="small">hunt: ${pos(a)} · final: ${pos(f)}${note}</span>
+      ${f?.thesis || a.thesis ? `<br><span class="small muted">${esc(f?.thesis || a.thesis)}</span>` : ""}
+      ${f?.critique ? `<br><span class="small">critique: ${esc(f.critique)}</span>` : ""}</li>`;
+  }).join("");
+  return `<div class="agent"><h4>TRADING ROOM <span class="muted small">quorum ${room.quorum ?? "—"}</span></h4>
+    <div class="small">${esc(room.outcome || "")}${room.head_reason ? `<br>head: ${esc(room.head_reason)}` : ""}</div><ul>${rows}</ul></div>`;
+}
+
 function chip(label, value, level) {
   return `<span class="chip ${level}" title="${esc(label)}">${esc(label)}: ${esc(value)}</span>`;
 }
@@ -45,9 +66,9 @@ function renderStatus(s) {
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
     s.paused ? chip("TRADING", "PAUSED", "warning") : chip("TRADING", "running", "good"),
-    chip("DECIDES", c.decision_mode === "llm_trader"
-      ? `AI TRADER · ${c.ai_trader_record && c.ai_trader_record.trades ? `${c.ai_trader_record.trades} trades, win ${Math.round(c.ai_trader_record.win_rate * 100)}%, ${c.ai_trader_record.avg_R >= 0 ? "+" : ""}${c.ai_trader_record.avg_R}R (${c.ai_trader_record.sample})` : "no trades yet"}`
-      : "EVIDENCE SYNTHESIS", c.decision_mode === "llm_trader" ? "warning" : "good"),
+    chip("DECIDES", c.decision_mode === "llm_trader" || c.decision_mode === "trading_room"
+      ? `${c.decision_mode === "trading_room" ? `TRADING ROOM (${(c.trading_room?.members || []).length} AIs)` : "AI TRADER"} · ${aiRecord(c.ai_trader_record)}`
+      : "EVIDENCE SYNTHESIS", c.decision_mode === "evidence" ? "good" : "warning"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",
     chip("LAST DATA", s.last_market_update ? ts(s.last_market_update) : "never", s.last_market_update ? "good" : "warning"),
     chip("LAST CYCLE", s.last_cycle ? ts(s.last_cycle) : "never", s.last_cycle_error ? "critical" : (s.last_cycle ? "good" : "warning")),
@@ -201,7 +222,7 @@ function renderDecision(det) {
   $("pipeline").innerHTML = steps.map(([n, st]) => `<li class="${stepState(st)}"><b>${n}</b><span class="st">${esc(st)}</span></li>`).join("");
   const conf = d.confidence === null || d.confidence === undefined ? "" : ` · confidence ${pct(d.confidence, 0)} (P(expectancy &gt; required), from analogue evidence)`;
   $("decision-line").innerHTML = `<b>${esc(d.decision)}</b> ${esc(d.instrument)} at ${ts(d.timestamp)}${conf}<br><span class="small">${esc(d.no_trade_reason || d.thesis)}</span>`;
-  $("agents").innerHTML = ["market", "setup", "risk", "adversary", "reviewer"].map((k) => {
+  $("agents").innerHTML = renderRoom(d.independent_evidence?.room) + ["market", "setup", "risk", "adversary", "reviewer"].map((k) => {
     const r = ag[k];
     if (!r) return `<div class="agent"><h4>${k}</h4><p class="muted">UNAVAILABLE</p></div>`;
     const objs = (r.objections || []).map((o) => `<li><b>${esc(o.severity)}</b> ${esc(o.code)} — ${esc(o.message)}</li>`).join("");

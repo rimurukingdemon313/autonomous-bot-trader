@@ -242,20 +242,27 @@ class LLMClient:
             self._calls = {d: self._calls.get(d, 0) + 1}
 
     def complete_json(self, agent: str, system: str, packet: dict, validate: Callable[[dict], str | None],
-                      *, cache_key: str | None = None) -> LLMResult:
-        """Ask for a JSON object; return it only if `validate` returns None."""
+                      *, cache_key: str | None = None, only: str | None = None) -> LLMResult:
+        """Ask for a JSON object; return it only if `validate` returns None.
+
+        `only` restricts the call to one named provider (and its own fallback models): a
+        trading-room member speaks with its own model, and never borrows another's voice.
+        """
         cfg = self.config
         if not cfg.enabled:
             return LLMResult(False, agent, None, "DISABLED", error="AI_PROVIDER is not configured")
+        endpoints = [ep for ep in cfg.endpoints() if only is None or ep.name == only]
+        if not endpoints:
+            return LLMResult(False, agent, None, "DISABLED", error=f"provider {only!r} is not configured")
         user = json.dumps(packet, sort_keys=True, separators=(",", ":"), default=str)
-        key = hashlib.sha256(f"{agent}|{cfg.model_for(agent)}|{system}|{user}|{cache_key}".encode()).hexdigest()
+        key = hashlib.sha256(f"{agent}|{cfg.model_for(agent)}|{only}|{system}|{user}|{cache_key}".encode()).hexdigest()
         if cache_key is not None and key in self._cache:
             self.stats["cache_hits"] += 1
             hit = self._cache[key]
             return LLMResult(hit.ok, hit.agent, hit.model, hit.status, hit.data, 0.0, hit.tokens, hit.error, True)
 
         last = LLMResult(False, agent, None, "ERROR", error="no model attempted")
-        for ep in cfg.endpoints():
+        for ep in endpoints:
             first = cfg.model_for(agent) if ep.name == "default" else ep.model
             models = [first, *[m for m in ep.fallback if m != first]]
             if ep.daily_budget is not None and self._ep_calls(ep.name) >= ep.daily_budget:

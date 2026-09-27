@@ -123,6 +123,100 @@ def validate_reflection(d: dict) -> str | None:
     return None
 
 
+REQUIRED_AGENTS = ("market", "setup", "risk", "adversary", "reviewer")
+
+
+def pre_model_block(ctx: MarketContext, reports: dict, llm) -> tuple[str, list] | None:
+    """Why no model may be consulted for this decision, or None. Checked BEFORE anything is spent."""
+    for name in REQUIRED_AGENTS:
+        r = reports.get(name)
+        if r is None or not r.ok:
+            return f"agent '{name}' {'missing' if r is None else r.status}: failing closed", []
+    blocking = [o for r in reports.values() for o in r.objections
+                if o.severity == "BLOCKING" and not o.data.get("action")]
+    if blocking:
+        return ("blocked before consulting the model: " + "; ".join(f"{o.code}: {o.message}" for o in blocking[:3]),
+                [o.as_dict() for o in blocking])
+    if not ctx.trading_allowed:
+        return "trading is paused or stopped: the model was not consulted", []
+    if llm is None or not llm.config.enabled:
+        return "no language model is configured (AI_PROVIDER / AI_PROVIDERS): failing closed", []
+    if ctx.bid is None or ctx.ask is None or ctx.atr is None or not np.isfinite(ctx.atr) or ctx.atr <= 0:
+        return "no live quote or ATR: nothing to price a trade against", []
+    return None
+
+
+def market_packet(ctx: MarketContext, reports: dict) -> dict:
+    return {
+        "instrument": ctx.symbol, "decision_time": datetime.fromtimestamp(ctx.t, timezone.utc).isoformat(),
+        "quote": {"bid": ctx.bid, "ask": ctx.ask, "spread": round(ctx.ask - ctx.bid, 6)},
+        "account": {"equity": ctx.account.equity, "drawdown_pct": ctx.account.drawdown_pct,
+                    "open_positions": ctx.account.open_positions},
+        "timeframes": ctx.mtf,
+        "quant_agents": {k: {"summary": r.summary,
+                             "objections": [f"{o.severity} {o.code}: {o.message}" for o in r.objections][:6]}
+                         for k, r in reports.items()},
+        "regime": {k: val for k, val in ctx.regime.as_dict().items() if k != "reasons"},
+        "memory": ctx.memory_brief,
+    }
+
+
+def level_problem(ctx: MarketContext, p: dict) -> str | None:
+    """A proposed trade whose prices cannot stand, or None. Checked against the live quote; never repaired."""
+    side = 1 if p["action"] == "BUY" else -1
+    entry = ctx.ask if side > 0 else ctx.bid
+    stop, target = float(p["stop"]), float(p["target"])
+    if (entry - stop) * side <= 0 or (target - entry) * side <= 0:
+        return (f"model proposed {p['action']} with stop {stop} / target {target} on the wrong side "
+                f"of the entry {entry}: rejected, never repaired")
+    dist = abs(entry - stop) / ctx.atr
+    if not MIN_STOP_ATR <= dist <= MAX_STOP_ATR:
+        return f"stop {dist:.2f} H1-ATR from entry is outside {MIN_STOP_ATR}-{MAX_STOP_ATR}: rejected"
+    return None
+
+
+def lesson_block(ctx: MarketContext, side: int) -> dict | None:
+    """A validated lesson against this model-trader context, or None."""
+    kv = ctx.knowledge
+    if kv is not None and hasattr(kv, "lessons_matching"):
+        hits = kv.lessons_matching(FAMILY, ctx.regime.label, ctx.regime.vol_state, side, ctx.t)
+        if hits:
+            return hits[0]
+    return None
+
+
+def agent_digest(reports: dict) -> dict:
+    return {k: {"status": r.status, "stance": r.stance, "summary": r.summary, "objections": len(r.objections)}
+            for k, r in reports.items()}
+
+
+def no_trade_decision(ctx: MarketContext, did: str, v: dict, agents: dict, reason: str, contra=None, support=None,
+                      evidence: dict | None = None) -> Decision:
+    return Decision(did, "NO_TRADE", ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, {}, ctx.regime.as_dict(),
+                    reason, support or [], contra or [], None, None, None, None, "LLM", FAMILY,
+                    None, None, None, None, None, None, None, None, reason, agents, evidence or {}, 0, v)
+
+
+def trade_decision(ctx: MarketContext, did: str, v: dict, agents: dict, reports: dict, p: dict,
+                   support: list, evidence: dict | None = None) -> Decision:
+    """A validated proposal, verbatim: the levels are the model's, the size is the risk engine's."""
+    side = 1 if p["action"] == "BUY" else -1
+    entry = ctx.ask if side > 0 else ctx.bid
+    stop, target = float(p["stop"]), float(p["target"])
+    rr = abs(target - entry) / abs(entry - stop)
+    thesis = f"{p['action']} {ctx.symbol} on {p['timeframe']}: {str(p['thesis'])[:500]}"
+    return Decision(
+        did, p["action"], ctx.symbol, p["timeframe"], ctx.t, ctx.mode, {}, ctx.regime.as_dict(), thesis,
+        support, [{"agent": k, "code": o.code, "severity": o.severity, "message": o.message}
+                  for k, r in reports.items() for o in r.objections][:12],
+        float(entry), stop, target, f"stop {stop:.5g}, target {target:.5g}, time exit after {p['max_hold_hours']}h",
+        "LLM", FAMILY, None, None, None, None, None, None, 1.0,
+        str(p.get("invalidation") or "")[:300] or None, None, agents,
+        {"note": "model-proposed; no measured expectancy exists until its forward record does",
+         "reward_risk": round(rr, 3), **(evidence or {})}, 1, v,
+        max_hold_hours=int(p["max_hold_hours"]))
+
+
 class LLMTrader:
     def __init__(self, llm) -> None:
         self.llm = llm
@@ -135,42 +229,15 @@ class LLMTrader:
                              "what happened after the decision time")
         v = {**versions, "llm_trader": LLM_TRADER_VERSION}
         did = decision_id(ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, v)
-        agents = {k: {"status": r.status, "stance": r.stance, "summary": r.summary, "objections": len(r.objections)}
-                  for k, r in reports.items()}
+        agents = agent_digest(reports)
 
         def no_trade(reason: str, contra=None, support=None) -> Decision:
-            return Decision(did, "NO_TRADE", ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, {}, ctx.regime.as_dict(),
-                            reason, support or [], contra or [], None, None, None, None, "LLM", FAMILY,
-                            None, None, None, None, None, None, None, None, reason, agents, {}, 0, v)
+            return no_trade_decision(ctx, did, v, agents, reason, contra, support)
 
-        for name in ("market", "setup", "risk", "adversary", "reviewer"):
-            r = reports.get(name)
-            if r is None or not r.ok:
-                return no_trade(f"agent '{name}' {'missing' if r is None else r.status}: failing closed")
-        blocking = [o for r in reports.values() for o in r.objections
-                    if o.severity == "BLOCKING" and not o.data.get("action")]
-        if blocking:
-            return no_trade("blocked before consulting the model: " + "; ".join(f"{o.code}: {o.message}" for o in blocking[:3]),
-                            contra=[o.as_dict() for o in blocking])
-        if not ctx.trading_allowed:
-            return no_trade("trading is paused or stopped: the model was not consulted")
-        if self.llm is None or not self.llm.config.enabled:
-            return no_trade("DECISION_MODE=llm_trader but no language model is configured (AI_PROVIDER)")
-        if ctx.bid is None or ctx.ask is None or ctx.atr is None or not np.isfinite(ctx.atr) or ctx.atr <= 0:
-            return no_trade("no live quote or ATR: nothing to price a trade against")
-
-        packet = {
-            "instrument": ctx.symbol, "decision_time": datetime.fromtimestamp(ctx.t, timezone.utc).isoformat(),
-            "quote": {"bid": ctx.bid, "ask": ctx.ask, "spread": round(ctx.ask - ctx.bid, 6)},
-            "account": {"equity": ctx.account.equity, "drawdown_pct": ctx.account.drawdown_pct,
-                        "open_positions": ctx.account.open_positions},
-            "timeframes": ctx.mtf,
-            "quant_agents": {k: {"summary": r.summary,
-                                 "objections": [f"{o.severity} {o.code}: {o.message}" for o in r.objections][:6]}
-                             for k, r in reports.items()},
-            "regime": {k: val for k, val in ctx.regime.as_dict().items() if k != "reasons"},
-            "memory": ctx.memory_brief,
-        }
+        blocked = pre_model_block(ctx, reports, self.llm)
+        if blocked:
+            return no_trade(blocked[0], contra=blocked[1])
+        packet = market_packet(ctx, reports)
         res = self.llm.complete_json("trader", SYSTEM.format(time=packet["decision_time"]), packet,
                                      validate_proposal, cache_key=f"{ctx.symbol}|{ctx.t}")
         if not res.ok:
@@ -180,34 +247,14 @@ class LLMTrader:
                        "model": res.model}
         if p["action"] == "NO_TRADE":
             return no_trade(f"model: {str(p.get('thesis') or 'no trade')[:400]}", support=[memory_note])
-
-        side = 1 if p["action"] == "BUY" else -1
-        entry = ctx.ask if side > 0 else ctx.bid
-        stop, target = float(p["stop"]), float(p["target"])
-        if (entry - stop) * side <= 0 or (target - entry) * side <= 0:
-            return no_trade(f"model proposed {p['action']} with stop {stop} / target {target} on the wrong side "
-                            f"of the entry {entry}: rejected, never repaired")
-        dist = abs(entry - stop) / ctx.atr
-        if not MIN_STOP_ATR <= dist <= MAX_STOP_ATR:
-            return no_trade(f"stop {dist:.2f} H1-ATR from entry is outside {MIN_STOP_ATR}-{MAX_STOP_ATR}: rejected")
-        kv = ctx.knowledge
-        if kv is not None and hasattr(kv, "lessons_matching"):
-            hits = kv.lessons_matching(FAMILY, ctx.regime.label, ctx.regime.vol_state, side, ctx.t)
-            if hits:
-                return no_trade(f"validated lesson {hits[0]['lesson_id']}: {hits[0]['statement']}",
-                                contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hits[0]["statement"]}])
-        rr = abs(target - entry) / abs(entry - stop)
-        thesis = f"{p['action']} {ctx.symbol} on {p['timeframe']}: {str(p['thesis'])[:500]}"
-        return Decision(
-            did, p["action"], ctx.symbol, p["timeframe"], ctx.t, ctx.mode, {}, ctx.regime.as_dict(), thesis,
-            [memory_note], [{"agent": k, "code": o.code, "severity": o.severity, "message": o.message}
-                            for k, r in reports.items() for o in r.objections][:12],
-            float(entry), stop, target, f"stop {stop:.5g}, target {target:.5g}, time exit after {p['max_hold_hours']}h",
-            "LLM", FAMILY, None, None, None, None, None, None, 1.0,
-            str(p.get("invalidation") or "")[:300] or None, None, agents,
-            {"note": "model-proposed; no measured expectancy exists until its forward record does",
-             "reward_risk": round(rr, 3)}, 1, v,
-            max_hold_hours=int(p["max_hold_hours"]))
+        problem = level_problem(ctx, p)
+        if problem:
+            return no_trade(problem)
+        hit = lesson_block(ctx, 1 if p["action"] == "BUY" else -1)
+        if hit:
+            return no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
+                            contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}])
+        return trade_decision(ctx, did, v, agents, reports, p, [memory_note])
 
     # ── learn from a closed trade ───────────────────────────────────────
 

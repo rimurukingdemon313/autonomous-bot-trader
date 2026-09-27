@@ -33,6 +33,7 @@ import numpy as np
 
 from ..agents.brain import Brain
 from ..agents.llm_trader import FAMILY as LLM_FAMILY, multi_timeframe
+from ..agents.trading_room import member_records
 from ..agents.types import AccountView, MarketContext
 from ..broker.base import BrokerError
 from ..broker.paper import pip_of
@@ -52,7 +53,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 
 #: 1.1.0: journals shadow outcomes (journal="full"); knowledge versions only ever increase.
 #: Backtest decisions are unchanged from 1.0.0.
-ORCHESTRATOR_VERSION = "orchestrator-1.1.0"
+#: 1.2.0: in DECISION_MODE=trading_room the memory brief carries each member's forward record.
+ORCHESTRATOR_VERSION = "orchestrator-1.2.0"
 
 
 class NullKnowledge:
@@ -211,13 +213,16 @@ class Orchestrator:
             view, data_flags=flags, analogs={a: ev for a in ACTIONS} if ev is not None else {},
             analog_meta={"available": ev.available if ev else 0, "memory_version": self.memory.version},
             knowledge=self.experience if self.cfg.learning_enabled else NullKnowledge(), mode=self.cfg.mode)
-        if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") == "llm_trader":
+        mode = getattr(getattr(self.brain, "config", None), "decision_mode", "evidence")
+        if mode in ("llm_trader", "trading_room"):
             # The model trader reads more than the quantitative agents: three timeframes of
             # COMPLETED bars, its own trade memory, and whether trading is allowed at all
             # (when it is not, the model is not consulted and nothing is spent).
             long = self.feed.bars(symbol, t, 24 * 30)
             ctx.mtf = multi_timeframe(long, t) if long is not None and len(long) else {}
             ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
+            if mode == "trading_room":
+                ctx.memory_brief["room_track_records"] = member_records(self.db)
             ks = self.db.get_kv("kill_switch", {"active": True})
             ctx.trading_allowed = not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
                                        or not isinstance(ks, dict) or ks.get("active") is not False)
