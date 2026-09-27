@@ -95,7 +95,7 @@ def test_a_restart_starts_from_the_saved_copy(tmp_path):
 def test_the_dashboard_read_never_downloads(tmp_path):
     feed = Feed()
     c, _ = cal(tmp_path, feed)
-    assert c.state(refresh=False)["status"] == "UNAVAILABLE" and feed.calls == 0
+    assert c.state(refresh=False)["status"] == "PENDING" and feed.calls == 0  # not tried is not "unavailable"
 
 
 def test_sessions():

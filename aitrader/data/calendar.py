@@ -125,7 +125,9 @@ class EconomicCalendar:
                 self._refresh()
             now = self.clock()
             if self._fetched_at is None:
-                return {"status": "UNAVAILABLE", "reason": self._error or "not fetched yet"}
+                if self._error is None:  # never tried (the dashboard read never downloads)
+                    return {"status": "PENDING", "reason": "first download at the next decision"}
+                return {"status": "UNAVAILABLE", "reason": self._error}
             age = int(now - self._fetched_at)
             if age > STALE_S:
                 return {"status": "UNAVAILABLE", "reason": f"last copy is {age // 3600} h old"

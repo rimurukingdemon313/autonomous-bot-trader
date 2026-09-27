@@ -70,6 +70,10 @@ function renderStatus(s) {
       : "EVIDENCE SYNTHESIS", c.decision_mode === "evidence" ? "good" : "warning"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",
     chip("LAST DATA", s.last_market_update ? ts(s.last_market_update) : "never", s.last_market_update ? "good" : "warning"),
+    ...(c.news_calendar && c.news_calendar.status !== "NOT_CONFIGURED"
+      ? [chip("NEWS", ["UNAVAILABLE", "PENDING"].includes(c.news_calendar.status) ? `${c.news_calendar.status} (${c.news_calendar.reason || "?"})`
+          : `${c.news_calendar.status} · ${c.news_calendar.age_min} min old`,
+          c.news_calendar.status === "FRESH" ? "good" : c.news_calendar.status === "UNAVAILABLE" ? "critical" : "warning")] : []),
     chip("LAST CYCLE", s.last_cycle ? ts(s.last_cycle) : "never", s.last_cycle_error ? "critical" : (s.last_cycle ? "good" : "warning")),
   ].join("");
   $("clock").textContent = new Date(s.time * 1000).toISOString().slice(11, 19);
