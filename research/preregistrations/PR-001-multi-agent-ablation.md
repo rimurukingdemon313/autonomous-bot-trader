@@ -121,4 +121,83 @@ measured over the whole judged period rather than until the first halt.
 
 ## RESULTS
 
-*(to be appended after the run, judged by the rules above)*
+Run 2026-09-26/27. Primary arm at commit `1ec33b8`; the exploratory arm
+at a later commit. Before the primary's halt, both arms produced
+**identical** trades in every variant (24 / 60 / 46 / 50), so the
+changes in between did not alter backtest decisions. Judged by
+`scripts/judge_pr001.py`, committed before any result existed. Full
+numbers: `research/results/PR-001-judgement.json` and
+`PR-001-summary.json`. Every hash chain verified.
+
+### Verdicts (primary arm, as pre-registered)
+
+| Hypothesis | Verdict | Numbers |
+|---|---|---|
+| **H1** C has an edge | **FAIL** | C: 46 trades, mean −0.308 R, t −1.79. Fails conditions 1-4 (sign and t, beats random, 0 of 7 positive years, fewer than 200 trades); drawdown −7.6 % |
+| H2 learning adds value (C − B) | **FAIL** | +0.006 R, Welch t 0.03 |
+| H3 memory adds value (B − A) | **FAIL** | +0.103 R, Welch t 0.38 |
+| H4 agents beat random (A − R) | **FAIL** | −0.071 R, Welch t −0.26 |
+
+Every variant stopped trading in January-February 2010:
+
+- **B, C and R** hit the 8 % drawdown halt. The risk engine refused
+  3,652 / 4,356 / 3,699 later approvals. This is the behaviour Amendment 1
+  anticipated.
+- **A** was never halted. It locked itself out. The Risk agent raises a
+  MAJOR `DRAWDOWN_STATE` objection at 5 % drawdown, and A, as specified,
+  trades only when there is no MAJOR objection. A reached about 6 %
+  drawdown after 24 trades, so it never traded again, so equity never
+  recovered, so the objection never cleared. A-nohalt is identical,
+  24 trades, which confirms it was not the halt. **Finding:** a rule
+  that stops on adverse account state, with no path back, is an
+  absorbing state. B and C only raise their bar by a penalty and are not
+  affected.
+
+**Following the rules fixed above: H1 failed, so there is no robustness
+battery and no final holdout. The holdout stays sealed, and the system
+remains in RESEARCH with no demonstrated edge.**
+
+### Exploratory arm (Amendment 1): no verdict
+
+The same variants with the drawdown halt disabled, 2010-2016:
+
+| Variant | Trades | Mean R | t | Win | PF (R) | Return | Max DD | Sharpe (daily, ann.) |
+|---|---|---|---|---|---|---|---|---|
+| A agents, no memory | 24 | −0.417 | −1.86 | 25 % | 0.47 | −4.2 % | −6.0 % | n/a |
+| B + memory | 2,577 | −0.053 | −1.99 | 35.7 % | 0.92 | −47.4 % | −54.4 % | −0.69 |
+| **C full system** | **2,928** | **−0.072** | **−2.90** | 35.1 % | 0.89 | **−53.5 %** | −58.5 % | −0.89 |
+| R random | 3,143 | −0.159 | −7.38 | 36.5 % | 0.76 | −87.1 % | −87.3 % | −1.87 |
+
+Comparisons, reported without verdict:
+
+- C − R: +0.087 R, Welch t 2.65.
+- C − B: −0.019 R, Welch t −0.53.
+- B − A: +0.36 R, Welch t 1.61.
+- A − R: −0.26 R, Welch t −1.14.
+
+What this says, and no more:
+
+- **The full system loses money after costs.** Its mean is significantly
+  **negative** (t −2.9). Its year by year means: 2010 −0.09, 2011 −0.21,
+  2012 −0.10, 2013 +0.03, 2014 −0.05, 2015 +0.01, 2016 −0.04. Two
+  positive years out of seven.
+- **The analogue memory filters.** It lost about half as much per trade
+  as random direction under the same risk engine and costs. It does not
+  turn a loss into a gain.
+- **Learning did not help.** Lessons were created and validated (26
+  validated, 17 rejected, 6 retired in C), but C did no better than B.
+- **Regimes are not informative about outcomes here.** C is negative in
+  every regime, least in TRANSITION (−0.03 R). Random is negative in
+  every regime by about the same amount, which is what costs alone
+  produce.
+- By instrument: only GBPJPY (+0.056) and EURJPY (+0.010) were positive
+  for C, over about 250 trades each. That is a selection-after-the-fact
+  observation, not a finding.
+- The recorded loss causes are mostly NORMAL_VARIANCE (877) and
+  REGIME_SHIFT (539).
+
+This agrees with the archive's thirteen families: on these instruments,
+at this horizon, after realistic costs, nothing tested so far has an
+edge. Any idea suggested by the exploratory arm is a new hypothesis. It
+needs its own pre-registration and must be judged on data this arm has
+not seen, which leaves the sealed holdout and forward (paper) data only.

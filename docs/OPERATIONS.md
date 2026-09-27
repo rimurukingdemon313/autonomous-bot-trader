@@ -30,8 +30,12 @@ restart or redeploy keeps every trade, decision, lesson and reflection.
    `.env.example` for the full list. Minimum for paper trading on live data:
    `MODE=PAPER`, `DATA_DIR=/data`, `DASHBOARD_TOKEN` (a long random string),
    and the four `TRADELOCKER_*` credentials of a **demo** account.
-4. Open the service URL: the dashboard. The status bar must show
-   `DATA: CONNECTED`, `DATABASE: HEALTHY`, `KNOWLEDGE: LOADED`.
+4. Open the service URL: the dashboard. **It starts paused** (the knowledge
+   base FAILED its pre-registered test, docs/SYSTEM_LIFECYCLE.md Amendment 2).
+   Trading starts only when you press Resume with the dashboard token.
+   Before resuming, the status bar must show `DATA: CONNECTED`,
+   `DATABASE: HEALTHY` and `KNOWLEDGE: LOADED · FAILED` (loaded and
+   verified; FAILED is the knowledge base's research verdict).
 
 Without TradeLocker credentials the service still starts and reports
 `DATA: NOT CONNECTED`; it makes no decisions on invented prices.

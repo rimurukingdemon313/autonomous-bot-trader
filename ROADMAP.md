@@ -16,8 +16,8 @@ is not a gate: this table says which gates are met **with evidence**.
 | 2 Features | **met** | truncation test on every feature; five kinds of injected leak detected |
 | 3 Research framework | **met** | registry refuses duplicate, back-dated and unregistered post-seal trials; label tests |
 | 4 Validation | **partly met** | expanding walk-forward with a 5-day embargo, point-in-time memory, Bonferroni thresholds. The robustness battery is written into PR-001 but runs only if H1 passes. Leakage through selection is controlled by the registry (every configuration is counted), not by a code test |
-| 5 AI research | **reported** | PR-001, research/preregistrations/PR-001-multi-agent-ablation.md, RESULTS |
-| 6 Regime | **partly met** | familiarity (out-of-distribution) tested and forces NO_TRADE; persistence measured on training rows (knowledge card); informativeness measured as R by regime in PR-001 |
+| 5 AI research | **reported: no edge** | PR-001 FAILED (H1-H4); the exploratory arm is −0.072 R/trade after costs, t −2.9 (research/preregistrations/PR-001-multi-agent-ablation.md, RESULTS) |
+| 6 Regime | **partly met** | familiarity (out-of-distribution) tested and forces NO_TRADE; labels persist far above chance (knowledge card); **not informative about outcomes** in PR-001 (negative in every regime), so they stay descriptions and gate only ABNORMAL/UNFAMILIAR |
 | 7 Decision | **met** | malformed, missing, contradictory and out-of-range inputs give NO_TRADE (unit tests, mutation audit) |
 | 8 Risk | **met** | `tests/unit/test_risk.py`; docs/MUTATION_AUDIT.md |
 | 9 Execution | **met against a fake broker** | duplicate, ambiguous-outcome and restart tests. Not yet run against the real TradeLocker API |

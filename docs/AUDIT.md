@@ -28,6 +28,9 @@ Commands that reproduce the evidence:
 | 12 | The mutation audit itself left compiled mutants cached (same-size edit, same second) | a later run tested a mutant, not the code | no bytecode written during the audit; the module's cache is removed on restore | — |
 | 13 | The image ran as a non-root user, and Railway mounts volumes as root | on Railway the service could not create its database and crashed on start; found by building the image and mounting a root-owned directory at `/data` | `docker-entrypoint.sh` gives `/data` to uid 10001, then drops privileges before the service starts | checked in a local container: root-owned volume, database created under uid 10001, process runs as 10001, survives `docker restart` |
 | 14 | A startup failure crashed the process, so nothing answered | the platform showed a crash loop with no reason at the URL | the service serves 503 with the reason (naming `DATA_DIR`) and never trades | `test_a_failed_startup_serves_its_reason_and_never_trades` (the real process, over HTTP) |
+| 15 | The service started unpaused | with credentials set, it would begin trading at once on a knowledge base that has since failed its test | first start is PAUSED with the reason recorded; only an authenticated resume starts trading; the dashboard shows the card's status | `test_first_start_is_paused_and_only_an_authenticated_resume_starts_trading` |
+| 16 | The backtest's `"learning": true/false` key overwrote the learning component version in the stamp | results could not be grouped by learning version | renamed `learning_enabled` | — |
+| 17 | Found by PR-001: in the memory-free baseline, a MAJOR `DRAWDOWN_STATE` objection at 5 % blocks every trade, so equity can never recover | an absorbing state: the baseline stopped trading for 7 years | not changed: it is the pre-registered baseline and was judged as specified. The live system (evidence mode) only raises its bar by a penalty | PR-001 RESULTS |
 
 ## 2. Security
 

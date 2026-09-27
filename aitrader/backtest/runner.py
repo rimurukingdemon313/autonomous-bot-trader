@@ -126,7 +126,7 @@ def run(cfg: BacktestConfig, series: dict[str, BarSeries], progress: Callable[[s
     brain = Brain(llm=None, synthesizer=EvidenceSynthesizer(cfg.synthesis), config=BrainConfig(llm_agents=(), parallel=False))
     execution = ExecutionEngine(db, broker, clock)
     experience = ExperienceView()
-    versions = {**stamp(), "synthesis_mode": cfg.synthesis.mode, "learning": cfg.learning_enabled, "backtest": cfg.name}
+    versions = {**stamp(), "synthesis_mode": cfg.synthesis.mode, "learning_enabled": cfg.learning_enabled, "backtest": cfg.name}
     orch = Orchestrator(
         OrchestratorConfig(cfg.symbols, mode="BACKTEST", journal=cfg.journal, events="key",
                            start_balance=cfg.start_balance, costs=cfg.costs, learning_enabled=cfg.learning_enabled),

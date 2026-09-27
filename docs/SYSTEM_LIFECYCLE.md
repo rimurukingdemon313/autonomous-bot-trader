@@ -52,3 +52,13 @@ system's version stamp, labelled on the dashboard as unvalidated, and never
 counted as validation of a historical claim. It does not move the candidate
 up the lifecycle: LIVE still requires every gate above, and `MODE=LIVE` is
 refused by the software.
+
+## Amendment 2 — forward testing of a FAILED candidate
+
+PR-001 failed. The knowledge base on the card is marked `FAILED`. A
+forward test of it in PAPER, or on a broker DEMO account, is still allowed.
+No money is at risk, and forward data is the only evidence the historical
+record cannot contaminate. The expected result is a loss (−0.07 R per
+trade historically). Because of that, **nothing trades until an operator
+decides it should**: the service starts paused, and only an authenticated
+resume starts it. The dashboard shows the card's status next to KNOWLEDGE.

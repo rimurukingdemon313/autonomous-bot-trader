@@ -115,6 +115,11 @@ class Runtime:
         self.db = Database(Path(cfg.data_dir) / "aitrader.db")
         if self.db.get_kv("kill_switch", None) is None:
             self.db.set_kv("kill_switch", {"active": False}, reason="first start")
+        if self.db.get_kv("paused", None) is None:
+            # Nothing trades until an operator decides it should: PR-001 found no
+            # edge, so starting to trade is an explicit, authenticated act (resume).
+            self.db.set_kv("paused", True, reason="first start: paused until an operator resumes "
+                                                  "(PR-001 found no demonstrated edge)")
         self.llm = LLMClient(LLMConfig.from_env())
         self.tl = None
         self.feed, self.broker = feed, broker

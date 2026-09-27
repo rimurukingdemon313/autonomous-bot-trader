@@ -11,6 +11,9 @@ unvalidated on the dashboard, recorded under their version stamp, and
 never count as validation. They do not move the system up the lifecycle:
 LIVE still needs every gate, and `MODE=LIVE` is refused by the software.
 
+The current knowledge base FAILED its test (PR-001), so the service starts
+paused (docs/SYSTEM_LIFECYCLE.md, Amendment 2).
+
 ## Records
 Every decision and every NO_TRADE with its reasons, every simulated fill,
 spread, slippage, P/L, drawdown, and the version stamp, in the database.

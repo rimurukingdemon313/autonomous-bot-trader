@@ -4,10 +4,11 @@
 synthesis, a deterministic risk engine, and learning from outcomes that
 is measured, never assumed.**
 
-> **Status: RESEARCH.** The system is built, tested and deployable in
-> PAPER or DEMO. **It has no demonstrated edge.** The pre-registered test
-> of that question is PR-001: see [Evidence](#evidence) below. `MODE=LIVE`
-> is refused by the software. Nothing here claims or implies profitability.
+> **Status: RESEARCH, no edge.** The system is built, tested and
+> deployable in PAPER or DEMO. Its pre-registered test, **PR-001, FAILED**.
+> Over 2010-2016, after costs, the full system averaged **−0.07 R per trade
+> (t −2.9): it loses money.** It starts paused. `MODE=LIVE` is refused by
+> the software. Nothing here claims or implies profitability.
 
 ---
 
@@ -86,7 +87,20 @@ Every row was checked by **removing the guard and watching a test fail**:
   committed before any run. Result:
   [RESULTS](research/preregistrations/PR-001-multi-agent-ablation.md#results).
 
-<!-- PR-001-STATUS -->
+**PR-001 result.** All four verdicts failed (H1 edge, H2 learning, H3
+memory, H4 agents vs random). Every variant stopped in early 2010 at the
+8 % drawdown halt, or, for the memory-free baseline, at a self-lock the
+run exposed. The exploratory arm without the halt (no verdict) shows:
+
+| 2010-2016, after costs | Trades | Mean R | t | Return at 0.5 %/trade |
+|---|---|---|---|---|
+| Full system (C) | 2,928 | −0.072 | −2.90 | −53.5 % |
+| Memory, no learning (B) | 2,577 | −0.053 | −1.99 | −47.4 % |
+| Random direction, same risk engine (R) | 3,143 | −0.159 | −7.38 | −87.1 % |
+
+The analogue memory filters: it loses half as much as random. It does
+not produce an edge, and learning added nothing measurable. **The sealed
+holdout was not opened.** It is saved for a future candidate that earns it.
 
 The language-model layer is **not** in any backtest. A model trained on
 data after a historical date knows what happened next, so its value can

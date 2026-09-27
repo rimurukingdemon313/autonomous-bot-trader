@@ -305,3 +305,11 @@ def test_a_failed_startup_serves_its_reason_and_never_trades(tmp_path):
     finally:
         proc.kill()
         proc.wait()
+
+
+def test_first_start_is_paused_and_only_an_authenticated_resume_starts_trading(tmp_path):
+    rt, _ = build(tmp_path)
+    assert rt.db.get_kv("paused") is True
+    rt.resume()
+    rt2, _ = build(tmp_path)  # a restart keeps the operator's decision, it does not re-pause
+    assert rt2.db.get_kv("paused") is False
