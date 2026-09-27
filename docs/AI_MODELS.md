@@ -17,6 +17,14 @@ evidence packet, for the agents listed in `AI_AGENTS` (default:
 - It **cannot** size, place, modify or close anything; it never sees
   credentials; its failure costs reasoning text, never safety (unless
   `AI_REQUIRED=true`, in which case failure blocks trading).
+- In **research** (`aitrader/research/hypotheses.py`, `llm_drafts`) it may
+  DRAFT hypotheses, using only the declared features, models and
+  templates. A draft is registered and judged like any other. The lab
+  **refuses to fit or judge it on data before the model's training
+  cutoff**, which the draft must declare: a model that has read about a
+  period cannot be tested on it. With history ending in 2018 and current
+  models trained later, an LLM hypothesis can in practice be judged only
+  on forward (paper) data.
 - It is **not** part of any historical backtest (MODEL_CONTRACT.md §7,
   docs/RESEARCH_LOG.md): a model trained on data after a historical date
   knows what happened next.

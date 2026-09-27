@@ -6,8 +6,10 @@ and [`aitrader/agents/`](../aitrader/agents/).
 Five agents give a point-in-time view of the same evidence packet:
 **Market** (regime, familiarity), **Setup** (candidate action templates),
 **Risk** (costs and spread against the stop), **Adversary** (the case
-against, from a closed objection vocabulary) and **Reviewer** (analogue
-evidence and lessons). `brain.py` runs them; each has a deterministic core,
+against, from a closed objection vocabulary) and **Reviewer** (the quality of
+the evidence: analogue sample, noise, age and concentration, template agreement,
+lessons and track record). All five report BEFORE synthesis; none sees the
+decision. `brain.py` runs them; each has a deterministic core,
 and an optional language-model layer can only add objections.
 
 The synthesis is **not a vote**. It is anchored on the lower bound of the

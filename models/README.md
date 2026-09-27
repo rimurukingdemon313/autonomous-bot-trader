@@ -23,6 +23,21 @@
   (`DATA_DIR/memory_live.npz`). It never rewrites the base.
 - No model computes a position size or a risk amount.
 
+## Research model families (not loaded by production)
+
+`aitrader/research/models.py`:
+
+- **ridge**, **logistic** and **k-NN**, in numpy, each with fixed,
+  recorded hyper-parameters;
+- a lab PASS writes a hashed artifact under `research/artifacts/<trial>/`;
+- production does not load from there. Promotion is a reviewed step that
+  includes the holdout test;
+- tree/boosting, time-series and Bayesian families are **not
+  implemented**. `MODEL_FAMILIES` is the declared plug-in point.
+
+The current production estimator, the analogue memory above, is a k-NN
+lookup. It is not a trained model.
+
 ## Language models
 
 No model weights live here. The optional language-model layer is a

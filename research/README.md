@@ -9,6 +9,22 @@ The research record that travels with the code.
 | [`preregistrations/`](preregistrations/) | Pre-registration documents, committed **before** their experiments ran. Amendments are appended before the judged run, never after. |
 | `results/` | Summaries of completed experiments (full per-trade output stays under `data/results/`, not committed). |
 
+## The research lab
+
+`aitrader/research/lab.py` (with `models.py`, `features_lab.py` and
+`hypotheses.py`) runs hypotheses the registry has recorded:
+
+- a declared space;
+- registration first, with a frozen Bonferroni threshold;
+- purged, embargoed walk-forward;
+- random and k-NN baselines;
+- robustness checks;
+- one verdict per trial;
+- artifacts under `research/artifacts/` only.
+
+`scripts/research_lab.py scan | register | run` is the command line. See
+docs/GAP_REPORT.md for what it can and cannot do yet.
+
 ## Rules the code enforces
 
 - Ids are never reused and entries are never back-dated.

@@ -27,7 +27,10 @@ Every fourth hourly close (the cadence it was tested at), for each of 12 FX pair
    - **Setup**: which actions are worth considering.
    - **Risk**: cost and spread against the stop.
    - **Adversary**: the case against, from a closed list of objections.
-   - **Reviewer**: analogues and validated lessons.
+   - **Reviewer**: how far the evidence can be trusted: analogue sample,
+     noise, age and concentration, template agreement, validated lessons,
+     the family's track record. It runs before synthesis and never sees
+     the decision.
 
    An optional language model can only add objections.
 5. **Evidence synthesis, not a vote.** A trade needs the analogue
@@ -102,6 +105,35 @@ The analogue memory filters: it loses half as much as random. It does
 not produce an edge, and learning added nothing measurable. **The sealed
 holdout was not opened.** It is saved for a future candidate that earns it.
 
+## Research lab: how the system looks for something new
+
+PR-001 tested a fixed design. Finding a *new* relationship is the
+research lab's job (`aitrader/research/lab.py`, `scripts/research_lab.py`,
+[docs/GAP_REPORT.md](docs/GAP_REPORT.md)):
+
+```
+observe (fit-data scan, reflection, lessons, optional LLM drafts)
+  → hypothesis inside a DECLARED space (instruments, H1/H4/D1, features incl. a 667-candidate grammar,
+    ridge / logistic / k-NN models, action templates)
+  → REGISTER (threshold frozen from the registry)  → purged, embargoed walk-forward
+  → vs random and vs the k-NN analogue baseline  → robustness (costs, one-bar delay)
+  → PASS / FAIL recorded  → a PASS writes a hashed artifact OUTSIDE production
+```
+
+What the code enforces:
+
+- nothing runs before it is registered;
+- a failed hypothesis cannot be re-run with a new threshold or new dates;
+- a leaky candidate feature is rejected before evaluation;
+- a language-model hypothesis is never judged on data the model may have
+  read;
+- the holdout is out of reach;
+- the live decision path cannot import the lab.
+
+**Status: built and tested on constructed markets; no real-data
+experiment has been run with it yet.** The next hypothesis is designed
+and pre-registered first.
+
 The language-model layer is **not** in any backtest. A model trained on
 data after a historical date knows what happened next, so its value can
 only be measured forward, in paper or demo ([docs/AI_MODELS.md](docs/AI_MODELS.md),
@@ -162,6 +194,7 @@ python scripts/mutation_audit.py       # remove each guard, require a failing te
 | [docs/AI_MODELS.md](docs/AI_MODELS.md) | The optional language-model layer and which free models to use |
 | [docs/RESEARCH_LOG.md](docs/RESEARCH_LOG.md) | Sources reviewed, adopted, rejected, and why |
 | [docs/AUDIT.md](docs/AUDIT.md) | Security, leakage, risk and architecture audit |
+| [docs/GAP_REPORT.md](docs/GAP_REPORT.md) | Intended research system vs. what is built: IMPLEMENTED / PARTIAL / SCAFFOLD / NOT IMPLEMENTED |
 | [docs/](docs/) | Lifecycle, research process, testing, failure policy, versioning, archive |
 
 ## Historical research archive

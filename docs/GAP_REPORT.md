@@ -183,3 +183,33 @@ failed hypothesis with small variations.
 - Point-in-time memory, and a language model that can only subtract in
   live decisions.
 - The mutation audit: all 28 guards must stay killed.
+
+---
+
+## H. After this work: status of every requirement
+
+Commits `1373d0c` → the current head. Each line names its evidence.
+
+| Requirement | Status | What exists | What does not |
+|---|---|---|---|
+| Five independent analysts before synthesis | **IMPLEMENTED** | `ReviewerAnalyst` runs beside Risk and Adversary, before synthesis, and never sees the decision. It is required: its failure is NO_TRADE. Decisions were shown unchanged by the move (identical trades on the constructed market) | — |
+| Reviewer produces its own evidence | **IMPLEMENTED** | analogue sample, noise, age, instrument concentration, template agreement, lessons, track record (`test_the_reviewer_grades_…`) | The 4 new quality checks are MINOR: their predictive value must be measured first |
+| No majority vote | **IMPLEMENTED** (unchanged) | analogue lower bound vs required edge | — |
+| Learning: observations → hypotheses → validated/rejected/retired lessons → experiment proposals | **IMPLEMENTED** | the lesson lifecycle; reflection → PROPOSED experiments in the immutable journal and on the dashboard | Proposals are not run automatically; the lab runs them when a person, or a scheduled research job not built here, registers them |
+| Learning statistics honest about overlap | **IMPLEMENTED** (defect found and fixed) | effective sample size for overlap and templates; known-answer test | — |
+| Research loop: hypothesis → register → walk-forward → OOS → robustness → baseline → accept/reject → version | **IMPLEMENTED as software, not yet run on real data** | `aitrader/research/lab.py` with 23 known-answer tests; `scripts/research_lab.py` | No real-data experiment has been run with it: the next hypothesis is to be designed and pre-registered first, as instructed |
+| Choose the instrument | **PARTIAL** | the lab evaluates any declared subset and reports each instrument's result | Production trades the configured universe; nothing selects instruments live |
+| Choose the timeframe | **PARTIAL** | the lab resamples to H1, H4 or D1 on complete bars | Production decides on H1 only |
+| Choose the features | **SCAFFOLD** | a declared grammar of 667 candidates over the 23 base features, the leakage gate, incremental judging | Only grammar expressions over existing features; no raw-data feature synthesis; an accepted feature reaches production only by a reviewed FEATURE_VERSION change |
+| Choose the model | **SCAFFOLD** | ridge, logistic and k-NN (numpy), judged against k-NN and random | Tree/boosting, time-series and Bayesian families: NOT IMPLEMENTED. A lab PASS writes an artifact; no production path loads it (promotion is manual and requires the holdout) |
+| Entry logic | **PARTIAL** | the lab's entry is "model predicts R above a declared threshold", learned from features; production still uses the 4 families + analogue discovery | Learned entries are not in production |
+| Stop / target / exit logic | **PARTIAL** | a declared choice between 2 templates in both production and the lab | Trailing, partial or learned exits: NOT IMPLEMENTED |
+| NO_TRADE | **IMPLEMENTED** | — | — |
+| LLM role | **PARTIAL, by design** | Live: objections only, and an opposing opinion weighted by forward-measured reliability (starts at 0). Research: may DRAFT hypotheses from the closed vocabulary. The lab refuses to fit or judge them on data before the model's training cutoff | An LLM never proposes a live trade, a size, or a parameter. Expanding its live role is not justified until its forward reliability is measured (MODEL_CONTRACT §9) |
+| Failed experiments cannot affect production | **IMPLEMENTED** | no artifact on FAIL; the lab cannot write under `models/artifacts`; the live path cannot import the lab (`test_architecture.py`) | — |
+| Risk engine sole authority; broker isolated | **IMPLEMENTED** (unchanged, now also checked in the import graph) | `test_architecture.py`; mutation audit | — |
+| PR-001 | **unchanged: FAILED** | verdict, results and holdout untouched | — |
+
+**Plainly:** the system can now conduct disciplined research within a
+declared space. It has not yet *discovered* anything. Discovery is what
+the next pre-registered hypothesis will test.

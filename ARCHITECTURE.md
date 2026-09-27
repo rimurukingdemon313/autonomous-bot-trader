@@ -216,8 +216,10 @@ are chosen in their phases, on evidence, and the choices are recorded.
                                      │
    features (23, causal) ──► regime + familiarity ──► pattern memory: k nearest RESOLVED past situations
                                      │
-         ┌──────────── five agents, one point-in-time evidence packet ────────────┐
+         ┌──── five analysts, one point-in-time packet, all BEFORE synthesis ─────┐
          │ Market        Setup          Risk          Adversary       Reviewer    │
+         │ describes     proposes       costs/        the case        evidence    │
+         │                              conditions    against         quality     │
          │ regime,       candidate      cost/spread   the case        analogues,  │
          │ familiarity   templates      vs stop       against         lessons     │
          └──── optional language-model layer: may only ADD objections ───────────┘
@@ -248,6 +250,7 @@ are chosen in their phases, on evidence, and the choices are recorded.
 | 11 Broker | `aitrader/broker/` (`paper`, `tradelocker/`) | `unit/test_tradelocker_adapter.py` |
 | 12 Journal | `aitrader/memory/db.py`: SQLite, immutable tables with hash chains | `unit/test_db.py` |
 | 13 Learning / research | `aitrader/learning/`, `aitrader/orchestrator/tracker.py`, `aitrader/research/registry.py`, `aitrader/backtest/` | `unit/test_learning.py`, `integration/test_pipeline.py` |
+| 13b Research lab (research machine only) | `aitrader/research/lab.py`, `models.py`, `features_lab.py`, `hypotheses.py`; `scripts/research_lab.py` | `unit/test_research_lab.py`, `unit/test_architecture.py` |
 | Service, dashboard | `aitrader/service/` | `integration/test_service.py` |
 
 Environments: research and backtesting (`scripts/`, `aitrader/backtest/`)
@@ -279,8 +282,35 @@ direction, entry, stop or target of a candidate, the feature definitions,
 the regime model, the action templates, or the demo, risk and execution
 guards. It cannot create a trade that the evidence did not support.
 
+Every statistic behind these changes counts **effective** samples: outcomes
+that overlap in time, and several templates of one decision, are not
+counted as independent evidence (learning 1.2.0).
+
 Every change is a new knowledge version, stamped on every later decision,
 listed on the dashboard, and revertible by an authenticated operator
 (`POST /api/control/knowledge/revert`). One win or one loss cannot create,
 validate or retire anything: the thresholds are sample sizes and
 significance.
+
+## Amendment 2 — the research lab
+
+Research that can widen the system's choices (instrument, timeframe,
+features, model, entry) runs in `aitrader/research/lab.py`, on the
+research machine, under RESEARCH_CONTRACT §5:
+
+- a declared, counted space;
+- registration first, with a frozen threshold;
+- purged, embargoed walk-forward;
+- baselines and robustness;
+- a single verdict per trial.
+
+Its boundary with production is structural:
+
+- the lab writes only under `research/artifacts/`, never where production
+  loads;
+- the live decision path cannot import it (checked in the import graph);
+- a lab PASS is a *research candidate*. It reaches production only through
+  a reviewed promotion that includes the single-use holdout test.
+
+Reflection may *propose* experiments (the `experiments` journal); it
+cannot run them.
