@@ -420,7 +420,7 @@ class ReviewerAnalyst:
                                                     {**tag, "lesson": lesson["lesson_id"], "version": lesson["version"]}))
                     issues += 1
                 st = kv.family_regime_stats(c.family, ctx.regime.label, ctx.t)
-                if st and st["n"] >= 30 and st["mean"] + 1.28 * st["se"] < 0:
+                if st and st["n_eff"] >= 30 and st["mean"] + 1.28 * st["se"] < 0:
                     rep.objections.append(Objection("REGIME_MISMATCH", "MAJOR", self.name,
                                                     f"{c.family} in {ctx.regime.label}: {st['mean']:+.3f}R over {st['n']} resolved cases", tag))
                     issues += 1

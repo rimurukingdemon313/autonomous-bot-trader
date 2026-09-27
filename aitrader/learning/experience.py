@@ -35,7 +35,9 @@ from statistics import NormalDist
 from typing import Callable
 
 #: 1.1.0: `restore` (operator revert by appended versions). Learning itself is unchanged.
-LEARNING_VERSION = "learning-1.1.0"
+#: 1.2.0: standard errors and sample sizes account for overlapping outcomes and for
+#: several evaluations of one decision (effective sample size); thresholds use n_eff.
+LEARNING_VERSION = "learning-1.2.0"
 
 
 @dataclass
@@ -60,23 +62,52 @@ class Evaluation:
     llm_directions: dict = field(default_factory=dict)  # agent -> BUY/SELL/NONE
 
 
+#: The decision cadence the system runs at (every 4th H1 close). Outcomes whose
+#: horizons are longer than this overlap their neighbours and are not independent.
+DECISION_SPACING_S = 4 * 3600
+
+
 class _Agg:
-    __slots__ = ("n", "s", "ss")
+    """Running mean and variance, with an honest standard error.
+
+    Consecutive candidates share most of their outcome path (a 24-48 bar
+    horizon, a decision every 4 bars), and the templates of one decision
+    are two looks at one market move. Counting them as independent
+    understates the standard error, and a lesson then "validates" on noise.
+    The standard error is inflated by the overlap (mean horizon / decision
+    spacing) and by the number of evaluations per decision, and every
+    threshold uses the resulting effective sample size `n_eff`.
+    """
+
+    __slots__ = ("n", "s", "ss", "dur", "ids", "n_unique")
 
     def __init__(self) -> None:
-        self.n, self.s, self.ss = 0, 0.0, 0.0
+        self.n, self.s, self.ss, self.dur = 0, 0.0, 0.0, 0.0
+        self.ids: set = set()
+        self.n_unique: int | None = None  # set only for derived aggregates (all minus flagged)
 
-    def add(self, x: float) -> None:
+    def add(self, x: float, dur: float = 0.0, decision_id: str | None = None) -> None:
         self.n += 1
         self.s += x
         self.ss += x * x
+        self.dur += max(0.0, dur)
+        if decision_id is not None:
+            self.ids.add(decision_id)
+
+    def factor(self) -> float:
+        if self.n == 0:
+            return 1.0
+        overlap = max(1.0, (self.dur / self.n) / DECISION_SPACING_S)
+        uniq = self.n_unique if self.n_unique is not None else (len(self.ids) or self.n)
+        return overlap * max(1.0, self.n / max(1, uniq))
 
     def stats(self) -> dict | None:
         if self.n < 2:
             return None
         m = self.s / self.n
         var = max(0.0, (self.ss - self.n * m * m) / (self.n - 1))
-        return {"n": self.n, "mean": m, "se": math.sqrt(var / self.n)}
+        f = self.factor()
+        return {"n": self.n, "mean": m, "se": math.sqrt(var / self.n * f), "n_eff": self.n / f}
 
 
 def _session(t: int) -> str:
@@ -110,7 +141,7 @@ class ExperienceView:
         self._ctx: dict[tuple, _Agg] = {}
         self._obj_flag: dict[str, _Agg] = {}
         self._all = _Agg()
-        self._ctx_items: dict[tuple, list[tuple[int, int, float]]] = {}
+        self._ctx_items: dict[tuple, list[tuple[int, int, float, str]]] = {}
         self._llm: dict[str, dict[str, _Agg]] = {}
         self.lessons: dict[str, list[dict]] = {}  # lesson_id -> versions (append-only)
         self._candidates_tested = 0
@@ -140,16 +171,17 @@ class ExperienceView:
         if not math.isfinite(e.outcome_r):
             return
         self.resolved.append(e)
-        self._fam_regime.setdefault((e.family, e.regime), _Agg()).add(e.outcome_r)
-        self._ctx.setdefault(context_key(e), _Agg()).add(e.outcome_r)
-        self._ctx_items.setdefault(context_key(e), []).append((e.decision_time, e.resolve_time, e.outcome_r))
-        self._all.add(e.outcome_r)
+        x, dur, did = e.outcome_r, e.resolve_time - e.decision_time, e.decision_id
+        self._fam_regime.setdefault((e.family, e.regime), _Agg()).add(x, dur, did)
+        self._ctx.setdefault(context_key(e), _Agg()).add(x, dur, did)
+        self._ctx_items.setdefault(context_key(e), []).append((e.decision_time, e.resolve_time, x, did))
+        self._all.add(x, dur, did)
         for code in set(e.objections):
-            self._obj_flag.setdefault(code, _Agg()).add(e.outcome_r)
+            self._obj_flag.setdefault(code, _Agg()).add(x, dur, did)
         for agent, d in e.llm_directions.items():
             agree = "agree" if d == ("BUY" if e.direction > 0 else "SELL") else "oppose" if d in ("BUY", "SELL") else None
             if agree:
-                self._llm.setdefault(agent, {}).setdefault(agree, _Agg()).add(e.outcome_r)
+                self._llm.setdefault(agent, {}).setdefault(agree, _Agg()).add(x, dur, did)
 
     # ── point-in-time queries used by the agents ────────────────────────
 
@@ -164,10 +196,12 @@ class ExperienceView:
         o = _Agg()
         if f is not None:  # unflagged = everything minus flagged: exact, whenever the code first appeared
             o.n, o.s, o.ss = self._all.n - f.n, self._all.s - f.s, self._all.ss - f.ss
+            o.dur = self._all.dur - f.dur
+            o.n_unique = max(1, len(self._all.ids) - len(f.ids))
         fs, os_ = (f.stats() if f else None), o.stats()
         if not fs or not os_:
             return None
-        return {"n_flagged": fs["n"], "mean_flagged": fs["mean"], "n_other": os_["n"], "mean_other": os_["mean"],
+        return {"n_flagged": fs["n_eff"], "mean_flagged": fs["mean"], "n_other": os_["n_eff"], "mean_other": os_["mean"],
                 "se": math.sqrt(fs["se"] ** 2 + os_["se"] ** 2)}
 
     def agent_reliability(self, agent: str, t: int) -> float:
@@ -175,7 +209,7 @@ class ExperienceView:
         self._check(t)
         d = self._llm.get(agent, {})
         a, o = (d.get("agree") or _Agg()).stats(), (d.get("oppose") or _Agg()).stats()
-        if not a or not o or o["n"] < 50 or a["n"] < 50:
+        if not a or not o or o["n_eff"] < 50 or a["n_eff"] < 50:
             return 0.0
         diff = a["mean"] - o["mean"]
         z = diff / math.sqrt(a["se"] ** 2 + o["se"] ** 2)
@@ -221,7 +255,7 @@ class ExperienceView:
         pol = self.policy
         changes = []
         contexts = [(k, a.stats()) for k, a in self._ctx.items()]
-        contexts = [(k, s) for k, s in contexts if s and s["n"] >= pol.min_n]
+        contexts = [(k, s) for k, s in contexts if s and s["n_eff"] >= pol.min_n]
         self._candidates_tested = max(self._candidates_tested, len(contexts))
         z_disc = NormalDist().inv_cdf(1 - pol.alpha / max(1, self._candidates_tested))
         for key, s in contexts:
@@ -233,20 +267,21 @@ class ExperienceView:
                 changes.append(self._new_version(
                     lid, "CANDIDATE", t, context=list(key),
                     statement=f"{fam} {'BUY' if d > 0 else 'SELL'} in {reg}/{vol} has negative expectancy",
-                    created=t, discovery={"n": s["n"], "mean": round(s["mean"], 4), "se": round(s["se"], 4),
+                    created=t, discovery={"n": s["n"], "n_eff": round(s["n_eff"], 1), "mean": round(s["mean"], 4), "se": round(s["se"], 4),
                                           "z_threshold": round(z_disc, 3), "contexts_examined": self._candidates_tested}))
         for lid, versions in self.lessons.items():
             cur = versions[-1]
             key = tuple(cur["context"])
             since = cur["effective"]
-            oos = [r for dt, rt, r in self._ctx_items.get(key, ()) if dt > since and rt > since]
-            n = len(oos)
-            if n < 2:
+            agg = _Agg()
+            for dt, rt, r, did in self._ctx_items.get(key, ()):
+                if dt > since and rt > since:
+                    agg.add(r, rt - dt, did)
+            st_ = agg.stats()
+            if st_ is None:
                 continue
-            m = sum(oos) / n
-            sd = math.sqrt(max(0.0, sum((x - m) ** 2 for x in oos) / (n - 1)))
-            se = sd / math.sqrt(n) if n else float("inf")
-            ev = {"n": n, "mean": round(m, 4), "se": round(se, 4)}
+            n, m, se = st_["n_eff"], st_["mean"], st_["se"]
+            ev = {"n": agg.n, "n_eff": round(n, 1), "mean": round(m, 4), "se": round(se, 4)}
             if cur["status"] == "CANDIDATE":
                 if n >= pol.min_oos and m + pol.oos_z * se < 0:
                     changes.append(self._new_version(lid, "VALIDATED", t, validation=ev))

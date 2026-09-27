@@ -149,3 +149,32 @@ def test_reflection_reports_calibration_repeated_mistakes_and_over_filtering():
     assert "ENTRY_TIMING" in rep["repeated_mistakes"]
     assert any(h["kind"] == "OVER_FILTERING" for h in rep["hypotheses"])
     assert rep["overconfidence_R"] > 0
+
+
+def test_overlapping_outcomes_are_not_counted_as_independent_evidence():
+    """12 genuinely independent outcomes, each seen through 12 overlapping candidates and 2 templates,
+    are 12 facts, not 288. They must not create a lesson that 288 independent losses would."""
+    H = 4 * 3600
+    rng = np.random.default_rng(5)
+    moves = rng.normal(-0.25, 1.0, 12)  # a weakly negative context, 12 real market moves
+    overlapped = ExperienceView(LessonPolicy(min_n=60))
+    k = 0
+    for b, move in enumerate(moves):
+        for j in range(12):  # consecutive decisions 4h apart, 48h horizon: one move seen 12 times
+            t0 = 1_000_000 + (b * 12 + j) * H
+            for tpl in ("T1:BUY", "T2:BUY"):  # two templates of the same decision
+                k += 1
+                overlapped.record(Evaluation(f"d{b}-{j}", "EURUSD", t0, t0 + 12 * H, "BREAKOUT", tpl, 1,
+                                             "RANGING", "NORMAL_VOL", "LONDON", (), False, float(move), None, None))
+    overlapped.advance(10**9)
+    st = overlapped._ctx[("BREAKOUT", 1, "RANGING", "NORMAL_VOL")].stats()
+    assert st["n"] == 288 and st["n_eff"] == pytest.approx(12.0)
+    assert overlapped.learn(10**9) == []  # 12 effective samples: below min_n, no lesson
+
+    independent = ExperienceView(LessonPolicy(min_n=60))
+    for i in range(288):
+        t0 = 1_000_000 + i * H
+        independent.record(Evaluation(f"i{i}", "EURUSD", t0, t0 + H, "BREAKOUT", "T1:BUY", 1, "RANGING",
+                                      "NORMAL_VOL", "LONDON", (), False, float(rng.normal(-0.25, 1.0)), None, None))
+    independent.advance(10**9)
+    assert [c["status"] for c in independent.learn(10**9)] == ["CANDIDATE"]  # real evidence still teaches
