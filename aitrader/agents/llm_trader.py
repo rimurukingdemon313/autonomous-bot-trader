@@ -13,10 +13,12 @@ MAY NOT: size a trade, change a risk limit, reach the broker, or act while
 trading is paused or stopped. Every proposal goes to the SAME risk engine and
 execution engine as every other decision, which may refuse it.
 
-FAIL CLOSED: a required analyst that failed, a market-wide BLOCKING objection
-(unfamiliar or abnormal market, bad data), no model configured, a failed or
-malformed reply, a stop on the wrong side, an absurd stop distance, or a
-validated lesson against this exact context -> NO_TRADE, with the reason.
+FAIL CLOSED: a required analyst that failed, bad or stale data, a position
+already open on the pair, no model configured, a failed or malformed reply, a
+stop on the wrong side or absurdly far, or a validated lesson against this
+exact context -> NO_TRADE, with the reason. The quantitative system's view of
+the market (unfamiliar, abnormal) is shown to the model as information; it is
+not a veto. How tight a stop may be is the risk engine's spread-based check.
 
 NOT BACKTESTABLE: a model trained on text written after a historical date
 knows what happened next. It is refused in BACKTEST mode; its record can only
@@ -35,24 +37,29 @@ from ..decision.synthesis import Decision, decision_id
 from .types import MarketContext
 
 #: 1.1.0: also reads completed M5 and M15 bars when the broker provides them, and may trade on them.
-LLM_TRADER_VERSION = "llm-trader-1.1.0"
+#: 1.2.0 (owner: "it controls itself"): the prompt no longer steers its style; the quantitative
+#: system's market JUDGEMENTS (unfamiliar, abnormal) are information, not a veto; no minimum stop
+#: distance of its own: the risk engine's spread-based stop checks decide what is too tight.
+LLM_TRADER_VERSION = "llm-trader-1.2.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M5", "M15", "H1", "H4", "D1")
-MIN_STOP_ATR, MAX_STOP_ATR = 0.3, 12.0  # in H1 ATR: tighter is noise, wider is not a stop
+MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
+#: The quantitative objections that still stop a decision before any model is asked. They concern the
+#: DATA or the account, not a view of the market: a model must never trade on wrong or stale prices,
+#: and a second position on the same pair would be refused by the risk engine anyway.
+PRE_MODEL_BLOCKS = ("DATA_QUALITY", "STALE_DATA", "EXPOSURE")
 MAX_HOLD_HOURS = 336
 
 SYSTEM = """You are a professional discretionary FX trader managing a paper account.
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
 Use ONLY the data in the JSON you are given: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
-the account, the quantitative agents' findings, and YOUR OWN MEMORY: your record, your past
-trades most relevant now (losses first) with your own reflections on them, and validated lessons.
+the account, the quantitative agents' findings (information, not orders), and YOUR OWN MEMORY: your record, your
+past trades most relevant now (losses first) with your own reflections on them, and validated lessons.
 Do not use any knowledge of prices or events after the decision time, even if you have it.
 
-Think like a professional: trade only when the situation is clear, the stop sits where your idea is
-proven wrong, and the target is realistic for the timeframe you chose. Short M5/M15 trades are welcome
-when the structure there is clear; a small, clean profit is a good trade, but the spread is paid on every trade. NO_TRADE is a normal,
-often correct answer. Do not repeat a mistake your memory shows; say which memory you used.
-You do NOT size positions: a risk engine does that and may refuse your trade.
+Every choice is yours: whether to trade at all, the direction, the timeframe, your style, where the stop and
+the target go, how long to hold. No style, quota or setup is required of you. Use your memory as you see fit
+and say which part of it you used. You do NOT size positions: a risk engine does that and may refuse a trade.
 
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
@@ -141,7 +148,7 @@ def pre_model_block(ctx: MarketContext, reports: dict, llm) -> tuple[str, list] 
         if r is None or not r.ok:
             return f"agent '{name}' {'missing' if r is None else r.status}: failing closed", []
     blocking = [o for r in reports.values() for o in r.objections
-                if o.severity == "BLOCKING" and not o.data.get("action")]
+                if o.severity == "BLOCKING" and not o.data.get("action") and o.code in PRE_MODEL_BLOCKS]
     if blocking:
         return ("blocked before consulting the model: " + "; ".join(f"{o.code}: {o.message}" for o in blocking[:3]),
                 [o.as_dict() for o in blocking])
@@ -178,8 +185,8 @@ def level_problem(ctx: MarketContext, p: dict) -> str | None:
         return (f"model proposed {p['action']} with stop {stop} / target {target} on the wrong side "
                 f"of the entry {entry}: rejected, never repaired")
     dist = abs(entry - stop) / ctx.atr
-    if not MIN_STOP_ATR <= dist <= MAX_STOP_ATR:
-        return f"stop {dist:.2f} H1-ATR from entry is outside {MIN_STOP_ATR}-{MAX_STOP_ATR}: rejected"
+    if dist > MAX_STOP_ATR:
+        return f"stop {dist:.2f} H1-ATR from entry is beyond {MAX_STOP_ATR}: a typo, not a stop: rejected"
     return None
 
 

@@ -5,24 +5,23 @@ for one instrument runs in three steps:
 
 1. HUNT. Every member reads the same market packet (M5/M15/H1/H4/D1 completed bars,
    quote, account, the quantitative agents, the shared trade memory) and,
-   without seeing the others, proposes the best trade it can find, or
-   NO_TRADE naming the setup it is waiting for.
-2. DEBATE. If anyone found a trade, every member reads everyone's
-   proposals, challenges them, and gives a FINAL position: keep, change,
-   join another's trade, or stand aside. If nobody found one, the room
-   stops here and nothing more is spent.
+   without seeing the others, decides freely: a trade of its own choosing,
+   or none.
+2. DEBATE. If anyone wants a trade, every member reads everyone's views and
+   gives a FINAL position: keep, change, take another's trade, or stand
+   aside. If nobody wants one, the room stops here and nothing more is spent.
 3. HEAD. The head trader reads the final positions, the critiques and each
-   member's track record, and picks ONE member's trade, or NO_TRADE.
+   member's track record, and takes ONE member's trade, or none. The
+   members may disagree, even on direction: weighing that is the head's job.
 
 What is fixed in code, not in any prompt:
 
 - a member speaks only through its own provider (`only=`); a member whose
   provider fails is absent, never replaced by another model's voice;
 - every final trade passes the same checks as the single trader: wrong-side
-  or absurd stops are dropped, never repaired;
-- final trades in BOTH directions -> NO_TRADE: the room is split;
-- fewer supporters than the quorum (AI_ROOM_QUORUM, default 2, capped by the
-  members present) -> NO_TRADE;
+  or absurdly far stops are dropped, never repaired;
+- a direction held by fewer traders than AI_ROOM_QUORUM (default 1, capped
+  by the members present) is not eligible;
 - the head can only pick a supporter's trade verbatim: it cannot invent a
   trade, move a level, or change a size (no one here sizes anything);
 - a validated lesson against the chosen side -> NO_TRADE;
@@ -47,47 +46,44 @@ from .llm_trader import (
 from .types import MarketContext
 
 #: 1.1.0: M5/M15 bars in the packet and as trade timeframes.
-ROOM_VERSION = "trading-room-1.1.0"
+#: 1.2.0 (owner: "they control themselves"): neutral prompts that steer no style; a BUY/SELL
+#: split goes to the head instead of forcing NO_TRADE; the default quorum is 1.
+ROOM_VERSION = "trading-room-1.2.0"
 
 HUNT = """You are {name}, one of {n} professional discretionary FX traders in a trading room. Each of you
 runs on a different AI model; your own record is tracked separately from the others'.
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
-Use ONLY the data in the JSON: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote, the account, the
-quantitative agents' findings, and the room's memory of its past trades (losses first) with the
-reflections written on them. Do not use any knowledge of prices or events after the decision time.
+Use ONLY the data in the JSON: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote, the
+account, the quantitative agents' findings (information, not orders), and the room's memory of its past trades
+(losses first) with the reflections written on them. Do not use any knowledge of prices or events after the
+decision time.
 
-Your job is to HUNT. Search every timeframe for the best trade on this instrument now: trend
-continuation, a pullback into a level, a breakout and retest, a range edge, a reversal at an
-extreme, or a short M5/M15 scalp when the structure there is clean (a small clean profit is a good
-trade; the spread is paid on every trade, so the target must clear it comfortably). When you find one, propose it with the stop where the idea is proven wrong and a target the
-timeframe can realistically reach. A careless trade costs the account; a clear opportunity missed is
-also a failure. If there is honestly nothing, answer NO_TRADE and say in the thesis exactly which
-setup you are waiting for. Do not repeat a mistake the memory shows; say which memory you used.
-You do NOT size positions: a risk engine does that and may refuse the trade.
+Read the market your own way. Every choice is yours: whether to trade at all, the direction, the timeframe,
+your style, where the stop and the target go, how long to hold. No style, quota or setup is required of you.
+You have not seen the other traders' views yet. Use the memory as you see fit and say which part you used.
+You do NOT size positions: a risk engine does that and may refuse a trade.
 
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
-  "max_hold_hours": <1-336 or null>, "thesis": "why, in at most 4 sentences",
+  "max_hold_hours": <1-336 or null>, "thesis": "your reasoning, at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none"}}"""
 
 DEBATE = """You are {name} in the same trading room. The decision time is still {time}.
-"round1" in the JSON holds every trader's first proposal, yours included. Read them critically:
-find what the others saw that you missed, and the weak point in each trade, yours too. Then give
-your FINAL position: keep yours, change it, adopt another trader's trade (copy its levels), or
-NO_TRADE. Changing your mind for a better argument is professional; agreeing to be agreeable is not.
-The same data rules apply: nothing after the decision time.
+"round1" in the JSON holds every trader's first view, yours included. Discuss them as you see fit, then
+give your FINAL position: keep yours, change it, take another trader's trade (copy its levels), or NO_TRADE.
+It is entirely your call. The same data rules apply: nothing after the decision time.
 
 Reply with ONE JSON object only, the same fields as before plus a critique:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_hours": <1-336 or null>, "thesis": "your final case, at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "...",
-  "critique": "the strongest objection you found to the other proposals, at most 3 sentences"}}"""
+  "critique": "what you think of the other views, at most 3 sentences"}}"""
 
 HEAD = """You are the HEAD TRADER of the room. The decision time is {time}.
-"eligible" holds the trades the room supports, one per trader, all in the same direction; "dissent"
-holds the traders who stood aside or disagreed and why; "track_records" holds each trader's forward
-record so far (small samples say little). Pick the ONE trade with the best-placed stop and the most
-realistic target, or NO_TRADE if the case is weak. You cannot change any level or invent a trade.
+"eligible" holds the traders' final trades (they may disagree, even on direction); "others" holds the
+traders who chose not to trade or whose trade could not be used, and why; "track_records" holds each
+trader's forward record so far (small samples say little). The decision is yours: take ONE of the
+eligible trades exactly as proposed, or none. You cannot change a level or invent a trade.
 
 Reply with ONE JSON object only:
 {{"decision": "TRADE|NO_TRADE", "pick": "<trader name from eligible, or null>", "reason": "at most 3 sentences"}}"""
@@ -96,7 +92,7 @@ Reply with ONE JSON object only:
 @dataclass(frozen=True)
 class RoomConfig:
     size: int = 4          # members taken from AI_PROVIDERS, in order
-    quorum: int = 2        # supporters needed for a trade, capped by the members present
+    quorum: int = 1        # traders who must hold a trade's direction for it to be eligible (capped by those present)
     head: str = ""         # provider name of the head trader; default the first member
 
     def __post_init__(self) -> None:
@@ -108,7 +104,7 @@ class RoomConfig:
     @classmethod
     def from_env(cls, env: dict | None = None) -> "RoomConfig":
         e = os.environ if env is None else env
-        return cls(size=int(e.get("AI_ROOM_SIZE", "4")), quorum=int(e.get("AI_ROOM_QUORUM", "2")),
+        return cls(size=int(e.get("AI_ROOM_SIZE", "4")), quorum=int(e.get("AI_ROOM_QUORUM", "1")),
                    head=e.get("AI_ROOM_HEAD", "").strip().lower())
 
 
@@ -190,7 +186,7 @@ class TradingRoom:
         room["quorum"] = quorum
         if all(first[m].data["action"] == "NO_TRADE" for m in present):
             waiting = "; ".join(f"{m}: {str(first[m].data.get('thesis') or '')[:160]}" for m in present)
-            return no_trade(f"no trader found a trade ({len(present)} of {n} present). Waiting for: {waiting}")
+            return no_trade(f"no trader wanted a trade ({len(present)} of {n} present). Their views: {waiting}")
 
         # 2. DEBATE: everyone sees round 1 and gives a final position.
         round1 = {m: room["round1"][m] for m in present}
@@ -213,31 +209,36 @@ class TradingRoom:
                     finals[m] = p
             room["final"][m] = view
 
-        sides = {p["action"] for p in finals.values()}
-        if len(sides) > 1:
-            split = "; ".join(f"{m}: {p['action']}" for m, p in finals.items())
-            return no_trade(f"the room is split after the debate ({split}): no trade against a trader "
-                            "who sees the opposite")
         if not finals:
             return no_trade("after the debate no trader holds a usable trade")
-        side = next(iter(sides))
-        supporters = sorted(finals)
-        if len(supporters) < quorum:
-            return no_trade(f"only {len(supporters)} of {len(present)} traders support {side} "
-                            f"({', '.join(supporters)}); the quorum is {quorum}")
-        hit = lesson_block(ctx, 1 if side == "BUY" else -1)
-        if hit:
+        # A direction is eligible when at least `quorum` traders hold it (1 by default: any trader's
+        # trade may be taken). Disagreement on direction is the head's to weigh, not a veto.
+        backers = {side: sorted(m for m, p in finals.items() if p["action"] == side) for side in ("BUY", "SELL")}
+        weak = [side for side, ms in backers.items() if ms and len(ms) < quorum]
+        eligible = {m: p for m, p in finals.items() if len(backers[p["action"]]) >= quorum}
+        if not eligible:
+            return no_trade("no direction has the quorum of " + str(quorum) + " traders: " +
+                            "; ".join(f"{side} {', '.join(backers[side])}" for side in weak))
+        blocked = {}
+        for side in {p["action"] for p in eligible.values()}:
+            hit = lesson_block(ctx, 1 if side == "BUY" else -1)
+            if hit:
+                blocked[side] = hit
+        eligible = {m: p for m, p in eligible.items() if p["action"] not in blocked}
+        if not eligible:
+            hit = next(iter(blocked.values()))
             return no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
                             contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}])
+        supporters = sorted(eligible)
 
         # 3. HEAD: picks one supporter's trade verbatim, or none.
         head = self.config.head if self.config.head in present else present[0]
         room["head"] = head
-        dissent = {m: room["final"][m] for m in present if m not in finals}
+        others = {m: room["final"][m] for m in present if m not in eligible}
         records = (ctx.memory_brief or {}).get("room_track_records") or {}
         head_packet = {"instrument": ctx.symbol, "decision_time": packet["decision_time"], "quote": packet["quote"],
                        "timeframes": packet["timeframes"], "eligible": {m: room["final"][m] for m in supporters},
-                       "dissent": dissent, "track_records": records}
+                       "others": others, "track_records": records}
         check = validate_head(set(supporters))
         res = self.llm.complete_json("room:head", HEAD.format(time=packet["decision_time"]), head_packet, check,
                                      cache_key=f"{ctx.symbol}|{ctx.t}|head", only=head)
@@ -251,11 +252,12 @@ class TradingRoom:
             return no_trade(f"head trader ({res.model}) declined: {room['head_reason']}")
         pick = res.data["pick"]
         room["picked"] = pick
-        room["outcome"] = f"{side} by {pick}, supported by {', '.join(supporters)}"
+        side = eligible[pick]["action"]
+        room["outcome"] = f"{side} by {pick}, held by {', '.join(backers[side])}"
         support = [{"agent": f"room:{m}", "claim": f"{m}: {room['final'][m]['thesis']}",
-                    "model": room["final"][m]["model"]} for m in supporters]
+                    "model": room["final"][m]["model"]} for m in backers[side]]
         support.append({"agent": "room:head", "claim": f"head picked {pick}: {room['head_reason']}", "model": res.model})
-        return trade_decision(ctx, did, v, agents, reports, finals[pick], support, evidence={"room": room})
+        return trade_decision(ctx, did, v, agents, reports, eligible[pick], support, evidence={"room": room})
 
 
 def member_records(db) -> dict:

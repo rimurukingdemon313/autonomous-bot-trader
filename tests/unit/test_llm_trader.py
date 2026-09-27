@@ -62,8 +62,8 @@ def test_a_sound_proposal_becomes_a_decision_the_risk_engine_will_size():
     ("not json at all", "rejected"),
     (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.1010, "target": 1.1040, "max_hold_hours": 10,
                  "thesis": "x"}), "wrong side"),
-    (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0999, "target": 1.1040, "max_hold_hours": 10,
-                 "thesis": "x"}), "outside"),  # a 0.07-ATR stop is noise, not a stop
+    (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0850, "target": 1.1040, "max_hold_hours": 10,
+                 "thesis": "x"}), "beyond"),  # a 15-ATR stop is a typo, not a stop
     (json.dumps({"action": "BUY", "timeframe": "M1", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
                  "thesis": "x"}), "rejected"),
     (json.dumps({"action": "YOLO"}), "rejected"),
@@ -75,11 +75,26 @@ def test_any_broken_or_unsafe_reply_is_no_trade_and_never_repaired(reply, why):
     assert d.decision == "NO_TRADE" and why in d.no_trade_reason
 
 
-def test_a_market_wide_block_stops_the_decision_before_the_model_is_paid():
+def test_bad_data_stops_the_decision_before_the_model_is_paid():
     calls = []
-    d = trader(BUY, calls).think(live_ctx(rg=regime(familiar=False)), V).decision
+    d = trader(BUY, calls).think(live_ctx(flags=["latest bar closed 300 minutes ago"]), V).decision
     assert d.decision == "NO_TRADE" and "before consulting the model" in d.no_trade_reason
     assert calls == []
+
+
+def test_the_quant_systems_view_of_the_market_is_information_not_a_veto():
+    calls = []
+    d = trader(BUY, calls).think(live_ctx(rg=regime(familiar=False)), V).decision
+    assert d.decision == "BUY" and len(calls) == 1  # it decided for itself
+    seen = json.loads(calls[0]["messages"][1]["content"])["quant_agents"]
+    assert any("UNFAMILIAR_STATE" in o for r in seen.values() for o in r["objections"])  # and saw the view
+
+
+def test_it_chooses_its_own_stop_distance_and_the_risk_engine_judges_the_cost():
+    tight = json.dumps({"action": "BUY", "timeframe": "M5", "stop": 1.0998, "target": 1.1005, "max_hold_hours": 1,
+                        "thesis": "M5 scalp"})
+    d = trader(tight, []).think(live_ctx(), V).decision
+    assert d.decision == "BUY" and d.timeframe == "M5" and d.stop_loss == 1.0998  # no ATR floor of its own
 
 
 def test_when_trading_is_paused_the_model_is_not_consulted():

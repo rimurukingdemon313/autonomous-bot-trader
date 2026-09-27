@@ -114,24 +114,26 @@ Several models trade together, one per provider in `AI_PROVIDERS` (up to
 `AI_ROOM_SIZE`). They share the same data, rules and memory as the AI
 trader. For each instrument at each decision:
 
-1. **Hunt.** Each member searches H1, H4 and D1 for the best trade and
-   proposes it without seeing the others. If there is none, it says which
-   setup it is waiting for. If no member finds a trade, the room stops here.
-2. **Debate.** Each member reads every first proposal, challenges them, and
-   gives a final position: keep it, change it, adopt another member's
-   trade, or stand aside.
+1. **Own view.** Each member reads the market its own way and decides
+   freely, without seeing the others: a trade of its own choosing, or
+   none. If no member wants a trade, the room stops here.
+2. **Debate.** Each member reads every view and gives a final position:
+   keep it, change it, take another member's trade, or stand aside.
 3. **Head.** The head trader (`AI_ROOM_HEAD`, or the first member present)
    reads the final positions, the critiques and each member's record, and
-   picks ONE member's trade exactly as proposed, or none.
+   takes ONE member's trade exactly as proposed, or none. Members may
+   disagree, even on direction; weighing that is the head's job.
+
+The prompts steer no style, setup or timeframe. The quantitative analysts'
+view of the market is passed on as information, not as a veto.
 
 The following rules are enforced in code, not in the prompts:
 
 - **Own voice only.** A member speaks only through its own provider. A
   member whose provider fails is absent; no other model speaks for it.
-- **A split room does not trade.** Final trades in both directions give
-  NO_TRADE.
-- **Quorum.** A trade needs at least `AI_ROOM_QUORUM` members behind it.
-  The quorum is capped by how many members are present.
+- **Quorum (optional).** With `AI_ROOM_QUORUM=k`, a direction needs k
+  members holding it to be eligible. The default is 1, so any member's
+  trade may be taken. The quorum is capped by how many members are present.
 - **No repairs.** A final trade with a wrong-side or absurd stop is
   dropped, not repaired.
 - **The head only chooses.** It picks one supporter's trade verbatim. It

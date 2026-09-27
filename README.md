@@ -71,7 +71,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 | History (decisions, trades, episodes, lessons) is immutable and hash-chained | `memory/db.py` | `test_db.py` |
 
 Every row was checked by **removing the guard and watching a test fail**:
-59 of 59 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
+60 of 60 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
 
 ## Evidence
 
@@ -119,11 +119,13 @@ and MODEL_CONTRACT §10.
 also reading M5/M15, with `SYMBOLS_PER_CYCLE` pairs per cycle in rotation.
 The evidence system keeps its tested 4-hour cadence.
 
-`DECISION_MODE=trading_room`: one model per provider hunts for a trade,
-they debate, and a head trader picks one member's trade exactly as
-proposed. A split room, a lone voice below the quorum, or a failed
-provider never becomes a trade. Each model's record is kept separately.
-MODEL_CONTRACT §10.1.
+`DECISION_MODE=trading_room`: one model per provider forms its own view,
+they debate, and a head trader takes one member's trade exactly as
+proposed, or none. The models choose their own style, timeframe, stop and
+target. The quantitative system's view of the market reaches them as
+information, not as a veto. The risk engine still sizes every trade, and
+bad data still stops a decision. Each model's record is kept separately.
+MODEL_CONTRACT §10.1 and §10.3.
 
 ## Research lab: how the system looks for something new
 

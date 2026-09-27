@@ -141,12 +141,13 @@ stands:
   model never sees or sets a size or a limit.
 - Execution, the demo guard, the kill switch and pause are unchanged. While
   trading is paused or stopped, the model is not consulted.
-- A market-wide BLOCKING objection from the quantitative analysts
-  (unfamiliar or abnormal market, bad data) stops the decision before the
-  model is called.
+- Bad or stale data, or a position already open on the pair, stops the
+  decision before the model is called. (Amended by §10.3: the analysts'
+  view of the market, unfamiliar or abnormal, is information to the model.)
 - Any malformed, unsafe or out-of-range reply is NO_TRADE, never repaired.
-  This covers a wrong-side stop, a stop closer than 0.3 or wider than 12
-  H1-ATR, and an unknown timeframe or action.
+  This covers a wrong-side stop, a stop wider than 12 H1-ATR (a typo), and
+  an unknown timeframe or action. How tight a stop may be is the risk
+  engine's spread-based check (§10.3).
 - A validated lesson about its own trades in this context blocks the repeat.
 - **It is never backtested.** The mode raises in BACKTEST. Its record is
   built forward, on prices no one has seen. Until it has at least 30 closed
@@ -170,8 +171,9 @@ In addition to every rule above:
 
 - A member speaks only through its own provider; a failed member is
   absent.
-- Final trades in both directions mean NO_TRADE.
-- A trade needs `AI_ROOM_QUORUM` supporters, capped by the members present.
+- A direction held by fewer than `AI_ROOM_QUORUM` members (default 1,
+  capped by the members present) is not eligible. A split between BUY and
+  SELL is for the head to weigh (§10.3).
 - The head cannot modify, invent or size a trade.
 - The whole discussion is journalled on the decision. Each member's
   forward record is measured separately.
@@ -189,3 +191,32 @@ what they may do: the same checks, the same risk engine, and NO_TRADE
 always allowed. Open paper positions are checked on M1 bars.
 
 Tests: `tests/integration/test_cadence.py`.
+
+### 10.3 The models decide for themselves (owner decision, 2026-09-27)
+
+The owner asked that the models not be told what to trade: "it controls
+itself". Changes:
+
+- **Prompts.** The prompts describe the data, the reply format and the
+  no-hindsight rule. They prescribe no style, setup or caution.
+- **The analysts' view is information.** Their view of the market
+  (UNFAMILIAR_STATE, ABNORMAL_MARKET) is passed to the models. It no longer
+  stops the decision.
+- **Checks that still stop a decision before any model is asked:**
+  DATA_QUALITY, STALE_DATA and EXPOSURE. These concern the data and the
+  account, not a market opinion.
+- **Stop distance.** There is no minimum stop distance of the model layer's
+  own; the risk engine's spread-based checks decide what is too tight. A
+  stop wider than 12 H1-ATR is still refused as a typo.
+- **Trading room.** A BUY/SELL split no longer forces NO_TRADE; the head
+  decides. The default quorum is 1.
+
+**What does not move.** The risk engine is the only authority on size and
+approval, with all its limits. Also unchanged:
+
+- demo/paper only;
+- pause and the kill switch;
+- no hindsight, and never backtested;
+- replies validated and never repaired;
+- a validated lesson against the exact context still blocks the repeat
+  (the owner asked for a system that does not repeat its mistakes).

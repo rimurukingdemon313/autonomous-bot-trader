@@ -76,7 +76,7 @@ def test_a_supported_trade_is_the_picked_members_trade_verbatim():
     assert d.decision == "BUY" and d.family == "LLM_TRADER"
     assert (d.stop_loss, d.take_profit) == (1.0980, 1.1050)  # gemini's levels; the head's "stop" is ignored
     r = d.independent_evidence["room"]
-    assert r["picked"] == "gemini" and r["head"] == "groq" and r["quorum"] == 2
+    assert r["picked"] == "gemini" and r["head"] == "groq" and r["quorum"] == 1
     assert r["final"]["openrouter"]["critique"] == "groq's stop is inside the noise"
     assert d.versions["trading_room"].startswith("trading-room-")
     assert room.phases("hunt") == room.phases("debate") == sorted(MEMBERS) and room.phases("head") == ["groq"]
@@ -85,22 +85,29 @@ def test_a_supported_trade_is_the_picked_members_trade_verbatim():
 def test_when_nobody_finds_a_trade_the_room_stops_after_the_hunt():
     room = Room(hunt={m: NONE for m in MEMBERS})
     d = room.brain().think(live_ctx(), V).decision
-    assert d.decision == "NO_TRADE" and "no trader found a trade" in d.no_trade_reason
-    assert "retest of 1.0950" in d.no_trade_reason  # it says what it is waiting for
+    assert d.decision == "NO_TRADE" and "no trader wanted a trade" in d.no_trade_reason
+    assert "retest of 1.0950" in d.no_trade_reason  # their own views are kept
     assert [p for _, p in room.calls] == ["hunt"] * 4  # nothing more is spent
 
 
-def test_a_room_split_between_buy_and_sell_is_no_trade_and_the_head_is_not_asked():
-    room = Room(hunt={"groq": trade(), "gemini": trade(), "openrouter": SELL, "bytez": SELL})
+def test_a_split_room_is_the_heads_call_not_an_automatic_no_trade():
+    room = Room(hunt={"groq": trade(), "gemini": trade(), "openrouter": SELL, "bytez": SELL},
+                head={"decision": "TRADE", "pick": "openrouter", "reason": "the SELL case is stronger"})
     d = room.brain().think(live_ctx(), V).decision
-    assert d.decision == "NO_TRADE" and "split" in d.no_trade_reason
-    assert room.phases("head") == []
+    assert d.decision == "SELL" and (d.stop_loss, d.take_profit) == (SELL["stop"], SELL["target"])
+    assert d.independent_evidence["room"]["outcome"] == "SELL by openrouter, held by bytez, openrouter"
 
 
-def test_a_lone_voice_below_the_quorum_does_not_trade():
-    room = Room(hunt={"groq": trade(), "gemini": NONE, "openrouter": NONE, "bytez": NONE})
-    d = room.brain().think(live_ctx(), V).decision
-    assert d.decision == "NO_TRADE" and "only 1 of 4" in d.no_trade_reason and "quorum is 2" in d.no_trade_reason
+def test_by_default_one_traders_trade_may_be_taken():
+    room = Room(hunt={"groq": NONE, "gemini": NONE, "openrouter": NONE, "bytez": trade()},
+                head={"decision": "TRADE", "pick": "bytez", "reason": "clean"})
+    assert room.brain().think(live_ctx(), V).decision.decision == "BUY"
+
+
+def test_an_owner_set_quorum_is_respected():
+    room = Room(hunt={"groq": trade(), "gemini": NONE, "openrouter": SELL, "bytez": NONE})
+    d = room.brain(quorum=2).think(live_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and "quorum of 2" in d.no_trade_reason
     assert room.phases("head") == []
 
 
@@ -115,9 +122,9 @@ def test_the_debate_can_win_members_over():
 def test_an_unusable_trade_is_an_abstention_never_repaired():
     wrong_side = trade(stop=1.1010)  # a BUY stop above the entry
     room = Room(hunt={"groq": trade(), "gemini": wrong_side, "openrouter": NONE, "bytez": NONE},
-                head={"decision": "TRADE", "pick": "groq", "reason": "x"})
+                head={"decision": "TRADE", "pick": "gemini", "reason": "x"})
     d = room.brain().think(live_ctx(), V).decision
-    assert d.decision == "NO_TRADE" and "only 1 of 4" in d.no_trade_reason
+    assert d.decision == "NO_TRADE" and "head trader could not decide" in d.no_trade_reason  # not eligible
     assert "wrong side" in d.independent_evidence["room"]["final"]["gemini"]["dropped"]
 
 
@@ -152,12 +159,12 @@ def test_with_one_member_left_the_quorum_is_capped_by_who_is_present():
     assert d.decision == "BUY" and d.independent_evidence["room"]["quorum"] == 1
 
 
-def test_no_model_is_called_when_trading_is_paused_or_the_market_is_blocked():
+def test_no_model_is_called_when_trading_is_paused_or_the_data_is_bad():
     room = Room(hunt={m: trade() for m in MEMBERS})
     c = live_ctx()
     c.trading_allowed = False
     assert room.brain().think(c, V).decision.decision == "NO_TRADE"
-    assert room.brain().think(live_ctx(rg=regime(familiar=False)), V).decision.decision == "NO_TRADE"
+    assert room.brain().think(live_ctx(flags=["latest bar closed 300 minutes ago"]), V).decision.decision == "NO_TRADE"
     assert room.calls == []
 
 
