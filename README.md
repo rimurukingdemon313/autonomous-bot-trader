@@ -105,6 +105,16 @@ The analogue memory filters: it loses half as much as random. It does
 not produce an edge, and learning added nothing measurable. **The sealed
 holdout was not opened.** It is saved for a future candidate that earns it.
 
+## The AI trader (optional)
+
+`DECISION_MODE=llm_trader`: a language model (any provider behind one key,
+for example OpenRouter) analyses H1/H4/D1 and proposes trades. Before each
+decision it reads its own past trades and its reviews of them, and after
+each close it writes a new review. The risk engine still sizes and may
+refuse every trade. PAPER/DEMO only, never backtested, and its win rate is
+measured live on the dashboard. See [docs/AI_MODELS.md](docs/AI_MODELS.md)
+and MODEL_CONTRACT §10.
+
 ## Research lab: how the system looks for something new
 
 PR-001 tested a fixed design. Finding a *new* relationship is the

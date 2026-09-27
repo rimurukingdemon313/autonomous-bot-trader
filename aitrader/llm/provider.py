@@ -48,7 +48,7 @@ class LLMConfig:
     fallback: tuple[str, ...] = ()
     timeout_s: float = 20.0
     daily_budget: int = 500
-    max_tokens: int = 700
+    max_tokens: int = 1500  # room for a trader's reasoning; a cut-off reply is rejected, not repaired
 
     @property
     def enabled(self) -> bool:
@@ -76,8 +76,9 @@ class LLMConfig:
             model=e.get("AI_MODEL", "").strip(),
             per_agent=per_agent,
             fallback=tuple(m.strip() for m in e.get("AI_FALLBACK_MODELS", "").split(",") if m.strip()),
-            timeout_s=float(e.get("AI_TIMEOUT_S", "20")),
+            timeout_s=float(e.get("AI_TIMEOUT_S", "60")),
             daily_budget=int(e.get("AI_DAILY_CALL_BUDGET", "500")),
+            max_tokens=int(e.get("AI_MAX_TOKENS", "1500")),
         )
 
 

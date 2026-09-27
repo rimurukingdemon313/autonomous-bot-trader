@@ -104,6 +104,7 @@ class Decision:
     candidates_considered: int
     versions: dict
     created: float = field(default_factory=time.time)
+    max_hold_hours: int | None = None  # a time exit for decisions not built from a template
 
     @property
     def is_trade(self) -> bool:

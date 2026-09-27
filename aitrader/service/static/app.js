@@ -45,6 +45,9 @@ function renderStatus(s) {
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
     s.paused ? chip("TRADING", "PAUSED", "warning") : chip("TRADING", "running", "good"),
+    chip("DECIDES", c.decision_mode === "llm_trader"
+      ? `AI TRADER · ${c.ai_trader_record && c.ai_trader_record.trades ? `${c.ai_trader_record.trades} trades, win ${Math.round(c.ai_trader_record.win_rate * 100)}%, ${c.ai_trader_record.avg_R >= 0 ? "+" : ""}${c.ai_trader_record.avg_R}R (${c.ai_trader_record.sample})` : "no trades yet"}`
+      : "EVIDENCE SYNTHESIS", c.decision_mode === "llm_trader" ? "warning" : "good"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",
     chip("LAST DATA", s.last_market_update ? ts(s.last_market_update) : "never", s.last_market_update ? "good" : "warning"),
     chip("LAST CYCLE", s.last_cycle ? ts(s.last_cycle) : "never", s.last_cycle_error ? "critical" : (s.last_cycle ? "good" : "warning")),

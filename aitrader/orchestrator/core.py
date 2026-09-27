@@ -26,11 +26,13 @@ import json
 import time
 import traceback
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Callable
 
 import numpy as np
 
 from ..agents.brain import Brain
+from ..agents.llm_trader import FAMILY as LLM_FAMILY, multi_timeframe
 from ..agents.types import AccountView, MarketContext
 from ..broker.base import BrokerError
 from ..broker.paper import pip_of
@@ -43,6 +45,7 @@ from ..research.hypotheses import proposals_from_reflection
 from ..learning.review import postmortem, reflect
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
+from ..memory.trade_memory import TradeMemory
 from ..research.labels import TEMPLATE_BY_KEY, CostModel, atr24
 from ..risk.engine import AccountState, RiskEngine
 from .tracker import ACTIONS, OutcomeTracker, Tracked
@@ -208,6 +211,16 @@ class Orchestrator:
             view, data_flags=flags, analogs={a: ev for a in ACTIONS} if ev is not None else {},
             analog_meta={"available": ev.available if ev else 0, "memory_version": self.memory.version},
             knowledge=self.experience if self.cfg.learning_enabled else NullKnowledge(), mode=self.cfg.mode)
+        if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") == "llm_trader":
+            # The model trader reads more than the quantitative agents: three timeframes of
+            # COMPLETED bars, its own trade memory, and whether trading is allowed at all
+            # (when it is not, the model is not consulted and nothing is spent).
+            long = self.feed.bars(symbol, t, 24 * 30)
+            ctx.mtf = multi_timeframe(long, t) if long is not None and len(long) else {}
+            ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
+            ks = self.db.get_kv("kill_switch", {"active": True})
+            ctx.trading_allowed = not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
+                                       or not isinstance(ks, dict) or ks.get("active") is not False)
         self._event("ANALYSIS_REQUESTED", {"symbol": symbol, "t": t})
         thought = self.brain.think(ctx, self.versions)
         d = thought.decision
@@ -349,6 +362,8 @@ class Orchestrator:
                                                  "symbol": row["symbol"], "payload": record}, conn=c)
                 self.db.append("postmortems", {"episode_id": ep["id"], "payload": pm}, conn=c)
             self._event("TRADE_REVIEWED", {"position": row["id"], "r": r, "cause": pm["cause"]}, ref=row["id"], key=True)
+            if dec.get("family") == LLM_FAMILY:
+                self._llm_trade_reflection(row, dec, ct, r, mfe, mae, pm, regime_exit)
             self.counts["closed"] += 1
             if r is not None:
                 self._closed_r.append(r)
@@ -362,11 +377,34 @@ class Orchestrator:
         if self._trades_since_reflect >= self.cfg.reflect_every_trades:
             self.reflect(t)
 
+    def _llm_trade_reflection(self, row, dec, ct, r, mfe, mae, pm, regime_exit) -> None:
+        """The model reviews its own closed trade; the review joins its memory. The deterministic
+        post-mortem is already on record, so a failed or unavailable model costs nothing but the note."""
+        trader = getattr(self.brain, "llm_trader", None)
+        if trader is None:
+            return
+        iso = lambda x: datetime.fromtimestamp(int(x), timezone.utc).isoformat()  # noqa: E731
+        review = trader.reflect({
+            "decision_id": row["decision_id"], "symbol": row["symbol"], "side": row["side"],
+            "entry": row["entry"], "stop": row["stop"], "target": row["target"],
+            "opened": iso(row["opened"]), "closed": iso(ct.closed), "exit_reason": ct.reason,
+            "R": r, "best_R_reached": mfe, "worst_R_reached": mae,
+            "my_thesis": dec.get("thesis"), "my_invalidation": dec.get("invalidation"),
+            "regime_at_entry": (dec.get("regime") or {}).get("label"), "regime_at_exit": regime_exit,
+            "post_mortem_cause": pm.get("cause"),
+        })
+        if review is not None:
+            self.db.append("reflections", {"payload": review})
+            self._event("TRADE_SELF_REVIEW", {"decision_id": row["decision_id"], "mistake": review.get("mistake"),
+                                              "lesson": review.get("lesson")}, ref=row["decision_id"], key=True)
+
     def _time_exits(self, t: int) -> None:
         for row in self.db.query("SELECT * FROM positions WHERE status='OPEN'"):
             dec = self.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],))
-            tpl = TEMPLATE_BY_KEY.get((json.loads(dec["payload"]) if dec else {}).get("template") or "")
-            if tpl is not None and t - row["opened"] >= tpl.max_bars * 3600:
+            payload = json.loads(dec["payload"]) if dec else {}
+            tpl = TEMPLATE_BY_KEY.get(payload.get("template") or "")
+            hold_h = payload.get("max_hold_hours") or (tpl.max_bars if tpl is not None else None)
+            if hold_h is not None and t - row["opened"] >= int(hold_h) * 3600:
                 self.execution.close_position(row["id"], "TIME")
 
     # ── learning ────────────────────────────────────────────────────────

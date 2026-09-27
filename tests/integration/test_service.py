@@ -331,3 +331,51 @@ def test_reflection_journals_experiment_proposals_once_and_changes_nothing(tmp_p
     assert {k: rt.db.get_kv(k) for k in ("paused", "kill_switch")} == before
     assert rt.research()["proposals"][0]["kind"] == "MISTAKE_FEATURE"
     assert rt.db.verify_chain("experiments")[0]
+
+
+def test_the_llm_trader_trades_through_the_risk_engine_reviews_itself_and_remembers(tmp_path, monkeypatch):
+    """End to end: model proposes -> risk engine sizes -> paper fill -> close -> self-review -> memory."""
+    import aitrader.service.runtime as runtime_mod
+    from aitrader.llm.provider import LLMClient, LLMConfig
+    from aitrader.memory.trade_memory import TradeMemory
+
+    seen_memory = []
+
+    def reply(body):
+        system, user = body["messages"][0]["content"], json.loads(body["messages"][1]["content"])
+        if "reviewing one of YOUR OWN" in system:
+            return json.dumps({"what_happened": f"{user['exit_reason']} at {user['R']:+.2f}R", "was_it_a_mistake": user["R"] < 0,
+                               "mistake": "chased the move" if user["R"] < 0 else None, "lesson": "wait for a pullback"})
+        seen_memory.append(user["memory"])
+        ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
+        return json.dumps({"action": "BUY", "timeframe": "H1", "stop": ask - 1.5 * atr, "target": ask + 2.0 * atr,
+                           "max_hold_hours": 12, "thesis": "test trade", "invalidation": "stop", "memory_used": "none"})
+
+    def transport(url, headers, body, timeout):
+        return {"choices": [{"message": {"content": reply(body)}}], "usage": {"total_tokens": 10}}
+
+    monkeypatch.setenv("DECISION_MODE", "llm_trader")
+    monkeypatch.setattr(runtime_mod, "LLMClient",
+                        lambda cfg: LLMClient(LLMConfig("openai_compatible", "https://x.test/v1", "k", "m1"), transport))
+    _write_kb(tmp_path / "kb")
+    rt, clock = build(tmp_path / "rt", knowledge_dir=tmp_path / "kb")
+    rt.resume()
+    for _ in range(24 * 12):
+        clock.t += 3600
+        rt.monitor_once()
+        rt.run_cycle(decide=rt.is_decision_hour(clock.t))
+
+    trades = rt.db.query("SELECT decision_id, r, payload FROM trades")
+    assert trades, "the model trader should have traded on the replay"
+    for tr in trades:
+        assert json.loads(tr["payload"])["decision"]["family"] == "LLM_TRADER"
+        verdict = rt.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (tr["decision_id"],))
+        assert verdict["approved"] == 1 and json.loads(verdict["payload"])["qty"] > 0  # sized by the risk engine
+    reviews = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM reflections")]
+    reviews = [r for r in reviews if r.get("kind") == "trade"]
+    assert len(reviews) == len(trades) and all(r["lesson"] == "wait for a pullback" for r in reviews)
+    brief = TradeMemory(rt.db, rt.experience).brief("EURUSD", "RANGING", clock.t)
+    assert brief["my_record"]["trades"] == len(trades)
+    assert any(v["my_lesson"] == "wait for a pullback" for v in brief["relevant_past_trades"])
+    assert any(m["relevant_past_trades"] for m in seen_memory)  # later decisions were shown earlier trades
+    assert rt.status()["versions"].get("service")

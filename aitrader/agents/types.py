@@ -183,6 +183,10 @@ class MarketContext:
     analog_meta: dict = field(default_factory=dict)
     knowledge: Any = None  # ExperienceView (point-in-time lessons and statistics)
     mode: str = "BACKTEST"
+    # Filled only when the language-model trader decides (it costs a wider data read):
+    mtf: dict = field(default_factory=dict)  # timeframe -> compact summary of COMPLETED bars
+    memory_brief: dict = field(default_factory=dict)  # its own past trades, reflections, lessons
+    trading_allowed: bool = True  # False when paused / stopped / halted: the model is not consulted
 
     def as_dict(self) -> dict:
         return {

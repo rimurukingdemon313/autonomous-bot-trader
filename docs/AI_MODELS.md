@@ -40,7 +40,10 @@ evidence packet, for the agents listed in `AI_AGENTS` (default:
 | `AI_MODEL_ADVERSARY`, `AI_MODEL_REVIEWER`, … | | per-agent override: model diversity where it helps |
 | `AI_FALLBACK_MODELS` | `m2,m3` | tried in order after a failure |
 | `AI_AGENTS` | `adversary,reviewer` | which agents get an LLM layer |
-| `AI_TIMEOUT_S` | `20` | per call |
+| `AI_TIMEOUT_S` | `60` | per call |
+| `AI_MAX_TOKENS` | `1500` | per reply; a cut-off reply is rejected |
+| `AI_MODEL_TRADER` | | the model for the AI trader, if different |
+| `DECISION_MODE` | `evidence` | `llm_trader` = the model proposes trades (below) |
 | `AI_DAILY_CALL_BUDGET` | `500` | hard cap per UTC day |
 | `AI_REQUIRED` | `false` | `true` = no LLM, no trade |
 
@@ -66,3 +69,40 @@ engine reports.
 **Not benchmarked here.** This environment cannot download model weights
 or reach model APIs, so no model was evaluated in this project. The numbers
 above are from the cited 2026 sources.
+
+## The AI trader (`DECISION_MODE=llm_trader`)
+
+A language model analyses the market and trades like a discretionary
+trader, on paper or demo. The rules are MODEL_CONTRACT §10.
+
+**What it reads before every decision:**
+
+- completed bars on H1, H4 and D1;
+- the live quote and the account;
+- the five quantitative analysts' findings;
+- **its memory**: its record, its most relevant past trades (losses first)
+  with its own review of each, and the validated lessons.
+
+**What it decides:** BUY, SELL or NO_TRADE, the timeframe, the stop, the
+target and a maximum holding time.
+
+**What it cannot do:** size a trade, touch a limit, trade while paused, or
+be backtested (a model may know what happened after any historical date).
+
+**Setup with one key for many models (for example OpenRouter):**
+
+    DECISION_MODE=llm_trader
+    AI_PROVIDER=openai_compatible
+    AI_BASE_URL=https://openrouter.ai/api/v1
+    AI_API_KEY=<in Railway Variables only>
+    AI_MODEL=<a model id from the provider>
+    AI_FALLBACK_MODELS=<a second model id>
+
+**Cost.** One call per instrument at each decision (every 4th H1 close),
+plus one review per closed trade. With 12 instruments that is about 72
+calls a day. `AI_DAILY_CALL_BUDGET` caps it. When the budget is reached,
+decisions are NO_TRADE until the next UTC day.
+
+**Win rate.** The status bar shows the AI trader's live record: trades,
+win rate, average R, and whether the sample is still insufficient (under
+30 trades). That number is the only honest measure of it.

@@ -128,3 +128,35 @@ nothing. LLM objections come from a closed vocabulary and may block a trade.
 This keeps the LLM genuinely in the decision while keeping §7 true: nothing
 it says is trusted before it has been measured on data it could not have
 seen.
+
+## 10. Amendment 2 — the language-model trader (owner decision, 2026-09-27)
+
+The owner asked for a system that analyses and trades "like a professional
+trader", not a fixed strategy. With `DECISION_MODE=llm_trader`, a language
+model PROPOSES the trade: direction, timeframe (H1/H4/D1), stop, target and
+maximum holding time. This amends §7 for that mode only. Everything else
+stands:
+
+- The risk engine sizes and approves every proposal, and may refuse it. The
+  model never sees or sets a size or a limit.
+- Execution, the demo guard, the kill switch and pause are unchanged. While
+  trading is paused or stopped, the model is not consulted.
+- A market-wide BLOCKING objection from the quantitative analysts
+  (unfamiliar or abnormal market, bad data) stops the decision before the
+  model is called.
+- Any malformed, unsafe or out-of-range reply is NO_TRADE, never repaired.
+  This covers a wrong-side stop, a stop closer than 0.3 or wider than 12
+  H1-ATR, and an unknown timeframe or action.
+- A validated lesson about its own trades in this context blocks the repeat.
+- **It is never backtested.** The mode raises in BACKTEST. Its record is
+  built forward, on prices no one has seen. Until it has at least 30 closed
+  trades its win rate is labelled insufficient. It is PAPER/DEMO only;
+  LIVE stays refused.
+- It learns from every trade in two ways. It writes a review of each
+  closed trade, stored immutably. Before each decision it reads its record,
+  its most relevant past trades (losses first) with those reviews, and the
+  validated lessons.
+
+Code: `aitrader/agents/llm_trader.py`, `aitrader/memory/trade_memory.py`.
+Tests: `tests/unit/test_llm_trader.py`, and the end-to-end test in
+`tests/integration/test_service.py`.

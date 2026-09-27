@@ -37,6 +37,7 @@ from ..learning.experience import ExperienceView
 from ..llm.provider import LLMClient, LLMConfig
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
+from ..memory.trade_memory import TradeMemory
 from ..observability import log_event, recent
 from ..orchestrator.core import Orchestrator, OrchestratorConfig
 from ..orchestrator.tracker import ACTIONS
@@ -50,7 +51,8 @@ KNOWLEDGE_DIR = ROOT / "models" / "artifacts"
 
 #: 1.1.0: decide only every `decision_every_bars` H1 closes (the tested cadence);
 #: bookkeeping still runs every hour. 1.0.0 decided every hour.
-SERVICE_VERSION = "service-1.1.0"
+#: 1.2.0: DECISION_MODE (evidence | llm_trader); the model trader's record in status.
+SERVICE_VERSION = "service-1.2.0"
 
 
 class OfflineFeed:
@@ -386,6 +388,9 @@ class Runtime:
                 "data": "CONNECTED" if feed_ok and now - feed_ok < 1800 else "NOT CONNECTED",
                 "broker": broker_state, "demo_verification": demo,
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
+                "decision_mode": self.orch.brain.config.decision_mode,
+                "ai_trader_record": (TradeMemory(self.db).record()
+                                     if self.orch.brain.config.decision_mode == "llm_trader" else None),
                 "database": "HEALTHY" if db_ok else "UNAVAILABLE", "db_latency_ms": db_ms,
                 "knowledge_base": self.knowledge_meta,
                 "knowledge_integrity": self.knowledge_meta.get("integrity", "MISSING"),

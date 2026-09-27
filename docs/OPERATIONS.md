@@ -45,6 +45,13 @@ does not trade. It answers every request with HTTP 503 and the reason
 (`{"system": "STARTUP_FAILED", "reason": ...}`), and the deploy's health
 check fails, so the reason is on the URL and in the logs.
 
+## Who decides
+
+`DECISION_MODE=evidence` (default) is the quantitative system.
+`DECISION_MODE=llm_trader` lets a language model propose trades, and it
+also needs the `AI_*` variables (docs/AI_MODELS.md). An unknown value stops
+the service at startup with a visible 503; it is never silently replaced.
+
 ## Modes
 
 | MODE | Market data | Orders | Account |

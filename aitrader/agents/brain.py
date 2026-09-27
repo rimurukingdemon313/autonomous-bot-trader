@@ -28,6 +28,7 @@ from ..llm.provider import LLMClient
 from .analysts import (
     AdversarialAnalyst, MarketAnalyst, ReviewerAnalyst, RiskAnalyst, SetupAnalyst, validate_llm_review,
 )
+from .llm_trader import LLMTrader
 from .types import AGENT_VERSION, AgentReport, MarketContext, Objection
 
 ROLE_PROMPTS = {
@@ -55,6 +56,9 @@ SYSTEM_RULES = (
 )
 
 
+DECISION_MODES = ("evidence", "llm_trader")
+
+
 @dataclass
 class BrainConfig:
     llm_agents: tuple[str, ...] = ("adversary", "reviewer")
@@ -62,11 +66,20 @@ class BrainConfig:
     agent_timeout_s: float = 10.0
     llm_timeout_s: float = 30.0
     parallel: bool = True
+    #: "evidence": analogue-anchored synthesis (PR-001's system). "llm_trader": a language
+    #: model proposes the trade (agents/llm_trader.py); PAPER/DEMO only, never backtested.
+    decision_mode: str = "evidence"
+
+    def __post_init__(self) -> None:
+        if self.decision_mode not in DECISION_MODES:
+            raise ValueError(f"DECISION_MODE must be one of {DECISION_MODES}, got {self.decision_mode!r}; "
+                             "an unknown mode is refused, never replaced by a default")
 
     @classmethod
     def from_env(cls) -> "BrainConfig":
         agents = tuple(a.strip() for a in os.environ.get("AI_AGENTS", "adversary,reviewer").split(",") if a.strip())
-        return cls(llm_agents=agents, llm_required=os.environ.get("AI_REQUIRED", "false").lower() == "true")
+        return cls(llm_agents=agents, llm_required=os.environ.get("AI_REQUIRED", "false").lower() == "true",
+                   decision_mode=os.environ.get("DECISION_MODE", "evidence").strip().lower())
 
 
 @dataclass
@@ -86,6 +99,7 @@ class Brain:
         self.risk = risk or RiskAnalyst()
         self.adversary = adversary or AdversarialAnalyst()
         self.reviewer = reviewer or ReviewerAnalyst()
+        self.llm_trader = LLMTrader(llm)
         self.synth = synthesizer or EvidenceSynthesizer()
         self.llm = llm
         self.config = config or BrainConfig()
@@ -187,9 +201,14 @@ class Brain:
                                  "reviewer": (self.reviewer.analyze, ctx, cands)})
         reports = {**first, **second}
         t1 = time.perf_counter()
-        opinions = self._llm_reviews(ctx, reports)
-        t2 = time.perf_counter()
-        decision = self.synth.synthesize(ctx, reports, versions, opinions)
+        if self.config.decision_mode == "llm_trader":
+            opinions = []  # the model IS the trader here: no separate review calls
+            decision = self.llm_trader.decide(ctx, reports, versions)
+            t2 = time.perf_counter()
+        else:
+            opinions = self._llm_reviews(ctx, reports)
+            t2 = time.perf_counter()
+            decision = self.synth.synthesize(ctx, reports, versions, opinions)
         return Thought(decision, reports, opinions,
                        {"agents": round((t1 - t0) * 1000, 2), "llm": round((t2 - t1) * 1000, 2),
                         "total": round((time.perf_counter() - t0) * 1000, 2)})
