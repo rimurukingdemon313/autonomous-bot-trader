@@ -74,6 +74,12 @@ generate the only evidence no one could have seen in advance.
 
 Open positions keep their broker-side stop and target when paused or stopped.
 
+The token field survives a page reload in the same tab. Tick **Remember on
+this device** to keep it in that browser across tabs and restarts; untick it
+to forget it. A token the server refuses (401) is cleared, never kept. It is
+stored only in your own browser, never sent anywhere but this dashboard, and
+Emergency stop and Pause never need it.
+
 ## Restart and recovery
 
 On startup, before any decision: open the database, restore experience and

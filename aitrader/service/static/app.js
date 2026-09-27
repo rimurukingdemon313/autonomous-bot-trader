@@ -294,6 +294,31 @@ function renderEvents(evs) {
 }
 
 /* ── controls ───────────────────────────────────────────────────────── */
+// The token survives a reload of this tab (sessionStorage). "Remember on this
+// device" keeps it in localStorage instead. Storage can be missing or throw
+// (private mode, blocked site data): the dashboard then simply asks again.
+const TOKEN_KEY = "aitrader.dashboardToken";
+function tokenStore(kind) { try { return window[kind] || null; } catch { return null; } }
+function forgetToken() {
+  for (const kind of ["sessionStorage", "localStorage"]) { try { tokenStore(kind)?.removeItem(TOKEN_KEY); } catch { /* unavailable */ } }
+}
+function saveToken() {
+  const tok = $("token").value.trim();
+  forgetToken();
+  if (!tok) return;
+  try { tokenStore($("remember").checked ? "localStorage" : "sessionStorage")?.setItem(TOKEN_KEY, tok); } catch { /* unavailable */ }
+}
+function loadToken() {
+  for (const kind of ["localStorage", "sessionStorage"]) {
+    let v = null;
+    try { v = tokenStore(kind)?.getItem(TOKEN_KEY); } catch { /* unavailable */ }
+    if (v) { $("token").value = v; $("remember").checked = kind === "localStorage"; return; }
+  }
+}
+loadToken();
+$("token").addEventListener("input", saveToken);
+$("remember").addEventListener("change", saveToken);
+
 async function control(path, needsToken, body = {}) {
   const headers = { "Content-Type": "application/json" };
   const tok = $("token").value.trim();
@@ -303,6 +328,7 @@ async function control(path, needsToken, body = {}) {
     $("control-msg").textContent = `OK: ${JSON.stringify(r)}`;
   } catch (e) {
     $("control-msg").textContent = `Refused (${e.status}): ${e.body?.error || e.message}`;
+    if (needsToken && e.status === 401) { forgetToken(); $("token").value = ""; $("remember").checked = false; }  // a wrong token is not kept
   }
   refreshFast();
 }
