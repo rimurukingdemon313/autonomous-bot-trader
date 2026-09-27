@@ -71,7 +71,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 | History (decisions, trades, episodes, lessons) is immutable and hash-chained | `memory/db.py` | `test_db.py` |
 
 Every row was checked by **removing the guard and watching a test fail**:
-40 of 40 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
+46 of 46 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
 
 ## Evidence
 
