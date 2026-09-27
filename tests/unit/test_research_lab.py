@@ -287,3 +287,19 @@ def test_a_language_model_may_draft_hypotheses_only_from_the_closed_vocabulary(t
     bad = json.dumps({"hypotheses": [{"statement": "x", "features": ["secret_sauce"], "model": "ridge", "template": "T1"}]})
     assert llm_drafts(_llm(bad), SPACE, {}, **kw) == []
     assert llm_drafts(_llm("not json"), SPACE, {}, **kw) == []
+
+
+def test_the_scan_counts_only_non_overlapping_outcomes(tmp_path, walk):
+    from aitrader.research.lab import _non_overlapping
+    t = np.array([0, 10, 20, 30, 0, 50])
+    rt = np.array([25, 35, 45, 55, 5, 60])
+    sym = np.array(["A", "A", "A", "A", "B", "B"])
+    assert _non_overlapping(t, rt, sym).tolist() == [True, False, False, True, True, True]
+
+    lb = lab(tmp_path)
+    res = lb.scan("scan-n", walk, universe="synthetic", symbols=SYMS, timeframe="H1", template="T2",
+                  fit_start=date(2009, 1, 5), fit_end=date(2009, 5, 1), features=("r24",))
+    decided = sum(1 for s in walk.values() for x in s.available_at[::4]
+                  if datetime(2009, 1, 5, tzinfo=timezone.utc).timestamp() <= x < datetime(2009, 5, 1, tzinfo=timezone.utc).timestamp())
+    n = res["observations"][0]["n"]
+    assert n < decided / 2  # T2 outcomes last far longer than the 4-bar spacing: most rows overlap and are dropped
