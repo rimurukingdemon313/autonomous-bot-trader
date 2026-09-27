@@ -235,3 +235,10 @@ def test_llm_objections_are_subtractive():
 def test_objection_vocabulary_is_closed():
     with pytest.raises(ValueError):
         Objection("VIBES", "MAJOR", "x", "y")
+
+
+def test_every_agent_report_has_a_plausible_latency():
+    """A duration is finished - started on ONE clock; mixing clocks shows years as milliseconds."""
+    th = brain().think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}), V)
+    for name, r in th.reports.items():
+        assert 0 <= r.latency_ms < 60_000, (name, r.latency_ms)

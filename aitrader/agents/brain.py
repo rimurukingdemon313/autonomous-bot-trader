@@ -177,6 +177,7 @@ class Brain:
         return opinions
 
     def think(self, ctx: MarketContext, versions: dict) -> Thought:
+        started = time.time()  # wall clock, for reports; perf_counter only for durations
         t0 = time.perf_counter()
         first = self._parallel({"market": (self.market.analyze, ctx), "setup": (self.setup.analyze, ctx)})
         cands = first["setup"].candidates if first["setup"].ok else []
@@ -187,7 +188,7 @@ class Brain:
         opinions = self._llm_reviews(ctx, reports)
         t2 = time.perf_counter()
         decision = self.synth.synthesize(ctx, reports, versions, opinions)
-        reviewer = AgentReport("reviewer", AGENT_VERSION, "OK", decision.decision, t0, time.time(),
+        reviewer = AgentReport("reviewer", AGENT_VERSION, "OK", decision.decision, started, time.time(),
                                summary=decision.thesis)
         rv = next((o for o in opinions if o.get("agent") == "reviewer_llm"), None)
         if rv is not None:

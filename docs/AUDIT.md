@@ -31,6 +31,8 @@ Commands that reproduce the evidence:
 | 15 | The service started unpaused | with credentials set, it would begin trading at once on a knowledge base that has since failed its test | first start is PAUSED with the reason recorded; only an authenticated resume starts trading; the dashboard shows the card's status | `test_first_start_is_paused_and_only_an_authenticated_resume_starts_trading` |
 | 16 | The backtest's `"learning": true/false` key overwrote the learning component version in the stamp | results could not be grouped by learning version | renamed `learning_enabled` | — |
 | 17 | Found by PR-001: in the memory-free baseline, a MAJOR `DRAWDOWN_STATE` objection at 5 % blocks every trade, so equity can never recover | an absorbing state: the baseline stopped trading for 7 years | not changed: it is the pre-registered baseline and was judged as specified. The live system (evidence mode) only raises its bar by a penalty | PR-001 RESULTS |
+| 18 | The Reviewer's latency mixed two clocks (`perf_counter` start, wall-clock end) | the dashboard showed 1,790,454,084,490 ms, a wrong value on screen; found by screenshotting the dashboard | one clock per duration | `test_every_agent_report_has_a_plausible_latency` |
+| 19 | Dashboard, seen at 390 px: an empty Performance chart frame before any trade, and a pinned status bar covering about 40 % of a phone screen | wasted space; the content was hard to reach on a phone | the chart area is hidden until there is data; the status bar is pinned only on wide screens | screenshots at 390 px and 1280 px: no horizontal scroll, no console errors |
 
 ## 2. Security
 
@@ -121,7 +123,7 @@ would still need the sealed holdout.
 | 15 | Is duplicate execution protected? | **Yes** | deterministic client ids; `decision_id` UNIQUE on intents; a write is never resent; the cycle lock (defect 1) |
 | 16 | Does the system fail closed? | **Yes** | missing data, an agent error, a malformed model reply, an unreadable kill switch, a missing or mismatched knowledge base, unverified demo status: each leads to no trade (mutation audit) |
 | 17 | Does Railway restart recovery work? | **Verified in the production image locally, not on Railway itself** | the image was built from the Dockerfile and run with a root-owned volume at `/data`, as Railway mounts one: healthy, knowledge VERIFIED, and state kept across `docker restart`. The tests cover the kill switch, paper account, lessons, experience and intents across a restart, and an intent interrupted mid-submit is reconciled by query. A real Railway deploy has not been exercised from here |
-| 18 | Is the dashboard using real backend state? | **Yes** | every panel reads an endpoint; missing values show N/A; no generated or sample data in the frontend |
+| 18 | Is the dashboard using real backend state? | **Yes** | every panel reads an endpoint; missing values show N/A; no generated or sample data in the frontend. Rendered and inspected at 390 px and 1280 px, driven by the real service on a historical replay |
 | 19 | Are secrets protected? | **Yes** | section 2 |
 | 20 | Can every trade decision be reconstructed later? | **Yes** | `test_every_trade_can_be_reconstructed_from_the_journal`; `GET /api/decisions/{id}` |
 

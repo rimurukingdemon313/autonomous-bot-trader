@@ -233,6 +233,7 @@ function renderTrades(open, closed) {
 }
 
 function renderPerformance(p) {
+  $("perf-body").hidden = !p.available;  // no empty chart frames before there is anything to plot
   if (!p.available) {
     $("perf-tiles").innerHTML = `<p class="muted">${esc(p.reason)}.</p>`; $("equity").innerHTML = ""; $("drawdown").innerHTML = "";
     $("by-regime").querySelector("tbody").innerHTML = ""; return;
