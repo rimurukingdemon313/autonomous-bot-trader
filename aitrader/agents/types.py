@@ -14,7 +14,9 @@ from ..features.store import FeatureVector
 from ..memory.patterns import AnalogEvidence
 from ..regime.model import RegimeState
 
-AGENT_VERSION = "agents-1.0.0"
+#: 1.1.0: an independent Reviewer runs before synthesis (evidence-quality checks moved
+#: from the Adversary, same codes and severities; four new MINOR quality checks).
+AGENT_VERSION = "agents-1.1.0"
 
 SEVERITIES = ("BLOCKING", "MAJOR", "MINOR")
 
@@ -38,11 +40,17 @@ OBJECTION_CODES = {
     "OVEREXTENDED": "price is stretched far from its mean in the trade direction",
     "FAKE_BREAKOUT_RISK": "the breakout lacks follow-through",
     "SWEEP_AGAINST": "a liquidity sweep points the other way",
+    # reviewer (moved from the adversary in agents-1.1.0; same severities)
     "WEAK_ANALOG_EVIDENCE": "historical analogues are few, dissimilar or dispersed",
     "ANALOG_CONTRADICTION": "historical analogues lost money in this direction",
     "LESSON_MATCH": "a validated lesson says this setup fails in this context",
     "REGIME_MISMATCH": "this setup family has underperformed in this regime",
     "LATE_ENTRY": "most of the expected move has already happened",
+    # reviewer (evidence quality; MINOR until their predictive value is measured)
+    "ANALOG_NOISE": "the analogue expectancy is smaller than its own standard error",
+    "ANALOG_STALE": "most analogues are years old: evidence from a different era",
+    "ANALOG_CONCENTRATED": "most analogues come from a single instrument",
+    "TEMPLATE_DISAGREEMENT": "the other action template in the same direction disagrees in sign",
     "LLM_OBJECTION": "the language-model reviewer objected",
     "OTHER": "other (explained in text)",
 }

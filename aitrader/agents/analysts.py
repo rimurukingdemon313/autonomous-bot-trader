@@ -15,8 +15,12 @@ packet; it never replaces the core and never sees anything the core did not.
                         rollover, weekend, unknown event risk.
 4. AdversarialAnalyst - tries to prove the best candidate wrong. It can object;
                         it cannot approve (its stance is never SUPPORT).
-5. TradeReviewer      - synthesises evidence into one decision
-                        (see aitrader/decision/synthesis.py).
+5. ReviewerAnalyst    - judges the QUALITY of the evidence behind each
+                        candidate BEFORE synthesis: analogue sample, noise,
+                        age and concentration, template agreement, validated
+                        lessons, the family's track record. It never sees the
+                        decision; synthesis (aitrader/decision/synthesis.py)
+                        weighs all five reports.
 
 None of them computes a position size or a risk amount; that is the risk
 engine's alone (RISK_CONTRACT.md §1).
@@ -291,8 +295,6 @@ class RiskAnalyst:
 @dataclass(frozen=True)
 class AdversarialConfig:
     overextended_atr: float = 3.0
-    min_analogs: int = 60
-    min_similarity: float = 0.5
     late_entry_r24: float = 4.0
 
 
@@ -331,26 +333,99 @@ class AdversarialAnalyst:
             if _fin(sw) and sw == -d:
                 rep.objections.append(Objection("SWEEP_AGAINST", "MAJOR", self.name,
                                                 "the last bar swept liquidity against this direction", tag))
+        rep.stance = "OPPOSE" if rep.objections else "NEUTRAL"
+        rep.summary = (f"{len(rep.objections)} objection(s) against the leading candidates"
+                       if rep.objections else "no argument found against the leading candidates")
+        rep.finished = time.time()
+        return rep
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# 5. Reviewer: the quality of the evidence, before synthesis
+# ─────────────────────────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class ReviewerConfig:
+    min_analogs: int = 60
+    min_similarity: float = 0.5
+    stale_days: float = 3 * 365.0
+    concentrated_share: float = 0.5
+
+
+class ReviewerAnalyst:
+    """Judges how much the evidence behind each candidate can be trusted.
+
+    Independent of the decision: it reads the same point-in-time context and
+    candidates as the Adversary and never sees synthesis. The Adversary
+    argues from the MARKET that a trade is wrong; the Reviewer asks whether
+    the EVIDENCE for it is good enough to believe: the analogues (how many,
+    how similar, how noisy, how old, how concentrated), whether the two
+    action templates agree, validated lessons, and the family's track record.
+    Its stance is DESCRIBE: it grades evidence, it does not pick a side.
+    """
+
+    name = "reviewer"
+
+    def __init__(self, config: ReviewerConfig = ReviewerConfig()) -> None:
+        self.config = config
+
+    def analyze(self, ctx: MarketContext, candidates: list[SetupCandidate]) -> AgentReport:
+        rep = _report(self.name, time.time())
+        rep.stance = "DESCRIBE"
+        cfg = self.config
+        grades = []
+        for c in candidates[:3]:
+            tag = {"action": c.action, "family": c.family}
             an = c.analog
+            issues = 0
             if an is None or c.n_analogs < cfg.min_analogs or an.get("similarity", 0) < cfg.min_similarity:
                 rep.objections.append(Objection("WEAK_ANALOG_EVIDENCE", "MAJOR", self.name,
                                                 f"{c.n_analogs} analogues, similarity {an.get('similarity', 0) if an else 0:.2f}", tag))
+                issues += 1
             elif c.expected_r is not None and c.expected_r < 0:
                 rep.objections.append(Objection("ANALOG_CONTRADICTION", "MAJOR", self.name,
                                                 f"historical analogues averaged {c.expected_r:+.3f}R in this direction", tag))
+                issues += 1
+            if an is not None and c.expected_r is not None and c.lower_r is not None:
+                se = (c.expected_r - c.lower_r) / 1.28
+                if se > 0 and abs(c.expected_r) < se:
+                    rep.objections.append(Objection("ANALOG_NOISE", "MINOR", self.name,
+                                                    f"expectancy {c.expected_r:+.3f}R is inside one standard error ({se:.3f}R)", tag))
+                    issues += 1
+                age = an.get("median_age_days")
+                if age is not None and age > cfg.stale_days:
+                    rep.objections.append(Objection("ANALOG_STALE", "MINOR", self.name,
+                                                    f"median analogue is {age / 365:.1f} years old", tag))
+                    issues += 1
+                share = an.get("top_symbol_share")
+                if share is not None and share > cfg.concentrated_share:
+                    rep.objections.append(Objection("ANALOG_CONCENTRATED", "MINOR", self.name,
+                                                    f"{share:.0%} of analogues come from one instrument", tag))
+                    issues += 1
+                side = c.action.split(":")[1]
+                for other, a in (an.get("actions") or {}).items():
+                    if other != c.action and other.endswith(":" + side) and a.get("mean_r") is not None \
+                            and np.sign(a["mean_r"]) == -np.sign(c.expected_r) and c.expected_r != 0:
+                        rep.objections.append(Objection("TEMPLATE_DISAGREEMENT", "MINOR", self.name,
+                                                        f"{other} analogues averaged {a['mean_r']:+.3f}R, "
+                                                        f"{c.action} {c.expected_r:+.3f}R", tag))
+                        issues += 1
+                        break
             kv = ctx.knowledge
             if kv is not None:
                 for lesson in kv.lessons_matching(c.family, ctx.regime.label, ctx.regime.vol_state, c.direction, ctx.t):
                     rep.objections.append(Objection("LESSON_MATCH", "BLOCKING", self.name,
                                                     f"validated lesson {lesson['lesson_id']} v{lesson['version']}: {lesson['statement']}",
                                                     {**tag, "lesson": lesson["lesson_id"], "version": lesson["version"]}))
+                    issues += 1
                 st = kv.family_regime_stats(c.family, ctx.regime.label, ctx.t)
                 if st and st["n"] >= 30 and st["mean"] + 1.28 * st["se"] < 0:
                     rep.objections.append(Objection("REGIME_MISMATCH", "MAJOR", self.name,
                                                     f"{c.family} in {ctx.regime.label}: {st['mean']:+.3f}R over {st['n']} resolved cases", tag))
-        rep.stance = "OPPOSE" if rep.objections else "NEUTRAL"
-        rep.summary = (f"{len(rep.objections)} objection(s) against the leading candidates"
-                       if rep.objections else "no argument found against the leading candidates")
+                    issues += 1
+            grades.append(f"{c.family} {c.action}: {'clean' if not issues else f'{issues} issue(s)'}")
+        rep.summary = ("evidence quality — " + "; ".join(grades)) if grades else "no candidate to review"
         rep.finished = time.time()
         return rep
 

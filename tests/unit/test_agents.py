@@ -8,7 +8,7 @@ import urllib.error
 import numpy as np
 import pytest
 
-from aitrader.agents.analysts import AdversarialAnalyst, SetupAnalyst, validate_llm_review
+from aitrader.agents.analysts import AdversarialAnalyst, ReviewerAnalyst, SetupAnalyst, validate_llm_review
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.types import AccountView, MarketContext, Objection
 from aitrader.decision.synthesis import EvidenceSynthesizer, decision_id
@@ -242,3 +242,59 @@ def test_every_agent_report_has_a_plausible_latency():
     th = brain().think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}), V)
     for name, r in th.reports.items():
         assert 0 <= r.latency_ms < 60_000, (name, r.latency_ms)
+
+
+
+# ── the Reviewer: an independent analyst of evidence quality ────────────
+
+
+def rich_analog(action, mean, se, *, age_days=100.0, top_share=0.2, other=None):
+    acts = {action: ActionEvidence(action, 100, mean, se, mean - 1.28 * se, 0.55, mean)}
+    if other is not None:
+        k, m = other
+        acts[k] = ActionEvidence(k, 100, m, 0.02, m - 0.0256, 0.5, m)
+    return AnalogEvidence(5000, 100, 1.0, 1.0, acts, [], age_days, top_share)
+
+
+def test_the_reviewer_reports_before_synthesis_and_never_repeats_the_decision():
+    th = brain().think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}), V)
+    rv = th.reports["reviewer"]
+    assert rv.status == "OK" and rv.stance == "DESCRIBE"
+    assert rv.summary.startswith("evidence quality") and rv.summary != th.decision.thesis
+    assert rv.started <= th.reports["setup"].finished + 60  # a real, timed agent run
+
+
+def test_the_reviewer_grades_noise_age_concentration_and_template_disagreement():
+    c = ctx(analogs={"T1:BUY": rich_analog("T1:BUY", 0.01, 0.05, age_days=5 * 365, top_share=0.8,
+                                           other=("T2:BUY", -0.2))})
+    cands = SetupAnalyst().analyze(c).candidates
+    codes = {o.code for o in ReviewerAnalyst().analyze(c, cands).objections}
+    assert {"ANALOG_NOISE", "ANALOG_STALE", "ANALOG_CONCENTRATED", "TEMPLATE_DISAGREEMENT"} <= codes
+    clean = ctx(analogs={"T1:BUY": rich_analog("T1:BUY", 0.5, 0.02)})
+    rep = ReviewerAnalyst().analyze(clean, SetupAnalyst().analyze(clean).candidates)
+    clean_t1 = [o for o in rep.objections if o.data.get("action") == "T1:BUY"]
+    assert clean_t1 == []  # good evidence draws no quality objection (T2 has no analogues and is flagged)
+
+
+def test_new_quality_checks_are_minor_until_measured_so_they_cannot_change_a_decision():
+    noisy = ctx(analogs={"T1:BUY": rich_analog("T1:BUY", 0.5, 0.02, age_days=9 * 365, top_share=0.9)})
+    th = brain().think(noisy, V)
+    minor = [o for o in th.reports["reviewer"].objections if o.code in ("ANALOG_STALE", "ANALOG_CONCENTRATED")]
+    assert minor and all(o.severity == "MINOR" for o in minor)
+    assert th.decision.decision == "BUY"  # informational: recorded and measured, not acted on
+
+
+def test_a_crashing_reviewer_fails_closed():
+    class Broken(ReviewerAnalyst):
+        def analyze(self, ctx, candidates):
+            raise RuntimeError("bug")
+    th = brain(reviewer=Broken()).think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}), V)
+    assert th.decision.decision == "NO_TRADE" and "reviewer" in th.decision.no_trade_reason
+
+
+def test_the_adversary_argues_from_the_market_and_the_reviewer_from_the_evidence():
+    weak = ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02, n=20)})
+    cands = SetupAnalyst().analyze(weak).candidates
+    adv = {o.code for o in AdversarialAnalyst().analyze(weak, cands).objections}
+    rev = {o.code for o in ReviewerAnalyst().analyze(weak, cands).objections}
+    assert "WEAK_ANALOG_EVIDENCE" in rev and "WEAK_ANALOG_EVIDENCE" not in adv

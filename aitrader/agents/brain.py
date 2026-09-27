@@ -5,7 +5,9 @@ Order and parallelism follow data dependencies, not a fixed script:
     market ─┐
             ├─> risk ────────┐
     setup ──┼─> adversary ───┼─> [LLM reviews, optional, parallel] ─> synthesis
-            └────────────────┘
+            └─> reviewer ────┘
+
+All five analysts report BEFORE synthesis; none of them sees the decision.
 
 An agent that raises becomes an ERROR report and the decision fails closed.
 LLM calls are made only when configured, only for the agents listed in
@@ -24,7 +26,7 @@ from datetime import datetime, timezone
 from ..decision.synthesis import Decision, EvidenceSynthesizer
 from ..llm.provider import LLMClient
 from .analysts import (
-    AdversarialAnalyst, MarketAnalyst, RiskAnalyst, SetupAnalyst, validate_llm_review,
+    AdversarialAnalyst, MarketAnalyst, ReviewerAnalyst, RiskAnalyst, SetupAnalyst, validate_llm_review,
 )
 from .types import AGENT_VERSION, AgentReport, MarketContext, Objection
 
@@ -38,8 +40,9 @@ ROLE_PROMPTS = {
     "adversary": "You are the ADVERSARIAL ANALYST. Assume the leading trade is wrong and argue why: "
                  "fake breakout, liquidity trap, weak structure, conflicting signals, overextension, "
                  "regime mismatch, data problems, overfitting. You never approve a trade.",
-    "reviewer": "You are the TRADE REVIEWER. Weigh the evidence and objections and state which "
-                "direction, if any, the evidence supports. NONE is a normal answer.",
+    "reviewer": "You are the EVIDENCE REVIEWER. Judge how far the evidence for each candidate can be "
+                "trusted: sample size, noise, age, concentration, agreement, lessons. State which direction, "
+                "if any, the evidence supports. NONE is a normal answer.",
 }
 
 SYSTEM_RULES = (
@@ -77,11 +80,12 @@ class Thought:
 class Brain:
     def __init__(self, llm: LLMClient | None = None, synthesizer: EvidenceSynthesizer | None = None,
                  risk: RiskAnalyst | None = None, adversary: AdversarialAnalyst | None = None,
-                 config: BrainConfig | None = None) -> None:
+                 config: BrainConfig | None = None, reviewer: ReviewerAnalyst | None = None) -> None:
         self.market = MarketAnalyst()
         self.setup = SetupAnalyst()
         self.risk = risk or RiskAnalyst()
         self.adversary = adversary or AdversarialAnalyst()
+        self.reviewer = reviewer or ReviewerAnalyst()
         self.synth = synthesizer or EvidenceSynthesizer()
         self.llm = llm
         self.config = config or BrainConfig()
@@ -155,8 +159,6 @@ class Brain:
         results = list(self._pool.map(call, agents)) if self._pool else [call(a) for a in agents]
         for agent, res in results:
             target = reports.get(agent)
-            if agent == "reviewer":
-                target = None
             if target is not None:
                 target.llm = res.as_dict()
             if not res.ok:
@@ -177,23 +179,17 @@ class Brain:
         return opinions
 
     def think(self, ctx: MarketContext, versions: dict) -> Thought:
-        started = time.time()  # wall clock, for reports; perf_counter only for durations
         t0 = time.perf_counter()
         first = self._parallel({"market": (self.market.analyze, ctx), "setup": (self.setup.analyze, ctx)})
         cands = first["setup"].candidates if first["setup"].ok else []
         second = self._parallel({"risk": (self.risk.analyze, ctx, cands),
-                                 "adversary": (self.adversary.analyze, ctx, cands)})
+                                 "adversary": (self.adversary.analyze, ctx, cands),
+                                 "reviewer": (self.reviewer.analyze, ctx, cands)})
         reports = {**first, **second}
         t1 = time.perf_counter()
         opinions = self._llm_reviews(ctx, reports)
         t2 = time.perf_counter()
         decision = self.synth.synthesize(ctx, reports, versions, opinions)
-        reviewer = AgentReport("reviewer", AGENT_VERSION, "OK", decision.decision, started, time.time(),
-                               summary=decision.thesis)
-        rv = next((o for o in opinions if o.get("agent") == "reviewer_llm"), None)
-        if rv is not None:
-            reviewer.llm = rv
-        reports["reviewer"] = reviewer
         return Thought(decision, reports, opinions,
                        {"agents": round((t1 - t0) * 1000, 2), "llm": round((t2 - t1) * 1000, 2),
                         "total": round((time.perf_counter() - t0) * 1000, 2)})

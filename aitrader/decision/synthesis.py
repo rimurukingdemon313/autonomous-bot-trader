@@ -41,8 +41,9 @@ from statistics import NormalDist
 
 from ..agents.types import AgentReport, MarketContext, Objection, SetupCandidate
 
-DECISION_VERSION = "decision-1.0.0"
-REQUIRED_AGENTS = ("market", "setup", "risk", "adversary")
+#: 1.1.0: the Reviewer is a required agent (it carries lesson matching): its failure is NO_TRADE.
+DECISION_VERSION = "decision-1.1.0"
+REQUIRED_AGENTS = ("market", "setup", "risk", "adversary", "reviewer")
 
 SOURCE_GROUPS = {
     "ma_slope": "trend", "er120": "trend", "er24": "trend", "dist_ma48": "trend",

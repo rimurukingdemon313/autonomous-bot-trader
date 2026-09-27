@@ -23,7 +23,8 @@ import numpy as np
 
 from ..features.store import INDEX
 
-MEMORY_VERSION = "patterns-1.0.0"
+#: 1.1.0: evidence also reports the age and instrument concentration of the analogues.
+MEMORY_VERSION = "patterns-1.1.0"
 
 ANALOG_FEATURES = (
     "r6", "r24", "r120", "er24", "er120", "dist_ma48", "ma_slope", "vol_ratio",
@@ -54,6 +55,8 @@ class AnalogEvidence:
     typical_distance: float  # median neighbour distance in training: a similarity yardstick
     actions: dict[str, ActionEvidence]
     examples: list[dict] = field(default_factory=list)
+    median_age_days: float = float("nan")  # how long ago the analogues happened
+    top_symbol_share: float = float("nan")  # share of analogues from the single most common instrument
 
     @property
     def similarity(self) -> float:
@@ -68,6 +71,8 @@ class AnalogEvidence:
             "mean_distance": round(self.mean_distance, 4), "similarity": round(self.similarity, 3),
             "actions": {a: e.as_dict() for a, e in self.actions.items()},
             "examples": self.examples,
+            "median_age_days": round(self.median_age_days, 1) if np.isfinite(self.median_age_days) else None,
+            "top_symbol_share": round(self.top_symbol_share, 3) if np.isfinite(self.top_symbol_share) else None,
         }
 
 
@@ -177,7 +182,10 @@ class PatternMemory:
                      "distance": round(float(np.sqrt(max(d2[i], 0))), 3),
                      "outcomes": {a: round(float(out[i, j]), 3) for j, a in enumerate(self.action_keys)}}
                     for i in closest]
-        return AnalogEvidence(n_avail, len(nn), float(dist.mean()), self.typical_distance, actions, examples)
+        age_days = float(np.median(t - meta[nn, 1].astype(np.float64))) / 86400.0
+        top_share = float(np.bincount(meta[nn, 0].astype(np.int64)).max() / len(nn))
+        return AnalogEvidence(n_avail, len(nn), float(dist.mean()), self.typical_distance, actions, examples,
+                              age_days, top_share)
 
     # ── persistence ─────────────────────────────────────────────────────
 
