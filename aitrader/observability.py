@@ -32,13 +32,17 @@ _lock = threading.Lock()
 _recent: list[dict] = []
 
 
+_SECRET_NAME = re.compile(r"(_API_KEY|_TOKEN|_PASSWORD|_SECRET)$")
+
+
 def _secret_values() -> list[str]:
+    """Named secrets, and ANY variable shaped like one (AI_OPENROUTER_API_KEY, AI_GEMINI_API_KEY, ...)."""
     vals = []
-    for key in SECRET_ENV_KEYS:
-        v = os.environ.get(key, "")
-        if len(v) >= 4:
-            vals.append(v)
-    return sorted(vals, key=len, reverse=True)
+    for key, v in os.environ.items():
+        if key in SECRET_ENV_KEYS or _SECRET_NAME.search(key):
+            if len(v) >= 4:
+                vals.append(v)
+    return sorted(set(vals), key=len, reverse=True)
 
 
 def redact(text: str) -> str:

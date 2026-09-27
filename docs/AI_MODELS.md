@@ -106,3 +106,33 @@ decisions are NO_TRADE until the next UTC day.
 **Win rate.** The status bar shows the AI trader's live record: trades,
 win rate, average R, and whether the sample is still insufficient (under
 30 trades). That number is the only honest measure of it.
+
+## Several providers at once
+
+Set `AI_PROVIDERS` to a comma-separated list. The order is the fallback
+order. When a provider fails (HTTP error, timeout, rate limit after one
+retry), gives an invalid reply, or has spent its own daily quota, the next
+one answers. Each provider has its own key, and every `*_API_KEY` variable
+is redacted from logs. Base URLs of the known names come from each
+provider's official documentation:
+
+| Name | Base URL | Notes |
+|---|---|---|
+| `openrouter` | `https://openrouter.ai/api/v1` | one key, many models |
+| `groq` | `https://api.groq.com/openai/v1` | fast; free tier with limits |
+| `xai` (or `grok`) | `https://api.x.ai/v1` | Grok models |
+| `gemini` | `https://generativelanguage.googleapis.com/v1beta/openai` | Google AI Studio key; free tier with limits |
+| `bytez` | `https://api.bytez.com/models/v2/openai/v1` | many open and closed models |
+
+Per provider: `AI_<NAME>_API_KEY`, `AI_<NAME>_MODEL`, and optionally
+`AI_<NAME>_FALLBACK_MODELS`, `AI_<NAME>_DAILY_BUDGET` (set it just under the
+free tier's daily cap) and `AI_<NAME>_BASE_URL` (for any other
+OpenAI-compatible provider). `AI_DAILY_CALL_BUDGET` still caps the total.
+If a provider rejects the JSON response mode, the request is repeated once
+without it. The reply is validated here either way. The dashboard's AI chip
+shows which provider answered each decision, and `/api/agents` shows the
+calls per provider today.
+
+Sources: [OpenRouter](https://openrouter.ai/docs), [Groq OpenAI compatibility](https://console.groq.com/docs/openai),
+[xAI docs](https://docs.x.ai/overview), [Gemini OpenAI compatibility](https://ai.google.dev/gemini-api/docs/openai),
+[Bytez chat completions](https://docs.bytez.com/http-reference/examples/openai-compliant/chatCompletionsExample).
