@@ -75,6 +75,9 @@ function renderStatus(s) {
     // Whether the account survives a redeploy: without a volume it restarts at the start balance.
     c.storage ? chip("STORAGE", c.storage.status === "PERSISTENT" ? "SAVED ON VOLUME" : `${c.storage.status} (${c.storage.detail})`,
       c.storage.status === "PERSISTENT" ? "good" : c.storage.status === "NOT PERSISTENT" ? "critical" : "warning") : "",
+    // A live memory that could not be read was set aside at start: say so where the memory is shown.
+    String(c.knowledge_base?.memory_source || "").startsWith("base (the live copy")
+      ? chip("MEMORY", c.knowledge_base.memory_source, "warning") : "",
     chip("KNOWLEDGE", c.regime_model === "LOADED" ? `LOADED · ${(c.knowledge_base && c.knowledge_base.status) || "status N/A"}` : (c.knowledge_integrity || "MISSING"),
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),

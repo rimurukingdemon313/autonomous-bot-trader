@@ -19,6 +19,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import os
+from pathlib import Path
+
 import numpy as np
 
 from ..features.store import INDEX
@@ -198,9 +201,18 @@ class PatternMemory:
         x, out, avail, meta, _ = self._arrays()
         if compact:
             x, out = x.astype(np.float16), out.astype(np.float16)
-        np.savez_compressed(path, x=x, out=out, avail=avail, meta=meta, mean=self.mean, std=self.std,
-                            actions=np.array(self.action_keys), symbols=np.array(self._symbols),
-                            typical=np.array([self.typical_distance]), version=np.array([self.version]))
+        # Written beside the target and swapped in whole: a process stopped mid-write (a redeploy
+        # sends SIGTERM while a 170k-pattern file is being compressed) leaves the previous file
+        # intact, never a truncated one that stops the next start.
+        path = Path(path)
+        tmp = path.with_name(path.name + ".partial")
+        with open(tmp, "wb") as f:
+            np.savez_compressed(f, x=x, out=out, avail=avail, meta=meta, mean=self.mean, std=self.std,
+                                actions=np.array(self.action_keys), symbols=np.array(self._symbols),
+                                typical=np.array([self.typical_distance]), version=np.array([self.version]))
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
 
     @classmethod
     def load(cls, path) -> "PatternMemory":

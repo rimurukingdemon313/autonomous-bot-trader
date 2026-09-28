@@ -312,8 +312,26 @@ class Runtime:
             return empty, None, {**meta, "integrity": "MISMATCH", "actual_sha256": digest}
         meta = {**meta, "integrity": "VERIFIED"}
         live_mem = Path(self.cfg.data_dir) / "memory_live.npz"
-        memory = PatternMemory.load(live_mem if live_mem.exists() else mem_path)
-        meta["memory_source"] = "live (grown forward from the verified base)" if live_mem.exists() else "base"
+        memory, meta["memory_source"] = None, "base"
+        if live_mem.exists():
+            try:
+                memory = PatternMemory.load(live_mem)
+                meta["memory_source"] = "live (grown forward from the verified base)"
+            except Exception as exc:
+                # An unreadable live copy (cut off by a stop mid-write, before saves were atomic) must
+                # not stop the service: it is set aside, kept for inspection, and the verified base
+                # is used. What is lost is the patterns grown since the base; that is said, not hidden.
+                aside = live_mem.with_name(f"memory_live.unreadable-{int(time.time())}.npz")
+                try:
+                    live_mem.replace(aside)
+                except OSError:
+                    aside = live_mem
+                meta["memory_source"] = (f"base (the live copy could not be read: {type(exc).__name__}; "
+                                         f"kept as {aside.name}; patterns grown since the base are not in use)")
+                log_event("STARTUP", f"memory_live.npz unreadable ({type(exc).__name__}: {exc}): set aside as "
+                          f"{aside.name}, using the verified base memory", severity="critical")
+        if memory is None:
+            memory = PatternMemory.load(mem_path)
         return memory, RegimeModel.from_json(reg_path.read_text()), meta
 
     def _load_history(self):

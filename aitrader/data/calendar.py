@@ -114,7 +114,9 @@ class EconomicCalendar:
         self._events, self._fetched_at, self._error = events, now, None
         try:
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
-            self.cache_path.write_text(json.dumps({"fetched_at": now, "events": events}))
+            tmp = self.cache_path.with_name(self.cache_path.name + ".partial")
+            tmp.write_text(json.dumps({"fetched_at": now, "events": events}))
+            tmp.replace(self.cache_path)  # whole or not at all: a stop mid-write keeps the last cache
         except OSError:
             pass
 

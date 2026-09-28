@@ -507,3 +507,38 @@ def test_the_live_panel_says_why_when_the_account_cannot_be_read(server):
     code, live = call(base, "/api/live")
     assert code == 200 and live["available"] is False and "broker offline" in live["reason"]
     assert "equity" not in live  # a gap, never a plausible zero
+
+
+def test_a_live_memory_cut_off_mid_write_does_not_stop_the_service(tmp_path):
+    """A redeploy stopped the service while it saved memory_live.npz; the next start failed with
+    EOFError and the dashboard served nothing. The copy is set aside, the verified base is used,
+    and the loss is stated."""
+    _write_kb(tmp_path / "kb")
+    data_dir = tmp_path / "rt"
+    data_dir.mkdir()
+    (data_dir / "memory_live.npz").write_bytes(b"PK\x03\x04 cut off")
+    rt, _ = build(data_dir, knowledge_dir=tmp_path / "kb")
+    assert rt.regime is not None and rt.knowledge_meta["integrity"] == "VERIFIED"  # it starts, and decides
+    assert "could not be read" in rt.knowledge_meta["memory_source"]
+    assert not (data_dir / "memory_live.npz").exists()
+    assert list(data_dir.glob("memory_live.unreadable-*.npz"))  # kept for inspection, not deleted
+
+
+def test_saving_the_memory_never_leaves_a_partial_file(tmp_path, monkeypatch):
+    import aitrader.memory.patterns as patterns
+    from aitrader.memory.patterns import PatternMemory
+    from aitrader.orchestrator.tracker import ACTIONS
+
+    path = tmp_path / "memory_live.npz"
+    PatternMemory(np.zeros(18), np.ones(18), ACTIONS).save(path)
+    before = path.read_bytes()
+
+    def dies_mid_write(f, **arrays):
+        f.write(b"PK\x03\x04 half")
+        raise SystemExit("SIGTERM")
+
+    monkeypatch.setattr(patterns.np, "savez_compressed", dies_mid_write)
+    with pytest.raises(SystemExit):
+        PatternMemory(np.zeros(18), np.ones(18), ACTIONS).save(path)
+    assert path.read_bytes() == before  # the previous file, whole
+    PatternMemory.load(path)
