@@ -434,3 +434,24 @@ def test_the_trading_room_discusses_in_turn_and_trades_through_the_risk_engine(t
     recs = st["trading_room"]["records"]
     assert recs["gemini"]["supported"]["trades"] == len(trades) and recs["bytez"]["supported"] == {"trades": 0}
     assert all(len(j["discussion"]) == 3 for j in joints)  # the joint decision read the whole discussion
+
+
+
+def test_every_response_is_strict_json_even_when_a_value_is_not_a_number(server):
+    """A NaN (a feature the data source does not provide) used to be written as NaN, which browsers
+    refuse to parse: the dashboard then showed "no decision" for decisions that existed."""
+    rt, base, _ = server
+    rt.db.append("decisions", {"id": "d-nan", "symbol": "EURUSD", "timeframe": "H1", "decision": "NO_TRADE",
+                               "mode": "PAPER", "payload": {"timestamp": 1, "context": {"features": {"tick_activity": float("nan")}},
+                                                          "confidence": float("inf")}})
+
+    def strict(text):
+        return json.loads(text, parse_constant=lambda c: (_ for _ in ()).throw(ValueError(f"non-JSON constant {c}")))
+
+    for path in ("/api/decisions?limit=1&symbol=EURUSD", "/api/decisions/d-nan"):
+        with urllib.request.urlopen(base + path, timeout=10) as r:
+            body = strict(r.read().decode())
+        text = json.dumps(body)
+        assert "NaN" not in text and "Infinity" not in text
+    assert strict(urllib.request.urlopen(base + "/api/decisions/d-nan", timeout=10).read().decode())["decision"]["context"][
+        "features"]["tick_activity"] is None  # shown as N/A, never invented
