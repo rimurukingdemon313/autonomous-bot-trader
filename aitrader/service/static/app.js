@@ -78,7 +78,12 @@ function renderStatus(s) {
     // A live memory that could not be read was set aside at start: say so where the memory is shown.
     String(c.knowledge_base?.memory_source || "").startsWith("base (the live copy")
       ? chip("MEMORY", c.knowledge_base.memory_source, "warning") : "",
-    chip("KNOWLEDGE", c.regime_model === "LOADED" ? `LOADED · ${(c.knowledge_base && c.knowledge_base.status) || "status N/A"}` : (c.knowledge_integrity || "MISSING"),
+    // Two facts in one chip: the files loaded and matched their card (✓), and the research verdict on the
+    // strategy they encode. FAILED is that verdict (PR-001 found no edge), not a fault; it stays visible.
+    chip("KNOWLEDGE", c.regime_model === "LOADED"
+      ? ((c.knowledge_base && c.knowledge_base.status) === "FAILED" ? "LOADED ✓ · no proven edge yet (research test: FAILED)"
+        : `LOADED ✓ · ${(c.knowledge_base && c.knowledge_base.status) || "status N/A"}`)
+      : (c.knowledge_integrity || "MISSING"),
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
     s.paused ? chip("TRADING", "PAUSED", "warning") : chip("TRADING", "running", "good"),
