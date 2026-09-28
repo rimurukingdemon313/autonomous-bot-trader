@@ -104,6 +104,18 @@ class PaperBroker:
         exit_px = q.bid if p["side"] > 0 else q.ask
         return (exit_px - p["entry"]) * p["side"] * p["qty"] * contract_size(p["symbol"]) * rate
 
+    def unrealised_by_position(self) -> dict[str, float | None]:
+        """Each open position's P/L at the current quote, as account() values it; None when it cannot
+        be valued (no quote or no conversion rate). Read-only."""
+        out: dict[str, float | None] = {}
+        with self._lock:
+            for pid, p in self.state["positions"].items():
+                try:
+                    out[pid] = self._unrealised(p)
+                except BrokerError:
+                    out[pid] = None
+        return out
+
     def account(self) -> AccountSnapshot:
         with self._lock:
             eq = self.state["balance"] + sum(self._unrealised(p) for p in self.state["positions"].values())

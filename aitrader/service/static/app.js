@@ -513,15 +513,22 @@ function renderLive(L) {
   $("live-age").textContent = `${L.currency || ""} · read ${new Date(L.time * 1000).toISOString().slice(11, 19)} UTC`;
   lineChart($("live-spark"), liveSamples, "Equity since this page opened", (v) => v.toFixed(2));
   $("live-positions").innerHTML = (L.positions || []).map((p) => {
+    const d = p.symbol.includes("JPY") ? 3 : 5, side = p.side === "BUY" ? "buy" : "sell";
     // Where the price is between the stop (left, 0) and the target (right, 1), for either side.
-    const span = p.target - p.stop, at = p.current === null ? null : (p.current - p.stop) / span;
+    const at = p.current === null ? null : (p.current - p.stop) / (p.target - p.stop);
     const x = at === null ? null : Math.max(0, Math.min(1, at)) * 100;
-    const d = p.symbol.includes("JPY") ? 3 : 5;
-    return `<div class="pos-row"><div class="top"><span><b>${esc(p.symbol)}</b> ${esc(p.side)} · open ${ago(p.opened, L.time)}</span>
-      <span>${p.r_now === null ? NA : signed(p.r_now, 2) + " R"}</span></div>
+    const left = p.max_hold_minutes ? p.opened + p.max_hold_minutes * 60 - L.time : null;
+    const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    return `<div class="trade-card ${side}">
+      <div class="tc-top"><span class="tc-side">${p.side === "BUY" ? "▲ BUY" : "▼ SELL"}</span><span class="tc-sym">${esc(p.symbol)}</span>
+        <span class="muted small">${esc(p.timeframe || "")}${p.qty ? ` · ${num(p.qty, 2)} lots` : ""}</span>
+        <span class="tc-pnl ${moneyCls(p.pnl)}">${money(p.pnl)}</span></div>
+      <div class="tc-sub">entry <b>${num(p.entry, d)}</b> → now <b>${num(p.current, d)}</b> · <b>${p.r_now === null ? NA : signed(p.r_now, 2) + " R"}</b></div>
       <div class="bar" title="left: the stop · right: the target">${x === null ? "" : `<span class="now" style="left: calc(${x}% - 2px)"></span>`}</div>
-      <div class="bar-labels"><span>stop ${num(p.stop, d)}</span><span>now ${num(p.current, d)}</span><span>target ${num(p.target, d)}</span></div></div>`;
-  }).join("") || `<p class="muted small">No open trade right now.</p>`;
+      <div class="bar-labels"><span>stop ${num(p.stop, d)}</span><span>target ${num(p.target, d)}</span></div>
+      <div class="tc-meta"><span>open ${ago(p.opened, L.time)}</span><span>${left === null ? "no time limit" : left > 0 ? `closes by time in ${mmss(left)}` : "closing now (time)"}</span></div>
+      ${p.thesis ? `<div class="tc-why"><b>Why:</b> ${esc(p.thesis)}</div>` : ""}</div>`;
+  }).join("") || `<div class="trade-card empty">No open trade right now · the team is watching the market</div>`;
   const lt = L.last_trade, ld = L.last_decision;
   $("live-last").innerHTML = [
     lt ? `Last closed: <b>${esc(lt.symbol)} ${esc(lt.side)}</b> ${lt.r === null ? "" : signed(lt.r, 2) + " R"} <span class="${moneyCls(lt.pnl)}">${money(lt.pnl)}</span> · ${esc(lt.exit_reason)} · ${ago(lt.closed, L.time)} ago` : "",

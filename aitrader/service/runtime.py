@@ -635,6 +635,22 @@ class Runtime:
             "performance": ({k: perf[k] for k in ("overall", "max_consecutive_losses")} if perf else None),
         }
 
+    def _live_positions(self) -> list[dict]:
+        """Open positions for the live panel: levels, R now, the P/L the broker values them at (None
+        when it cannot), and what the team said when it opened them (holding time, timeframe, thesis)."""
+        pnl = self.broker.unrealised_by_position() if hasattr(self.broker, "unrealised_by_position") else {}
+        out = []
+        for t in self.trades(closed=False):
+            dec = self.db.one("SELECT payload FROM decisions WHERE id=?", (t["decision_id"],)) if t.get("decision_id") else None
+            d = json.loads(dec["payload"]) if dec else {}
+            hold = d.get("max_hold_minutes") or ((d.get("max_hold_hours") or 0) * 60) or None
+            out.append({**{k: t[k] for k in ("id", "symbol", "side", "qty", "entry", "current", "stop", "target", "r_now",
+                                            "opened")},
+                        "pnl": None if pnl.get(t["id"]) is None else round(pnl[t["id"]], 2),
+                        "max_hold_minutes": hold, "timeframe": d.get("timeframe"),
+                        "thesis": str(d.get("thesis") or "")[:240] or None})
+        return out
+
     def live(self) -> dict:
         """The few numbers the live panel polls every couple of seconds: cheap by design (no
         performance summary, no history scan). Every value is read, never estimated; one that cannot
@@ -656,8 +672,7 @@ class Runtime:
             "start_balance": self.cfg.start_balance, "balance": bal, "equity": eq,
             "floating_pnl": round(eq - bal, 2), "total_pnl": round(eq - self.cfg.start_balance, 2),
             "daily_pnl": round(eq - ds["equity"], 2) if ds.get("equity") else None,
-            "positions": [{k: t[k] for k in ("symbol", "side", "entry", "current", "stop", "target", "r_now", "opened")}
-                          for t in self.trades(closed=False)],
+            "positions": self._live_positions(),
             "today": {"trades": len(today), "wins": sum(1 for t in today if (t["r"] or 0) > 0),
                       "pnl": round(sum(t["pnl"] for t in today if t["pnl"] is not None), 2)} if day is not None else None,
             "last_trade": ({k: recent[0][k] for k in ("symbol", "side", "r", "pnl", "exit_reason", "closed")}

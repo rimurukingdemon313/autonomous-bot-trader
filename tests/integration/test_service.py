@@ -497,6 +497,7 @@ def test_the_live_panel_reads_the_account_and_every_open_trade(server):
     p = live["positions"][0]
     assert p["symbol"] == "EURUSD" and p["stop"] < p["current"] < p["target"] and p["r_now"] is not None
     assert live["floating_pnl"] == round(live["equity"] - live["balance"], 2) < 0  # it pays the spread first
+    assert p["pnl"] == live["floating_pnl"]  # its own P/L, as the account values it (one trade open)
 
 
 def test_the_live_panel_says_why_when_the_account_cannot_be_read(server):
