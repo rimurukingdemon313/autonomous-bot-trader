@@ -617,6 +617,37 @@ class Runtime:
             "performance": ({k: perf[k] for k in ("overall", "max_consecutive_losses")} if perf else None),
         }
 
+    def live(self) -> dict:
+        """The few numbers the live panel polls every couple of seconds: cheap by design (no
+        performance summary, no history scan). Every value is read, never estimated; one that cannot
+        be read is None, with the reason."""
+        now = self.clock()
+        try:
+            snap = self.broker.account()
+        except Exception as exc:
+            return {"available": False, "reason": f"{type(exc).__name__}: {exc}", "time": now}
+        eq, bal = snap.equity, snap.balance
+        ds = self.db.get_kv("day_start", None) or {}
+        day = ds.get("day")
+        recent = self.trades(closed=True, limit=200)
+        today = [t for t in recent if day is not None and t["closed"] is not None and t["closed"] >= day]
+        last = self.db.one("SELECT symbol, decision, payload FROM decisions ORDER BY seq DESC LIMIT 1")
+        lp = json.loads(last["payload"]) if last else {}
+        return {
+            "available": True, "time": now, "currency": snap.currency,
+            "start_balance": self.cfg.start_balance, "balance": bal, "equity": eq,
+            "floating_pnl": round(eq - bal, 2), "total_pnl": round(eq - self.cfg.start_balance, 2),
+            "daily_pnl": round(eq - ds["equity"], 2) if ds.get("equity") else None,
+            "positions": [{k: t[k] for k in ("symbol", "side", "entry", "current", "stop", "target", "r_now", "opened")}
+                          for t in self.trades(closed=False)],
+            "today": {"trades": len(today), "wins": sum(1 for t in today if (t["r"] or 0) > 0),
+                      "pnl": round(sum(t["pnl"] for t in today if t["pnl"] is not None), 2)} if day is not None else None,
+            "last_trade": ({k: recent[0][k] for k in ("symbol", "side", "r", "pnl", "exit_reason", "closed")}
+                           if recent else None),
+            "last_decision": ({"symbol": last["symbol"], "decision": last["decision"], "time": lp.get("timestamp"),
+                               "reason": lp.get("no_trade_reason") or lp.get("thesis")} if last else None),
+        }
+
     def trades(self, closed: bool = True, limit: int = 200) -> list[dict]:
         if not closed:
             out = []

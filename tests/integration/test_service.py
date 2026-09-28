@@ -477,3 +477,33 @@ def test_the_dashboard_shows_the_storage_state(server):
     rt, base, _ = server
     code, st = call(base, "/api/status")
     assert st["components"]["storage"]["status"] in ("PERSISTENT", "NOT PERSISTENT", "UNKNOWN")
+
+
+def test_the_live_panel_reads_the_account_and_every_open_trade(server):
+    """The live panel polls /api/live every few seconds. Every money figure is read from the account;
+    the position's place between its stop and target comes from its own levels."""
+    rt, base, clock = server
+    code, live = call(base, "/api/live")
+    assert code == 200 and live["available"] and live["equity"] == live["balance"] == 20_000
+    assert live["floating_pnl"] == 0 and live["total_pnl"] == 0 and live["positions"] == []
+    q = rt.feed.quote("EURUSD", clock.t)
+    fill = rt.broker.place_market("EURUSD", 1, 0.5, q.bid - 0.0050, q.ask + 0.0100, "cid-live")
+    with rt.db.tx() as c:
+        c.execute("INSERT INTO positions(id, intent_id, decision_id, symbol, side, qty, entry, stop, target, opened, "
+                  "status, payload, updated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                  (fill.position_id, "cid-live", "d-live", "EURUSD", "BUY", 0.5, fill.price,
+                   q.bid - 0.0050, q.ask + 0.0100, clock.t, "OPEN", "{}", 0.0))
+    code, live = call(base, "/api/live")
+    p = live["positions"][0]
+    assert p["symbol"] == "EURUSD" and p["stop"] < p["current"] < p["target"] and p["r_now"] is not None
+    assert live["floating_pnl"] == round(live["equity"] - live["balance"], 2) < 0  # it pays the spread first
+
+
+def test_the_live_panel_says_why_when_the_account_cannot_be_read(server):
+    from aitrader.broker.base import BrokerError
+
+    rt, base, _ = server
+    rt.broker.account = lambda: (_ for _ in ()).throw(BrokerError("broker offline"))
+    code, live = call(base, "/api/live")
+    assert code == 200 and live["available"] is False and "broker offline" in live["reason"]
+    assert "equity" not in live  # a gap, never a plausible zero

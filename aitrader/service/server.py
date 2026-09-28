@@ -95,6 +95,7 @@ def make_handler(rt: Runtime, token: str):
                 routes = {
                     "/api/status": rt.status,
                     "/api/account": rt.account,
+                    "/api/live": rt.live,
                     "/api/market": rt.market,
                     "/api/memory": rt.memory_view,
                     "/api/research": rt.research,

@@ -212,7 +212,8 @@ function lineChart(el, points, label, fmtY) {
 
 /* ── decision, agents, risk ─────────────────────────────────────────── */
 function stepState(status) {
-  if (["OK", "PASSED", "FILLED", "APPROVED", "DESCRIBE", "SUPPORT", "NEUTRAL"].includes(status)) return "ok";
+  if (/% WON$/.test(status || "")) return "info";  // a measurement, not a verdict: no colour
+  if (["OK", "PASSED", "FILLED", "APPROVED", "DESCRIBE", "SUPPORT", "NEUTRAL", "BUY", "SELL"].includes(status)) return "ok";
   if (["ERROR", "TIMEOUT", "REJECTED", "BLOCKED", "OPPOSE"].includes(status)) return "rej";
   return "warn";
 }
@@ -227,7 +228,18 @@ function renderDecision(det) {
   }
   const d = det.decision, ag = det.agents || {};
   const f = d.context?.features;
-  const steps = [
+  const room = d.independent_evidence?.room;
+  const hist = historyLine(d.context?.history, d.decision);
+  const steps = room ? [
+    // The trading room: each mind in the order it spoke, the joint call, then what history and the
+    // risk engine said. Nothing here is computed in the page except the count of who agreed.
+    ["DATA", (d.context?.data_flags || []).length ? "FLAGGED" : "OK"],
+    ...(room.discussion || []).map((x) => [`${x.role || "?"} · ${x.member}`, x.action || x.status || "—"]),
+    ["TEAM", room.joint ? room.joint.action || room.joint.status : (d.decision === "NO_TRADE" ? "NO_TRADE" : "—")],
+    ["HISTORY", hist.step],
+    ["RISK ENGINE", det.risk ? (det.risk.approved ? "APPROVED" : "REJECTED") : (d.decision === "NO_TRADE" ? "NOT NEEDED" : "PENDING")],
+    ["EXECUTION", det.execution ? det.execution.status : "—"],
+  ] : [
     ["DATA", (d.context?.data_flags || []).length ? "FLAGGED" : "OK"],
     ["FEATURES", f && (f.missing || []).length ? `MISSING ${f.missing.length}` : "OK"],
     ["MARKET", ag.market?.status || "UNAVAILABLE"], ["SETUP", ag.setup ? `${ag.setup.stance}` : "UNAVAILABLE"],
@@ -237,7 +249,11 @@ function renderDecision(det) {
   ];
   $("pipeline").innerHTML = steps.map(([n, st]) => `<li class="${stepState(st)}"><b>${n}</b><span class="st">${esc(st)}</span></li>`).join("");
   const conf = d.confidence === null || d.confidence === undefined ? "" : ` · confidence ${pct(d.confidence, 0)} (P(expectancy &gt; required), from analogue evidence)`;
-  $("decision-line").innerHTML = `<b>${esc(d.decision)}</b> ${esc(d.instrument)} at ${ts(d.timestamp)}${conf}<br><span class="small">${esc(d.no_trade_reason || d.thesis)}</span>`;
+  const spoke = room ? (room.discussion || []).filter((x) => x.action) : [];
+  const agree = spoke.filter((x) => x.action === d.decision).length;
+  const team = room ? `<br><span class="small">Team: <b>${agree} of ${spoke.length}</b> minds that answered said ${esc(d.decision)}${
+    (room.discussion || []).length > spoke.length ? ` · ${(room.discussion || []).length - spoke.length} could not answer` : ""}</span>` : "";
+  $("decision-line").innerHTML = `<b>${esc(d.decision)}</b> ${esc(d.instrument)} at ${ts(d.timestamp)}${conf}${team}${hist.line}<br><span class="small">${esc(d.no_trade_reason || d.thesis)}</span>`;
   $("agents").innerHTML = renderRoom(d.independent_evidence?.room) + ["market", "setup", "risk", "adversary", "reviewer"].map((k) => {
     const r = ag[k];
     if (!r) return `<div class="agent"><h4>${k}</h4><p class="muted">UNAVAILABLE</p></div>`;
@@ -248,6 +264,24 @@ function renderDecision(det) {
     return `<div class="agent"><h4>${esc(k.toUpperCase())} <span class="chip ${stepState(r.stance) === "ok" ? "good" : stepState(r.stance) === "rej" ? "critical" : "warning"}">${esc(r.stance)}</span> <span class="muted small">${esc(r.status)} · ${r.latency_ms ?? "—"} ms</span></h4>
       <div class="small">${esc(r.summary)}</div>${ev ? `<ul>${ev}</ul>` : ""}${cands ? `<ul>${cands}</ul>` : ""}${objs ? `<ul>${objs}</ul>` : ""}${llm}</div>`;
   }).join("");
+}
+
+// What the history desk measured for this decision point: for each side, the fixed trade whose
+// lower-bound expectancy was best, with its win rate over the most similar past situations. These
+// numbers were given to the team before it decided; the page only picks which to show.
+function historyLine(h, decision) {
+  if (!h) return { step: "—", line: "" };
+  if (!h.available) return { step: "N/A", line: `<br><span class="small muted">History: ${esc(h.reason || "not available")}</span>` };
+  const best = (side) => Object.values(h.trades || {}).length && Object.entries(h.trades)
+    .filter(([k]) => k.endsWith(":" + side)).map(([, v]) => v)
+    .sort((a, b) => b.avg_R_lower_bound - a.avg_R_lower_bound)[0];
+  const b = best("BUY"), s = best("SELL");
+  const part = (side, v) => v ? `${side} won <b>${Math.round(v.win_rate * 100)}%</b> (${v.avg_R >= 0 ? "+" : ""}${v.avg_R.toFixed(2)} R avg)` : `${side} N/A`;
+  const pick = decision === "BUY" ? b : decision === "SELL" ? s : null;
+  return {
+    step: pick ? `${Math.round(pick.win_rate * 100)}% WON` : "SEEN",
+    line: `<br><span class="small" title="${esc((b && b.what) || "")} / ${esc((s && s.what) || "")}">History, ${h.neighbours} most similar past situations (${h.distinct_episodes} different days): ${part("BUY", b)} · ${part("SELL", s)}</span>`,
+  };
 }
 
 function renderRisk(risk, det) {
@@ -302,6 +336,12 @@ function renderMemory(m) {
     return `<tr><td class="small">${esc(l.statement)}</td><td>${esc(l.status)}</td><td>${l.version}</td><td class="num">n=${ev.n ?? "—"} ${ev.mean !== undefined ? signed(ev.mean) : ""}</td></tr>`;
   }).join("") || `<tr><td colspan="4" class="muted">No lessons yet: a lesson needs dozens of resolved outcomes, never one trade.</td></tr>`;
   const r = m.reflection;
+  if (r && r.kind === "trade") {  // model modes: the team's own review of its last closed trade
+    $("reflection").innerHTML = `<div class="small"><b>Self-review of its last trade</b> <span class="muted">${esc(r.model || "")}</span><br>
+      What happened: ${esc(r.text || "—")}<br>Was it a mistake: ${r.was_it_a_mistake === true ? "yes" : r.was_it_a_mistake === false ? "no" : "not said"}${r.mistake ? ` — ${esc(r.mistake)}` : ""}<br>
+      Lesson: ${r.lesson ? esc(r.lesson) : '<span class="muted">none</span>'}</div>`;
+    return;
+  }
   $("reflection").innerHTML = r ? `<div class="small">Resolved ${r.resolved} · traded ${r.traded.n} (avg ${r.traded.mean ?? "n/a"}R) · skipped ${r.skipped_shadow.n} (shadow avg ${r.skipped_shadow.mean ?? "n/a"}R)
     ${r.overconfidence_R !== undefined ? ` · overconfidence ${r.overconfidence_R}R` : ""}${r.drift_alarm ? ' · <span class="neg">DRIFT ALARM</span>' : ""}</div>
     <ul class="small">${(r.hypotheses || []).map((h) => `<li>${esc(h.kind)}: ${esc(h.text)}</li>`).join("") || "<li>No hypotheses raised.</li>"}</ul>
@@ -375,6 +415,70 @@ $("btn-resume").onclick = () => control("/api/control/resume", true);
 $("btn-clear").onclick = () => control("/api/control/kill/clear", true);
 $("btn-scan").onclick = () => control("/api/control/scan", true);
 
+/* ── live panel: the account as it moves ───────────────────────────── */
+const liveSamples = [];  // [time, equity] seen since this page opened; nothing is interpolated
+let liveShown = null;
+const money = (x) => (x === null || x === undefined) ? NA : `${x >= 0 ? "+" : "−"}${Math.abs(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const moneyCls = (x) => x === null || x === undefined ? "" : x >= 0 ? "pos" : "neg";
+const ago = (t, now) => { const s = Math.max(0, now - t); return s < 90 ? `${s}s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`; };
+
+function countTo(el, from, to) {
+  // Eases the shown number to the new value; the last frame is exactly the value read.
+  const fmt = (v) => v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (from === null || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 700;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmt(k < 1 ? from + (to - from) * e : to);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function renderLive(L) {
+  const hero = $("live-equity"), dot = $("live-dot");
+  if (!L.available) {
+    dot.classList.remove("on");
+    hero.innerHTML = NA; $("live-sub").innerHTML = `<span class="neg">${esc(L.reason)}</span>`; return;
+  }
+  dot.classList.add("on");
+  if (liveShown !== null && L.equity !== liveShown) {
+    hero.classList.remove("up", "down"); void hero.offsetWidth;
+    hero.classList.add(L.equity > liveShown ? "up" : "down");
+    setTimeout(() => hero.classList.remove("up", "down"), 1200);
+  }
+  countTo(hero, liveShown, L.equity);
+  liveShown = L.equity;
+  const last = liveSamples[liveSamples.length - 1];
+  if (!last || last[0] !== L.time || last[1] !== L.equity) liveSamples.push([L.time, L.equity]);
+  if (liveSamples.length > 1440) liveSamples.shift();
+  const td = L.today;
+  $("live-sub").innerHTML = [
+    `<span>Floating <b class="${moneyCls(L.floating_pnl)}">${money(L.floating_pnl)}</b></span>`,
+    `<span>Today <b class="${moneyCls(L.daily_pnl)}">${money(L.daily_pnl)}</b></span>`,
+    `<span>Since start <b class="${moneyCls(L.total_pnl)}">${money(L.total_pnl)}</b></span>`,
+    td ? `<span>Trades today <b>${td.trades}</b>${td.trades ? ` · ${td.wins} won` : ""}</span>` : "",
+  ].filter(Boolean).join("");
+  $("live-age").textContent = `${L.currency || ""} · read ${new Date(L.time * 1000).toISOString().slice(11, 19)} UTC`;
+  lineChart($("live-spark"), liveSamples, "Equity since this page opened", (v) => v.toFixed(2));
+  $("live-positions").innerHTML = (L.positions || []).map((p) => {
+    // Where the price is between the stop (left, 0) and the target (right, 1), for either side.
+    const span = p.target - p.stop, at = p.current === null ? null : (p.current - p.stop) / span;
+    const x = at === null ? null : Math.max(0, Math.min(1, at)) * 100;
+    const d = p.symbol.includes("JPY") ? 3 : 5;
+    return `<div class="pos-row"><div class="top"><span><b>${esc(p.symbol)}</b> ${esc(p.side)} · open ${ago(p.opened, L.time)}</span>
+      <span>${p.r_now === null ? NA : signed(p.r_now, 2) + " R"}</span></div>
+      <div class="bar" title="left: the stop · right: the target">${x === null ? "" : `<span class="now" style="left: calc(${x}% - 2px)"></span>`}</div>
+      <div class="bar-labels"><span>stop ${num(p.stop, d)}</span><span>now ${num(p.current, d)}</span><span>target ${num(p.target, d)}</span></div></div>`;
+  }).join("") || `<p class="muted small">No open trade right now.</p>`;
+  const lt = L.last_trade, ld = L.last_decision;
+  $("live-last").innerHTML = [
+    lt ? `Last closed: <b>${esc(lt.symbol)} ${esc(lt.side)}</b> ${lt.r === null ? "" : signed(lt.r, 2) + " R"} <span class="${moneyCls(lt.pnl)}">${money(lt.pnl)}</span> · ${esc(lt.exit_reason)} · ${ago(lt.closed, L.time)} ago` : "",
+    ld ? `Team's latest call: <b>${esc(ld.symbol)} ${esc(ld.decision)}</b> <span class="muted">${ld.time ? ago(ld.time, L.time) + " ago" : ""}${ld.reason ? " — " + esc(String(ld.reason).slice(0, 160)) : ""}</span>` : "",
+  ].filter(Boolean).join("<br>");
+}
+async function refreshLive() { await safe(async () => renderLive(await api("/api/live"))); }
+
 /* ── refresh loops ──────────────────────────────────────────────────── */
 async function safe(fn) { try { await fn(); } catch (e) { console.warn(e); } }
 async function refreshSelected() {
@@ -405,5 +509,7 @@ async function refreshSlow() {
   await safe(async () => renderResearch(await api("/api/research")));
 }
 refreshFast().then(refreshSlow);
+refreshLive();
+setInterval(refreshLive, 2500);  // the account itself; prices behind it refresh about every 10 s
 setInterval(refreshFast, 10000);  // prices are cached 10 s server-side: refreshing faster only costs requests
 setInterval(refreshSlow, 20000);

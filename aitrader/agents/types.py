@@ -198,4 +198,8 @@ class MarketContext:
             "atr": self.atr, "bid": self.bid, "ask": self.ask, "quote_time": self.quote_time,
             "levels": self.levels, "data_flags": self.data_flags, "mode": self.mode,
             "account": asdict(self.account), "analog_meta": self.analog_meta,
+            # What the history desk showed for this decision, without the example list: recorded so the
+            # dashboard can show the measured win rates the team was given, not a number made up after.
+            "history": ({k: v for k, v in self.history.items() if k != "closest_examples"}
+                        if isinstance(self.history, dict) else None),
         }
