@@ -28,6 +28,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+import urllib.parse
 import urllib.request
 from typing import Callable
 
@@ -38,7 +39,7 @@ from ..data.resample import resample
 from ..observability import log_event
 from ..risk.engine import Quote
 
-YAHOO_VERSION = "yahoo-feed-1.0.0"
+YAHOO_VERSION = "yahoo-feed-1.1.0"  # 1.1.0: intermarket context (DXY, US 10y, gold, S&P futures)
 CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval={interval}&range={range}"
 
 #: Yahoo interval and the range that holds enough completed bars for the traders.
@@ -46,6 +47,11 @@ INTERVALS = {"M1": ("1m", "1d"), "M5": ("5m", "5d"), "M15": ("15m", "5d"), "H1":
 PERIOD_S = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600, "H4": 14400, "D1": 86400}
 CACHE_S = {"M1": 60, "M5": 60, "M15": 60, "H1": 300, "D1": 3600}
 QUOTE_TTL_S = 10
+
+#: Markets that move the dollar pairs, read as context for the team (never traded): the dollar index,
+#: the US 10-year yield index (^TNX), gold and S&P 500 futures. Completed H1 bars only.
+INTERMARKET = {"DXY": "DX-Y.NYB", "US10Y": "^TNX", "GOLD": "GC=F", "SP500_FUT": "ES=F"}
+INTERMARKET_TTL_S = 300
 
 #: Typical retail spreads in pips at liquid hours: an estimate for the paper account, not a quote.
 SPREADS_PIPS = {"EURUSD": 0.8, "GBPUSD": 1.2, "USDJPY": 1.0, "AUDUSD": 1.0, "USDCAD": 1.5, "USDCHF": 1.5,
@@ -194,6 +200,47 @@ class YahooFeed:
         with self._lock:
             self._quotes[symbol] = (t, q)
         return q
+
+    def intermarket(self, as_of: int) -> dict:
+        """Each context market's last completed H1 close and its change over 1, 4 and 24 hours, with
+        the bar's time (equity and bond markets close; the age says so). A market that cannot be read
+        is reported with its reason, never filled in."""
+        key = int(as_of) // INTERMARKET_TTL_S
+        with self._lock:
+            hit = self._bars.get(("__intermarket__", key))
+        if hit is not None:
+            return hit
+        out: dict = {}
+        for name, ysym in INTERMARKET.items():
+            try:
+                url = CHART_URL.format(sym=urllib.parse.quote(ysym, safe=""), interval="60m", range="5d")
+                chart = (self._fetch(url) or {}).get("chart") or {}
+                result = (chart.get("result") or [None])[0]
+                if chart.get("error") or not result:
+                    raise ValueError(f"Yahoo: {chart.get('error') or 'no result'}")
+                t = np.asarray(result.get("timestamp") or [], dtype=float)
+                c = np.asarray([np.nan if v is None else v for v in
+                                (((result.get("indicators") or {}).get("quote") or [{}])[0].get("close") or [])], dtype=float)
+                n = min(len(t), len(c))
+                ok = np.isfinite(c[:n]) & (t[:n] + 3600 <= as_of)
+                t, c = t[:n][ok], c[:n][ok]
+                if len(c) < 2:
+                    raise ValueError("fewer than two completed hourly bars")
+
+                def chg(h):
+                    j = int(np.searchsorted(t, t[-1] - h * 3600, side="right")) - 1
+                    return round(float((c[-1] - c[j]) / c[j] * 100), 3) if j >= 0 and c[j] else None
+
+                out[name] = {"last": round(float(c[-1]), 4), "chg_1h_pct": chg(1), "chg_4h_pct": chg(4),
+                             "chg_24h_pct": chg(24), "bar_utc": time.strftime("%d %H:%M", time.gmtime(int(t[-1]))),
+                             "age_min": int((as_of - t[-1] - 3600) // 60)}
+            except Exception as exc:  # a read: say why, never invent a value
+                out[name] = {"unavailable": f"{type(exc).__name__}: {exc}"[:120]}
+        res = {"source": "Yahoo Finance, completed hourly bars", "note": "US10Y is the CBOE 10-year yield index (^TNX) as Yahoo quotes it",
+               "markets": out}
+        with self._lock:
+            self._bars[("__intermarket__", key)] = res
+        return res
 
     def data_error(self, symbol: str) -> str | None:
         return self.errors.get((symbol, "H1")) or self.last_error

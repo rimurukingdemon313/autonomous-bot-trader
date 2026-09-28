@@ -549,7 +549,7 @@ function renderLive(L) {
       <div class="tc-sub">entry <b>${num(p.entry, d)}</b> → now <b>${num(p.current, d)}</b> · <b>${p.r_now === null ? NA : signed(p.r_now, 2) + " R"}</b></div>
       ${progressRing(p, d)}
       <div class="tc-meta"><span>open ${ago(p.opened, L.time)}</span><span>${left === null ? "no time limit" : left > 0 ? `closes by time in ${mmss(left)}` : "closing now (time)"}</span></div>
-      ${p.thesis ? `<div class="tc-why"><b>Why:</b> ${esc(p.thesis)}</div>` : ""}</div>`;
+      ${p.thesis ? `<div class="tc-why"><b>Why${p.method ? ` (${esc(p.method)})` : ""}:</b> ${esc(p.thesis)}</div>` : ""}</div>`;
   }).join("") || `<div class="trade-card empty">No open trade right now · the team is watching the market</div>`;
   const lt = L.last_trade, ld = L.last_decision;
   $("live-last").innerHTML = [
@@ -576,8 +576,14 @@ function renderAnalysis(r) {
       : b.state === "waiting" ? `<span class="muted">waiting</span>`
       : `<span class="muted">${esc(b.state)}${b.status ? " (" + esc(b.status) + ")" : ""}</span>`;
     return `<div class="an-box ${esc(cls)}"><div class="in"><div class="role">${esc(ROLE_NAME[b.role] || b.role)} · ${Math.round(100 / r.boxes.length)}%</div>
-      <div class="who">${esc(b.member)}</div><div class="st">${st}</div>${b.thesis ? `<div class="th">${esc(b.thesis)}</div>` : ""}</div></div>`;
+      <div class="who">${esc(b.member)}</div><div class="st">${st}</div>${b.method ? `<div class="who">method: ${esc(b.method)}</div>` : ""}${b.thesis ? `<div class="th">${esc(b.thesis)}</div>` : ""}</div></div>`;
   }).join("");
+  // What the team is looking at: structure per timeframe (from the market map) and the related markets.
+  const cx = r.context || {};
+  const st = Object.entries(cx.structure || {}).map(([tf, v]) => `${tf} ${esc(v.trend || "?")}${v.last_break ? ` (${esc(v.last_break)})` : ""}`).join(" · ");
+  const im = Object.entries(cx.intermarket_4h || {}).filter(([, v]) => v !== null && v !== undefined)
+    .map(([k, v]) => `${esc(k)} <span class="${v >= 0 ? "pos" : "neg"}">${v >= 0 ? "+" : ""}${Number(v).toFixed(2)}%</span>`).join(" · ");
+  const ctxLine = (st || im) ? `<div class="small muted" style="margin-bottom:8px">${st ? `Structure: ${st}` : ""}${cx.session ? ` · session ${esc(cx.session)}` : ""}${im ? `<br>Related markets (4h): ${im}` : ""}</div>` : "";
   let line;
   if (r.stage === "discussing") line = `<span class="muted">The team is discussing ${esc(r.symbol)}…</span>`;
   else if (r.stage === "deciding") line = `<b>100%</b> · ${esc(r.head || "the team")} is writing the team's decision<span class="dots"></span>`;
@@ -585,14 +591,14 @@ function renderAnalysis(r) {
   else if (res.action === "NO_TRADE") line = `<b>NO TRADE</b> <span class="muted">— ${esc(String(res.reason || "").slice(0, 220))}</span>`;
   else {
     const d = String(r.symbol || "").includes("JPY") ? 3 : 5;
-    const plan = `<b class="${res.action === "BUY" ? "pos" : "neg"}">${esc(res.action)}</b> ${esc(res.timeframe || "")} · SL ${num(res.stop, d)} · TP ${num(res.target, d)}${res.max_hold_minutes ? ` · up to ${res.max_hold_minutes} min` : ""}`;
+    const plan = `<b class="${res.action === "BUY" ? "pos" : "neg"}">${esc(res.action)}</b> ${esc(res.timeframe || "")}${res.method ? ` · ${esc(res.method)}` : ""} · SL ${num(res.stop, d)} · TP ${num(res.target, d)}${res.max_hold_minutes ? ` · up to ${res.max_hold_minutes} min` : ""}`;
     const after = !out ? `<span class="muted">checking with the risk engine…</span>`
       : out.executed ? `<span class="an-placed ${res.action === "BUY" ? "buy" : "sell"}">✔ TRADE OPENED · ${num(out.qty, 2)} lots</span> <span class="muted small">sized by the risk engine</span>`
       : out.risk === "REJECTED" ? `<span class="neg">✗ refused by the risk engine: ${esc((out.reasons || [])[0] || "")}</span>`
       : `<span class="muted">not placed</span>`;
     line = `${plan}<br>${after}`;
   }
-  $("an-result").innerHTML = line;
+  $("an-result").innerHTML = ctxLine + line;
 }
 async function refreshAnalysis() { await safe(async () => renderAnalysis(await api("/api/room"))); }
 

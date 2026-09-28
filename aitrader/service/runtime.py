@@ -648,6 +648,7 @@ class Runtime:
                                             "opened")},
                         "pnl": None if pnl.get(t["id"]) is None else round(pnl[t["id"]], 2),
                         "max_hold_minutes": hold, "timeframe": d.get("timeframe"),
+                        "method": (((d.get("independent_evidence") or {}).get("room") or {}).get("joint") or {}).get("method"),
                         "thesis": str(d.get("thesis") or "")[:240] or None})
         return out
 

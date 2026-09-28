@@ -58,7 +58,8 @@ from .types import MarketContext
 #: 2.5.0: the packet's bars are rows (llm-trader 1.7.0).
 #: 2.6.0: the schema lists M1; TRADE_STYLE=scalp states the owner's one-minute preference; the room
 #:        publishes its progress (who is thinking, who has spoken) for the dashboard.
-ROOM_VERSION = "trading-room-2.6.0"
+#: 2.7.0: the market map and intermarket context in the packet; any method invited, and named.
+ROOM_VERSION = "trading-room-2.7.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -88,7 +89,10 @@ def assign_roles(members: list[str]) -> dict[str, list[str]]:
 
 _DATA = """Use ONLY the data in the JSON: completed bars on M1, M5 and M15 (when present), H1, H4 and D1, the live quote,
 the account, the quantitative agents' findings (information, not orders), the economic calendar, the history
-desk (what fixed trades did in the most similar past situations), and the team's memory of its past trades
+desk (what fixed trades did in the most similar past situations), the market map (structure computed from
+completed bars: swings, BOS/CHoCH, order blocks, fair value gaps, liquidity and sweeps, previous day/week and
+session levels, round numbers), intermarket context (dollar index, US 10-year yield, gold, S&P 500 futures),
+and the team's memory of its past trades
 (losses first) with the reflections written on them. The decision time is {time}; treat it as the
 present and do not use any knowledge of prices or events after it."""
 
@@ -96,6 +100,8 @@ _OWNER = """The owner wants an active team that finds trades, very short ones in
 reasonable opportunity, and does not want the account to sit idle: when this pair has no open trade and the
 market offers anything reasonable, the owner prefers a small, short trade to waiting (no trade is still the
 team's to choose). The owner's objective is profit after costs; every loss is recorded against the team.
+Use whatever method the team judges strongest here and now: SMC/ICT, price action, momentum, mean reversion,
+intermarket, news, or a combination; the map is information, not an instruction. Name it in "method".
 Every trading choice is the team's own: direction, timeframe, style, stop, target, holding time (from one minute
 to two weeks), or no trade. The team reviews its open trades as time passes and may close them whenever it
 decides. No one sizes positions: a risk engine does that and may refuse a trade."""
@@ -116,7 +122,8 @@ Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_minutes": <1-20160 or null>, "thesis": "your analysis and your plan, at most 5 sentences",
   "to_team": "what you say to your teammates: what you agree with, what you correct, at most 3 sentences",
-  "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson you used, or none"}}"""
+  "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson you used, or none",
+  "method": "the method you used, in a few words"}}"""
 
 JOINT = """You are {name}, writing the JOINT DECISION of your trading team ({members}): one trader with {n} brains.
 """ + _DATA + """
@@ -130,7 +137,8 @@ the team stands behind, or NO_TRADE if the team concluded there is nothing worth
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_minutes": <1-20160 or null>, "thesis": "the team's reasoning, at most 5 sentences",
-  "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson the team used, or none"}}"""
+  "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson the team used, or none",
+  "method": "the method the team used, in a few words"}}"""
 
 
 #: What the owner asked for, stated to the team as a wish, never as an order: the team still chooses
@@ -178,8 +186,22 @@ def _view(p: dict | None, model: str | None = None, status: str = "OK") -> dict:
     return {"status": status, "model": model, "action": p.get("action"), "timeframe": p.get("timeframe"),
             "stop": p.get("stop"), "target": p.get("target"), "max_hold_minutes": hold_minutes(p),
             "thesis": str(p.get("thesis") or "")[:500], "invalidation": str(p.get("invalidation") or "")[:200],
-            "memory_used": str(p.get("memory_used") or "")[:200],
+            "memory_used": str(p.get("memory_used") or "")[:200], "method": str(p.get("method") or "")[:80] or None,
             **({"to_team": str(p.get("to_team"))[:400]} if p.get("to_team") else {})}
+
+
+def _context_line(ctx) -> dict:
+    """What the team is looking at, in brief, for the dashboard: each timeframe's structure and last
+    break from the market map, and the 4-hour change of the intermarket context. Read-only."""
+    mm, im = ctx.market_map or {}, (ctx.intermarket or {}).get("markets") or {}
+    return {
+        "structure": {tf: {"trend": (s.get("trend") or "").split(" ")[0],
+                           "last_break": (f"{s['last_break']['kind']} {s['last_break']['direction']}"
+                                          if s.get("last_break") else None)}
+                      for tf, s in (mm.get("structure") or {}).items()},
+        "session": (mm.get("levels") or {}).get("session_now"),
+        "intermarket_4h": {k: v.get("chg_4h_pct") for k, v in im.items() if isinstance(v, dict) and "last" in v},
+    }
 
 
 class TradingRoom:
@@ -225,7 +247,8 @@ class TradingRoom:
                       "final": {}, "joint": None, "outcome": None}
         boxes = [{"role": r, "member": m, "state": "waiting"} for m in order for r in roles[m]]
         self.live = {}
-        self._publish(symbol=ctx.symbol, t=ctx.t, stage="discussing", boxes=boxes, pct=0, result=None, outcome=None)
+        self._publish(symbol=ctx.symbol, t=ctx.t, stage="discussing", boxes=boxes, pct=0, result=None, outcome=None,
+                      context=_context_line(ctx))
 
         def mark(m: str, **kw) -> None:
             for b in boxes:
@@ -270,10 +293,10 @@ class TradingRoom:
                 if problem:
                     view["dropped"] = problem  # recorded; its teammates still read what it argued
             said.append({"member": m, "role": "+".join(roles[m]), **{k: view.get(k) for k in (
-                "action", "timeframe", "stop", "target", "max_hold_minutes", "thesis", "to_team", "invalidation")}})
+                "action", "timeframe", "stop", "target", "max_hold_minutes", "thesis", "to_team", "invalidation", "method")}})
             room["discussion"].append({"member": m, "role": "+".join(roles[m]), **view})
             room["final"][m] = view
-            mark(m, state="done", action=view["action"], timeframe=view.get("timeframe"),
+            mark(m, state="done", action=view["action"], timeframe=view.get("timeframe"), method=view.get("method"),
                  thesis=str(view.get("thesis") or "")[:180], model=res.model)
         present = [m for m in order if m in room["final"]]
         if not present:
@@ -311,6 +334,7 @@ class TradingRoom:
         room["outcome"] = (f"team {p['action']} on {p['timeframe']}, written by {head}"
                            + (f"; argued for by {', '.join(backers)}" if backers else ""))
         self._publish(stage="decided", result={"action": p["action"], "timeframe": p["timeframe"],
+                                               "method": str(p.get("method") or "")[:80] or None,
                                                "stop": p["stop"], "target": p["target"],
                                                "max_hold_minutes": hold_minutes(p), "reason": room["outcome"]})
         support = [{"agent": f"room:{d['member']}", "claim": f"{d['member']}: {d.get('to_team') or d['thesis']}",

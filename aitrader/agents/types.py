@@ -190,6 +190,8 @@ class MarketContext:
     account_blocks: list = field(default_factory=list)  # risk-engine account checks that already refuse any trade here
     news: dict | None = None  # the economic calendar for this pair (data/calendar.py); None = not configured
     history: dict | None = None  # the history desk's brief (memory/history.py); None = not configured
+    market_map: dict | None = None  # SMC/ICT structure from completed bars (features/market_map.py)
+    intermarket: dict | None = None  # DXY, US 10y, gold, S&P futures (data/yahoo.py); None = not available
 
     def as_dict(self) -> dict:
         return {
@@ -202,4 +204,5 @@ class MarketContext:
             # dashboard can show the measured win rates the team was given, not a number made up after.
             "history": ({k: v for k, v in self.history.items() if k != "closest_examples"}
                         if isinstance(self.history, dict) else None),
+            "market_map": self.market_map, "intermarket": self.intermarket,
         }

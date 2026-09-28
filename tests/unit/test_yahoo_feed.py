@@ -166,3 +166,29 @@ def test_end_to_end_a_model_trades_on_yahoo_prices_through_the_risk_engine(tmp_p
     assert v["approved"] == 1
     ctx = json.loads(rt.db.one("SELECT payload FROM decisions")["payload"])["context"]
     assert ctx["features"]["metadata"]["not_provided_by_source"] == ["tick_activity"]  # excluded, and said so
+
+
+def test_intermarket_context_is_read_from_completed_hours_and_a_failure_is_named():
+    """DXY, the 10-year yield, gold and S&P futures, as context. The forming hour is never used; a
+    market Yahoo cannot serve is reported with its reason, never filled in; it is read once per window."""
+    now = T0 + 30 * H + 600
+
+    def reply(url):
+        if "GC%3DF" in url:
+            return {"chart": {"result": None, "error": {"code": "Not Found"}}}
+        c = chart(31, H)
+        closes = [100 + i for i in range(31)]  # rises by 1 an hour; the 31st bar is still forming
+        c["chart"]["result"][0]["indicators"]["quote"][0]["close"] = closes
+        return c
+
+    f = feed(reply, now)
+    im = f.intermarket(now)
+    dxy = im["markets"]["DXY"]
+    assert dxy["last"] == 129  # bar 30 (index 29) is the last completed one, not the forming 130
+    assert dxy["chg_1h_pct"] == pytest.approx(round(1 / 128 * 100, 3))
+    assert dxy["chg_4h_pct"] == pytest.approx(round(4 / 125 * 100, 3))
+    assert "unavailable" in im["markets"]["GOLD"] and "Not Found" in im["markets"]["GOLD"]["unavailable"]
+    assert any("%5ETNX" in u for u in f._fetch.urls)  # the yield index symbol is URL-encoded
+    n = len(f._fetch.urls)
+    f.intermarket(now + 60)
+    assert len(f._fetch.urls) == n  # cached for its window

@@ -47,7 +47,8 @@ from .types import MarketContext
 #: 1.7.0: bars as rows (bar_fields names the columns) and fewer of them (M1 24, M5 18, M15 12, H4 12, D1 10;
 #:        each timeframe keeps its 20-bar summary): fewer tokens per decision, so more decisions per free day.
 #: 1.8.0: the reply schema lists M1, which was always accepted but never offered.
-LLM_TRADER_VERSION = "llm-trader-1.8.0"
+#: 1.9.0: the packet carries the market map and intermarket context; any method is invited and named.
+LLM_TRADER_VERSION = "llm-trader-1.9.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -62,10 +63,15 @@ SYSTEM = """You are a professional discretionary FX trader managing a paper acco
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
 Use ONLY the data in the JSON you are given: completed bars on M1, M5 and M15 (when present), H1, H4 and D1, the live quote,
 the account, the quantitative agents' findings (information, not orders), the economic calendar, the history
-desk (what fixed trades did, after costs, in the most similar past situations), and YOUR OWN MEMORY: your record,
+desk (what fixed trades did, after costs, in the most similar past situations), the market map (structure
+computed from completed bars: swings, BOS/CHoCH, order blocks, fair value gaps, liquidity and sweeps, previous
+day/week and session levels, round numbers), intermarket context (dollar index, US 10-year yield, gold, S&P 500
+futures), and YOUR OWN MEMORY: your record,
 your past trades most relevant now (losses first) with your own reflections on them, and validated lessons.
 Do not use any knowledge of prices or events after the decision time, even if you have it.
 
+Use whatever method you judge strongest here and now: SMC/ICT, price action, momentum, mean reversion,
+intermarket, news, or a combination; the map is information, not an instruction. Name it in "method".
 Every choice is yours: whether to trade at all, the direction, the timeframe, your style, where the stop and
 the target go, how long to hold (from one minute to two weeks). No style, quota or setup is required of you, and
 you will be asked about your open trades as time passes: you may close them whenever you decide.
@@ -77,7 +83,8 @@ and say which part of it you used. You do NOT size positions: a risk engine does
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_minutes": <1-20160 or null>, "thesis": "why, in at most 4 sentences",
-  "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none"}}"""
+  "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none",
+  "method": "the method you used, in a few words"}}"""
 
 REFLECT = """You are reviewing one of YOUR OWN closed paper trades, to learn from it.
 Be specific and honest. A loss is not automatically a mistake: sometimes a sound trade loses.
@@ -220,6 +227,9 @@ def market_packet(ctx: MarketContext, reports: dict) -> dict:
         "memory": ctx.memory_brief,
         "calendar": ctx.news if ctx.news is not None else {"feed": {"status": "NOT_CONFIGURED"}, "events": None},
         "history": ctx.history if ctx.history is not None else {"available": False, "reason": "no history desk"},
+        "market_map": ctx.market_map if ctx.market_map is not None else {"available": False},
+        "intermarket": ctx.intermarket if ctx.intermarket is not None else {"available": False,
+                                                                            "reason": "not provided by this data source"},
     }
 
 
