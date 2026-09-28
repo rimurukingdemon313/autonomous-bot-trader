@@ -542,3 +542,9 @@ def test_saving_the_memory_never_leaves_a_partial_file(tmp_path, monkeypatch):
         PatternMemory(np.zeros(18), np.ones(18), ACTIONS).save(path)
     assert path.read_bytes() == before  # the previous file, whole
     PatternMemory.load(path)
+
+
+def test_the_room_progress_endpoint_answers_even_outside_the_room_mode(server):
+    rt, base, _ = server
+    code, body = call(base, "/api/room")
+    assert code == 200 and isinstance(body, dict)

@@ -213,3 +213,54 @@ def test_each_minds_record_counts_the_trades_it_argued_for_separately(tmp_path):
     assert rec["groq"]["supported"] == {"trades": 2, "win_rate": 0.5, "avg_R": 0.25, "sample": "insufficient"}
     assert rec["gemini"]["supported"]["trades"] == 1 and rec["gemini"]["stood_aside"]["avg_R"] == -1.0
     assert rec["bytez"]["supported"] == {"trades": 0}
+
+
+def test_the_dashboard_sees_each_mind_think_in_turn_and_the_share_of_the_work_done():
+    """The owner watches the discussion: while a mind speaks its box says so; each finished role is a
+    quarter of the whole; the result appears once the team has decided. Captured from inside the
+    calls, so it is what a reader on another thread would have seen at that moment."""
+    seen = []
+    room = Room(speak={"groq": trade(), "gemini": 503, "openrouter": NONE, "bytez": trade(stop=1.0980)},
+                joint=trade(stop=1.0980))
+    brain = room.brain()
+    real = room.transport
+
+    def watching(url, headers, body, timeout):
+        live = brain.room.live
+        seen.append((url.split("//")[1].split(".")[0], live["pct"],
+                     {b["role"]: b["state"] for b in live["boxes"]}, live["stage"]))
+        return real(url, headers, body, timeout)
+
+    brain.room.llm._transport = watching
+    brain.think(live_ctx(), V)
+    first = seen[0]
+    assert first[1] == 0 and first[3] == "discussing" and list(first[2].values()).count("thinking") == 1
+    assert [s[1] for s in seen if s[3] == "discussing"] == sorted(s[1] for s in seen if s[3] == "discussing")
+    assert seen[-1][3] == "deciding" and seen[-1][1] == 100  # the joint call: every role finished
+    live = brain.room.live
+    assert live["stage"] == "decided" and live["result"]["action"] == "BUY" and live["pct"] == 100
+    states = {b["member"]: b["state"] for b in live["boxes"]}
+    assert states["gemini"] == "no answer" and states["groq"] == "done" and len(live["boxes"]) == 4
+
+
+def test_a_decision_the_team_was_not_asked_for_says_so_on_the_dashboard():
+    room = Room(speak={m: trade() for m in MEMBERS})
+    c = live_ctx()
+    c.trading_allowed = False
+    brain = room.brain()
+    brain.think(c, V)
+    live = brain.room.live
+    assert room.calls == [] and live["stage"] == "decided" and live["result"]["action"] == "NO_TRADE"
+    assert {b["state"] for b in live["boxes"]} == {"not asked"} and live["pct"] == 0
+
+
+def test_the_scalp_style_is_stated_as_the_owners_wish_and_m1_is_offered():
+    room = Room(speak={m: NONE for m in MEMBERS})
+    room.brain(style="scalp").think(live_ctx(), V)
+    assert all("one-minute trading" in s and "M1|M5|M15" in s for _, s in room.systems)
+    assert all("No trade is still the team's to choose" in s for _, s in room.systems)
+    plain = Room(speak={m: NONE for m in MEMBERS})
+    plain.brain().think(live_ctx(), V)
+    assert not any("one-minute trading" in s for _, s in plain.systems)
+    with pytest.raises(ValueError):
+        RoomConfig(style="yolo")

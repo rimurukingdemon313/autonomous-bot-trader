@@ -292,6 +292,14 @@ class Orchestrator:
                 self.counts["risk_rejected"] += 1
         else:
             self.counts["no_trade"] += 1
+        room = getattr(self.brain, "room", None)
+        if room is not None and hasattr(room, "publish_outcome"):  # the dashboard's view of the discussion
+            room.publish_outcome(symbol, t, {
+                "decision": d.decision,
+                "risk": None if verdict is None else ("APPROVED" if verdict.approved else "REJECTED"),
+                "reasons": list(verdict.reasons[:3]) if verdict is not None and not verdict.approved else [],
+                "qty": verdict.qty if verdict is not None and verdict.approved else None,
+                "executed": executed})
 
         # Track every action's outcome from here, and remember what was evaluated.
         setup = thought.reports.get("setup")

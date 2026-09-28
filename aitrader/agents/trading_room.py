@@ -35,6 +35,7 @@ so each member's forward record can be measured separately.
 
 from __future__ import annotations
 
+import copy
 import os
 from dataclasses import dataclass
 
@@ -55,7 +56,9 @@ from .types import MarketContext
 #: 2.3.0: holding time in minutes, M1 bars, the owner's objective stated, open trades reviewed.
 #: 2.4.0: the owner's wish that the account not sit idle is stated.
 #: 2.5.0: the packet's bars are rows (llm-trader 1.7.0).
-ROOM_VERSION = "trading-room-2.5.0"
+#: 2.6.0: the schema lists M1; TRADE_STYLE=scalp states the owner's one-minute preference; the room
+#:        publishes its progress (who is thinking, who has spoken) for the dashboard.
+ROOM_VERSION = "trading-room-2.6.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -110,7 +113,7 @@ you speak first). Build on it: agree and add what they missed, correct a mistake
 and try to convince them. Then state the plan you want the team to take.
 
 Reply with ONE JSON object only:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
+{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_minutes": <1-20160 or null>, "thesis": "your analysis and your plan, at most 5 sentences",
   "to_team": "what you say to your teammates: what you agree with, what you correct, at most 3 sentences",
   "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson you used, or none"}}"""
@@ -125,24 +128,40 @@ the best of each role: the direction, timeframe, stop, target and holding time
 the team stands behind, or NO_TRADE if the team concluded there is nothing worth taking.
 
 Reply with ONE JSON object only:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
+{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_minutes": <1-20160 or null>, "thesis": "the team's reasoning, at most 5 sentences",
   "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson the team used, or none"}}"""
+
+
+#: What the owner asked for, stated to the team as a wish, never as an order: the team still chooses
+#: the direction, the levels and NO_TRADE, and the risk engine still sizes and may refuse.
+STYLES = {
+    "free": "",
+    "scalp": """
+The owner has asked for one-minute trading on this pair: prefer timeframe M1 and a holding time of about 1 to 5
+minutes, one trade at a time, and a new trade each minute when the market offers anything reasonable. Keep the
+stop and target where the M1 price action justifies them; the spread is a real cost on trades this short.
+No trade is still the team's to choose.""",
+}
 
 
 @dataclass(frozen=True)
 class RoomConfig:
     size: int = 4          # members taken from AI_PROVIDERS, in order
     head: str = ""         # provider name that writes the joint decision; default the first member present
+    style: str = "free"    # TRADE_STYLE: "free" (the team chooses everything) or "scalp" (the owner's one-minute wish)
 
     def __post_init__(self) -> None:
         if not 1 <= self.size <= 8:
             raise ValueError("AI_ROOM_SIZE must be 1..8")
+        if self.style not in STYLES:
+            raise ValueError(f"TRADE_STYLE must be one of {', '.join(STYLES)}")
 
     @classmethod
     def from_env(cls, env: dict | None = None) -> "RoomConfig":
         e = os.environ if env is None else env
-        return cls(size=int(e.get("AI_ROOM_SIZE", "4")), head=e.get("AI_ROOM_HEAD", "").strip().lower())
+        return cls(size=int(e.get("AI_ROOM_SIZE", "4")), head=e.get("AI_ROOM_HEAD", "").strip().lower(),
+                   style=(e.get("TRADE_STYLE", "").strip().lower() or "free"))
 
 
 def validate_speech(d: dict) -> str | None:
@@ -167,6 +186,18 @@ class TradingRoom:
     def __init__(self, llm, config: RoomConfig | None = None) -> None:
         self.llm = llm
         self.config = config or RoomConfig()
+        # The discussion in progress, for the dashboard: who is thinking, who has spoken, what each said.
+        # Replaced whole on every change and never mutated after, so a reader on another thread always
+        # sees one consistent state. Presentation only: nothing reads it back into a decision.
+        self.live: dict = {}
+
+    def _publish(self, **changes) -> None:
+        self.live = copy.deepcopy({**self.live, **changes})
+
+    def publish_outcome(self, symbol: str, t: int, outcome: dict) -> None:
+        """What happened after the team decided (risk engine, execution), for the same decision point."""
+        if self.live.get("symbol") == symbol and self.live.get("t") == t:
+            self._publish(outcome=outcome)
 
     def members(self) -> list[str]:
         if self.llm is None or not self.llm.config.enabled:
@@ -192,13 +223,27 @@ class TradingRoom:
         order = self.speaking_order(roles)
         room: dict = {"members": members, "roles": roles, "order": order, "head": None, "discussion": [],
                       "final": {}, "joint": None, "outcome": None}
+        boxes = [{"role": r, "member": m, "state": "waiting"} for m in order for r in roles[m]]
+        self.live = {}
+        self._publish(symbol=ctx.symbol, t=ctx.t, stage="discussing", boxes=boxes, pct=0, result=None, outcome=None)
+
+        def mark(m: str, **kw) -> None:
+            for b in boxes:
+                if b["member"] == m:
+                    b.update(kw)
+            finished = sum(b["state"] not in ("waiting", "thinking") for b in boxes)
+            self._publish(boxes=boxes, pct=round(100 * finished / len(boxes)) if boxes else 0)
 
         def no_trade(reason: str, contra=None) -> Decision:
             room["outcome"] = reason
+            self._publish(stage="decided", result={"action": "NO_TRADE", "reason": reason[:300]})
             return no_trade_decision(ctx, did, v, agents, reason, contra, evidence={"room": room})
 
         blocked = pre_model_block(ctx, reports, self.llm)
         if blocked:
+            for b in boxes:
+                b["state"] = "not asked"
+            self._publish(boxes=boxes, stage="not asked")
             return no_trade(blocked[0], contra=blocked[1])
         packet = market_packet(ctx, reports)
         n, names = len(members), ", ".join(members)
@@ -208,13 +253,16 @@ class TradingRoom:
         desc = dict(ROLES)
         for m in order:
             role = " AND ".join(f"{r}, {desc[r]}" for r in roles[m])
+            mark(m, state="thinking")
             res = self.llm.complete_json(
-                f"room:{m}", SPEAK.format(name=m, n=n, members=names, time=packet["decision_time"], role=role),
+                f"room:{m}", SPEAK.format(name=m, n=n, members=names, time=packet["decision_time"], role=role)
+                + STYLES[self.config.style],
                 {**packet, "you": m, "discussion": list(said)}, validate_speech,
                 cache_key=f"{ctx.symbol}|{ctx.t}|speak|{len(said)}", only=m)
             if not res.ok:
                 room["discussion"].append({"member": m, "role": "+".join(roles[m]), "status": res.status,
                                            "model": res.model})
+                mark(m, state="resting" if res.status in ("COOLDOWN", "BUDGET") else "no answer", status=res.status)
                 continue  # skipped: nobody speaks for it
             view = _view(res.data, res.model)
             if view["action"] != "NO_TRADE":
@@ -225,6 +273,8 @@ class TradingRoom:
                 "action", "timeframe", "stop", "target", "max_hold_minutes", "thesis", "to_team", "invalidation")}})
             room["discussion"].append({"member": m, "role": "+".join(roles[m]), **view})
             room["final"][m] = view
+            mark(m, state="done", action=view["action"], timeframe=view.get("timeframe"),
+                 thesis=str(view.get("thesis") or "")[:180], model=res.model)
         present = [m for m in order if m in room["final"]]
         if not present:
             return no_trade("no member of the team answered (" +
@@ -236,7 +286,8 @@ class TradingRoom:
         # 2. JOINT DECISION: one member writes the plan the team converged on.
         head = self.config.head if self.config.head in present else present[0]
         room["head"] = head
-        system = JOINT.format(name=head, n=n, members=names, time=packet["decision_time"])
+        self._publish(stage="deciding", head=head)
+        system = JOINT.format(name=head, n=n, members=names, time=packet["decision_time"]) + STYLES[self.config.style]
         joint_packet = {**packet, "discussion": said}
         res = self.llm.complete_json("room:joint", system, joint_packet, validate_proposal,
                                      cache_key=f"{ctx.symbol}|{ctx.t}|joint", only=head)
@@ -259,6 +310,9 @@ class TradingRoom:
         backers = [m for m in present if room["final"][m]["action"] == p["action"]]
         room["outcome"] = (f"team {p['action']} on {p['timeframe']}, written by {head}"
                            + (f"; argued for by {', '.join(backers)}" if backers else ""))
+        self._publish(stage="decided", result={"action": p["action"], "timeframe": p["timeframe"],
+                                               "stop": p["stop"], "target": p["target"],
+                                               "max_hold_minutes": hold_minutes(p), "reason": room["outcome"]})
         support = [{"agent": f"room:{d['member']}", "claim": f"{d['member']}: {d.get('to_team') or d['thesis']}",
                     "model": room["final"][d["member"]]["model"]} for d in said]
         support.append({"agent": "room:joint", "claim": f"joint decision by {head}: {str(p['thesis'])[:300]}",

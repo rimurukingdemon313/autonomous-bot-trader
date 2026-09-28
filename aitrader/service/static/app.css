@@ -109,3 +109,28 @@ ol.plain li { margin: 6px 0; }
 .bar .now { position: absolute; top: -3px; width: 4px; height: 14px; border-radius: 2px; background: var(--text-primary); transition: left .6s ease; }
 .bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .dot-live.on { animation: none; } .bar .now, .hero { transition: none; } }
+
+/* ── team analysis ── */
+.an-pct { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.an-bar { height: 10px; border-radius: 5px; background: var(--grid); overflow: hidden; margin: 4px 0 12px; }
+.an-bar span { display: block; height: 100%; width: 0; border-radius: 5px; background: var(--muted); transition: width .6s ease; }
+.an-bar.run span, .an-box.thinking { background: linear-gradient(90deg, #ff2d55, #ff9500, #ffd60a, #34c759, #0a84ff, #bf5af2, #ff2d55);
+  background-size: 300% 100%; animation: rgb 2.2s linear infinite; }
+.an-bar.buy span { background: var(--good); } .an-bar.sell span { background: var(--critical); }
+@keyframes rgb { to { background-position: 300% 0; } }
+.an-boxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 700px) { .an-boxes { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.an-box { border-radius: 12px; padding: 2px; background: var(--border); }
+.an-box .in { background: var(--surface-1); border-radius: 10px; padding: 9px 10px; min-height: 104px; height: 100%; }
+.an-box.thinking { box-shadow: 0 0 14px rgba(120, 90, 255, .35); }
+.an-box.BUY { background: var(--good); } .an-box.SELL { background: var(--critical); }
+.an-box.resting, .an-box.no-answer, .an-box.not-asked { opacity: .55; }
+.an-box .role { font-weight: 700; font-size: 13px; letter-spacing: .03em; }
+.an-box .who { font-size: 11px; color: var(--muted); }
+.an-box .st { font-size: 13px; font-weight: 600; margin-top: 6px; }
+.an-box .th { font-size: 11px; color: var(--text-secondary); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden; }
+.dots::after { content: "…"; animation: dots 1.2s steps(4) infinite; display: inline-block; width: 1.2em; overflow: hidden; vertical-align: bottom; }
+@keyframes dots { from { width: 0; } to { width: 1.2em; } }
+.an-result { margin: 10px 0 0; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .an-bar.run span, .an-box.thinking, .dots::after { animation: none; } }

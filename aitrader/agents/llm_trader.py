@@ -46,7 +46,8 @@ from .types import MarketContext
 #: 1.5.0: the owner's wish that the account not sit idle is stated.
 #: 1.7.0: bars as rows (bar_fields names the columns) and fewer of them (M1 24, M5 18, M15 12, H4 12, D1 10;
 #:        each timeframe keeps its 20-bar summary): fewer tokens per decision, so more decisions per free day.
-LLM_TRADER_VERSION = "llm-trader-1.7.0"
+#: 1.8.0: the reply schema lists M1, which was always accepted but never offered.
+LLM_TRADER_VERSION = "llm-trader-1.8.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -74,7 +75,7 @@ the owner prefers a small, short trade to waiting. No trade is still yours to ch
 and say which part of it you used. You do NOT size positions: a risk engine does that and may refuse a trade.
 
 Reply with ONE JSON object only:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
+{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
   "max_hold_minutes": <1-20160 or null>, "thesis": "why, in at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none"}}"""
 

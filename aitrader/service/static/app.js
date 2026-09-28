@@ -489,6 +489,45 @@ function renderLive(L) {
     ld ? `Team's latest call: <b>${esc(ld.symbol)} ${esc(ld.decision)}</b> <span class="muted">${ld.time ? ago(ld.time, L.time) + " ago" : ""}${ld.reason ? " — " + esc(String(ld.reason).slice(0, 160)) : ""}</span>` : "",
   ].filter(Boolean).join("<br>");
 }
+/* ── team analysis: the discussion as it happens ───────────────────── */
+const ROLE_NAME = { TREND: "Trend", PRICE: "Price", NEWS: "News", RISK: "Risk" };
+function renderAnalysis(r) {
+  if (!r || !r.boxes) return;
+  const running = r.stage === "discussing" || r.stage === "deciding";
+  const res = r.result, out = r.outcome;
+  $("an-symbol").textContent = `${r.symbol || ""} · ${r.t ? new Date(r.t * 1000).toISOString().slice(11, 16) : ""}`;
+  $("an-pct").textContent = `${r.pct ?? 0}%`;
+  const bar = $("an-bar");
+  bar.className = "an-bar" + (running ? " run" : res && res.action === "BUY" ? " buy" : res && res.action === "SELL" ? " sell" : "");
+  bar.setAttribute("aria-valuenow", r.pct ?? 0);
+  $("an-fill").style.width = `${r.pct ?? 0}%`;
+  $("an-boxes").innerHTML = r.boxes.map((b) => {
+    const cls = b.state === "done" ? (b.action || "") : String(b.state).replace(/ /g, "-");
+    const st = b.state === "thinking" ? `<span class="dots">thinking</span>`
+      : b.state === "done" ? `${esc(b.action)}${b.action !== "NO_TRADE" && b.timeframe ? " · " + esc(b.timeframe) : ""}`
+      : b.state === "waiting" ? `<span class="muted">waiting</span>`
+      : `<span class="muted">${esc(b.state)}${b.status ? " (" + esc(b.status) + ")" : ""}</span>`;
+    return `<div class="an-box ${esc(cls)}"><div class="in"><div class="role">${esc(ROLE_NAME[b.role] || b.role)} · ${Math.round(100 / r.boxes.length)}%</div>
+      <div class="who">${esc(b.member)}</div><div class="st">${st}</div>${b.thesis ? `<div class="th">${esc(b.thesis)}</div>` : ""}</div></div>`;
+  }).join("");
+  let line;
+  if (r.stage === "discussing") line = `<span class="muted">The team is discussing ${esc(r.symbol)}…</span>`;
+  else if (r.stage === "deciding") line = `<b>100%</b> · ${esc(r.head || "the team")} is writing the team's decision<span class="dots"></span>`;
+  else if (!res) line = "";
+  else if (res.action === "NO_TRADE") line = `<b>NO TRADE</b> <span class="muted">— ${esc(String(res.reason || "").slice(0, 220))}</span>`;
+  else {
+    const d = String(r.symbol || "").includes("JPY") ? 3 : 5;
+    const plan = `<b class="${res.action === "BUY" ? "pos" : "neg"}">${esc(res.action)}</b> ${esc(res.timeframe || "")} · SL ${num(res.stop, d)} · TP ${num(res.target, d)}${res.max_hold_minutes ? ` · up to ${res.max_hold_minutes} min` : ""}`;
+    const after = !out ? `<span class="muted">checking with the risk engine…</span>`
+      : out.executed ? `<span class="pos">✔ placed, ${num(out.qty, 2)} lots (sized by the risk engine)</span>`
+      : out.risk === "REJECTED" ? `<span class="neg">✗ refused by the risk engine: ${esc((out.reasons || [])[0] || "")}</span>`
+      : `<span class="muted">not placed</span>`;
+    line = `${plan}<br>${after}`;
+  }
+  $("an-result").innerHTML = line;
+}
+async function refreshAnalysis() { await safe(async () => renderAnalysis(await api("/api/room"))); }
+
 async function refreshLive() { await safe(async () => renderLive(await api("/api/live"))); }
 
 /* ── refresh loops ──────────────────────────────────────────────────── */
@@ -522,6 +561,8 @@ async function refreshSlow() {
 }
 refreshFast().then(refreshSlow);
 refreshLive();
-setInterval(refreshLive, 2500);  // the account itself; prices behind it refresh about every 10 s
+setInterval(refreshLive, 2500);
+refreshAnalysis();
+setInterval(refreshAnalysis, 1000);  // the discussion: who is thinking now  // the account itself; prices behind it refresh about every 10 s
 setInterval(refreshFast, 10000);  // prices are cached 10 s server-side: refreshing faster only costs requests
 setInterval(refreshSlow, 20000);

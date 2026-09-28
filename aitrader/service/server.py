@@ -96,6 +96,7 @@ def make_handler(rt: Runtime, token: str):
                     "/api/status": rt.status,
                     "/api/account": rt.account,
                     "/api/live": rt.live,
+                    "/api/room": lambda: getattr(getattr(rt.orch.brain, "room", None), "live", None) or {},
                     "/api/market": rt.market,
                     "/api/memory": rt.memory_view,
                     "/api/research": rt.research,
