@@ -195,7 +195,7 @@ class TradeLockerAdapter:
                       severity="critical", symbol=intent["symbol"])
         return None
 
-    def close(self, position_id: str, client_id: str | None = None) -> ClosedTrade:
+    def close(self, position_id: str, client_id: str | None = None, reason: str = "MANUAL") -> ClosedTrade:
         self.client.close_position(position_id)
         # The realised result is read from the broker's history by
         # closed_since(); nothing is invented here.

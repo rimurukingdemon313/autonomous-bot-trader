@@ -190,6 +190,22 @@ record in two parts: trades it argued for, and trades it did not.
 **Cost.** Each decision costs one call per member plus one joint call, 5
 with 4 members. When nobody sees a trade, it costs 4.
 
+## Managing its own trades
+
+- **Holding time.** The model sets how long a trade may stay open, in
+  minutes (`max_hold_minutes`, from 1 minute to 14 days). It is checked
+  every few seconds.
+- **Reviews.** At every decision cycle, each open trade is put back to the
+  model with its current R, the latest M1 to H1 bars and the calendar. It
+  answers HOLD or CLOSE. A close is executed at the market and shows as
+  `MODEL_EXIT`. It can only close: never open, resize, or move the stop or
+  target.
+- **When nothing answers.** An unanswered review holds, and the stop and
+  target stay on the broker.
+- **Cost.** One model call per open trade per cycle. With the risk
+  engine's maximum of 3 open trades and a 5-minute cycle, that is at most
+  about 860 calls a day.
+
 ## How often it decides (`DECISION_INTERVAL_MIN`, `SYMBOLS_PER_CYCLE`)
 
 By default the model traders decide at every 4th H1 close, the cadence the

@@ -41,31 +41,36 @@ from .types import MarketContext
 #: system's market JUDGEMENTS (unfamiliar, abnormal) are information, not a veto; no minimum stop
 #: distance of its own: the risk engine's spread-based stop checks decide what is too tight.
 #: 1.3.0: the packet carries the economic calendar and the history desk.
-LLM_TRADER_VERSION = "llm-trader-1.3.0"
+#: 1.4.0 (owner: "no fixed duration, even a minute"): holding time in MINUTES (1 to 20160), M1 bars,
+#: and the model reviews its open trades and may close them whenever it decides.
+LLM_TRADER_VERSION = "llm-trader-1.4.0"
 FAMILY = "LLM_TRADER"
-TIMEFRAMES = ("M5", "M15", "H1", "H4", "D1")
+TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
 #: The quantitative objections that still stop a decision before any model is asked. They concern the
 #: DATA or the account, not a view of the market: a model must never trade on wrong or stale prices,
 #: and a second position on the same pair would be refused by the risk engine anyway.
 PRE_MODEL_BLOCKS = ("DATA_QUALITY", "STALE_DATA", "EXPOSURE")
-MAX_HOLD_HOURS = 336
+MAX_HOLD_HOURS = 336  # legacy field, still accepted
+MAX_HOLD_MINUTES = 20160  # 14 days; 1 = one minute
 
 SYSTEM = """You are a professional discretionary FX trader managing a paper account.
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
-Use ONLY the data in the JSON you are given: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
+Use ONLY the data in the JSON you are given: completed bars on M1, M5 and M15 (when present), H1, H4 and D1, the live quote,
 the account, the quantitative agents' findings (information, not orders), the economic calendar, the history
 desk (what fixed trades did, after costs, in the most similar past situations), and YOUR OWN MEMORY: your record,
 your past trades most relevant now (losses first) with your own reflections on them, and validated lessons.
 Do not use any knowledge of prices or events after the decision time, even if you have it.
 
 Every choice is yours: whether to trade at all, the direction, the timeframe, your style, where the stop and
-the target go, how long to hold. No style, quota or setup is required of you. Use your memory as you see fit
+the target go, how long to hold (from one minute to two weeks). No style, quota or setup is required of you, and
+you will be asked about your open trades as time passes: you may close them whenever you decide.
+The owner's objective is profit after costs; every loss is recorded against your record. Use your memory as you see fit
 and say which part of it you used. You do NOT size positions: a risk engine does that and may refuse a trade.
 
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
-  "max_hold_hours": <1-336 or null>, "thesis": "why, in at most 4 sentences",
+  "max_hold_minutes": <1-20160 or null>, "thesis": "why, in at most 4 sentences",
   "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none"}}"""
 
 REFLECT = """You are reviewing one of YOUR OWN closed paper trades, to learn from it.
@@ -98,7 +103,7 @@ def _tf_summary(bars: BarSeries, n_show: int) -> dict | None:
             "bars": last}
 
 
-LOWER_SHOW = {"M5": 24, "M15": 16}  # bars shown per lower timeframe
+LOWER_SHOW = {"M1": 30, "M5": 24, "M15": 16}  # bars shown per lower timeframe
 
 
 def multi_timeframe(h1: BarSeries, as_of: int, lower: dict | None = None) -> dict:
@@ -126,12 +131,35 @@ def validate_proposal(d: dict) -> str | None:
     for k in ("stop", "target"):
         if not isinstance(d.get(k), (int, float)) or not np.isfinite(d[k]) or d[k] <= 0:
             return f"{k} must be a positive price"
-    mh = d.get("max_hold_hours")
-    if not isinstance(mh, int) or not 1 <= mh <= MAX_HOLD_HOURS:
-        return f"max_hold_hours must be an integer 1..{MAX_HOLD_HOURS}"
+    if hold_minutes(d) is None:
+        return f"max_hold_minutes must be an integer 1..{MAX_HOLD_MINUTES}"
     if not isinstance(d.get("thesis"), str) or not d["thesis"].strip():
         return "a trade needs a thesis"
     return None
+
+
+def hold_minutes(d: dict) -> int | None:
+    """The proposal's maximum holding time in minutes (max_hold_minutes, or the older max_hold_hours)."""
+    m = d.get("max_hold_minutes")
+    if isinstance(m, int) and not isinstance(m, bool) and 1 <= m <= MAX_HOLD_MINUTES:
+        return m
+    h = d.get("max_hold_hours")
+    if m is None and isinstance(h, int) and not isinstance(h, bool) and 1 <= h <= MAX_HOLD_HOURS:
+        return h * 60
+    return None
+
+
+REVIEW = """You are the trader who holds this open paper position. The time is {time}; treat it as the present.
+Use ONLY the data in the JSON: the position, the live quote, completed bars (M1 to H1), the calendar.
+Decide freely: keep holding, or close it now at the market. The stop and target stay on the broker either way,
+and you cannot change them or the size. The owner's objective is profit after costs.
+Reply with ONE JSON object only: {{"action": "HOLD|CLOSE", "reason": "at most 2 sentences"}}"""
+
+
+def validate_review(d: dict) -> str | None:
+    if d.get("action") not in ("HOLD", "CLOSE"):
+        return "action must be HOLD or CLOSE"
+    return None if isinstance(d.get("reason", ""), str) else "reason must be text"
 
 
 def validate_reflection(d: dict) -> str | None:
@@ -228,12 +256,12 @@ def trade_decision(ctx: MarketContext, did: str, v: dict, agents: dict, reports:
         did, p["action"], ctx.symbol, p["timeframe"], ctx.t, ctx.mode, {}, ctx.regime.as_dict(), thesis,
         support, [{"agent": k, "code": o.code, "severity": o.severity, "message": o.message}
                   for k, r in reports.items() for o in r.objections][:12],
-        float(entry), stop, target, f"stop {stop:.5g}, target {target:.5g}, time exit after {p['max_hold_hours']}h",
+        float(entry), stop, target, f"stop {stop:.5g}, target {target:.5g}, time exit after {hold_minutes(p)} min",
         "LLM", FAMILY, None, None, None, None, None, None, 1.0,
         str(p.get("invalidation") or "")[:300] or None, None, agents,
         {"note": "model-proposed; no measured expectancy exists until its forward record does",
          "reward_risk": round(rr, 3), **(evidence or {})}, 1, v,
-        max_hold_hours=int(p["max_hold_hours"]))
+        max_hold_minutes=hold_minutes(p))
 
 
 class LLMTrader:
@@ -274,6 +302,18 @@ class LLMTrader:
             return no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
                             contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}])
         return trade_decision(ctx, did, v, agents, reports, p, [memory_note])
+
+    # ── manage an open trade ────────────────────────────────────────────
+
+    def review(self, packet: dict) -> dict | None:
+        """HOLD or CLOSE for one open position, or None when no model answered (the position simply
+        keeps its broker-side stop and target: an unanswered review never closes anything)."""
+        if self.llm is None or not self.llm.config.enabled:
+            return None
+        res = self.llm.complete_json("reviewer", REVIEW.format(time=packet.get("time")), packet, validate_review)
+        if not res.ok:
+            return None
+        return {"action": res.data["action"], "reason": str(res.data.get("reason") or "")[:300], "model": res.model}
 
     # ── learn from a closed trade ───────────────────────────────────────
 

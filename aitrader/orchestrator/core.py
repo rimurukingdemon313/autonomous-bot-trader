@@ -57,7 +57,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.3.0: the model-trader modes also read completed M5/M15 bars when the feed provides them.
 #: 1.4.0: ... and the economic calendar for the pair, when one is configured.
 #: 1.5.0: ... and the history desk: what the most similar past situations did.
-ORCHESTRATOR_VERSION = "orchestrator-1.5.0"
+#: 1.6.0: model modes: holding time in minutes, M1 bars, and each cycle the model reviews its open
+#: positions (HOLD or CLOSE; it can never open, resize or move a level through a review).
+ORCHESTRATOR_VERSION = "orchestrator-1.6.0"
 
 
 class NullKnowledge:
@@ -138,6 +140,9 @@ class Orchestrator:
         self.experience.advance(t)
         self._process_closures(t)
         self._time_exits(t)
+        if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") in ("llm_trader", "trading_room") \
+                and symbols != []:
+            self._review_positions(t)
         for symbol in symbols if symbols is not None else self.cfg.symbols:
             try:
                 d = self.decide(symbol, t)
@@ -226,7 +231,7 @@ class Orchestrator:
             long = self.feed.bars(symbol, t, 24 * 30)
             lower = {}
             if hasattr(self.feed, "bars_tf"):  # a broker feed; the research replay has H1 only
-                lower = {tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M5", 48), ("M15", 32))}
+                lower = {tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M1", 60), ("M5", 48), ("M15", 32))}
             ctx.mtf = multi_timeframe(long, t, lower) if long is not None and len(long) else {}
             ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
             if mode == "trading_room":
@@ -236,9 +241,7 @@ class Orchestrator:
             if self.history is not None:
                 ctx.history = (self.history.brief(fv.values, t) if fv.complete else
                                {"available": False, "reason": "features incomplete at this bar"})
-            ks = self.db.get_kv("kill_switch", {"active": True})
-            ctx.trading_allowed = not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
-                                       or not isinstance(ks, dict) or ks.get("active") is not False)
+            ctx.trading_allowed = self._trading_allowed()
         self._event("ANALYSIS_REQUESTED", {"symbol": symbol, "t": t})
         thought = self.brain.think(ctx, self.versions)
         d = thought.decision
@@ -421,9 +424,57 @@ class Orchestrator:
             dec = self.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],))
             payload = json.loads(dec["payload"]) if dec else {}
             tpl = TEMPLATE_BY_KEY.get(payload.get("template") or "")
-            hold_h = payload.get("max_hold_hours") or (tpl.max_bars if tpl is not None else None)
-            if hold_h is not None and t - row["opened"] >= int(hold_h) * 3600:
+            if payload.get("max_hold_minutes"):
+                hold_s = int(payload["max_hold_minutes"]) * 60
+            else:
+                hold_h = payload.get("max_hold_hours") or (tpl.max_bars if tpl is not None else None)
+                hold_s = int(hold_h) * 3600 if hold_h is not None else None
+            if hold_s is not None and t - row["opened"] >= hold_s:
                 self.execution.close_position(row["id"], "TIME")
+
+    def time_exits(self, t: int) -> None:
+        """Called by the live monitor every few seconds, so a holding time of minutes is honoured."""
+        self._time_exits(t)
+
+    def _trading_allowed(self) -> bool:
+        ks = self.db.get_kv("kill_switch", {"active": True})
+        return not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
+                    or not isinstance(ks, dict) or ks.get("active") is not False)
+
+    def _review_positions(self, t: int) -> None:
+        """Model modes: the model that trades also manages. Each open position is put to it: HOLD or
+        CLOSE now. Closing only ever reduces exposure; it cannot open, resize or move a level. An
+        unanswered review holds (the broker-side stop and target stay), and nothing is asked while
+        trading is paused or stopped."""
+        reviewer = getattr(self.brain, "llm_trader", None)
+        if reviewer is None or not self._trading_allowed():
+            return
+        for row in self.db.query("SELECT * FROM positions WHERE status='OPEN'"):
+            symbol, side = row["symbol"], 1 if row["side"] == "BUY" else -1
+            quote = self.feed.quote(symbol, t)
+            if quote is None:
+                continue
+            h1 = self.feed.bars(symbol, t, 24 * 30)
+            lower = ({tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M1", 60), ("M5", 48), ("M15", 32))}
+                     if hasattr(self.feed, "bars_tf") else {})
+            exit_px = quote.bid if side > 0 else quote.ask
+            risk = abs(row["entry"] - row["stop"]) or None
+            dec = self.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],))
+            thesis = (json.loads(dec["payload"]).get("thesis") if dec else None) or ""
+            packet = {"time": datetime.fromtimestamp(t, timezone.utc).isoformat(),
+                      "position": {"symbol": symbol, "side": row["side"], "entry": row["entry"], "stop": row["stop"],
+                                   "target": row["target"], "minutes_open": (t - int(row["opened"])) // 60,
+                                   "R_now": round((exit_px - row["entry"]) * side / risk, 3) if risk else None,
+                                   "why_it_was_opened": thesis[:400]},
+                      "quote": {"bid": quote.bid, "ask": quote.ask},
+                      "timeframes": multi_timeframe(h1, t, lower) if h1 is not None and len(h1) else {},
+                      "calendar": self.news.for_symbol(symbol, t) if self.news is not None else None}
+            verdict = reviewer.review(packet)
+            self._event("POSITION_REVIEWED", {"position": row["id"], "symbol": symbol,
+                                              "verdict": verdict or {"action": "HOLD", "reason": "no model answered"}},
+                        ref=row["id"])
+            if verdict and verdict["action"] == "CLOSE":
+                self.execution.close_position(row["id"], "MODEL_EXIT")
 
     # ── learning ────────────────────────────────────────────────────────
 

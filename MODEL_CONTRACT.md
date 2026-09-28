@@ -245,3 +245,29 @@ are untouched.
 
 Code: `aitrader/memory/history.py`, `scripts/build_history.py`. Tests:
 `tests/unit/test_history_desk.py`.
+
+### 10.5 Its own holding time and its own exits (owner request, 2026-09-28)
+
+"No fixed duration, even a minute; let it do what it wants":
+
+- **Holding time.** It is set in minutes (`max_hold_minutes`, 1 to 20,160;
+  the older `max_hold_hours` is still read). The live monitor honours it
+  within seconds, not at the next cycle.
+- **M1 bars.** Completed M1 bars join M5/M15/H1/H4/D1. M1 is also a
+  timeframe it may trade on.
+- **Reviewing open trades.** At every decision cycle, each open position
+  is put to the model: HOLD or CLOSE now. A CLOSE is executed and recorded
+  as `MODEL_EXIT`. A review can only close; it cannot open, resize, or
+  move a stop or a target. An unanswered or malformed review holds, and
+  the broker-side stop and target stay. Nothing is reviewed while trading
+  is paused or stopped.
+- **The objective.** The prompts state the owner's objective, profit after
+  costs, and that every loss is recorded against the model's record. They
+  make no threat and promise nothing. No wording can make a model win, and
+  pressure tends to produce more trades, not better ones.
+
+Unchanged: the risk engine's size and its limits, including the stop
+checks against the spread and the minimum reward:risk.
+
+Tests: `tests/integration/test_cadence.py` (review closes, holds, is not
+asked while paused; minute holding times).

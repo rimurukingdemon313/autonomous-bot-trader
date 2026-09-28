@@ -26,7 +26,8 @@ from typing import Callable
 from ..broker.base import AmbiguousExecution, BrokerError, BrokerRejected, ClosedTrade
 from ..memory.db import Database
 
-EXECUTION_VERSION = "exec-1.0.0"
+#: 1.1.0: a model exit (MODEL_EXIT) is recorded under that reason; every other close is unchanged.
+EXECUTION_VERSION = "exec-1.1.0"
 UNKNOWN_RECHECKS = 5
 
 
@@ -232,7 +233,10 @@ class ExecutionEngine:
         if row is None:
             return None
         try:
-            ct = self.broker.close(position_id, client_id_for(row["decision_id"]) + "-close")
+            # The model's own exit is recorded as such; other closes keep the broker's labels, so
+            # backtests (which close by TIME through the same path) replay exactly as before.
+            ct = self.broker.close(position_id, client_id_for(row["decision_id"]) + "-close",
+                                   **({"reason": reason} if reason == "MODEL_EXIT" else {}))
         except BrokerRejected:
             return None
         except BrokerError as exc:

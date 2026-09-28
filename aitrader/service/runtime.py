@@ -364,6 +364,7 @@ class Runtime:
     def _monitor_locked(self) -> None:
         now = self.clock()
         self._monitor_fast(now)
+        self.orch.time_exits(now)  # a holding time of minutes is honoured between cycles
         for s in self.cfg.symbols:
             bars = self.feed.bars(s, now, 3)
             if bars is None or len(bars) == 0:

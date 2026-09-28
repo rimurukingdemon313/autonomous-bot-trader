@@ -52,7 +52,7 @@ def test_a_sound_proposal_becomes_a_decision_the_risk_engine_will_size():
     d = trader(BUY, calls).think(live_ctx(), V).decision
     assert d.decision == "BUY" and d.family == "LLM_TRADER" and d.timeframe == "H4"
     assert d.entry == pytest.approx(1.10006) and d.stop_loss == 1.0985 and d.take_profit == 1.1040
-    assert d.max_hold_hours == 36 and "llm_trader" in d.versions
+    assert d.max_hold_minutes == 36 * 60 and "llm_trader" in d.versions  # the older hours field is still read
     assert d.expected_R is None and d.probability is None  # never a model's self-reported number as evidence
     assert "memory used" in d.supporting_evidence[0]["claim"]
     assert len(calls) == 1 and "memory" in json.loads(calls[0]["messages"][1]["content"])
@@ -64,7 +64,7 @@ def test_a_sound_proposal_becomes_a_decision_the_risk_engine_will_size():
                  "thesis": "x"}), "wrong side"),
     (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0850, "target": 1.1040, "max_hold_hours": 10,
                  "thesis": "x"}), "beyond"),  # a 15-ATR stop is a typo, not a stop
-    (json.dumps({"action": "BUY", "timeframe": "M1", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
+    (json.dumps({"action": "BUY", "timeframe": "S30", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
                  "thesis": "x"}), "rejected"),
     (json.dumps({"action": "YOLO"}), "rejected"),
     (json.dumps({"action": "SELL", "timeframe": "H1", "stop": 1.1030, "target": 1.0970, "max_hold_hours": 9999,

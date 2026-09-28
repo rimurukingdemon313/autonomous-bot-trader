@@ -105,6 +105,7 @@ class Decision:
     versions: dict
     created: float = field(default_factory=time.time)
     max_hold_hours: int | None = None  # a time exit for decisions not built from a template
+    max_hold_minutes: int | None = None  # the same, in minutes (model traders: from one minute)
 
     @property
     def is_trade(self) -> bool:

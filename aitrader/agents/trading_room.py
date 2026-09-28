@@ -40,7 +40,7 @@ from dataclasses import dataclass
 
 from ..decision.synthesis import Decision, decision_id
 from .llm_trader import (
-    FAMILY, LLM_TRADER_VERSION, agent_digest, lesson_block, level_problem, market_packet, no_trade_decision,
+    FAMILY, LLM_TRADER_VERSION, agent_digest, hold_minutes, lesson_block, level_problem, market_packet, no_trade_decision,
     pre_model_block, trade_decision, validate_proposal,
 )
 from .types import MarketContext
@@ -52,7 +52,8 @@ from .types import MarketContext
 #: 2.1.0 (owner: "one is the news, one the price..."): each member has a role; they speak in
 #: role order; the packet carries the economic calendar.
 #: 2.2.0: the packet carries the history desk; RISK reads it.
-ROOM_VERSION = "trading-room-2.2.0"
+#: 2.3.0: holding time in minutes, M1 bars, the owner's objective stated, open trades reviewed.
+ROOM_VERSION = "trading-room-2.3.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -80,15 +81,17 @@ def assign_roles(members: list[str]) -> dict[str, list[str]]:
         return {m: names[i * len(names) // n:(i + 1) * len(names) // n] for i, m in enumerate(members)}
     return {m: [names[i % len(names)]] for i, m in enumerate(members)}
 
-_DATA = """Use ONLY the data in the JSON: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
+_DATA = """Use ONLY the data in the JSON: completed bars on M1, M5 and M15 (when present), H1, H4 and D1, the live quote,
 the account, the quantitative agents' findings (information, not orders), the economic calendar, the history
 desk (what fixed trades did in the most similar past situations), and the team's memory of its past trades
 (losses first) with the reflections written on them. The decision time is {time}; treat it as the
 present and do not use any knowledge of prices or events after it."""
 
-_OWNER = """The owner wants an active team that finds trades, short ones on M5/M15 included, whenever the market
-offers a reasonable opportunity. Every trading choice is the team's own: direction, timeframe, style, stop,
-target, holding time, or no trade. No one sizes positions: a risk engine does that and may refuse a trade."""
+_OWNER = """The owner wants an active team that finds trades, very short ones included, whenever the market offers a
+reasonable opportunity. The owner's objective is profit after costs; every loss is recorded against the team.
+Every trading choice is the team's own: direction, timeframe, style, stop, target, holding time (from one minute
+to two weeks), or no trade. The team reviews its open trades as time passes and may close them whenever it
+decides. No one sizes positions: a risk engine does that and may refuse a trade."""
 
 SPEAK = """You are {name}, one of {n} minds of ONE trading team: {members}. You are not competitors. You think
 together as one trader with {n} brains, and your team's record is shared (each mind's contribution is also
@@ -104,7 +107,7 @@ and try to convince them. Then state the plan you want the team to take.
 
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
-  "max_hold_hours": <1-336 or null>, "thesis": "your analysis and your plan, at most 5 sentences",
+  "max_hold_minutes": <1-20160 or null>, "thesis": "your analysis and your plan, at most 5 sentences",
   "to_team": "what you say to your teammates: what you agree with, what you correct, at most 3 sentences",
   "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson you used, or none"}}"""
 
@@ -119,7 +122,7 @@ the team stands behind, or NO_TRADE if the team concluded there is nothing worth
 
 Reply with ONE JSON object only:
 {{"action": "BUY|SELL|NO_TRADE", "timeframe": "M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
-  "max_hold_hours": <1-336 or null>, "thesis": "the team's reasoning, at most 5 sentences",
+  "max_hold_minutes": <1-20160 or null>, "thesis": "the team's reasoning, at most 5 sentences",
   "invalidation": "what would prove the plan wrong", "memory_used": "which past trade or lesson the team used, or none"}}"""
 
 
@@ -150,7 +153,7 @@ def _view(p: dict | None, model: str | None = None, status: str = "OK") -> dict:
     if p is None:
         return {"status": status, "model": model}
     return {"status": status, "model": model, "action": p.get("action"), "timeframe": p.get("timeframe"),
-            "stop": p.get("stop"), "target": p.get("target"), "max_hold_hours": p.get("max_hold_hours"),
+            "stop": p.get("stop"), "target": p.get("target"), "max_hold_minutes": hold_minutes(p),
             "thesis": str(p.get("thesis") or "")[:500], "invalidation": str(p.get("invalidation") or "")[:200],
             "memory_used": str(p.get("memory_used") or "")[:200],
             **({"to_team": str(p.get("to_team"))[:400]} if p.get("to_team") else {})}
@@ -215,7 +218,7 @@ class TradingRoom:
                 if problem:
                     view["dropped"] = problem  # recorded; its teammates still read what it argued
             said.append({"member": m, "role": "+".join(roles[m]), **{k: view.get(k) for k in (
-                "action", "timeframe", "stop", "target", "max_hold_hours", "thesis", "to_team", "invalidation")}})
+                "action", "timeframe", "stop", "target", "max_hold_minutes", "thesis", "to_team", "invalidation")}})
             room["discussion"].append({"member": m, "role": "+".join(roles[m]), **view})
             room["final"][m] = view
         present = [m for m in order if m in room["final"]]

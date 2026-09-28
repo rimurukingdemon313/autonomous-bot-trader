@@ -146,7 +146,7 @@ def test_the_models_read_completed_m5_and_m15_bars_and_may_trade_on_them():
     assert len(mtf["M5"]["bars"]) == 24
     ok = {"action": "BUY", "timeframe": "M5", "stop": 1.1, "target": 1.2, "max_hold_hours": 1, "thesis": "scalp"}
     assert validate_proposal(ok) is None
-    assert validate_proposal({**ok, "timeframe": "M1"}) is not None  # never on a timeframe it cannot see
+    assert validate_proposal({**ok, "timeframe": "S30"}) is not None  # never on a timeframe it cannot see
 
 
 def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_engine(tmp_path, monkeypatch):
@@ -165,6 +165,8 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
         system, user = body["messages"][0]["content"], json.loads(body["messages"][1]["content"])
         if "reviewing one of YOUR OWN" in system:
             reply = {"what_happened": "closed", "was_it_a_mistake": False}
+        elif "holds this open paper position" in system:
+            reply = {"action": "HOLD", "reason": "let it work"}
         else:
             packets.append(user)
             ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
@@ -202,3 +204,91 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
                          "JOIN risk_verdicts v ON v.decision_id = d.id")
     assert traded and all(r["tf"] == "M5" for r in traded)
     assert any(r["ok"] == 1 and json.loads(r["vp"])["qty"] > 0 for r in traded)  # sized by the risk engine
+
+
+def review_rt(tmp_path, monkeypatch, verdict):
+    """A live-like runtime with one open paper position and a model whose review answer is `verdict`."""
+    import json
+
+    import aitrader.service.runtime as runtime_mod
+    from aitrader.llm.provider import LLMClient, LLMConfig
+
+    from .test_service import _write_kb
+
+    asked = []
+
+    def transport(url, headers, body, timeout):
+        system, user = body["messages"][0]["content"], json.loads(body["messages"][1]["content"])
+        if "holds this open paper position" in system:
+            asked.append(user)
+            reply = verdict
+        else:
+            reply = {"action": "NO_TRADE", "thesis": "nothing"}
+        return {"choices": [{"message": {"content": json.dumps(reply)}}]}
+
+    monkeypatch.setattr(runtime_mod, "LLMClient",
+                        lambda cfg: LLMClient(LLMConfig("openai_compatible", "https://x.test/v1", "k", "m1"), transport))
+    _write_kb(tmp_path / "kb")
+    monkeypatch.setenv("DECISION_MODE", "llm_trader")
+    data = {s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0) for i, s in enumerate(SYMS)}
+    clock = Clock(int(data["EURUSD"].available_at[2000]))
+    feed = LiveLikeFeed(data)
+    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    rt = Runtime(ServiceConfig(mode="PAPER", data_dir=str(tmp_path / "rt"), port=0, symbols=SYMS, dashboard_token="t",
+                               decision_interval_min=5, symbols_per_cycle=1),
+                 feed=feed, broker=broker, clock=clock, knowledge_dir=tmp_path / "kb")
+    broker.db = rt.db
+    q = feed.quote("EURUSD", clock.t)
+    fill = broker.place_market("EURUSD", 1, 0.1, q.bid - 0.0050, q.ask + 0.0100, "cid-r")
+    rt.db.append("decisions", {"id": "d-r", "symbol": "EURUSD", "timeframe": "M1", "decision": "BUY", "mode": "PAPER",
+                               "payload": {"thesis": "scalp", "max_hold_minutes": 3}})
+    with rt.db.tx() as c:
+        c.execute("INSERT INTO positions(id, intent_id, decision_id, symbol, side, qty, entry, stop, target, opened, "
+                  "status, payload, updated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                  (fill.position_id, "cid-r", "d-r", "EURUSD", "BUY", 0.1, fill.price, q.bid - 0.0050, q.ask + 0.0100,
+                   clock.t, "OPEN", "{}", 0.0))
+    return rt, clock, asked
+
+
+def test_the_model_closes_its_trade_whenever_it_decides(tmp_path, monkeypatch):
+    rt, clock, asked = review_rt(tmp_path, monkeypatch, {"action": "CLOSE", "reason": "momentum faded"})
+    rt.resume()
+    clock.t += 60
+    rt.run_cycle(decide=True)
+    assert asked and asked[0]["position"]["symbol"] == "EURUSD" and "R_now" in asked[0]["position"]
+    assert rt.broker.positions() == []  # closed after a minute, on its own call
+    assert rt.broker.closed_since(0)[-1].reason == "MODEL_EXIT"  # and recorded as its own exit
+    ev = rt.db.one("SELECT payload FROM events WHERE type='POSITION_REVIEWED'")
+    assert "momentum faded" in ev["payload"]
+
+
+@pytest.mark.parametrize("verdict", [{"action": "HOLD", "reason": "let it run"}, {"action": "SELL MORE"}, "garbage"])
+def test_a_hold_or_an_unusable_answer_keeps_the_trade(tmp_path, monkeypatch, verdict):
+    rt, clock, asked = review_rt(tmp_path, monkeypatch, verdict)
+    rt.resume()
+    clock.t += 60
+    rt.run_cycle(decide=True)
+    assert len(rt.broker.positions()) == 1  # a review can only close; anything else holds
+    logged = rt.db.one("SELECT payload FROM events WHERE type='POSITION_REVIEWED'")["payload"]
+    if verdict == {"action": "HOLD", "reason": "let it run"}:
+        assert "let it run" in logged
+    else:  # a malformed answer is not recorded as the model's decision
+        assert "no model answered" in logged
+
+
+def test_nothing_is_reviewed_while_trading_is_paused(tmp_path, monkeypatch):
+    rt, clock, asked = review_rt(tmp_path, monkeypatch, {"action": "CLOSE", "reason": "x"})
+    rt.pause("test")
+    clock.t += 60
+    rt.run_cycle(decide=True)
+    assert asked == [] and len(rt.broker.positions()) == 1
+
+
+def test_a_holding_time_of_minutes_is_honoured_between_cycles(tmp_path, monkeypatch):
+    rt, clock, _ = review_rt(tmp_path, monkeypatch, {"action": "HOLD", "reason": "x"})
+    clock.t += 2 * 60
+    rt.monitor_once()
+    assert len(rt.broker.positions()) == 1
+    clock.t += 60 + 1  # three minutes: the model's own max_hold_minutes
+    rt.monitor_once()
+    assert rt.broker.positions() == []

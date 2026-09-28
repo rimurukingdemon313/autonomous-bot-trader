@@ -174,7 +174,7 @@ class PaperBroker:
         self._save()
         return ClosedTrade(**{k: c[k] for k in ClosedTrade.__dataclass_fields__})
 
-    def close(self, position_id: str, client_id: str | None = None) -> ClosedTrade:
+    def close(self, position_id: str, client_id: str | None = None, reason: str = "MANUAL") -> ClosedTrade:
         with self._lock:
             p = self.state["positions"].get(position_id)
             if p is None:
@@ -184,7 +184,7 @@ class PaperBroker:
                 raise BrokerError(f"no price to close {p['symbol']}")
             slip = self.slippage_pips * pip_of(p["symbol"])
             exit_px = (q.bid - slip) if p["side"] > 0 else (q.ask + slip)
-            return self._close(position_id, exit_px, self.clock(), "MANUAL")
+            return self._close(position_id, exit_px, self.clock(), reason)
 
     def on_bar(self, symbol: str, bar: dict) -> list[ClosedTrade]:
         """Apply a newly CLOSED bar to open positions: stop first, then target."""
