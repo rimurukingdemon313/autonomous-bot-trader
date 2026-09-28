@@ -49,8 +49,8 @@ class LiveLikeFeed(ReplayFeed):
         b = self.lower.get((symbol, timeframe))
         if b is None:
             return None
-        keep = b.available_at <= as_of
-        return b.take(slice(0, int(keep.sum())))
+        n = int((b.available_at <= as_of).sum())  # completed bars only, and at most `count`, like a real feed
+        return b.take(slice(max(0, n - count), n))
 
     def quote(self, symbol, now):
         if symbol in self.broken:
@@ -197,7 +197,13 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
     for _ in range(3):
         clock.t += 300
         rt.run_cycle(decide=True)
-    assert [p["instrument"] for p in packets] == list(SYMS)  # one pair per cycle, in rotation
+    decided = [r["symbol"] for r in rt.db.query("SELECT symbol FROM decisions ORDER BY rowid")]
+    assert decided == list(SYMS)  # one pair per cycle, in rotation
+    # EURUSD and GBPUSD are now open: two USD positions, the per-currency limit. The risk engine
+    # would refuse any USDJPY trade, so the model is not asked for one, and the record says why.
+    assert [p["instrument"] for p in packets] == list(SYMS[:2])
+    last = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='USDJPY'")["payload"])
+    assert "currency_exposure" in last["no_trade_reason"]
     assert all("M5" in p["timeframes"] and len(p["timeframes"]["M5"]["bars"]) == 24 for p in packets)
     assert all("history" in p and "calendar" in p for p in packets)  # every decision carries both desks
     traded = rt.db.query("SELECT d.timeframe AS tf, v.approved AS ok, v.payload AS vp FROM decisions d "
@@ -292,6 +298,7 @@ def test_a_holding_time_of_minutes_is_honoured_between_cycles(tmp_path, monkeypa
     clock.t += 60 + 1  # three minutes: the model's own max_hold_minutes
     rt.monitor_once()
     assert rt.broker.positions() == []
+    assert rt.broker.closed_since(0)[-1].reason == "TIME"  # labelled as what it was, not MANUAL
 
 
 def test_an_open_trade_is_reviewed_on_its_own_pairs_turn(tmp_path, monkeypatch):
@@ -335,3 +342,74 @@ def test_quotes_without_bars_are_reported_as_such_never_as_connected(tmp_path, m
     assert data.startswith("QUOTES ONLY, NO BARS") and "history endpoint" in data
     row = next(r for r in rt.market() if r["symbol"] == "EURUSD")
     assert row["decision"] == "NO_DATA" and "history endpoint" in row["reason"]
+
+
+def test_a_stop_hit_while_the_team_was_deliberating_is_still_applied(tmp_path, monkeypatch):
+    """The monitor waits while a cycle runs (minutes, with slow free models). When it resumes,
+    every completed minute since the last one it applied must still be checked."""
+    rt, clock, feed = build(tmp_path, monkeypatch, decision_interval_min=1)
+    q = feed.quote("EURUSD", clock.t)
+    rt.broker.place_market("EURUSD", 1, 0.1, q.bid - 0.0020, q.ask + 0.0040, "cid-gap")
+    mid = (q.bid + q.ask) / 2
+    start = (clock.t // 60) * 60
+    lows = [mid - 0.0005] * 3 + [mid - 0.0030] + [mid - 0.0005] * 11  # the stop is hit in minute 4 of 15
+    feed.lower[("EURUSD", "M1")] = minute_bars("EURUSD", start, lows, [mid + 0.0005] * 15, mid)
+    clock.t = start + 15 * 60 + 1  # the monitor was blocked for 15 minutes
+    rt.monitor_once()
+    assert rt.broker.positions() == []
+    assert rt.broker.closed_since(0)[-1].closed == start + 4 * 60  # closed at the minute it happened
+
+
+def test_yahoo_prices_a_conversion_pair_that_is_not_on_the_list():
+    from aitrader.data.yahoo import YahooFeed
+
+    meta = {"chart": {"result": [{"meta": {"regularMarketPrice": 150.0, "regularMarketTime": 100},
+                                  "timestamp": [], "indicators": {"quote": [{}]}}], "error": None}}
+    f = YahooFeed(["EURUSD"], lambda: 100, fetch=lambda url: meta)
+    q = f.quote("USDJPY")  # needed to value a JPY profit; not a traded pair
+    assert q is not None and q.bid < 150.0 < q.ask
+
+
+def test_once_the_daily_loss_limit_is_spent_the_models_are_not_asked(tmp_path, monkeypatch):
+    """The risk engine would refuse any trade for the rest of the day; asking the team every minute
+    anyway spent thousands of calls in a simulated day. Its own account checks now run first, and
+    the decision says which one stopped it."""
+    import json
+
+    import aitrader.service.runtime as runtime_mod
+    from aitrader.data.resample import bucket_start
+    from aitrader.llm.provider import LLMClient, LLMConfig
+
+    from .test_service import _write_kb
+
+    asked = []
+
+    def transport(url, headers, body, timeout):
+        asked.append(body["messages"][0]["content"][:40])
+        return {"choices": [{"message": {"content": json.dumps({"action": "NO_TRADE", "thesis": "x"})}}]}
+
+    monkeypatch.setattr(runtime_mod, "LLMClient",
+                        lambda cfg: LLMClient(LLMConfig("openai_compatible", "https://x.test/v1", "k", "m1"), transport))
+    _write_kb(tmp_path / "kb")
+    monkeypatch.setenv("DECISION_MODE", "llm_trader")
+    data = {s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0) for i, s in enumerate(SYMS)}
+    clock = Clock(int(data["EURUSD"].available_at[2000]))
+    feed = LiveLikeFeed(data)
+    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    rt = Runtime(ServiceConfig(mode="PAPER", data_dir=str(tmp_path / "rt"), port=0, symbols=SYMS, dashboard_token="t",
+                               decision_interval_min=1, symbols_per_cycle=1),
+                 feed=feed, broker=broker, clock=clock, knowledge_dir=tmp_path / "kb")
+    broker.db = rt.db
+    rt.resume()
+    clock.t += 60
+    rt.run_cycle(decide=True)
+    assert asked  # a normal day: the model is asked
+    asked.clear()
+    day = int(bucket_start(np.array([clock.t + 60]), "D1")[0])
+    rt.db.set_kv("day_start", {"day": day, "equity": 20_600}, reason="test: the day started higher")  # now -2.9%
+    for _ in range(3):
+        clock.t += 60
+        rt.run_cycle(decide=True)
+    assert asked == []
+    last = json.loads(rt.db.one("SELECT payload FROM decisions ORDER BY rowid DESC LIMIT 1")["payload"])
+    assert "daily_loss" in last["no_trade_reason"] and "not consulted" in last["no_trade_reason"]

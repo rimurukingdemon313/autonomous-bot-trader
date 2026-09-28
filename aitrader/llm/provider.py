@@ -227,6 +227,7 @@ class LLMClient:
         self._calls: dict[str, int] = {}
         self._cache: dict[str, LLMResult] = {}
         self._ep_day: dict[tuple[str, str], int] = {}  # (UTC day, provider) -> calls
+        self._ep_stats: dict[str, dict] = {}  # provider -> ok / failed / last error (no secrets: status + message)
         self.stats = {"calls": 0, "ok": 0, "failed": 0, "retries": 0, "cache_hits": 0}
 
     def _day(self) -> str:
@@ -270,6 +271,7 @@ class LLMClient:
                 continue  # that provider's free quota is spent: the next provider answers
             for model in models:
                 last = self._try_model(agent, ep, model, system, user, validate)
+                self._note(ep.name, last)
                 if last.ok or last.status == "BUDGET":
                     break
             if last.ok or (last.status == "BUDGET" and last.error == "daily call budget exhausted"):
@@ -279,6 +281,18 @@ class LLMClient:
             if len(self._cache) > 2000:
                 self._cache.pop(next(iter(self._cache)))
         return last
+
+    def _note(self, name: str, res: "LLMResult") -> None:
+        """Per-provider outcome counts and the last failure, so a key or model name that keeps
+        failing is visible on the dashboard instead of silently shrinking the team."""
+        with self._lock:
+            s = self._ep_stats.setdefault(name, {"ok": 0, "failed": 0, "last_error": None, "last_error_model": None})
+            if res.ok:
+                s["ok"] += 1
+            else:
+                s["failed"] += 1
+                s["last_error"] = f"{res.status}: {res.error}"[:160] if res.error else res.status
+                s["last_error_model"] = res.model
 
     def _ep_calls(self, name: str) -> int:
         with self._lock:
@@ -354,4 +368,5 @@ class LLMClient:
     def health(self) -> dict:
         day = self._day()
         return {**self.config.public(), **self.stats, "calls_today": self._calls.get(day, 0),
+                "by_provider": {k: dict(v) for k, v in self._ep_stats.items()},
                 "calls_today_by_provider": {n: c for (d, n), c in self._ep_day.items() if d == day}}

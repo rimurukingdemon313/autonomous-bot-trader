@@ -163,3 +163,25 @@ def test_funded_rules_are_the_stricter_limit():
 def test_every_rejection_names_its_cause():
     v = RiskEngine().evaluate(decision(stop=1.2), account(kill_switch=True), SPEC, Q, NOW)
     assert v.reasons and all(":" in r for r in v.reasons)
+
+
+@pytest.mark.parametrize("state", [
+    dict(kill_switch=True), dict(paused=True), dict(halted=True), dict(equity=None),
+    dict(equity=19_500.0), dict(equity=18_000.0, day_start_equity=18_000.0),
+    dict(open_positions=[{"symbol": "EURUSD", "notional": 1.0}]),
+    dict(open_positions=[{"symbol": s, "notional": 1.0} for s in ("GBPUSD", "AUDUSD", "USDJPY")]),
+    dict(),
+])
+def test_the_account_gates_are_the_same_checks_evaluate_applies(state):
+    """account_gates() is what the orchestrator asks before spending a model call. It must never
+    refuse what evaluate() would allow, and every account-level refusal evaluate() makes, it makes."""
+    e = RiskEngine(RiskLimits(funded=FundedRules("test", daily_loss_pct=1.5)))
+    a = account(**{"kill_switch": False, **state})
+    gates = {c.name: c for c in e.account_gates(a, "EURUSD", NOW)}
+    v = e.evaluate(decision(), a, SPEC, Q, NOW)
+    by_name = {c.name: c for c in v.checks}
+    for name, c in gates.items():
+        if name in by_name:
+            assert by_name[name] == c  # identical verdict and detail
+    failed = [c for c in gates.values() if not c.passed]
+    assert bool(failed) == (not v.approved)  # this proposal is otherwise clean

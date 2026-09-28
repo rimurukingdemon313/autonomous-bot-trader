@@ -27,7 +27,9 @@ from ..broker.base import AmbiguousExecution, BrokerError, BrokerRejected, Close
 from ..memory.db import Database
 
 #: 1.1.0: a model exit (MODEL_EXIT) is recorded under that reason; every other close is unchanged.
-EXECUTION_VERSION = "exec-1.1.0"
+#: 1.2.0: a holding-time exit is recorded as TIME, not the broker's default MANUAL. Label only: the
+#:        price and the moment of the close are unchanged, so P/L replays exactly as before.
+EXECUTION_VERSION = "exec-1.2.0"
 UNKNOWN_RECHECKS = 5
 
 
@@ -233,10 +235,10 @@ class ExecutionEngine:
         if row is None:
             return None
         try:
-            # The model's own exit is recorded as such; other closes keep the broker's labels, so
-            # backtests (which close by TIME through the same path) replay exactly as before.
+            # The model's own exit and a holding-time exit are recorded as such; an operator close
+            # keeps the broker's own label.
             ct = self.broker.close(position_id, client_id_for(row["decision_id"]) + "-close",
-                                   **({"reason": reason} if reason == "MODEL_EXIT" else {}))
+                                   **({"reason": reason} if reason in ("MODEL_EXIT", "TIME") else {}))
         except BrokerRejected:
             return None
         except BrokerError as exc:

@@ -429,7 +429,9 @@ class Runtime:
             return
         open_syms = {p.symbol for p in self.broker.positions()}
         for s in open_syms:
-            bars = self.feed.bars_tf(s, "M1", now, 5)
+            # 60 minutes back: while the team deliberates (minutes, with free models) this loop
+            # waits, and no completed minute may be skipped; already-applied bars are filtered.
+            bars = self.feed.bars_tf(s, "M1", now, 60)
             if bars is None or len(bars) == 0:
                 continue
             for i in range(len(bars)):
@@ -538,6 +540,7 @@ class Runtime:
                 "data": self._data_state(now, feed_ok),
                 "broker": broker_state, "demo_verification": demo,
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
+                "ai_providers": self.llm.health().get("by_provider", {}),
                 "data_source": self.cfg.data_source,
                 "decision_mode": self.orch.brain.config.decision_mode,
                 "decision_interval_min": self.cfg.decision_interval_min or None,

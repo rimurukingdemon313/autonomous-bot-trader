@@ -44,7 +44,7 @@ from .types import MarketContext
 #: 1.4.0 (owner: "no fixed duration, even a minute"): holding time in MINUTES (1 to 20160), M1 bars,
 #: and the model reviews its open trades and may close them whenever it decides.
 #: 1.5.0: the owner's wish that the account not sit idle is stated.
-LLM_TRADER_VERSION = "llm-trader-1.5.0"
+LLM_TRADER_VERSION = "llm-trader-1.6.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -187,6 +187,10 @@ def pre_model_block(ctx: MarketContext, reports: dict, llm) -> tuple[str, list] 
                 [o.as_dict() for o in blocking])
     if not ctx.trading_allowed:
         return "trading is paused or stopped: the model was not consulted", []
+    if ctx.account_blocks:
+        # The risk engine's own account checks (daily loss spent, positions full...): it would refuse
+        # whatever the model proposed, so nothing is spent asking.
+        return ("risk engine: " + "; ".join(ctx.account_blocks[:3]) + ": the model was not consulted", [])
     if llm is None or not llm.config.enabled:
         return "no language model is configured (AI_PROVIDER / AI_PROVIDERS): failing closed", []
     if ctx.bid is None or ctx.ask is None or ctx.atr is None or not np.isfinite(ctx.atr) or ctx.atr <= 0:

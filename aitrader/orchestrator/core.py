@@ -61,7 +61,7 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: positions (HOLD or CLOSE; it can never open, resize or move a level through a review).
 #: 1.7.0: an open position is reviewed on its pair's turn in the rotation, not every cycle.
 #: 1.8.0: a feature the data source declares it never provides is excluded, not "missing".
-ORCHESTRATOR_VERSION = "orchestrator-1.8.0"
+ORCHESTRATOR_VERSION = "orchestrator-1.9.0"
 
 
 class NullKnowledge:
@@ -253,6 +253,8 @@ class Orchestrator:
                 ctx.history = (self.history.brief(fv.values, t) if fv.complete else
                                {"available": False, "reason": "features incomplete at this bar"})
             ctx.trading_allowed = self._trading_allowed()
+            ctx.account_blocks = [f"{c.name} ({c.detail})" for c in self.risk.account_gates(state, symbol, t)
+                                  if not c.passed]
         self._event("ANALYSIS_REQUESTED", {"symbol": symbol, "t": t})
         thought = self.brain.think(ctx, self.versions)
         d = thought.decision

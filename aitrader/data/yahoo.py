@@ -123,7 +123,7 @@ class YahooFeed:
         t = t[ok].astype(np.int64)
         o, h, lo, c = (cols[k][ok] for k in ("open", "high", "low", "close"))
         h, lo = np.maximum.reduce([h, o, c]), np.minimum.reduce([lo, o, c])
-        half = self.spreads[symbol] / 2
+        half = self.spreads.get(symbol, 2.0 * pip(symbol)) / 2
         spread = np.full(len(t), 2 * half)
         return BarSeries.from_columns(
             symbol, tf, "yahoo+est-spread", open_time=t,
@@ -184,7 +184,7 @@ class YahooFeed:
             meta = self._chart(symbol, "M1").get("meta") or {}
             px, at = meta.get("regularMarketPrice"), meta.get("regularMarketTime")
             if isinstance(px, (int, float)) and px > 0 and isinstance(at, (int, float)):
-                half = self.spreads[symbol] / 2
+                half = self.spreads.get(symbol, 2.0 * pip(symbol)) / 2  # a conversion pair off the list
                 q = Quote(symbol, float(px) - half, float(px) + half, int(at))  # Yahoo's time, not ours
                 self.last_ok = int(t)
             else:

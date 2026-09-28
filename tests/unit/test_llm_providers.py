@@ -95,3 +95,24 @@ def test_every_provider_key_is_redacted_from_logs(monkeypatch, capsys):
     log_event("TEST", "provider said: bad key gm-secret-key-3 and or-secret-key-1")
     out = capsys.readouterr().out
     assert "gm-secret-key-3" not in out and "or-secret-key-1" not in out
+
+
+def test_each_providers_failures_are_counted_and_the_last_reason_kept_without_the_key():
+    import urllib.error
+
+    from aitrader.llm.provider import Endpoint, LLMClient, LLMConfig
+
+    def transport(url, headers, body, timeout):
+        if "bad.test" in url:
+            raise urllib.error.HTTPError(url, 404, "model not found", {}, None)
+        return {"choices": [{"message": {"content": '{"x": 1}'}}]}
+
+    cfg = LLMConfig(providers=(Endpoint("bad", "https://bad.test/v1", "sk-SECRET-123", "no-such-model"),
+                               Endpoint("good", "https://good.test/v1", "k2", "m")))
+    c = LLMClient(cfg, transport)
+    for _ in range(3):
+        assert c.complete_json("a", "s", {}, lambda d: None).ok  # the good provider answers
+    h = c.health()["by_provider"]
+    assert h["bad"]["failed"] == 3 and h["bad"]["ok"] == 0 and "HTTP 404" in h["bad"]["last_error"]
+    assert h["bad"]["last_error_model"] == "bad:no-such-model" and h["good"]["ok"] == 3
+    assert "SECRET" not in str(h)

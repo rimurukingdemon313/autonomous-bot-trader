@@ -144,6 +144,81 @@ class RiskEngine:
     def __init__(self, limits: RiskLimits = RiskLimits()) -> None:
         self.limits = limits
 
+    # ── account-level checks: one definition, used by evaluate() and by account_gates() ──
+
+    @staticmethod
+    def _c_kill(a: AccountState) -> Check:
+        return Check("kill_switch", a.kill_switch is False,
+                     "active" if a.kill_switch else ("unreadable: treated as active" if a.kill_switch is None else "off"))
+
+    @staticmethod
+    def _c_paused(a: AccountState) -> Check:
+        return Check("paused", not a.paused, "trading paused" if a.paused else "running")
+
+    @staticmethod
+    def _c_halted(a: AccountState) -> Check:
+        return Check("halted", not a.halted, "halted: human action required" if a.halted else "not halted")
+
+    @staticmethod
+    def _c_equity(a: AccountState) -> Check:
+        return Check("equity", a.equity is not None and a.equity > 0, f"equity {a.equity}")
+
+    def _c_daily(self, a: AccountState) -> Check:
+        L, eq = self.limits, a.equity
+        dse = a.day_start_equity or eq
+        day = (eq - dse) / dse * 100 if dse else 0.0
+        daily_limit = L.daily_loss_limit_pct
+        if L.funded and L.funded.daily_loss_pct is not None:
+            daily_limit = min(daily_limit, L.funded.daily_loss_pct)
+        return Check("daily_loss", day > -daily_limit, f"today {day:+.2f}% vs limit -{daily_limit}%")
+
+    def _c_drawdown(self, a: AccountState) -> tuple[Check, float]:
+        L, eq = self.limits, a.equity
+        peak = a.peak_equity or eq
+        dd = (eq - peak) / peak * 100 if peak else 0.0
+        max_dd = L.max_drawdown_pct
+        if L.funded and L.funded.trailing_drawdown_pct is not None:
+            max_dd = min(max_dd, L.funded.trailing_drawdown_pct)
+        return Check("drawdown", dd > -max_dd, f"drawdown {dd:.2f}% vs limit -{max_dd}%"), dd
+
+    def _c_funded_total(self, a: AccountState) -> Check | None:
+        L = self.limits
+        if L.funded and L.funded.max_loss_pct is not None and a.start_balance:
+            total = (a.equity - a.start_balance) / a.start_balance * 100
+            return Check("funded_max_loss", total > -L.funded.max_loss_pct,
+                         f"total {total:+.2f}% vs funded limit -{L.funded.max_loss_pct}%")
+        return None
+
+    def _c_positions(self, a: AccountState, instrument: str) -> list[Check]:
+        L, opens = self.limits, a.open_positions
+        out = [Check("open_positions", len(opens) < L.max_open_positions, f"{len(opens)} open, max {L.max_open_positions}"),
+               Check("same_symbol", all(p["symbol"] != instrument for p in opens),
+                     "a position in this instrument is already open" if any(p["symbol"] == instrument for p in opens)
+                     else "none open")]
+        ccy = {instrument[:3], instrument[3:]}
+        per_ccy = max((sum(1 for p in opens if c in (p["symbol"][:3], p["symbol"][3:])) for c in ccy), default=0)
+        out.append(Check("currency_exposure", per_ccy < L.max_positions_per_currency,
+                         f"{per_ccy} open positions share a currency, max {L.max_positions_per_currency}"))
+        return out
+
+    def _c_weekend(self, now: int) -> Check | None:
+        if self.limits.funded and self.limits.funded.no_weekend_holding:
+            wd = datetime.fromtimestamp(now, timezone.utc)
+            return Check("funded_weekend", not (wd.weekday() == 4 and wd.hour >= 16), "no new positions late Friday")
+        return None
+
+    def account_gates(self, account: AccountState, instrument: str, now: int) -> list[Check]:
+        """The checks that refuse ANY new trade on `instrument` whatever its levels: the same
+        definitions evaluate() applies. Used to avoid asking a model for a trade the account cannot
+        take (a spent daily loss limit, full positions); evaluate() still decides every trade."""
+        out = [self._c_kill(account), self._c_paused(account), self._c_halted(account), self._c_equity(account)]
+        if not out[-1].passed:
+            return out
+        out += [self._c_daily(account), self._c_drawdown(account)[0]]
+        out += [c for c in (self._c_funded_total(account), self._c_weekend(now)) if c is not None]
+        out += self._c_positions(account, instrument)
+        return out
+
     def evaluate(self, decision, account: AccountState, spec: InstrumentSpec | None, quote: Quote | None,
                  now: int, executed_ids: set[str] | frozenset = frozenset()) -> RiskVerdict:
         L = self.limits
@@ -154,15 +229,20 @@ class RiskEngine:
             checks.append(Check(name, bool(ok), detail))
             return bool(ok)
 
+        def add(c: Check | None) -> bool:
+            if c is None:
+                return True
+            checks.append(c)
+            return c.passed
+
         # ── switches and state: fail closed ─────────────────────────────
-        ok = check("kill_switch", account.kill_switch is False,
-                   "active" if account.kill_switch else ("unreadable: treated as active" if account.kill_switch is None else "off"))
-        ok &= check("paused", not account.paused, "trading paused" if account.paused else "running")
-        ok &= check("halted", not account.halted, "halted: human action required" if account.halted else "not halted")
+        ok = add(self._c_kill(account))
+        ok &= add(self._c_paused(account))
+        ok &= add(self._c_halted(account))
         ok &= check("decision", decision.decision in ("BUY", "SELL"), f"decision is {decision.decision}")
         ok &= check("duplicate", decision.id not in executed_ids, "decision already executed" if decision.id in executed_ids else "new")
         eq = account.equity
-        ok &= check("equity", eq is not None and eq > 0, f"equity {eq}")
+        ok &= add(self._c_equity(account))
         ok &= check("spec", spec is not None and spec.tradable, "instrument spec missing or not tradable" if not (spec and spec.tradable) else "ok")
         fresh = quote is not None and quote.bid > 0 and quote.ask >= quote.bid and now - quote.time <= L.max_quote_age_s
         ok &= check("quote", fresh, "no quote" if quote is None else f"age {now - quote.time}s, bid {quote.bid}, ask {quote.ask}")
@@ -191,35 +271,15 @@ class RiskEngine:
                     f"spread is {spread / stop_dist:.1%} of the stop (max {L.max_spread_to_stop:.0%})")
 
         # ── account limits ──────────────────────────────────────────────
-        dse = account.day_start_equity or eq
-        day = (eq - dse) / dse * 100 if dse else 0.0
-        daily_limit = L.daily_loss_limit_pct
-        if L.funded and L.funded.daily_loss_pct is not None:
-            daily_limit = min(daily_limit, L.funded.daily_loss_pct)
-        ok &= check("daily_loss", day > -daily_limit, f"today {day:+.2f}% vs limit -{daily_limit}%")
-        peak = account.peak_equity or eq
-        dd = (eq - peak) / peak * 100 if peak else 0.0
-        max_dd = L.max_drawdown_pct
-        if L.funded and L.funded.trailing_drawdown_pct is not None:
-            max_dd = min(max_dd, L.funded.trailing_drawdown_pct)
-        if not check("drawdown", dd > -max_dd, f"drawdown {dd:.2f}% vs limit -{max_dd}%"):
+        ok &= add(self._c_daily(account))
+        dd_check, dd = self._c_drawdown(account)
+        if not add(dd_check):
             v.halt = f"max drawdown {dd:.2f}% breached"
-        if L.funded and L.funded.max_loss_pct is not None and account.start_balance:
-            total = (eq - account.start_balance) / account.start_balance * 100
-            ok &= check("funded_max_loss", total > -L.funded.max_loss_pct,
-                        f"total {total:+.2f}% vs funded limit -{L.funded.max_loss_pct}%")
+        ok &= add(self._c_funded_total(account))
         ok = ok and v.halt is None
-        opens = account.open_positions
-        ok &= check("open_positions", len(opens) < L.max_open_positions, f"{len(opens)} open, max {L.max_open_positions}")
-        ok &= check("same_symbol", all(p["symbol"] != decision.instrument for p in opens),
-                    "a position in this instrument is already open" if any(p["symbol"] == decision.instrument for p in opens) else "none open")
-        ccy = {decision.instrument[:3], decision.instrument[3:]}
-        per_ccy = max((sum(1 for p in opens if c in (p["symbol"][:3], p["symbol"][3:])) for c in ccy), default=0)
-        ok &= check("currency_exposure", per_ccy < L.max_positions_per_currency,
-                    f"{per_ccy} open positions share a currency, max {L.max_positions_per_currency}")
-        if L.funded and L.funded.no_weekend_holding:
-            wd = datetime.fromtimestamp(now, timezone.utc)
-            ok &= check("funded_weekend", not (wd.weekday() == 4 and wd.hour >= 16), "no new positions late Friday")
+        for c in self._c_positions(account, decision.instrument):
+            ok &= add(c)
+        ok &= add(self._c_weekend(now))
         if not ok:
             return v
 
@@ -237,7 +297,7 @@ class RiskEngine:
             return v
         actual = lots * per_lot
         notional = lots * spec.contract_size * entry * spec.value_per_price_unit
-        exposure = sum(p.get("notional", 0.0) for p in opens) + notional
+        exposure = sum(p.get("notional", 0.0) for p in account.open_positions) + notional
         ok &= check("leverage", exposure / eq <= L.max_leverage, f"{exposure / eq:.2f}x vs max {L.max_leverage}x")
         ok &= check("risk_ceiling", actual <= eq * HARD_MAX_RISK_PCT / 100 + 1e-9,
                     f"risk {actual:.2f} vs ceiling {eq * HARD_MAX_RISK_PCT / 100:.2f}")

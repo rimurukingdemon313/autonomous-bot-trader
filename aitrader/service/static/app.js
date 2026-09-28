@@ -60,6 +60,10 @@ function renderStatus(s) {
     chip("DATA", `${c.data}${c.data_source === "yahoo" ? " · Yahoo" : ""}`, c.data === "CONNECTED" ? "good" : c.data.startsWith("QUOTES ONLY") ? "critical" : lvl(c.data, ["CONNECTED"], ["NOT"])),
     chip("BROKER", c.broker, lvl(c.broker, ["CONNECTED", "PAPER"], ["NOT"])),
     chip("AI", c.ai, lvl(c.ai, ["READY"], [])),
+    // One chip per AI provider: calls that worked, calls that failed, and the last failure.
+    ...Object.entries(c.ai_providers || {}).map(([name, p]) => chip(name.toUpperCase(),
+      `${p.ok} ok · ${p.failed} failed${p.failed && p.last_error ? ` (${p.last_error})` : ""}`,
+      !p.failed ? "good" : p.ok >= p.failed ? "warning" : "critical")),
     chip("DATABASE", c.database, c.database === "HEALTHY" ? "good" : "critical"),
     chip("KNOWLEDGE", c.regime_model === "LOADED" ? `LOADED · ${(c.knowledge_base && c.knowledge_base.status) || "status N/A"}` : (c.knowledge_integrity || "MISSING"),
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),

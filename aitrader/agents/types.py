@@ -187,6 +187,7 @@ class MarketContext:
     mtf: dict = field(default_factory=dict)  # timeframe -> compact summary of COMPLETED bars
     memory_brief: dict = field(default_factory=dict)  # its own past trades, reflections, lessons
     trading_allowed: bool = True  # False when paused / stopped / halted: the model is not consulted
+    account_blocks: list = field(default_factory=list)  # risk-engine account checks that already refuse any trade here
     news: dict | None = None  # the economic calendar for this pair (data/calendar.py); None = not configured
     history: dict | None = None  # the history desk's brief (memory/history.py); None = not configured
 
