@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import threading
 import time
 import traceback
@@ -51,6 +52,31 @@ from .config import ServiceConfig, ServiceConfigError
 
 ROOT = Path(__file__).resolve().parents[2]
 KNOWLEDGE_DIR = ROOT / "models" / "artifacts"
+
+
+def storage_state(data_dir: str, env=None) -> dict:
+    """Whether the database survives a redeploy, from what the platform itself says.
+
+    Railway sets RAILWAY_VOLUME_MOUNT_PATH only when a volume is attached. Without one, every
+    redeploy starts from an empty disk: the paper account back to its start balance, every trade,
+    lesson and reflection gone. That must be visible on the dashboard, not discovered afterwards.
+    Off Railway nothing here can tell, so it says UNKNOWN rather than guessing."""
+    e = os.environ if env is None else env
+    mount = (e.get("RAILWAY_VOLUME_MOUNT_PATH") or "").strip()
+    on_railway = any(e.get(k) for k in ("RAILWAY_ENVIRONMENT", "RAILWAY_ENVIRONMENT_NAME", "RAILWAY_PROJECT_ID",
+                                        "RAILWAY_SERVICE_ID"))
+    here = Path(data_dir).resolve()
+    if mount:
+        m = Path(mount).resolve()
+        if here == m or m in here.parents:
+            return {"status": "PERSISTENT", "detail": f"Railway volume at {mount}"}
+        return {"status": "NOT PERSISTENT",
+                "detail": f"DATA_DIR {data_dir} is not on the volume ({mount}): a redeploy erases the account"}
+    if on_railway:
+        return {"status": "NOT PERSISTENT",
+                "detail": "no Railway volume attached: a redeploy resets the paper account and erases every "
+                          "trade and lesson. Add a Volume with mount path /data"}
+    return {"status": "UNKNOWN", "detail": "not on Railway: whether this disk survives a restart is not known here"}
 
 #: 1.1.0: decide only every `decision_every_bars` H1 closes (the tested cadence);
 #: bookkeeping still runs every hour. 1.0.0 decided every hour.
@@ -167,6 +193,9 @@ class Runtime:
         self.clock = clock or (lambda: int(time.time()))
         Path(cfg.data_dir).mkdir(parents=True, exist_ok=True)
         self.db = Database(Path(cfg.data_dir) / "aitrader.db")
+        self.storage = storage_state(cfg.data_dir)
+        if self.storage["status"] == "NOT PERSISTENT":
+            log_event("STARTUP", f"storage: {self.storage['detail']}", severity="warning")
         if self.db.get_kv("kill_switch", None) is None:
             self.db.set_kv("kill_switch", {"active": False}, reason="first start")
         if self.db.get_kv("paused", None) is None:
@@ -554,6 +583,7 @@ class Runtime:
                                   "records": member_records(self.db)}
                                  if self.orch.brain.config.decision_mode == "trading_room" else None),
                 "database": "HEALTHY" if db_ok else "UNAVAILABLE", "db_latency_ms": db_ms,
+                "storage": self.storage,
                 "knowledge_base": self.knowledge_meta,
                 "knowledge_integrity": self.knowledge_meta.get("integrity", "MISSING"),
                 "regime_model": "LOADED" if self.regime is not None else "MISSING",

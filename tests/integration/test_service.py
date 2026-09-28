@@ -455,3 +455,25 @@ def test_every_response_is_strict_json_even_when_a_value_is_not_a_number(server)
         assert "NaN" not in text and "Infinity" not in text
     assert strict(urllib.request.urlopen(base + "/api/decisions/d-nan", timeout=10).read().decode())["decision"]["context"][
         "features"]["tick_activity"] is None  # shown as N/A, never invented
+
+
+@pytest.mark.parametrize("env,status", [
+    ({"RAILWAY_ENVIRONMENT": "production"}, "NOT PERSISTENT"),  # on Railway, no volume: a redeploy resets the account
+    ({"RAILWAY_ENVIRONMENT": "production", "RAILWAY_VOLUME_MOUNT_PATH": "/data"}, "PERSISTENT"),
+    ({"RAILWAY_ENVIRONMENT": "production", "RAILWAY_VOLUME_MOUNT_PATH": "/volume"}, "NOT PERSISTENT"),  # wrong path
+    ({"RAILWAY_ENVIRONMENT": "production", "RAILWAY_VOLUME_MOUNT_PATH": "/"}, "PERSISTENT"),
+    ({}, "UNKNOWN"),  # off Railway nothing can tell: said so, not guessed
+])
+def test_whether_the_account_survives_a_redeploy_is_reported(env, status):
+    from aitrader.service.runtime import storage_state
+
+    got = storage_state("/data/", env)
+    assert got["status"] == status
+    if status == "NOT PERSISTENT":
+        assert "redeploy" in got["detail"]
+
+
+def test_the_dashboard_shows_the_storage_state(server):
+    rt, base, _ = server
+    code, st = call(base, "/api/status")
+    assert st["components"]["storage"]["status"] in ("PERSISTENT", "NOT PERSISTENT", "UNKNOWN")

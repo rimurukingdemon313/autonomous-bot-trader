@@ -16,6 +16,10 @@ One process (`python -m aitrader`):
 State lives in **one SQLite file under `DATA_DIR`** plus the live pattern
 memory (`memory_live.npz`). Mount a Railway **Volume** at `/data` so a
 restart or redeploy keeps every trade, decision, lesson and reflection.
+Without one, every redeploy starts from an empty disk: the paper account is
+back at its start balance and the bot is paused again. The dashboard's
+**STORAGE** chip says which it is (Railway sets `RAILWAY_VOLUME_MOUNT_PATH`
+only when a volume is attached): `SAVED ON VOLUME`, or `NOT PERSISTENT` in red.
 
 ## Deploy
 

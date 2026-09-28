@@ -65,6 +65,9 @@ function renderStatus(s) {
       `${p.ok} ok · ${p.failed} failed${p.failed && p.last_error ? ` (${p.last_error})` : ""}`,
       !p.failed ? "good" : p.ok >= p.failed ? "warning" : "critical")),
     chip("DATABASE", c.database, c.database === "HEALTHY" ? "good" : "critical"),
+    // Whether the account survives a redeploy: without a volume it restarts at the start balance.
+    c.storage ? chip("STORAGE", c.storage.status === "PERSISTENT" ? "SAVED ON VOLUME" : `${c.storage.status} (${c.storage.detail})`,
+      c.storage.status === "PERSISTENT" ? "good" : c.storage.status === "NOT PERSISTENT" ? "critical" : "warning") : "",
     chip("KNOWLEDGE", c.regime_model === "LOADED" ? `LOADED · ${(c.knowledge_base && c.knowledge_base.status) || "status N/A"}` : (c.knowledge_integrity || "MISSING"),
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
