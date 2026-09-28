@@ -197,8 +197,8 @@ function candleChart(el, data) {
   svg.addEventListener("pointerleave", () => { tip.style.display = "none"; xh.setAttribute("visibility", "hidden"); });
 }
 
-function lineChart(el, points, label, fmtY) {
-  if (!points || points.length < 2) { el.innerHTML = `<p class="muted">${esc(label)}: not enough closed trades yet.</p>`; return; }
+function lineChart(el, points, label, fmtY, empty = "not enough closed trades yet.") {
+  if (!points || points.length < 2) { el.innerHTML = `<p class="muted small">${esc(label)}: ${esc(empty)}</p>`; return; }
   const W = Math.max(el.clientWidth, 320), H = 150, pad = { l: 6, r: 56, t: 16, b: 16 };
   const ys = points.map((p) => p[1]);
   let min = Math.min(...ys), max = Math.max(...ys);
@@ -485,6 +485,31 @@ function announce(L) {
   seenClosed = closedKey;
 }
 
+/* How far the trade has gone: 0% at entry, +100% at the target, −100% at the stop, for either side.
+   Computed from the trade's own levels and the price now; the ring fills like a loading circle. */
+function tradeProgress(p) {
+  if (p.current === null || p.current === undefined) return null;
+  const side = p.side === "BUY" ? 1 : -1, move = (p.current - p.entry) * side;
+  const span = move >= 0 ? Math.abs(p.target - p.entry) : Math.abs(p.entry - p.stop);
+  return span > 0 ? move / span * 100 : null;
+}
+function progressRing(p, d) {
+  const pc = tradeProgress(p);
+  const R = 30, C = 2 * Math.PI * R, frac = pc === null ? 0 : Math.min(1, Math.abs(pc) / 100);
+  const good = pc !== null && pc >= 0, col = pc === null ? "var(--muted)" : good ? "var(--good)" : "var(--critical)";
+  const label = pc === null ? "N/A" : `${pc >= 0 ? "+" : "−"}${Math.abs(pc).toFixed(0)}%`;
+  const words = pc === null ? "no price right now" : good ? `of the way to the target (${num(p.target, d)})` : `of the way to the stop (${num(p.stop, d)})`;
+  // Toward the target the ring fills clockwise; toward the stop, anticlockwise.
+  return `<div class="tc-prog"><svg viewBox="0 0 76 76" class="ring" role="img" aria-label="${esc(label + " " + words)}">
+      <circle cx="38" cy="38" r="${R}" fill="none" stroke="var(--grid)" stroke-width="8"/>
+      <circle cx="38" cy="38" r="${R}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round"
+        stroke-dasharray="${(frac * C).toFixed(1)} ${C.toFixed(1)}" transform="${good ? "" : "translate(76 0) scale(-1 1) "}rotate(-90 38 38)"
+        style="transition: stroke-dasharray .6s ease"/>
+      <text x="38" y="43" text-anchor="middle" font-size="15" font-weight="800" fill="${col}">${label}</text></svg>
+    <div class="tc-prog-t"><div class="${good ? "pos" : pc === null ? "muted" : "neg"}"><b>${label}</b> ${esc(words)}</div>
+      <div class="muted small">stop ${num(p.stop, d)} · entry ${num(p.entry, d)} · target ${num(p.target, d)}</div></div></div>`;
+}
+
 function renderLive(L) {
   const hero = $("live-equity"), dot = $("live-dot");
   if (!L.available) {
@@ -511,12 +536,10 @@ function renderLive(L) {
     td ? `<span>Trades today <b>${td.trades}</b>${td.trades ? ` · ${td.wins} won` : ""}</span>` : "",
   ].filter(Boolean).join("");
   $("live-age").textContent = `${L.currency || ""} · read ${new Date(L.time * 1000).toISOString().slice(11, 19)} UTC`;
-  lineChart($("live-spark"), liveSamples, "Equity since this page opened", (v) => v.toFixed(2));
+  lineChart($("live-spark"), liveSamples, "Equity since this page opened", (v) => v.toFixed(2),
+    "the line starts with the next change in equity.");
   $("live-positions").innerHTML = (L.positions || []).map((p) => {
     const d = p.symbol.includes("JPY") ? 3 : 5, side = p.side === "BUY" ? "buy" : "sell";
-    // Where the price is between the stop (left, 0) and the target (right, 1), for either side.
-    const at = p.current === null ? null : (p.current - p.stop) / (p.target - p.stop);
-    const x = at === null ? null : Math.max(0, Math.min(1, at)) * 100;
     const left = p.max_hold_minutes ? p.opened + p.max_hold_minutes * 60 - L.time : null;
     const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
     return `<div class="trade-card ${side}">
@@ -524,8 +547,7 @@ function renderLive(L) {
         <span class="muted small">${esc(p.timeframe || "")}${p.qty ? ` · ${num(p.qty, 2)} lots` : ""}</span>
         <span class="tc-pnl ${moneyCls(p.pnl)}">${money(p.pnl)}</span></div>
       <div class="tc-sub">entry <b>${num(p.entry, d)}</b> → now <b>${num(p.current, d)}</b> · <b>${p.r_now === null ? NA : signed(p.r_now, 2) + " R"}</b></div>
-      <div class="bar" title="left: the stop · right: the target">${x === null ? "" : `<span class="now" style="left: calc(${x}% - 2px)"></span>`}</div>
-      <div class="bar-labels"><span>stop ${num(p.stop, d)}</span><span>target ${num(p.target, d)}</span></div>
+      ${progressRing(p, d)}
       <div class="tc-meta"><span>open ${ago(p.opened, L.time)}</span><span>${left === null ? "no time limit" : left > 0 ? `closes by time in ${mmss(left)}` : "closing now (time)"}</span></div>
       ${p.thesis ? `<div class="tc-why"><b>Why:</b> ${esc(p.thesis)}</div>` : ""}</div>`;
   }).join("") || `<div class="trade-card empty">No open trade right now · the team is watching the market</div>`;
