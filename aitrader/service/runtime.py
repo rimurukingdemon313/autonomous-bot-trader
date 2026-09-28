@@ -58,7 +58,9 @@ KNOWLEDGE_DIR = ROOT / "models" / "artifacts"
 #: 1.3.0: DECISION_MODE=trading_room; the room's members and each member's record in status.
 #: 1.4.0: DECISION_INTERVAL_MIN / SYMBOLS_PER_CYCLE for the model-trader modes; open paper
 #: positions are checked on M1 bars between H1 closes; live memory saved at most every 15 min.
-SERVICE_VERSION = "service-1.4.0"
+#: 1.5.0: DATA reads CONNECTED only when bars arrive (quotes alone: QUOTES ONLY, NO BARS, with the
+#: reason); a pair with no data shows NO_DATA and why.
+SERVICE_VERSION = "service-1.5.0"
 MODEL_MODES = ("llm_trader", "trading_room")
 FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
 MEMORY_SAVE_EVERY_S = 900
@@ -88,7 +90,10 @@ class LiveFeedAdapter:
         self.tl = tl
         self.clock = clock
         self._cache: dict = {}
+        self._quotes: dict = {}  # symbol -> (fetched at, quote or None)
+        self._lock = threading.Lock()  # the dashboard's threads and the scheduler share this cache
         self.last_ok: int | None = None
+        self.last_bars_ok: int | None = None  # the last time H1 bars (what decisions need) arrived
         self.last_error: str | None = None
 
     def symbols(self):
@@ -98,29 +103,58 @@ class LiveFeedAdapter:
     #: only changes hourly, so re-fetching it every minute for every pair would
     #: spend the broker's rate limit on data that has not changed.
     CACHE_S = {"M1": 60, "M5": 60, "M15": 60, "H1": 300, "H4": 300, "D1": 300}
+    #: One fetch per (pair, timeframe) serves every caller: the longest window anyone asks for.
+    #: Separate fetches for 3, 260 and 720 H1 bars were three requests for one series.
+    FETCH_BARS = {"M1": 60, "M5": 48, "M15": 32, "H1": 720, "H4": 180, "D1": 60}
+    #: A live quote is reused for this long, by the dashboard and the bot alike. The dashboard
+    #: refreshes every few seconds per open tab; without this each refresh was one request per
+    #: pair, and TradeLocker's Cloudflare answered 1015 (rate limited) to all of it.
+    QUOTE_TTL_S = 10
 
     def bars(self, symbol, as_of, count):
         return self.bars_tf(symbol, "H1", as_of, count)
 
     def bars_tf(self, symbol, timeframe, as_of, count):
         """Completed bars of any broker timeframe (M1, M5, M15, H1, H4, D1), or None."""
-        key = (symbol, timeframe, as_of // self.CACHE_S.get(timeframe, 60), count)
-        if key not in self._cache:
+        key = (symbol, timeframe, as_of // self.CACHE_S.get(timeframe, 60))
+        with self._lock:
+            hit = key in self._cache
+        if not hit:
+            want = max(count, self.FETCH_BARS.get(timeframe, count))
             try:
-                self._cache[key] = self.tl.bars(symbol, as_of, count, timeframe)
-                if self._cache[key] is not None:
+                got = self.tl.bars(symbol, as_of, want, timeframe)
+                if got is not None:
                     self.last_ok = int(self.clock())
+                    if timeframe == "H1":
+                        self.last_bars_ok = self.last_ok
             except Exception as exc:
                 self.last_error = f"{type(exc).__name__}: {exc}"
-                self._cache[key] = None
-            if len(self._cache) > 400:
-                self._cache.pop(next(iter(self._cache)))
-        return self._cache[key]
+                got = None
+            with self._lock:
+                self._cache[key] = got  # a failure is cached too: no retry storm within the window
+                if len(self._cache) > 400:
+                    self._cache.pop(next(iter(self._cache)))
+        with self._lock:
+            got = self._cache[key]
+        if got is None or len(got) <= count:
+            return got
+        return got.take(slice(len(got) - count, len(got)))
+
+    def data_error(self, symbol: str) -> str | None:
+        """Why the last H1 bars for `symbol` did not arrive, or None."""
+        return getattr(self.tl, "bars_errors", {}).get((symbol, "H1")) or self.last_error
 
     def quote(self, symbol, now=None):
+        t = self.clock()
+        with self._lock:
+            hit = self._quotes.get(symbol)
+        if hit is not None and t - hit[0] < self.QUOTE_TTL_S:
+            return hit[1]
         q = self.tl.quote(symbol)
+        with self._lock:
+            self._quotes[symbol] = (t, q)  # a missing quote is reused too: no retry storm
         if q is not None:
-            self.last_ok = int(self.clock())
+            self.last_ok = int(t)
         return q
 
 
@@ -493,7 +527,7 @@ class Runtime:
             "system": "ONLINE" if db_ok else "DEGRADED", "mode": self.cfg.mode, "time": now,
             "uptime_s": int(time.time() - self.started),
             "components": {
-                "data": "CONNECTED" if feed_ok and now - feed_ok < 1800 else "NOT CONNECTED",
+                "data": self._data_state(now, feed_ok),
                 "broker": broker_state, "demo_verification": demo,
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
                 "decision_mode": self.orch.brain.config.decision_mode,
@@ -600,6 +634,17 @@ class Runtime:
                 "trade": json.loads(trade["payload"]) if trade else None,
                 "episode": json.loads(episode["payload"]) if episode else None}
 
+    def _data_state(self, now: int, feed_ok) -> str:
+        """CONNECTED only when the bars decisions need arrive; a live quote alone is not enough to
+        decide, and saying CONNECTED then would hide why nothing trades."""
+        if not feed_ok or now - feed_ok >= 1800:
+            return "NOT CONNECTED"
+        bars_ok = getattr(self.feed, "last_bars_ok", "n/a")
+        if bars_ok == "n/a" or (bars_ok and now - bars_ok < 3 * 3600):
+            return "CONNECTED"
+        err = next((e for e in (getattr(self.feed, "data_error", lambda s: None)(s) for s in self.cfg.symbols) if e), None)
+        return f"QUOTES ONLY, NO BARS ({err or 'no H1 bars received yet'})"
+
     def market(self) -> list[dict]:
         out = []
         now = self.clock()
@@ -616,7 +661,8 @@ class Runtime:
                         "quote_error": q_err if q_err else (None if q else "no price available"),
                         "spread": (q.ask - q.bid) if q else None, "quote_time": q.time if q else None,
                         "regime": st.get("regime"), "vol": st.get("vol"), "familiar": st.get("familiar"),
-                        "decision": st.get("decision"), "reason": st.get("reason"), "last_decision_t": st.get("t"),
+                        "decision": st.get("decision") or st.get("state"), "reason": st.get("reason"),
+                        "last_decision_t": st.get("t"),
                         "exposure": open_syms.get(s)})
         return out
 

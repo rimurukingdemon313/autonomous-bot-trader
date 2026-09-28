@@ -20,6 +20,7 @@ never defaulted.
 from __future__ import annotations
 
 import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Mapping, Sequence
@@ -181,22 +182,43 @@ def decode_bars(payload: Any, timeframe: str) -> list[dict[str, Any]]:
     return [deduped[key] for key in sorted(deduped)]
 
 
-class HistoryFetcher:
-    """Fetches candles, discovering the working endpoint shape once."""
+#: After a timeframe's full discovery fails, it is not probed again for this long: probing sends
+#: one request per known shape, and a broker that does not serve that timeframe would otherwise
+#: be flooded (and rate-limit the timeframes it does serve).
+FAILED_COOLDOWN_S = 600
 
-    def __init__(self, request: Callable[[str, Mapping[str, Any]], Any]) -> None:
+
+class HistoryFetcher:
+    """Fetches candles, discovering the working endpoint shape once PER TIMEFRAME.
+
+    A shape is learned per timeframe: a broker that serves H1 one way and M1 another (or not at
+    all) must never have its working H1 shape forgotten because an M1 request failed.
+    """
+
+    def __init__(self, request: Callable[[str, Mapping[str, Any]], Any],
+                 clock: Callable[[], float] = time.monotonic) -> None:
         self._request = request
-        self._strategy: HistoryStrategy | None = None
+        self._strategies: dict[str, HistoryStrategy] = {}
+        self._failed_until: dict[str, float] = {}
+        self._clock = clock
         self._lock = threading.RLock()
         self.attempts: list[dict[str, Any]] = []
+
+    @property
+    def _strategy(self) -> HistoryStrategy | None:
+        return self._strategies.get("H1") or next(iter(self._strategies.values()), None)
 
     @property
     def strategy(self) -> HistoryStrategy | None:
         return self._strategy
 
-    def reset(self) -> None:
+    def reset(self, timeframe: str | None = None) -> None:
         with self._lock:
-            self._strategy = None
+            if timeframe is None:
+                self._strategies.clear()
+                self._failed_until.clear()
+            else:
+                self._strategies.pop(timeframe.upper(), None)
 
     def _span(self, timeframe: str, count: int) -> timedelta:
         """Wall-clock window to request for `count` candles.
@@ -220,9 +242,13 @@ class HistoryFetcher:
     ) -> list[dict[str, Any]]:
         end = now or utc_now()
         start = end - self._span(timeframe, count)
+        tf = timeframe.upper()
 
         with self._lock:
-            known = self._strategy
+            known = self._strategies.get(tf)
+            blocked = self._failed_until.get(tf, 0.0) > self._clock()
+        if known is None and blocked:
+            raise BrokerError(f"no history shape serves {tf} on this broker (probed recently; retrying later)")
 
         if known is not None:
             rows = self._try(known, instrument_id, route_id, timeframe, start, end)
@@ -237,9 +263,17 @@ class HistoryFetcher:
                 severity="warning",
                 timeframe=timeframe,
             )
-            self.reset()
+            self.reset(tf)
 
-        return self._discover(instrument_id, route_id, timeframe, start, end, count)
+        try:
+            return self._discover(instrument_id, route_id, timeframe, start, end, count)
+        except BrokerRejected:
+            raise
+        except BrokerError as exc:
+            if "no known TradeLocker history endpoint shape" in str(exc):
+                with self._lock:
+                    self._failed_until[tf] = self._clock() + FAILED_COOLDOWN_S
+            raise
 
     def _discover(
         self,
@@ -274,7 +308,8 @@ class HistoryFetcher:
             self.attempts.append({"strategy": strategy.name, "ok": bool(rows), "bars": len(rows)})
             if rows:
                 with self._lock:
-                    self._strategy = strategy
+                    self._strategies[timeframe.upper()] = strategy
+                    self._failed_until.pop(timeframe.upper(), None)
                 log_event(
                     "DATA",
                     f"history endpoint discovered: {strategy.name}",
@@ -319,6 +354,7 @@ class HistoryFetcher:
         strategy = self._strategy
         return {
             "discovered": strategy.name if strategy else None,
+            "by_timeframe": {tf: s.name for tf, s in self._strategies.items()},
             "path": strategy.path if strategy else None,
             "timeUnit": strategy.time_unit if strategy else None,
             "resolutionCase": strategy.resolution_map if strategy else None,

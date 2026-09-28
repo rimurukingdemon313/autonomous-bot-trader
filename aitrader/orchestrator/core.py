@@ -201,7 +201,9 @@ class Orchestrator:
     def decide(self, symbol: str, t: int) -> Decision | None:
         window = self.feed.bars(symbol, t, LOOKBACK)
         if window is None or len(window) == 0:
-            self.status["symbols"][symbol] = {"t": t, "state": "NO_DATA"}
+            why = getattr(self.feed, "data_error", lambda s: None)(symbol)
+            self.status["symbols"][symbol] = {"t": t, "state": "NO_DATA",
+                                              "reason": why or "the feed returned no completed bars"}
             return None
         self._event("MARKET_DATA_UPDATED", {"symbol": symbol, "bars": len(window),
                                             "last_close": int(window.available_at[-1])})

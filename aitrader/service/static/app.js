@@ -57,7 +57,7 @@ function renderStatus(s) {
   const killed = !ks || ks.active !== false;
   $("status-row").innerHTML = [
     chip("SYSTEM", s.system, s.system === "ONLINE" ? "good" : "critical"),
-    chip("DATA", c.data, lvl(c.data, ["CONNECTED"], ["NOT"])),
+    chip("DATA", c.data, c.data === "CONNECTED" ? "good" : c.data.startsWith("QUOTES ONLY") ? "critical" : lvl(c.data, ["CONNECTED"], ["NOT"])),
     chip("BROKER", c.broker, lvl(c.broker, ["CONNECTED", "PAPER"], ["NOT"])),
     chip("AI", c.ai, lvl(c.ai, ["READY"], [])),
     chip("DATABASE", c.database, c.database === "HEALTHY" ? "good" : "critical"),
@@ -122,7 +122,7 @@ function renderMarket(rows) {
       <td class="num">${r.spread === null ? NA : num(r.spread, digits)}</td>
       <td>${esc(r.regime ?? "—")}</td><td>${esc(r.vol ?? "—")}</td>
       <td>${r.familiar === false ? '<span class="chip critical">unfamiliar</span>' : r.familiar ? "familiar" : "—"}</td>
-      <td title="${esc(r.reason ?? "")}">${esc(r.decision ?? "—")} <span class="muted small">${r.last_decision_t ? ts(r.last_decision_t) : ""}</span></td></tr>`;
+      <td title="${esc(r.reason ?? "")}">${esc(r.decision ?? "—")} <span class="muted small">${r.last_decision_t ? ts(r.last_decision_t) : ""}</span>${r.decision === "NO_DATA" && r.reason ? `<br><span class="small neg">${esc(r.reason)}</span>` : ""}</td></tr>`;
   }).join("");
   $("market").querySelectorAll("tbody tr").forEach((tr) => tr.onclick = () => { selected = tr.dataset.s; refreshSelected(); });
 }
@@ -398,5 +398,5 @@ async function refreshSlow() {
   await safe(async () => renderResearch(await api("/api/research")));
 }
 refreshFast().then(refreshSlow);
-setInterval(refreshFast, 5000);
+setInterval(refreshFast, 10000);  // prices are cached 10 s server-side: refreshing faster only costs requests
 setInterval(refreshSlow, 20000);

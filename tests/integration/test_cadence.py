@@ -301,3 +301,37 @@ def test_an_open_trade_is_reviewed_on_its_own_pairs_turn(tmp_path, monkeypatch):
         clock.t += 60
         rt.run_cycle(decide=True)
     assert len(asked) == 1 and asked[0]["position"]["symbol"] == "EURUSD"  # one call, on EURUSD's turn
+
+
+class QuotesOnlyFeed(LiveLikeFeed):
+    """A broker that sends live quotes but no candle history: what TradeLocker looks like when
+    its history endpoint fails. Decisions cannot be made, and the dashboard must say why."""
+
+    last_bars_ok = None
+
+    def __init__(self, series):
+        super().__init__(series)
+        self.last_ok = None
+
+    def bars(self, symbol, as_of, count):
+        return None
+
+    def quote(self, symbol, now):
+        self.last_ok = now
+        return super().quote(symbol, now)
+
+    def data_error(self, symbol):
+        return "H1 bars: no known TradeLocker history endpoint shape returned candles"
+
+
+def test_quotes_without_bars_are_reported_as_such_never_as_connected(tmp_path, monkeypatch):
+    rt, clock, _ = build(tmp_path, monkeypatch, decision_interval_min=1)
+    rt.feed = rt.orch.feed = QuotesOnlyFeed({s: rt.feed._series[s] for s in SYMS}) if hasattr(rt.feed, "_series") \
+        else QuotesOnlyFeed({s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0)
+                             for i, s in enumerate(SYMS)})
+    rt.market()  # a quote arrives: the old dashboard called this CONNECTED
+    rt.orch.decide("EURUSD", clock.t)
+    data = rt.status()["components"]["data"]
+    assert data.startswith("QUOTES ONLY, NO BARS") and "history endpoint" in data
+    row = next(r for r in rt.market() if r["symbol"] == "EURUSD")
+    assert row["decision"] == "NO_DATA" and "history endpoint" in row["reason"]

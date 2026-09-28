@@ -50,6 +50,7 @@ class TradeLockerAdapter:
                  claimed_positions: Callable[[], set[str]],
                  client: TradeLockerBroker | None = None, clock: Callable[[], float] = time.time,
                  sleep: Callable[[float], None] = time.sleep) -> None:
+        self.bars_errors: dict[tuple[str, str], str] = {}  # (symbol, timeframe) -> why the last fetch failed
         self.config = config
         self._symbols = list(symbols)
         self.client = client or TradeLockerBroker(config)
@@ -130,14 +131,18 @@ class TradeLockerAdapter:
     def bars(self, symbol: str, as_of: int, count: int, timeframe: str = "H1") -> BarSeries | None:
         """The last `count` COMPLETED bars of `timeframe` at `as_of` (M1, M5, M15, H1, H4 or D1)."""
         tf_s = TIMEFRAME_MINUTES[timeframe] * 60
+        key = (symbol, timeframe)
         try:
             spec = self.client.instrument(symbol)
             rows = self.client.candles(spec, timeframe, count=count + 2)
         except BrokerError as exc:
             log_event("DATA", f"no bars for {symbol}: {exc}", severity="warning", symbol=symbol)
+            self.bars_errors[key] = f"{timeframe} bars: {exc}"[:240]
             return None
         q = self.quote(symbol)
         if q is None or not rows:
+            self.bars_errors[key] = (f"{timeframe} bars: the broker returned none" if not rows
+                                     else f"{timeframe} bars: no live quote to measure the spread")
             return None
         spread = q.ask - q.bid
         rows = sorted(rows, key=lambda r: r["timestamp"])
@@ -145,7 +150,9 @@ class TradeLockerAdapter:
                       for r in rows], dtype=np.int64)
         closed = t + tf_s <= as_of  # a forming bar is never used
         if not closed.any():
+            self.bars_errors[key] = f"{timeframe} bars: none completed yet"
             return None
+        self.bars_errors.pop(key, None)
         pick = np.flatnonzero(closed)[-count:]
         o = np.array([rows[i]["open"] for i in pick], float)
         h = np.array([rows[i]["high"] for i in pick], float)
