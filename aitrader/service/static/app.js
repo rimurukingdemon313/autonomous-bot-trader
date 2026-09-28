@@ -447,6 +447,44 @@ function countTo(el, from, to) {
   requestAnimationFrame(step);
 }
 
+/* A trade that opens or closes is announced across the top of the screen, so it cannot be missed.
+   Only changes seen while the page is open are announced; what was already open is not. */
+let seenOpen = null, seenClosed = null;
+const toastQueue = [];
+function toast(kind, big, line) {
+  toastQueue.push({ kind, big, line });
+  if (toastQueue.length === 1) showNextToast();
+}
+function showNextToast() {
+  const t = toastQueue[0], el = $("toast");
+  if (!t) { el.hidden = true; return; }
+  el.className = `toast ${t.kind}`;
+  el.innerHTML = `<div class="big">${t.big}</div><div class="line">${t.line}</div><div class="hint">tap to close</div>`;
+  el.hidden = false;
+  const done = () => { clearTimeout(timer); el.onclick = null; toastQueue.shift(); el.hidden = true; setTimeout(showNextToast, 250); };
+  const timer = setTimeout(done, 10000);
+  el.onclick = done;
+  try { navigator.vibrate?.([80, 60, 80]); } catch (_) { /* not every phone */ }
+}
+function announce(L) {
+  const d = (s) => (String(s).includes("JPY") ? 3 : 5);
+  const openKeys = new Map((L.positions || []).map((p) => [`${p.symbol}|${p.opened}`, p]));
+  const lt = L.last_trade, closedKey = lt ? `${lt.symbol}|${lt.closed}` : null;
+  if (seenOpen !== null) {
+    for (const [k, p] of openKeys) if (!seenOpen.has(k)) {
+      toast(p.side === "BUY" ? "buy" : "sell", `${p.side === "BUY" ? "▲ BUY" : "▼ SELL"} ${esc(p.symbol)} — TRADE OPENED`,
+        `entry ${num(p.entry, d(p.symbol))} · stop ${num(p.stop, d(p.symbol))} · target ${num(p.target, d(p.symbol))}`);
+    }
+    if (closedKey && closedKey !== seenClosed) {
+      const kind = lt.pnl === null ? "flat" : lt.pnl > 0 ? "win" : lt.pnl < 0 ? "loss" : "flat";
+      toast(kind, `${esc(lt.symbol)} ${esc(lt.side)} CLOSED ${money(lt.pnl)}`,
+        `${lt.r === null ? "" : (lt.r >= 0 ? "+" : "") + lt.r.toFixed(2) + " R · "}${esc(lt.exit_reason)}`);
+    }
+  }
+  seenOpen = new Set(openKeys.keys());
+  seenClosed = closedKey;
+}
+
 function renderLive(L) {
   const hero = $("live-equity"), dot = $("live-dot");
   if (!L.available) {
@@ -454,6 +492,7 @@ function renderLive(L) {
     hero.innerHTML = NA; $("live-sub").innerHTML = `<span class="neg">${esc(L.reason)}</span>`; return;
   }
   dot.classList.add("on");
+  announce(L);
   if (liveShown !== null && L.equity !== liveShown) {
     hero.classList.remove("up", "down"); void hero.offsetWidth;
     hero.classList.add(L.equity > liveShown ? "up" : "down");
@@ -519,7 +558,7 @@ function renderAnalysis(r) {
     const d = String(r.symbol || "").includes("JPY") ? 3 : 5;
     const plan = `<b class="${res.action === "BUY" ? "pos" : "neg"}">${esc(res.action)}</b> ${esc(res.timeframe || "")} · SL ${num(res.stop, d)} · TP ${num(res.target, d)}${res.max_hold_minutes ? ` · up to ${res.max_hold_minutes} min` : ""}`;
     const after = !out ? `<span class="muted">checking with the risk engine…</span>`
-      : out.executed ? `<span class="pos">✔ placed, ${num(out.qty, 2)} lots (sized by the risk engine)</span>`
+      : out.executed ? `<span class="an-placed ${res.action === "BUY" ? "buy" : "sell"}">✔ TRADE OPENED · ${num(out.qty, 2)} lots</span> <span class="muted small">sized by the risk engine</span>`
       : out.risk === "REJECTED" ? `<span class="neg">✗ refused by the risk engine: ${esc((out.reasons || [])[0] || "")}</span>`
       : `<span class="muted">not placed</span>`;
     line = `${plan}<br>${after}`;
