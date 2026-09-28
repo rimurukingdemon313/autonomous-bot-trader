@@ -54,7 +54,8 @@ from .types import MarketContext
 #: 2.2.0: the packet carries the history desk; RISK reads it.
 #: 2.3.0: holding time in minutes, M1 bars, the owner's objective stated, open trades reviewed.
 #: 2.4.0: the owner's wish that the account not sit idle is stated.
-ROOM_VERSION = "trading-room-2.4.0"
+#: 2.5.0: the packet's bars are rows (llm-trader 1.7.0).
+ROOM_VERSION = "trading-room-2.5.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (

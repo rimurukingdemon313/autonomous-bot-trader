@@ -113,7 +113,8 @@ def test_each_providers_failures_are_counted_and_the_last_reason_kept_without_th
     for _ in range(3):
         assert c.complete_json("a", "s", {}, lambda d: None).ok  # the good provider answers
     h = c.health()["by_provider"]
-    assert h["bad"]["failed"] == 3 and h["bad"]["ok"] == 0 and "HTTP 404" in h["bad"]["last_error"]
+    # asked once: a model the provider does not have then rests instead of failing every call
+    assert h["bad"]["failed"] == 1 and h["bad"]["ok"] == 0 and "HTTP 404" in h["bad"]["last_error"]
     assert h["bad"]["last_error_model"] == "bad:no-such-model" and h["good"]["ok"] == 3
     assert "SECRET" not in str(h)
 
@@ -158,3 +159,60 @@ def test_the_providers_own_reason_is_shown_without_the_key():
     assert "HTTP 404" in h["bad"]["last_error"] and "No endpoints found for some/model:free" in h["bad"]["last_error"]
     assert "SECRET" not in str(h) and "abcdefghijklmnop" not in str(h)
     assert h["raw"]["last_error"].endswith("HTTP 403 error code: 1010")
+
+
+def _clocked(behaviour):
+    """A client over two providers whose first model answers per `behaviour(call_no)`."""
+    from aitrader.llm.provider import Endpoint
+
+    clock = {"t": 1_700_000_000.0}
+    calls = []
+
+    def transport(url, headers, b, timeout):
+        calls.append((url.split("/")[2], b["model"]))
+        if "a.test" in url and b["model"] == "big":
+            code = behaviour(len([c for c in calls if c[1] == "big"]))
+            if code:
+                raise urllib.error.HTTPError(url, code, "x", {}, None)
+        return {"choices": [{"message": {"content": OK}}]}
+
+    cfg = LLMConfig(providers=(Endpoint("a", "https://a.test/v1", "k1", "big", ("small",)),
+                               Endpoint("b", "https://b.test/v1", "k2", "m")))
+    return LLMClient(cfg, transport, clock=lambda: clock["t"]), clock, calls
+
+
+def test_a_spent_quota_is_not_asked_again_every_minute():
+    """Groq's free tier is counted in tokens per day; once it says 429 the model was asked again
+    every minute all day (366 failures). It now rests, the next model answers, and nothing is spent."""
+    c, clock, calls = _clocked(lambda n: 429)
+    assert c.complete_json("a", "s", {}, ok_validate).model == "a:small"
+    asked = len([x for x in calls if x[1] == "big"])  # the refusal, and its one retry
+    for _ in range(8):  # eight more minutes
+        clock["t"] += 60
+        assert c.complete_json("a", "s", {}, ok_validate).ok
+    assert len([x for x in calls if x[1] == "big"]) == asked  # not asked while resting
+    assert c.health()["by_provider"]["a"]["resting"] == {"a:big": 2}
+    clock["t"] += 3 * 60  # rest over: asked once more; a second refusal rests twice as long
+    c.complete_json("a", "s", {}, ok_validate)
+    assert len([x for x in calls if x[1] == "big"]) > asked
+    assert c.health()["by_provider"]["a"]["resting"]["a:big"] == 20
+
+
+def test_a_model_name_the_provider_does_not_have_rests_for_hours_and_a_success_clears_it():
+    state = {"code": 404}
+    c, clock, calls = _clocked(lambda n: state["code"])
+    c.complete_json("a", "s", {}, ok_validate)
+    assert c.health()["by_provider"]["a"]["resting"] == {"a:big": 360}
+    errs = c.health()["by_provider"]["a"]["errors"]
+    assert "a:big" in errs and "HTTP 404" in errs["a:big"]  # each model's own failure is kept
+    clock["t"] += 6 * 3600
+    state["code"] = None
+    assert c.complete_json("a", "s", {}, ok_validate).model == "a:big"
+    h = c.health()["by_provider"]["a"]
+    assert h["resting"] == {} and "a:big" not in h["errors"]
+
+
+def test_an_ordinary_server_error_does_not_make_a_model_rest():
+    c, clock, calls = _clocked(lambda n: 500)
+    c.complete_json("a", "s", {}, ok_validate)
+    assert c.health()["by_provider"]["a"]["resting"] == {}

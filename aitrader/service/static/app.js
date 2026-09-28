@@ -61,9 +61,16 @@ function renderStatus(s) {
     chip("BROKER", c.broker, lvl(c.broker, ["CONNECTED", "PAPER"], ["NOT"])),
     chip("AI", c.ai, lvl(c.ai, ["READY"], [])),
     // One chip per AI provider: calls that worked, calls that failed, and the last failure.
-    ...Object.entries(c.ai_providers || {}).map(([name, p]) => chip(name.toUpperCase(),
-      `${p.ok} ok · ${p.failed} failed${p.failed && p.last_error ? ` (${p.last_error})` : ""}`,
-      !p.failed ? "good" : p.ok >= p.failed ? "warning" : "critical")),
+    // One chip per AI provider: calls that worked, calls that failed, and each model's own last
+    // failure; a model resting after a spent quota or an unknown name is said to be resting.
+    ...Object.entries(c.ai_providers || {}).map(([name, p]) => {
+      const short = (m) => String(m).split(":").slice(1).join(":") || m;
+      const errs = Object.entries(p.errors || {}).map(([m, e]) =>
+        `${short(m)}: ${String(e).replace(/^HTTP_ERROR: /, "").slice(0, 110)}${(p.resting || {})[m] ? ` [resting ${p.resting[m]} min]` : ""}`);
+      const bad = Object.keys(p.errors || {}).length;
+      return chip(name.toUpperCase(), `${p.ok} ok · ${p.failed} failed${errs.length ? " · " + errs.join(" · ") : ""}`,
+        !bad ? "good" : p.ok ? "warning" : "critical");
+    }),
     chip("DATABASE", c.database, c.database === "HEALTHY" ? "good" : "critical"),
     // Whether the account survives a redeploy: without a volume it restarts at the start balance.
     c.storage ? chip("STORAGE", c.storage.status === "PERSISTENT" ? "SAVED ON VOLUME" : `${c.storage.status} (${c.storage.detail})`,

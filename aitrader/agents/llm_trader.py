@@ -44,7 +44,9 @@ from .types import MarketContext
 #: 1.4.0 (owner: "no fixed duration, even a minute"): holding time in MINUTES (1 to 20160), M1 bars,
 #: and the model reviews its open trades and may close them whenever it decides.
 #: 1.5.0: the owner's wish that the account not sit idle is stated.
-LLM_TRADER_VERSION = "llm-trader-1.6.0"
+#: 1.7.0: bars as rows (bar_fields names the columns) and fewer of them (M1 24, M5 18, M15 12, H4 12, D1 10;
+#:        each timeframe keeps its 20-bar summary): fewer tokens per decision, so more decisions per free day.
+LLM_TRADER_VERSION = "llm-trader-1.7.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -83,6 +85,9 @@ Reply with ONE JSON object only:
  "mistake": "the specific error, or null", "lesson": "one concrete rule for next time, or null"}"""
 
 
+BAR_FIELDS = ["open_utc (day hh:mm)", "open", "high", "low", "close"]
+
+
 def _tf_summary(bars: BarSeries, n_show: int) -> dict | None:
     if bars is None or len(bars) < 3:
         return None
@@ -96,17 +101,19 @@ def _tf_summary(bars: BarSeries, n_show: int) -> dict | None:
     def chg(m):
         return round(float((c[-1] - c[-1 - m]) / atr), 2) if len(c) > m and atr > 0 else None
 
-    last = [{"t": datetime.fromtimestamp(int(bars.open_time[i]), timezone.utc).strftime("%m-%d %H:%M"),
-             "o": round(float(bars.mid_open[i]), 5), "h": round(float(h[i]), 5),
-             "l": round(float(lo[i]), 5), "c": round(float(c[i]), 5)} for i in range(max(0, len(c) - n_show), len(c))]
+    # One row per bar, in the order of BAR_FIELDS: the same numbers without a key on every value.
+    # Free tiers are counted in tokens per day, so the packet's size decides how many decisions fit.
+    last = [[datetime.fromtimestamp(int(bars.open_time[i]), timezone.utc).strftime("%d %H:%M"),
+             round(float(bars.mid_open[i]), 5), round(float(h[i]), 5), round(float(lo[i]), 5), round(float(c[i]), 5)]
+            for i in range(max(0, len(c) - n_show), len(c))]
     return {"close": round(float(c[-1]), 5), "atr14": round(atr, 6),
             "change_atr": {"1": chg(1), "5": chg(5), "20": chg(20)},
             "range20": {"high": round(hi20, 5), "low": round(lo20, 5),
                         "position": round(float((c[-1] - lo20) / (hi20 - lo20)), 2) if hi20 > lo20 else None},
-            "bars": last}
+            "bar_fields": BAR_FIELDS, "bars": last}
 
 
-LOWER_SHOW = {"M1": 30, "M5": 24, "M15": 16}  # bars shown per lower timeframe
+LOWER_SHOW = {"M1": 24, "M5": 18, "M15": 12}  # bars shown per lower timeframe (each also has a 20-bar summary)
 
 
 def multi_timeframe(h1: BarSeries, as_of: int, lower: dict | None = None) -> dict:
@@ -115,7 +122,7 @@ def multi_timeframe(h1: BarSeries, as_of: int, lower: dict | None = None) -> dic
     out = {tf: _tf_summary(b, LOWER_SHOW[tf]) for tf, b in (lower or {}).items()
            if tf in LOWER_SHOW and b is not None and len(b)}
     out["H1"] = _tf_summary(h1, 24)
-    for tf, n in (("H4", 18), ("D1", 15)):
+    for tf, n in (("H4", 12), ("D1", 10)):
         try:
             out[tf] = _tf_summary(resample(h1, tf, as_of=as_of), n)
         except ValueError:

@@ -203,6 +203,8 @@ MUTANTS = [
     ("llm-user-agent", "model requests carry their own User-Agent (Cloudflare refuses Python's default)",
      "aitrader/llm/provider.py", '"Content-Type": "application/json", "User-Agent": USER_AGENT}',
      '"Content-Type": "application/json"}', ["tests/unit/test_llm_providers.py"]),
+    ("llm-rest-after-refusal", "a model refused for quota or an unknown name rests instead of being asked every minute",
+     "aitrader/llm/provider.py", "                self._after(label, last)\n", "", ["tests/unit/test_llm_providers.py"]),
     ("provider-failures-visible", "each AI provider's failures are counted and shown",
      "aitrader/llm/provider.py", "                self._note(ep.name, last)\n", "", ["tests/unit/test_llm_providers.py"]),
     ("room-own-voice", "a mind speaks only through its own provider",

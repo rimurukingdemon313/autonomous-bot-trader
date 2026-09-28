@@ -143,7 +143,7 @@ def test_the_models_read_completed_m5_and_m15_bars_and_may_trade_on_them():
         "ticks", "spread_mean", "spread_max")})
     mtf = multi_timeframe(h1, as_of, {"M5": m5, "M15": None})
     assert set(mtf) == {"M5", "H1", "H4", "D1"}  # a missing lower timeframe is simply absent
-    assert len(mtf["M5"]["bars"]) == 24
+    assert len(mtf["M5"]["bars"]) == 18
     ok = {"action": "BUY", "timeframe": "M5", "stop": 1.1, "target": 1.2, "max_hold_hours": 1, "thesis": "scalp"}
     assert validate_proposal(ok) is None
     assert validate_proposal({**ok, "timeframe": "S30"}) is not None  # never on a timeframe it cannot see
@@ -204,7 +204,7 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
     assert [p["instrument"] for p in packets] == list(SYMS[:2])
     last = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='USDJPY'")["payload"])
     assert "currency_exposure" in last["no_trade_reason"]
-    assert all("M5" in p["timeframes"] and len(p["timeframes"]["M5"]["bars"]) == 24 for p in packets)
+    assert all("M5" in p["timeframes"] and len(p["timeframes"]["M5"]["bars"]) == 18 for p in packets)
     assert all("history" in p and "calendar" in p for p in packets)  # every decision carries both desks
     traded = rt.db.query("SELECT d.timeframe AS tf, v.approved AS ok, v.payload AS vp FROM decisions d "
                          "JOIN risk_verdicts v ON v.decision_id = d.id")

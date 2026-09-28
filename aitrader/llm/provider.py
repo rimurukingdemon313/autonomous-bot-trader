@@ -248,6 +248,15 @@ def extract_json(text: str) -> dict | None:
     return None
 
 
+#: How long a model is left alone after its provider refuses it for a reason that asking again a
+#: minute later will not fix. A spent free quota (429) waits 10 minutes, doubling on each refusal
+#: in a row up to an hour; a model name the provider does not have (404) waits 6 hours; a refused
+#: key (401/403) or an oversized request (413) waits 30 minutes. Nothing is spent while waiting,
+#: and the next model or provider answers instead. A success clears it.
+COOLDOWN_S = {429: 600, 404: 6 * 3600, 401: 1800, 403: 1800, 413: 1800}
+MAX_QUOTA_COOLDOWN_S = 3600
+
+
 class LLMClient:
     def __init__(self, config: LLMConfig, transport: Transport | None = None,
                  clock: Callable[[], float] = time.time) -> None:
@@ -259,6 +268,7 @@ class LLMClient:
         self._cache: dict[str, LLMResult] = {}
         self._ep_day: dict[tuple[str, str], int] = {}  # (UTC day, provider) -> calls
         self._ep_stats: dict[str, dict] = {}  # provider -> ok / failed / last error (no secrets: status + message)
+        self._cool: dict[str, tuple[float, str, int]] = {}  # "provider:model" -> (until, why, refusals in a row)
         self.stats = {"calls": 0, "ok": 0, "failed": 0, "retries": 0, "cache_hits": 0}
 
     def _day(self) -> str:
@@ -301,8 +311,14 @@ class LLMClient:
                 last = LLMResult(False, agent, None, "BUDGET", error=f"{ep.name}: its daily budget is used up")
                 continue  # that provider's free quota is spent: the next provider answers
             for model in models:
+                label = model if ep.name == "default" else f"{ep.name}:{model}"
+                resting = self._resting(label)
+                if resting:
+                    last = LLMResult(False, agent, label, "COOLDOWN", error=resting)
+                    continue  # not asked, nothing spent: the next model or provider answers
                 last = self._try_model(agent, ep, model, system, user, validate)
                 self._note(ep.name, last)
+                self._after(label, last)
                 if last.ok or last.status == "BUDGET":
                     break
             if last.ok or (last.status == "BUDGET" and last.error == "daily call budget exhausted"):
@@ -313,17 +329,41 @@ class LLMClient:
                 self._cache.pop(next(iter(self._cache)))
         return last
 
+    def _resting(self, label: str) -> str | None:
+        with self._lock:
+            c = self._cool.get(label)
+        if c is None or self._clock() >= c[0]:
+            return None
+        return f"resting {max(1, round((c[0] - self._clock()) / 60))} min after: {c[1]}"
+
+    def _after(self, label: str, res: "LLMResult") -> None:
+        if res.ok:
+            with self._lock:
+                self._cool.pop(label, None)
+            return
+        m = re.match(r"HTTP (\d{3})", res.error or "") if res.status == "HTTP_ERROR" else None
+        code = int(m.group(1)) if m else None
+        if code not in COOLDOWN_S:
+            return
+        with self._lock:
+            n = self._cool.get(label, (0.0, "", 0))[2] + 1
+            wait = min(COOLDOWN_S[code] * 2 ** (n - 1), MAX_QUOTA_COOLDOWN_S) if code == 429 else COOLDOWN_S[code]
+            self._cool[label] = (self._clock() + wait, (res.error or "")[:120], n)
+
     def _note(self, name: str, res: "LLMResult") -> None:
         """Per-provider outcome counts and the last failure, so a key or model name that keeps
         failing is visible on the dashboard instead of silently shrinking the team."""
         with self._lock:
-            s = self._ep_stats.setdefault(name, {"ok": 0, "failed": 0, "last_error": None, "last_error_model": None})
+            s = self._ep_stats.setdefault(name, {"ok": 0, "failed": 0, "last_error": None, "last_error_model": None,
+                                                 "errors": {}})
             if res.ok:
                 s["ok"] += 1
+                s["errors"].pop(res.model, None)
             else:
                 s["failed"] += 1
                 s["last_error"] = f"{res.status}: {res.error}"[:200] if res.error else res.status
                 s["last_error_model"] = res.model
+                s["errors"][res.model or "?"] = s["last_error"]  # each model's own last failure
 
     def _ep_calls(self, name: str) -> int:
         with self._lock:
@@ -397,8 +437,17 @@ class LLMClient:
         self.stats["failed"] += 1
         return LLMResult(False, agent, label, "HTTP_ERROR", error="retries exhausted")
 
+    def _resting_for(self, provider: str) -> dict:
+        """Models of `provider` that are resting now, with the minutes left."""
+        now = self._clock()
+        with self._lock:
+            items = list(self._cool.items())
+        return {label: max(1, round((until - now) / 60)) for label, (until, _, _) in items
+                if until > now and (label.startswith(provider + ":") or provider == "default")}
+
     def health(self) -> dict:
         day = self._day()
         return {**self.config.public(), **self.stats, "calls_today": self._calls.get(day, 0),
-                "by_provider": {k: dict(v) for k, v in self._ep_stats.items()},
+                "by_provider": {k: {**v, "errors": dict(v.get("errors", {})), "resting": self._resting_for(k)}
+                                for k, v in self._ep_stats.items()},
                 "calls_today_by_provider": {n: c for (d, n), c in self._ep_day.items() if d == day}}
