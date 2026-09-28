@@ -174,6 +174,37 @@ class LLMResult:
 Transport = Callable[[str, dict, dict, float], dict]
 
 
+#: Sent on every model request. Groq sits behind Cloudflare, which refuses Python's default
+#: "Python-urllib/3.x" with HTTP 403 (error 1010) before the key is even read.
+USER_AGENT = "aitrader/1.0 (paper trading research; python)"
+
+
+def provider_message(exc: urllib.error.HTTPError, api_key: str = "") -> str:
+    """The provider's own explanation of a refusal ("model not found", "quota exceeded"...), short
+    and with the key and anything key-shaped removed. Empty when the body cannot be read."""
+    from ..observability import redact
+
+    try:
+        raw = exc.read(600).decode("utf-8", "replace") if exc.fp is not None else ""
+    except Exception:
+        return ""
+    msg = raw
+    try:
+        data = json.loads(raw)
+        err = data.get("error") if isinstance(data, dict) else None
+        if isinstance(err, dict):
+            msg = str(err.get("message") or err.get("code") or raw)
+        elif isinstance(err, str):
+            msg = err
+        elif isinstance(data, dict) and data.get("message"):
+            msg = str(data["message"])
+    except (ValueError, AttributeError):
+        pass
+    if api_key:
+        msg = msg.replace(api_key, "[redacted]")
+    return " ".join(redact(msg).split())[:140]
+
+
 def _http_transport(url: str, headers: dict, body: dict, timeout: float) -> dict:
     req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - https URL from config
@@ -291,7 +322,7 @@ class LLMClient:
                 s["ok"] += 1
             else:
                 s["failed"] += 1
-                s["last_error"] = f"{res.status}: {res.error}"[:160] if res.error else res.status
+                s["last_error"] = f"{res.status}: {res.error}"[:200] if res.error else res.status
                 s["last_error_model"] = res.model
 
     def _ep_calls(self, name: str) -> int:
@@ -301,7 +332,7 @@ class LLMClient:
     def _try_model(self, agent, ep: "Endpoint", model, system, user, validate) -> LLMResult:
         cfg = self.config
         label = model if ep.name == "default" else f"{ep.name}:{model}"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json", "User-Agent": USER_AGENT}
         if ep.api_key:
             headers["Authorization"] = f"Bearer {ep.api_key}"
         body = {
@@ -335,8 +366,9 @@ class LLMClient:
                     time.sleep(0.5)
                     continue
                 self.stats["failed"] += 1
+                why = provider_message(exc, ep.api_key)
                 return LLMResult(False, agent, label, "HTTP_ERROR", latency_ms=(time.perf_counter() - t0) * 1000,
-                                 error=f"HTTP {exc.code}")
+                                 error=f"HTTP {exc.code}" + (f" {why}" if why else ""))
             except (TimeoutError, urllib.error.URLError, OSError) as exc:
                 self.stats["failed"] += 1
                 status = "TIMEOUT" if "timed out" in str(exc).lower() or isinstance(exc, TimeoutError) else "ERROR"

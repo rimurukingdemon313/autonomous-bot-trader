@@ -116,3 +116,45 @@ def test_each_providers_failures_are_counted_and_the_last_reason_kept_without_th
     assert h["bad"]["failed"] == 3 and h["bad"]["ok"] == 0 and "HTTP 404" in h["bad"]["last_error"]
     assert h["bad"]["last_error_model"] == "bad:no-such-model" and h["good"]["ok"] == 3
     assert "SECRET" not in str(h)
+
+
+def test_every_request_names_itself_so_a_cloudflare_front_does_not_refuse_it():
+    """Groq answered 403 (Cloudflare 1010) to every call: Python's default User-Agent is refused
+    before the key is read. Each request carries its own."""
+    calls = []
+
+    def t(url, headers, body, timeout):
+        calls.append(headers)
+        return {"choices": [{"message": {"content": OK}}]}
+
+    LLMClient(LLMConfig.from_env(ENV), t).complete_json("trader", "s", {}, ok_validate)
+    ua = calls[0].get("User-Agent", "")
+    assert ua and "urllib" not in ua.lower()
+
+
+def test_the_providers_own_reason_is_shown_without_the_key():
+    """"HTTP 404" alone cannot tell a wrong model name from a wrong URL; the provider's message can."""
+    import io
+
+    from aitrader.llm.provider import Endpoint
+
+    def body(msg):
+        return io.BytesIO(json.dumps({"error": {"message": msg, "code": 404}}).encode())
+
+    def transport(url, headers, b, timeout):
+        if "bad.test" in url:
+            raise urllib.error.HTTPError(url, 404, "nf", {}, body(
+                "No endpoints found for some/model:free. key sk-SECRET-123 Bearer abcdefghijklmnopqrstuvwxyz0123"))
+        if "raw.test" in url:
+            raise urllib.error.HTTPError(url, 403, "f", {}, io.BytesIO(b"error code: 1010"))
+        return {"choices": [{"message": {"content": OK}}]}
+
+    cfg = LLMConfig(providers=(Endpoint("bad", "https://bad.test/v1", "sk-SECRET-123", "some/model:free"),
+                               Endpoint("raw", "https://raw.test/v1", "k", "m"),
+                               Endpoint("good", "https://good.test/v1", "k2", "m")))
+    c = LLMClient(cfg, transport)
+    assert c.complete_json("a", "s", {}, ok_validate).ok
+    h = c.health()["by_provider"]
+    assert "HTTP 404" in h["bad"]["last_error"] and "No endpoints found for some/model:free" in h["bad"]["last_error"]
+    assert "SECRET" not in str(h) and "abcdefghijklmnop" not in str(h)
+    assert h["raw"]["last_error"].endswith("HTTP 403 error code: 1010")
