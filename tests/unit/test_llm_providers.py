@@ -216,3 +216,32 @@ def test_an_ordinary_server_error_does_not_make_a_model_rest():
     c, clock, calls = _clocked(lambda n: 500)
     c.complete_json("a", "s", {}, ok_validate)
     assert c.health()["by_provider"]["a"]["resting"] == {}
+
+
+def test_a_per_minute_limit_rests_as_long_as_the_provider_says_not_the_blind_doubling():
+    """Groq's per-minute token limit says "Please try again in 14.2s" far into a long message; the
+    model was resting 19 minutes. It now rests what the provider asked for, at least a minute."""
+    import io
+
+    from aitrader.llm.provider import Endpoint, retry_after_s
+
+    long = ("Rate limit reached for model `openai/gpt-oss-120b` in organization `org_x` service tier `on_demand` "
+            "on tokens per minute (TPM): Limit 8000, Used 6500, Requested 3400. Please try again in 14.2s. "
+            "Need more tokens? Upgrade to Dev Tier today.")
+    clock = {"t": 1_700_000_000.0}
+
+    def transport(url, headers, b, timeout):
+        if "a.test" in url:
+            raise urllib.error.HTTPError(url, 429, "x", {}, io.BytesIO(json.dumps({"error": {"message": long}}).encode()))
+        return {"choices": [{"message": {"content": OK}}]}
+
+    c = LLMClient(LLMConfig(providers=(Endpoint("a", "https://a.test/v1", "k", "big"),
+                                       Endpoint("b", "https://b.test/v1", "k", "m"))), transport, clock=lambda: clock["t"])
+    c.complete_json("x", "s", {}, ok_validate)
+    assert c.health()["by_provider"]["a"]["resting"] == {"a:big": 1}
+    e = urllib.error.HTTPError("u", 429, "x", {}, None)
+    assert retry_after_s(e, "please try again in 2m59.5s") == 179.5
+    assert retry_after_s(e, "Please try again in 1h2m3s") == 3723
+    assert retry_after_s(e, "try again in 250ms") == 0.25
+    assert retry_after_s(e, "quota exceeded") is None
+    assert retry_after_s(urllib.error.HTTPError("u", 429, "x", {"Retry-After": "30"}, None), "") == 30

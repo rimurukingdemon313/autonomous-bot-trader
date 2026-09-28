@@ -21,7 +21,7 @@ async function api(path, opts = {}) {
 }
 
 function aiRecord(r) {
-  if (!r || !r.trades) return "no trades yet";
+  if (!r || !r.trades) return "no closed trades yet";
   return `${r.trades} trades, win ${Math.round(r.win_rate * 100)}%, ${r.avg_R >= 0 ? "+" : ""}${r.avg_R}R (${r.sample})`;
 }
 
@@ -173,7 +173,7 @@ function candleChart(el, data) {
     [["entry", p.entry, "var(--text-secondary)"], ["SL", p.stop, "var(--critical)"], ["TP", p.target, "var(--good)"]].forEach(([n, v, c]) => {
       if (!v) return;
       s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 3" stroke-width="1.5"/>`;
-      s += `<text x="${pad.l + 4}" y="${y(v) - 3}" font-size="10" fill="var(--text-secondary)">${n} ${v}</text>`;
+      s += `<text x="${pad.l + 4}" y="${y(v) - 3}" font-size="10" fill="var(--text-secondary)">${n} ${Number(v).toFixed(String(data.symbol || selected || "").includes("JPY") ? 3 : 5)}</text>`;
     });
   });
   (data.marks || []).forEach((m) => {

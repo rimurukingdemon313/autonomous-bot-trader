@@ -179,13 +179,29 @@ Transport = Callable[[str, dict, dict, float], dict]
 USER_AGENT = "aitrader/1.0 (paper trading research; python)"
 
 
-def provider_message(exc: urllib.error.HTTPError, api_key: str = "") -> str:
+def retry_after_s(exc: urllib.error.HTTPError, message: str = "") -> float | None:
+    """How long the provider itself asked us to wait, from its Retry-After header or its message
+    ("Please try again in 7.66s", "in 2m59.5s", "in 250ms"); None when it did not say."""
+    try:
+        ra = exc.headers.get("Retry-After") if exc.headers is not None else None
+        if ra is not None:
+            return max(0.0, float(ra))
+    except (TypeError, ValueError, AttributeError):
+        pass
+    m = re.search(r"try again in\s+(?:(\d+)h)?(?:(\d+)m(?!s))?(?:([\d.]+)s)?(?:([\d.]+)ms)?", message or "", re.I)
+    if not m or not any(m.groups()):
+        return None
+    h, mi, sec, ms = m.groups()
+    return int(h or 0) * 3600 + int(mi or 0) * 60 + float(sec or 0) + float(ms or 0) / 1000
+
+
+def provider_message(exc: urllib.error.HTTPError, api_key: str = "", limit: int = 140) -> str:
     """The provider's own explanation of a refusal ("model not found", "quota exceeded"...), short
     and with the key and anything key-shaped removed. Empty when the body cannot be read."""
     from ..observability import redact
 
     try:
-        raw = exc.read(600).decode("utf-8", "replace") if exc.fp is not None else ""
+        raw = exc.read(4000).decode("utf-8", "replace") if exc.fp is not None else ""
     except Exception:
         return ""
     msg = raw
@@ -202,7 +218,7 @@ def provider_message(exc: urllib.error.HTTPError, api_key: str = "") -> str:
         pass
     if api_key:
         msg = msg.replace(api_key, "[redacted]")
-    return " ".join(redact(msg).split())[:140]
+    return " ".join(redact(msg).split())[:limit]
 
 
 def _http_transport(url: str, headers: dict, body: dict, timeout: float) -> dict:
@@ -251,7 +267,8 @@ def extract_json(text: str) -> dict | None:
 #: How long a model is left alone after its provider refuses it for a reason that asking again a
 #: minute later will not fix. A spent free quota (429) waits 10 minutes, doubling on each refusal
 #: in a row up to an hour; a model name the provider does not have (404) waits 6 hours; a refused
-#: key (401/403) or an oversized request (413) waits 30 minutes. Nothing is spent while waiting,
+#: key (401/403) or an oversized request (413) waits 30 minutes. When a 429 says how long to wait
+#: (Retry-After, or "try again in 7.6s"), that is used instead, at least a minute. Nothing is spent while waiting,
 #: and the next model or provider answers instead. A success clears it.
 COOLDOWN_S = {429: 600, 404: 6 * 3600, 401: 1800, 403: 1800, 413: 1800}
 MAX_QUOTA_COOLDOWN_S = 3600
@@ -345,9 +362,15 @@ class LLMClient:
         code = int(m.group(1)) if m else None
         if code not in COOLDOWN_S:
             return
+        hint = re.search(r"\[retry in (\d+)s\]", res.error or "")
         with self._lock:
             n = self._cool.get(label, (0.0, "", 0))[2] + 1
-            wait = min(COOLDOWN_S[code] * 2 ** (n - 1), MAX_QUOTA_COOLDOWN_S) if code == 429 else COOLDOWN_S[code]
+            if code == 429 and hint:
+                # The provider said how long (a per-minute token limit clears in seconds; a daily one
+                # in hours): wait that, at least a minute, never the blind doubling.
+                wait = min(max(60, int(hint.group(1)) + 5), 24 * 3600)
+            else:
+                wait = min(COOLDOWN_S[code] * 2 ** (n - 1), MAX_QUOTA_COOLDOWN_S) if code == 429 else COOLDOWN_S[code]
             self._cool[label] = (self._clock() + wait, (res.error or "")[:120], n)
 
     def _note(self, name: str, res: "LLMResult") -> None:
@@ -406,9 +429,12 @@ class LLMClient:
                     time.sleep(0.5)
                     continue
                 self.stats["failed"] += 1
-                why = provider_message(exc, ep.api_key)
+                full = provider_message(exc, ep.api_key, limit=4000)
+                wait = retry_after_s(exc, full)  # "try again in" often sits past the shown part
+                why = full[:140]
                 return LLMResult(False, agent, label, "HTTP_ERROR", latency_ms=(time.perf_counter() - t0) * 1000,
-                                 error=f"HTTP {exc.code}" + (f" {why}" if why else ""))
+                                 error=f"HTTP {exc.code}" + (f" [retry in {wait:.0f}s]" if wait is not None else "")
+                                 + (f" {why}" if why else ""))
             except (TimeoutError, urllib.error.URLError, OSError) as exc:
                 self.stats["failed"] += 1
                 status = "TIMEOUT" if "timed out" in str(exc).lower() or isinstance(exc, TimeoutError) else "ERROR"
