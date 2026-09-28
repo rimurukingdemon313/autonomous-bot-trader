@@ -70,6 +70,8 @@ function renderStatus(s) {
       : "EVIDENCE SYNTHESIS", c.decision_mode === "evidence" ? "good" : "warning"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",
     chip("LAST DATA", s.last_market_update ? ts(s.last_market_update) : "never", s.last_market_update ? "good" : "warning"),
+    c.history_desk ? chip("HISTORY", c.history_desk.trades ? `${(c.history_desk.trades / 1e6).toFixed(2)}M past trades · ${c.history_desk.integrity}`
+      : c.history_desk.integrity, (c.history_desk.integrity || "") === "VERIFIED" ? "good" : c.history_desk.trades ? "warning" : "critical") : "",
     ...(c.news_calendar && c.news_calendar.status !== "NOT_CONFIGURED"
       ? [chip("NEWS", ["UNAVAILABLE", "PENDING"].includes(c.news_calendar.status) ? `${c.news_calendar.status} (${c.news_calendar.reason || "?"})`
           : `${c.news_calendar.status} · ${c.news_calendar.age_min} min old`,

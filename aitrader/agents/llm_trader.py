@@ -40,7 +40,8 @@ from .types import MarketContext
 #: 1.2.0 (owner: "it controls itself"): the prompt no longer steers its style; the quantitative
 #: system's market JUDGEMENTS (unfamiliar, abnormal) are information, not a veto; no minimum stop
 #: distance of its own: the risk engine's spread-based stop checks decide what is too tight.
-LLM_TRADER_VERSION = "llm-trader-1.2.0"
+#: 1.3.0: the packet carries the economic calendar and the history desk.
+LLM_TRADER_VERSION = "llm-trader-1.3.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -53,8 +54,9 @@ MAX_HOLD_HOURS = 336
 SYSTEM = """You are a professional discretionary FX trader managing a paper account.
 You decide for ONE instrument, now. The decision time is {time}; treat it as the present.
 Use ONLY the data in the JSON you are given: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
-the account, the quantitative agents' findings (information, not orders), and YOUR OWN MEMORY: your record, your
-past trades most relevant now (losses first) with your own reflections on them, and validated lessons.
+the account, the quantitative agents' findings (information, not orders), the economic calendar, the history
+desk (what fixed trades did, after costs, in the most similar past situations), and YOUR OWN MEMORY: your record,
+your past trades most relevant now (losses first) with your own reflections on them, and validated lessons.
 Do not use any knowledge of prices or events after the decision time, even if you have it.
 
 Every choice is yours: whether to trade at all, the direction, the timeframe, your style, where the stop and
@@ -174,6 +176,7 @@ def market_packet(ctx: MarketContext, reports: dict) -> dict:
         "regime": {k: val for k, val in ctx.regime.as_dict().items() if k != "reasons"},
         "memory": ctx.memory_brief,
         "calendar": ctx.news if ctx.news is not None else {"feed": {"status": "NOT_CONFIGURED"}, "events": None},
+        "history": ctx.history if ctx.history is not None else {"available": False, "reason": "no history desk"},
     }
 
 

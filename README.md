@@ -71,7 +71,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 | History (decisions, trades, episodes, lessons) is immutable and hash-chained | `memory/db.py` | `test_db.py` |
 
 Every row was checked by **removing the guard and watching a test fail**:
-62 of 62 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
+64 of 64 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
 
 ## Evidence
 
@@ -122,7 +122,9 @@ The evidence system keeps its tested 4-hour cadence.
 `DECISION_MODE=trading_room`: one team with one mind per provider, each
 with a role: TREND, PRICE, NEWS (the economic calendar) and RISK. They
 discuss in turn, each building on what the others said, and one of them
-writes the team's joint decision. The models choose their own style, timeframe, stop and
+writes the team's joint decision. Every model also reads the economic
+calendar and the **history desk**: what 2,793,060 past trades did, after
+costs, in the situations most like the market now (2007-2016, hash-checked). The models choose their own style, timeframe, stop and
 target. The quantitative system's view of the market reaches them as
 information, not as a veto. The risk engine still sizes every trade, and
 bad data still stops a decision. Each model's record is kept separately.

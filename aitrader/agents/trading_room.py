@@ -51,7 +51,8 @@ from .types import MarketContext
 #: turn, each building on the others, and one member writes the team's joint decision.
 #: 2.1.0 (owner: "one is the news, one the price..."): each member has a role; they speak in
 #: role order; the packet carries the economic calendar.
-ROOM_VERSION = "trading-room-2.1.0"
+#: 2.2.0: the packet carries the history desk; RISK reads it.
+ROOM_VERSION = "trading-room-2.2.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -62,9 +63,10 @@ ROLES = (
     ("NEWS", "news and timing: the economic calendar in the JSON (releases for this pair's currencies, how soon, "
              "how important, forecast vs previous) and the session open now. You judge whether now is a good "
              "moment and what could move the price. If the calendar is unavailable, say so; never invent news."),
-    ("RISK", "risk and memory: spread and costs against the stop and target, the account, and the team's past "
-             "trades and lessons. You check the plan, fix what is unsafe or repeats a past mistake, and make "
-             "the target realistic."),
+    ("RISK", "risk and memory: spread and costs against the stop and target, the account, the team's past "
+             "trades and lessons, and the history desk (what fixed trades did, after costs, in the most similar "
+             "past situations; mind its count of distinct episodes). You check the plan, fix what is unsafe or "
+             "repeats a past mistake, and make the target realistic."),
 )
 
 
@@ -79,8 +81,9 @@ def assign_roles(members: list[str]) -> dict[str, list[str]]:
     return {m: [names[i % len(names)]] for i, m in enumerate(members)}
 
 _DATA = """Use ONLY the data in the JSON: completed bars on M5 and M15 (when present), H1, H4 and D1, the live quote,
-the account, the quantitative agents' findings (information, not orders), and the team's memory of its past
-trades (losses first) with the reflections written on them. The decision time is {time}; treat it as the
+the account, the quantitative agents' findings (information, not orders), the economic calendar, the history
+desk (what fixed trades did in the most similar past situations), and the team's memory of its past trades
+(losses first) with the reflections written on them. The decision time is {time}; treat it as the
 present and do not use any knowledge of prices or events after it."""
 
 _OWNER = """The owner wants an active team that finds trades, short ones on M5/M15 included, whenever the market

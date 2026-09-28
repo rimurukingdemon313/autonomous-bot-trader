@@ -142,6 +142,29 @@ It is a schedule, not a headline feed. The feed is downloaded at most
 hourly and kept on the volume. When it cannot be read, the models are told
 it is unavailable, never that nothing is scheduled.
 
+**The history desk.** Every model also reads what happened in the past
+situations most like the market now. The source is
+`models/artifacts/history.npz`:
+
+- one situation per H1 bar, 12 pairs, 2007 to 2016;
+- 698,265 situations and 2,793,060 trades, each with its realised result
+  after spread, slippage and commission;
+- four trade types: T1 (stop 1 ATR, target 1.5 ATR, 24 h) and T2 (stop
+  1.5 ATR, target 3 ATR, 48 h), each as BUY and SELL;
+- built by `scripts/build_history.py` from sealed data only, and loaded
+  only if it matches its card.
+
+For the 300 nearest situations, the desk gives each trade type's win rate,
+average and median R, and a lower bound. It also counts the **distinct
+episodes** (pair, day) among them. Consecutive hours share the same move,
+so 300 neighbours may be 150 real episodes, and the lower bound treats
+each episode, not each hour, as one observation. The desk reads only
+outcomes known at the decision time. A search takes about 40 ms.
+
+The knowledge base PR-001 tested (`memory.npz`) is unchanged, and the
+evidence system does not use the history desk. The desk's own note says
+what it is not: a forecast, or evidence of an edge.
+
 If every member recommends no trade, the joint call is skipped. The
 prompts carry the owner's wish for an active team that trades often,
 including short M5/M15 trades. They steer no particular setup, and no

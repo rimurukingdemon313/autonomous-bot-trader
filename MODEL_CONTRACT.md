@@ -225,3 +225,23 @@ approval, with all its limits. Also unchanged:
 - replies validated and never repaired;
 - a validated lesson against the exact context still blocks the repeat
   (the owner asked for a system that does not repeat its mistakes).
+
+### 10.4 The history desk and the calendar (owner request, 2026-09-28)
+
+Both model modes read two more sources:
+
+- **The economic calendar** (§10.1 2.1).
+- **The history desk.** It reports the realised results, after costs, of
+  the four declared trade types in the most similar past situations. The
+  source is a separate dense reference memory (`history.npz`: every H1 bar
+  2007-2016, 2,793,060 trades, sealed data only, hash-checked against its
+  card).
+
+The desk is information, like the analysts' view: it cannot decide,
+size or veto. It counts distinct episodes next to raw neighbours, and its
+lower bound uses the episodes, because overlapping hours are not
+independent evidence. The evidence system and the PR-001 knowledge base
+are untouched.
+
+Code: `aitrader/memory/history.py`, `scripts/build_history.py`. Tests:
+`tests/unit/test_history_desk.py`.

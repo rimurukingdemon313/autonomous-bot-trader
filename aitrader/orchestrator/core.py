@@ -56,7 +56,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.2.0: in DECISION_MODE=trading_room the memory brief carries each member's forward record.
 #: 1.3.0: the model-trader modes also read completed M5/M15 bars when the feed provides them.
 #: 1.4.0: ... and the economic calendar for the pair, when one is configured.
-ORCHESTRATOR_VERSION = "orchestrator-1.4.0"
+#: 1.5.0: ... and the history desk: what the most similar past situations did.
+ORCHESTRATOR_VERSION = "orchestrator-1.5.0"
 
 
 class NullKnowledge:
@@ -90,12 +91,13 @@ class Orchestrator:
     def __init__(self, cfg: OrchestratorConfig, *, db: Database, feed, broker, brain: Brain,
                  risk: RiskEngine, execution: ExecutionEngine, experience: ExperienceView,
                  memory: PatternMemory, regime_for: Callable[[int], object], clock: Callable[[], int],
-                 versions: dict, news=None) -> None:
+                 versions: dict, news=None, history=None) -> None:
         self.cfg, self.db, self.feed, self.broker = cfg, db, feed, broker
         self.brain, self.risk, self.execution = brain, risk, execution
         self.experience, self.memory, self.regime_for = experience, memory, regime_for
         self.clock, self.versions = clock, dict(versions)
         self.news = news  # economic calendar (live only); the model modes read it
+        self.history = history  # the history desk (memory/history.py); the model modes read it
         self.tracker = OutcomeTracker(pip_of, cfg.costs, on_resolved=self._on_resolved)
         self.experience.on_lesson = self._on_lesson
         self._last_learn = 0
@@ -231,6 +233,9 @@ class Orchestrator:
                 ctx.memory_brief["room_track_records"] = member_records(self.db)
             if self.news is not None:
                 ctx.news = self.news.for_symbol(symbol, t)
+            if self.history is not None:
+                ctx.history = (self.history.brief(fv.values, t) if fv.complete else
+                               {"available": False, "reason": "features incomplete at this bar"})
             ks = self.db.get_kv("kill_switch", {"active": True})
             ctx.trading_allowed = not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
                                        or not isinstance(ks, dict) or ks.get("active") is not False)

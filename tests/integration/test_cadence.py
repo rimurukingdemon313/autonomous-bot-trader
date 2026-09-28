@@ -197,6 +197,7 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
         rt.run_cycle(decide=True)
     assert [p["instrument"] for p in packets] == list(SYMS)  # one pair per cycle, in rotation
     assert all("M5" in p["timeframes"] and len(p["timeframes"]["M5"]["bars"]) == 24 for p in packets)
+    assert all("history" in p and "calendar" in p for p in packets)  # every decision carries both desks
     traded = rt.db.query("SELECT d.timeframe AS tf, v.approved AS ok, v.payload AS vp FROM decisions d "
                          "JOIN risk_verdicts v ON v.decision_id = d.id")
     assert traded and all(r["tf"] == "M5" for r in traded)

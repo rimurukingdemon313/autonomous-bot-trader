@@ -9,6 +9,8 @@
 | `artifacts/memory.npz` | Historical-analogue memory: one row per past decision situation (18 standardised features) with the realised R of every action template, and the time each outcome became known. float16 on disk. |
 | `artifacts/regime.json` | Regime quantiles and the familiarity distribution, fitted on training rows only. |
 | `artifacts/knowledge_card.json` | The card: data range (always before the sealed holdout), symbols, dataset hashes, feature/label/memory/regime versions, code commit, the SHA-256 of the two files above, and its **status**. |
+| `artifacts/history.npz` | The history desk's reference memory for the model traders: every H1 bar 2007-2016 (698,265 situations, 2,793,060 trades with realised R after costs). Separate from `memory.npz`, which PR-001 tested and which it does not change. Built by `scripts/build_history.py`. |
+| `artifacts/history_card.json` | Its card: data range, dataset hashes, versions, counts, and the SHA-256 the service checks before loading it. |
 
 ## Loading rules (enforced in `aitrader/service/runtime.py`)
 

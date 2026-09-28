@@ -29,6 +29,7 @@ import numpy as np
 from ..agents.brain import Brain, BrainConfig
 from ..agents.trading_room import member_records
 from ..data.calendar import EconomicCalendar
+from ..memory.history import HistoryDesk
 from ..backtest.metrics import summarise
 from ..broker.paper import PaperBroker
 from ..data.bars import BarSeries
@@ -145,6 +146,7 @@ class Runtime:
         if self.feed is None or self.broker is None:
             self._connect()
         self.memory, self.regime, self.knowledge_meta = self._load_knowledge()
+        self.history, self.history_meta = self._load_history()
         self.experience = ExperienceView()
         self._replay_experience()
         self.execution = ExecutionEngine(self.db, self.broker, self.clock)
@@ -157,6 +159,7 @@ class Runtime:
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
             # The calendar is read from the internet like the broker: only for a live feed.
             news=(EconomicCalendar(Path(cfg.data_dir) / "calendar_cache.json") if self.tl is not None else None),
+            history=self.history,
             versions={**stamp(), "service": SERVICE_VERSION, "knowledge_base": (self.knowledge_meta.get("hash", "none")
                                                      if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
                       "llm": self.llm.config.public()["model"] or "none"})
@@ -241,6 +244,30 @@ class Runtime:
         memory = PatternMemory.load(live_mem if live_mem.exists() else mem_path)
         meta["memory_source"] = "live (grown forward from the verified base)" if live_mem.exists() else "base"
         return memory, RegimeModel.from_json(reg_path.read_text()), meta
+
+    def _load_history(self):
+        """The history desk's reference memory, only if it matches its card; else the verified base memory.
+
+        A missing or mismatched history.npz never loads: the desk then reads the
+        knowledge base's own (verified) memory, and status says which one it uses.
+        """
+        kdir = self.knowledge_dir
+        path, card = kdir / "history.npz", kdir / "history_card.json"
+        if path.exists() and card.exists():
+            meta = json.loads(card.read_text())
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            if digest == meta.get("sha256"):
+                desk = HistoryDesk(PatternMemory.load(path), "history.npz (every H1 bar, 2007-2016)")
+                return desk, {"integrity": "VERIFIED", "version": meta.get("version"), **desk.size()}
+            log_event("STARTUP", "history.npz does not match its card: not loaded", severity="critical",
+                      expected=str(meta.get("sha256"))[:16], actual=digest[:16])
+            reason = "MISMATCH"
+        else:
+            reason = "MISSING"
+        if self.regime is not None and len(self.memory):
+            desk = HistoryDesk(self.memory, "knowledge base memory (one situation every 4 H1 bars)")
+            return desk, {"integrity": f"FALLBACK (history.npz {reason})", **desk.size()}
+        return None, {"integrity": reason}
 
     def _replay_experience(self) -> None:
         """Rebuild point-in-time experience from the immutable episodes after a restart."""
@@ -470,6 +497,7 @@ class Runtime:
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
                 "decision_mode": self.orch.brain.config.decision_mode,
                 "decision_interval_min": self.cfg.decision_interval_min or None,
+                "history_desk": self.history_meta,
                 "news_calendar": (self.orch.news.state(refresh=False) if self.orch.news is not None else {"status": "NOT_CONFIGURED"}),
                 "symbols_per_cycle": self.cfg.symbols_per_cycle or len(self.cfg.symbols),
                 "ai_trader_record": (TradeMemory(self.db).record()

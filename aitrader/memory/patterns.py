@@ -57,6 +57,7 @@ class AnalogEvidence:
     examples: list[dict] = field(default_factory=list)
     median_age_days: float = float("nan")  # how long ago the analogues happened
     top_symbol_share: float = float("nan")  # share of analogues from the single most common instrument
+    distinct_episodes: int | None = None  # distinct (instrument, day) pairs: overlapping hours are one episode
 
     @property
     def similarity(self) -> float:
@@ -73,6 +74,7 @@ class AnalogEvidence:
             "examples": self.examples,
             "median_age_days": round(self.median_age_days, 1) if np.isfinite(self.median_age_days) else None,
             "top_symbol_share": round(self.top_symbol_share, 3) if np.isfinite(self.top_symbol_share) else None,
+            "distinct_episodes": self.distinct_episodes,
         }
 
 
@@ -184,8 +186,9 @@ class PatternMemory:
                     for i in closest]
         age_days = float(np.median(t - meta[nn, 1].astype(np.float64))) / 86400.0
         top_share = float(np.bincount(meta[nn, 0].astype(np.int64)).max() / len(nn))
+        episodes = len(set(zip(meta[nn, 0].tolist(), (meta[nn, 1] // 86400).tolist())))
         return AnalogEvidence(n_avail, len(nn), float(dist.mean()), self.typical_distance, actions, examples,
-                              age_days, top_share)
+                              age_days, top_share, episodes)
 
     # ── persistence ─────────────────────────────────────────────────────
 
