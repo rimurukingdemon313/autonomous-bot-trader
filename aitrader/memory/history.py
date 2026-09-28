@@ -25,9 +25,8 @@ from ..research.labels import TEMPLATE_BY_KEY
 from .patterns import PatternMemory
 
 HISTORY_DESK_VERSION = "history-desk-1.0.0"
-NOTE = ("Realised results after spread and costs of fixed trade types in the most similar past situations "
-        "(2007-2016). Similar past situations are not a forecast; this kind of memory showed no edge on its "
-        "own in testing (PR-001). Weigh it with everything else.")
+NOTE = ("Results after costs of fixed trade types in the most similar past situations (2007-2016); "
+        "not a forecast, and no edge on its own in testing (PR-001).")
 
 
 def describe(action: str) -> str:

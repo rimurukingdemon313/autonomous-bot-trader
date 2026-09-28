@@ -48,7 +48,10 @@ from .types import MarketContext
 #:        each timeframe keeps its 20-bar summary): fewer tokens per decision, so more decisions per free day.
 #: 1.8.0: the reply schema lists M1, which was always accepted but never offered.
 #: 1.9.0: the packet carries the market map and intermarket context; any method is invited and named.
-LLM_TRADER_VERSION = "llm-trader-1.9.0"
+#: 1.10.0: fewer rows (H1 12, M1 15, H4 6, D1 5; levels are in the map), no history example list, a leaner
+#:         map, so the joint call fits
+#:         a free tier's per-minute token limit (Groq answered 413 "request too large").
+LLM_TRADER_VERSION = "llm-trader-1.10.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -121,7 +124,7 @@ def _tf_summary(bars: BarSeries, n_show: int) -> dict | None:
             "bar_fields": BAR_FIELDS, "bars": last}
 
 
-LOWER_SHOW = {"M1": 24, "M5": 18, "M15": 12}  # bars shown per lower timeframe (each also has a 20-bar summary)
+LOWER_SHOW = {"M1": 15, "M5": 18, "M15": 12}  # bars shown per lower timeframe (each also has a 20-bar summary)
 
 
 def multi_timeframe(h1: BarSeries, as_of: int, lower: dict | None = None) -> dict:
@@ -129,8 +132,8 @@ def multi_timeframe(h1: BarSeries, as_of: int, lower: dict | None = None) -> dic
     bars only: the feed never returns a forming bar and resample never emits one."""
     out = {tf: _tf_summary(b, LOWER_SHOW[tf]) for tf, b in (lower or {}).items()
            if tf in LOWER_SHOW and b is not None and len(b)}
-    out["H1"] = _tf_summary(h1, 24)
-    for tf, n in (("H4", 12), ("D1", 10)):
+    out["H1"] = _tf_summary(h1, 12)
+    for tf, n in (("H4", 6), ("D1", 5)):  # their levels and structure are in the market map
         try:
             out[tf] = _tf_summary(resample(h1, tf, as_of=as_of), n)
         except ValueError:
@@ -226,7 +229,9 @@ def market_packet(ctx: MarketContext, reports: dict) -> dict:
         "regime": {k: val for k, val in ctx.regime.as_dict().items() if k != "reasons"},
         "memory": ctx.memory_brief,
         "calendar": ctx.news if ctx.news is not None else {"feed": {"status": "NOT_CONFIGURED"}, "events": None},
-        "history": ctx.history if ctx.history is not None else {"available": False, "reason": "no history desk"},
+        # the desk's statistics without its example list: the list repeated what the statistics say
+        "history": ({k: v for k, v in ctx.history.items() if k != "closest_examples"} if ctx.history is not None
+                    else {"available": False, "reason": "no history desk"}),
         "market_map": ctx.market_map if ctx.market_map is not None else {"available": False},
         "intermarket": ctx.intermarket if ctx.intermarket is not None else {"available": False,
                                                                             "reason": "not provided by this data source"},

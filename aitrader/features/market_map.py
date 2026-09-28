@@ -122,7 +122,7 @@ def _structure(bars: BarSeries, d: int) -> dict:
     return out
 
 
-def _fvgs(bars: BarSeries, d: int, keep: int = 3) -> list[dict]:
+def _fvgs(bars: BarSeries, d: int, keep: int = 2) -> list[dict]:
     h, lo, c, t = bars.mid_high, bars.mid_low, bars.mid_close, bars.open_time
     atr, n, found = _atr(h, lo, c), len(bars), []
     for i in range(2, n):
@@ -230,7 +230,7 @@ def market_map(symbol: str, h1: BarSeries | None, lower: dict | None, as_of: int
     frames = {tf: _completed(b, as_of) for tf, b in (lower or {}).items() if tf in ("M5", "M15")}
     frames["H1"] = h1.take(slice(max(0, len(h1) - 240), len(h1)))
     out: dict = {"version": MAP_VERSION, "price": round(float(h1.mid_close[-1]), d),
-                 "note": "computed from completed bars; distances in that timeframe's ATR(14), negative = below price",
+                 "note": "completed bars only; distance_atr in that timeframe's ATR(14), negative = below price",
                  "structure": {}, "fair_value_gaps": {}, "liquidity": {}}
     finest = next((frames[tf] for tf in ("M5", "M15") if frames.get(tf) is not None and len(frames[tf])), h1)
     out["price"] = round(float(finest.mid_close[-1]), d)  # the latest completed close, finest timeframe

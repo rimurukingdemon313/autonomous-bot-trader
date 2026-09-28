@@ -74,6 +74,8 @@ class Endpoint:
     model: str = ""
     fallback: tuple[str, ...] = ()
     daily_budget: int | None = None
+    max_tokens: int | None = None  # AI_<NAME>_MAX_TOKENS: a smaller reply budget for a provider whose
+                                   # per-minute limit counts the reply budget in the request (Groq)
 
     @property
     def usable(self) -> bool:
@@ -138,7 +140,8 @@ class LLMConfig:
                 api_key=e.get(f"AI_{up}_API_KEY", "").strip(),
                 model=e.get(f"AI_{up}_MODEL", "").strip(),
                 fallback=tuple(m.strip() for m in e.get(f"AI_{up}_FALLBACK_MODELS", "").split(",") if m.strip()),
-                daily_budget=int(budget) if budget else None))
+                daily_budget=int(budget) if budget else None,
+                max_tokens=int(e[f"AI_{up}_MAX_TOKENS"]) if e.get(f"AI_{up}_MAX_TOKENS", "").strip() else None))
         return cls(
             providers=tuple(providers),
             provider=e.get("AI_PROVIDER", "none").strip().lower(),
@@ -267,10 +270,10 @@ def extract_json(text: str) -> dict | None:
 #: How long a model is left alone after its provider refuses it for a reason that asking again a
 #: minute later will not fix. A spent free quota (429) waits 10 minutes, doubling on each refusal
 #: in a row up to an hour; a model name the provider does not have (404) waits 6 hours; a refused
-#: key (401/403) or an oversized request (413) waits 30 minutes. When a 429 says how long to wait
+#: key (401/403) waits 30 minutes; an oversized request (413) 10 minutes (a smaller one may fit sooner). When a 429 says how long to wait
 #: (Retry-After, or "try again in 7.6s"), that is used instead, at least a minute. Nothing is spent while waiting,
 #: and the next model or provider answers instead. A success clears it.
-COOLDOWN_S = {429: 600, 404: 6 * 3600, 401: 1800, 403: 1800, 413: 1800}
+COOLDOWN_S = {429: 600, 404: 6 * 3600, 401: 1800, 403: 1800, 413: 600}
 MAX_QUOTA_COOLDOWN_S = 3600
 
 
@@ -399,7 +402,7 @@ class LLMClient:
         if ep.api_key:
             headers["Authorization"] = f"Bearer {ep.api_key}"
         body = {
-            "model": model, "temperature": 0.2, "max_tokens": cfg.max_tokens,
+            "model": model, "temperature": 0.2, "max_tokens": ep.max_tokens or cfg.max_tokens,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "response_format": {"type": "json_object"},
         }

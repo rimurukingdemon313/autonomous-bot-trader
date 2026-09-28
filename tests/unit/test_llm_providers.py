@@ -245,3 +245,19 @@ def test_a_per_minute_limit_rests_as_long_as_the_provider_says_not_the_blind_dou
     assert retry_after_s(e, "try again in 250ms") == 0.25
     assert retry_after_s(e, "quota exceeded") is None
     assert retry_after_s(urllib.error.HTTPError("u", 429, "x", {"Retry-After": "30"}, None), "") == 30
+
+
+def test_a_provider_can_have_its_own_reply_budget():
+    """Groq's per-minute limit counts the reply budget in the request; a smaller one for that provider
+    keeps the request under it, without shrinking every other provider's."""
+    sent = []
+
+    def t(url, headers, body, timeout):
+        sent.append((url.split("/")[2], body["max_tokens"]))
+        return {"choices": [{"message": {"content": OK}}]}
+
+    env = {**ENV, "AI_OPENROUTER_MAX_TOKENS": "900", "AI_MAX_TOKENS": "1500"}
+    c = LLMClient(LLMConfig.from_env(env), t)
+    c.complete_json("trader", "s", {}, ok_validate, only="openrouter")
+    c.complete_json("trader", "s", {}, ok_validate, only="gemini")
+    assert sent == [("openrouter.ai", 900), ("generativelanguage.googleapis.com", 1500)]
