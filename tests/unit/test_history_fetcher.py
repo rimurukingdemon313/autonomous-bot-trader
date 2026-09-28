@@ -60,3 +60,29 @@ def test_a_timeframe_the_broker_does_not_serve_is_not_reprobed_until_the_cooldow
     with pytest.raises(BrokerError):
         h.fetch(instrument_id=1, route_id=2, timeframe="M1", count=5)
     assert len(h._request.calls) == 2 * probes  # tried again after the cooldown
+
+
+class FlakyM1Broker(Broker):
+    """Serves H1 (documented shape) and M1 (upper-case shape) until M1 stops being served."""
+
+    def __init__(self):
+        super().__init__()
+        self.m1_ok = True
+
+    def __call__(self, path, params):
+        if params["resolution"] == "1M":  # the upper-case minute shape: bars, until they stop
+            self.calls.append((path, params["resolution"]))
+            return BARS if (self.m1_ok and path == STRATEGIES[1].path) else {"d": {"barDetails": []}}
+        return super().__call__(path, params)
+
+
+def test_when_a_learned_timeframe_stops_working_only_that_timeframe_is_forgotten():
+    b = FlakyM1Broker()
+    h = HistoryFetcher(b, clock=lambda: 0.0)
+    h.fetch(instrument_id=1, route_id=2, timeframe="H1", count=5)
+    h.fetch(instrument_id=1, route_id=2, timeframe="M1", count=5)
+    assert set(h.describe()["by_timeframe"]) == {"H1", "M1"}
+    b.m1_ok = False
+    with pytest.raises(BrokerError):
+        h.fetch(instrument_id=1, route_id=2, timeframe="M1", count=5)
+    assert set(h.describe()["by_timeframe"]) == {"H1"}  # H1's shape survives M1's failure
