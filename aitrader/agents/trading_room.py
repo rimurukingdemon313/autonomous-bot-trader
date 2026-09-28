@@ -53,7 +53,8 @@ from .types import MarketContext
 #: role order; the packet carries the economic calendar.
 #: 2.2.0: the packet carries the history desk; RISK reads it.
 #: 2.3.0: holding time in minutes, M1 bars, the owner's objective stated, open trades reviewed.
-ROOM_VERSION = "trading-room-2.3.0"
+#: 2.4.0: the owner's wish that the account not sit idle is stated.
+ROOM_VERSION = "trading-room-2.4.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -88,7 +89,9 @@ desk (what fixed trades did in the most similar past situations), and the team's
 present and do not use any knowledge of prices or events after it."""
 
 _OWNER = """The owner wants an active team that finds trades, very short ones included, whenever the market offers a
-reasonable opportunity. The owner's objective is profit after costs; every loss is recorded against the team.
+reasonable opportunity, and does not want the account to sit idle: when this pair has no open trade and the
+market offers anything reasonable, the owner prefers a small, short trade to waiting (no trade is still the
+team's to choose). The owner's objective is profit after costs; every loss is recorded against the team.
 Every trading choice is the team's own: direction, timeframe, style, stop, target, holding time (from one minute
 to two weeks), or no trade. The team reviews its open trades as time passes and may close them whenever it
 decides. No one sizes positions: a risk engine does that and may refuse a trade."""

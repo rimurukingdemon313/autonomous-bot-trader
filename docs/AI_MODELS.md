@@ -195,18 +195,28 @@ with 4 members. When nobody sees a trade, it costs 4.
 - **Holding time.** The model sets how long a trade may stay open, in
   minutes (`max_hold_minutes`, from 1 minute to 14 days). It is checked
   every few seconds.
-- **Reviews.** At every decision cycle, each open trade is put back to the
-  model with its current R, the latest M1 to H1 bars and the calendar. It
+- **Reviews.** On its pair's turn in the rotation, each open trade is put
+  back to the model with its current R, the latest M1 to H1 bars and the calendar. It
   answers HOLD or CLOSE. A close is executed at the market and shows as
   `MODEL_EXIT`. It can only close: never open, resize, or move the stop or
   target.
 - **When nothing answers.** An unanswered review holds, and the stop and
   target stay on the broker.
-- **Cost.** One model call per open trade per cycle. With the risk
-  engine's maximum of 3 open trades and a 5-minute cycle, that is at most
-  about 860 calls a day.
+- **Cost.** One model call per review. A pair with an open trade is not
+  put to the team for a new one (the risk engine allows one per pair), so
+  its turn costs 1 call instead of 5.
 
 ## How often it decides (`DECISION_INTERVAL_MIN`, `SYMBOLS_PER_CYCLE`)
+
+**An active setup (the owner's choice).** Three liquid pairs, one decision
+a minute, one pair per cycle, so each pair gets a turn every 3 minutes:
+
+    SYMBOLS=EURUSD,GBPUSD,USDJPY
+    DECISION_INTERVAL_MIN=1
+    SYMBOLS_PER_CYCLE=1
+
+This costs at most 5 calls a minute, and 1 when the pair of that minute
+already has an open trade: roughly 1,500 to 7,200 calls a day.
 
 By default the model traders decide at every 4th H1 close, the cadence the
 system was tested at. With `DECISION_INTERVAL_MIN=N` (1 to 240) the

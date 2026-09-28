@@ -292,3 +292,12 @@ def test_a_holding_time_of_minutes_is_honoured_between_cycles(tmp_path, monkeypa
     clock.t += 60 + 1  # three minutes: the model's own max_hold_minutes
     rt.monitor_once()
     assert rt.broker.positions() == []
+
+
+def test_an_open_trade_is_reviewed_on_its_own_pairs_turn(tmp_path, monkeypatch):
+    rt, clock, asked = review_rt(tmp_path, monkeypatch, {"action": "HOLD", "reason": "x"})
+    rt.resume()
+    for _ in range(3):  # rotation: EURUSD, GBPUSD, USDJPY
+        clock.t += 60
+        rt.run_cycle(decide=True)
+    assert len(asked) == 1 and asked[0]["position"]["symbol"] == "EURUSD"  # one call, on EURUSD's turn

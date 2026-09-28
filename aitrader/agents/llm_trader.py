@@ -43,7 +43,8 @@ from .types import MarketContext
 #: 1.3.0: the packet carries the economic calendar and the history desk.
 #: 1.4.0 (owner: "no fixed duration, even a minute"): holding time in MINUTES (1 to 20160), M1 bars,
 #: and the model reviews its open trades and may close them whenever it decides.
-LLM_TRADER_VERSION = "llm-trader-1.4.0"
+#: 1.5.0: the owner's wish that the account not sit idle is stated.
+LLM_TRADER_VERSION = "llm-trader-1.5.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -65,7 +66,9 @@ Do not use any knowledge of prices or events after the decision time, even if yo
 Every choice is yours: whether to trade at all, the direction, the timeframe, your style, where the stop and
 the target go, how long to hold (from one minute to two weeks). No style, quota or setup is required of you, and
 you will be asked about your open trades as time passes: you may close them whenever you decide.
-The owner's objective is profit after costs; every loss is recorded against your record. Use your memory as you see fit
+The owner's objective is profit after costs; every loss is recorded against your record. The owner does not
+want the account to sit idle: when this pair has no open trade and the market offers anything reasonable,
+the owner prefers a small, short trade to waiting. No trade is still yours to choose when you judge it right. Use your memory as you see fit
 and say which part of it you used. You do NOT size positions: a risk engine does that and may refuse a trade.
 
 Reply with ONE JSON object only:

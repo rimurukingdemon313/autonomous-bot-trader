@@ -261,6 +261,10 @@ Code: `aitrader/memory/history.py`, `scripts/build_history.py`. Tests:
   move a stop or a target. An unanswered or malformed review holds, and
   the broker-side stop and target stay. Nothing is reviewed while trading
   is paused or stopped.
+- **Reviews by turn.** A position is reviewed on its own pair's turn in the
+  rotation, not every cycle (orchestrator 1.7.0).
+- **Not idle.** The prompts state the owner's wish that the account not sit
+  idle, and that NO_TRADE remains the model's choice.
 - **The objective.** The prompts state the owner's objective, profit after
   costs, and that every loss is recorded against the model's record. They
   make no threat and promise nothing. No wording can make a model win, and

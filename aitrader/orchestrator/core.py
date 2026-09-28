@@ -59,7 +59,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.5.0: ... and the history desk: what the most similar past situations did.
 #: 1.6.0: model modes: holding time in minutes, M1 bars, and each cycle the model reviews its open
 #: positions (HOLD or CLOSE; it can never open, resize or move a level through a review).
-ORCHESTRATOR_VERSION = "orchestrator-1.6.0"
+#: 1.7.0: an open position is reviewed on its pair's turn in the rotation, not every cycle.
+ORCHESTRATOR_VERSION = "orchestrator-1.7.0"
 
 
 class NullKnowledge:
@@ -142,7 +143,7 @@ class Orchestrator:
         self._time_exits(t)
         if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") in ("llm_trader", "trading_room") \
                 and symbols != []:
-            self._review_positions(t)
+            self._review_positions(t, symbols)
         for symbol in symbols if symbols is not None else self.cfg.symbols:
             try:
                 d = self.decide(symbol, t)
@@ -441,7 +442,7 @@ class Orchestrator:
         return not (self.db.get_kv("paused", False) or self.db.get_kv("halted", False)
                     or not isinstance(ks, dict) or ks.get("active") is not False)
 
-    def _review_positions(self, t: int) -> None:
+    def _review_positions(self, t: int, symbols: list[str] | None = None) -> None:
         """Model modes: the model that trades also manages. Each open position is put to it: HOLD or
         CLOSE now. Closing only ever reduces exposure; it cannot open, resize or move a level. An
         unanswered review holds (the broker-side stop and target stay), and nothing is asked while
@@ -450,6 +451,8 @@ class Orchestrator:
         if reviewer is None or not self._trading_allowed():
             return
         for row in self.db.query("SELECT * FROM positions WHERE status='OPEN'"):
+            if symbols is not None and row["symbol"] not in symbols:
+                continue  # reviewed on its own pair's turn: one call, not one per cycle
             symbol, side = row["symbol"], 1 if row["side"] == "BUY" else -1
             quote = self.feed.quote(symbol, t)
             if quote is None:
