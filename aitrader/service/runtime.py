@@ -192,7 +192,8 @@ class Runtime:
             risk=RiskEngine(cfg.risk), execution=self.execution, experience=self.experience,
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
             # The calendar is read from the internet like the broker: only for a live feed.
-            news=(EconomicCalendar(Path(cfg.data_dir) / "calendar_cache.json") if self.tl is not None else None),
+            news=(EconomicCalendar(Path(cfg.data_dir) / "calendar_cache.json")
+                  if self.tl is not None or cfg.data_source == "yahoo" else None),
             history=self.history,
             versions={**stamp(), "service": SERVICE_VERSION, "knowledge_base": (self.knowledge_meta.get("hash", "none")
                                                      if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
@@ -218,9 +219,16 @@ class Runtime:
     # ── wiring ──────────────────────────────────────────────────────────
 
     def _connect(self) -> None:
+        if self.cfg.data_source == "yahoo":
+            # PAPER on public prices: no broker session exists, so nothing can reach one.
+            from ..data.yahoo import YahooFeed
+            self.feed = YahooFeed(self.cfg.symbols, self.clock, spreads_pips=self.cfg.spreads_pips)
+            self.broker = PaperBroker(self.feed, self.clock, self.db, start_balance=self.cfg.start_balance)
+            log_event("STARTUP", "data source: Yahoo Finance (paper account, estimated spreads)")
+            return
         from ..broker.tradelocker._compat import TradingConfig
         tlcfg = TradingConfig.from_env()
-        if tlcfg.broker.configured:
+        if tlcfg.broker.configured and self.cfg.data_source in ("auto", "tradelocker"):
             from ..broker.tradelocker.adapter import TradeLockerAdapter
 
             def intent_lookup(cid):
@@ -530,6 +538,7 @@ class Runtime:
                 "data": self._data_state(now, feed_ok),
                 "broker": broker_state, "demo_verification": demo,
                 "ai": ("READY" if self.llm.config.enabled else "QUANT ONLY (no LLM configured)"),
+                "data_source": self.cfg.data_source,
                 "decision_mode": self.orch.brain.config.decision_mode,
                 "decision_interval_min": self.cfg.decision_interval_min or None,
                 "history_desk": self.history_meta,

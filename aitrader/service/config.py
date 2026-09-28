@@ -45,6 +45,10 @@ class ServiceConfig:
     #: Pairs analysed per decision cycle, in rotation; 0 = all. Keeps a frequent
     #: cadence inside the language-model providers' rate limits.
     symbols_per_cycle: int = 0
+    #: Where prices come from: "auto" (TradeLocker when its credentials are set, else none),
+    #: "tradelocker", or "yahoo" (PAPER only: no broker, no account, estimated spreads).
+    data_source: str = "auto"
+    spreads_pips: dict = field(default_factory=dict)  # PAPER_SPREAD_PIPS_<PAIR> overrides (yahoo)
     risk: RiskLimits = field(default_factory=RiskLimits)
 
     @classmethod
@@ -72,7 +76,18 @@ class ServiceConfig:
             daily_loss_limit_pct=_f(e, "RISK_DAILY_LOSS_PCT", 2.0),
             max_drawdown_pct=_f(e, "RISK_MAX_DRAWDOWN_PCT", 8.0),
             max_open_positions=int(_f(e, "RISK_MAX_OPEN_POSITIONS", 3)),
+            # A public feed timestamps its price itself and may lag a broker's by up to a minute.
+            max_quote_age_s=int(_f(e, "RISK_MAX_QUOTE_AGE_S",
+                                   90 if e.get("DATA_SOURCE", "").strip().lower() == "yahoo" else 30)),
             funded=funded)
+        source = e.get("DATA_SOURCE", "auto").strip().lower() or "auto"
+        if source not in ("auto", "tradelocker", "yahoo"):
+            raise ServiceConfigError(f"DATA_SOURCE must be auto, tradelocker or yahoo, got {source!r}; "
+                                     "an unknown source is refused, never replaced")
+        if source == "yahoo" and mode != "PAPER":
+            raise ServiceConfigError("DATA_SOURCE=yahoo is for MODE=PAPER only: it has no broker to place orders")
+        spreads = {k[len("PAPER_SPREAD_PIPS_"):].upper(): float(v) for k, v in e.items()
+                   if k.startswith("PAPER_SPREAD_PIPS_") and v}
         interval = int(_f(e, "DECISION_INTERVAL_MIN", 0))
         if not 0 <= interval <= 240:
             raise ServiceConfigError(f"DECISION_INTERVAL_MIN must be 0 (the tested cadence) or 1..240, got {interval}")
@@ -82,11 +97,13 @@ class ServiceConfig:
         return cls(mode=mode, data_dir=e.get("DATA_DIR", "./runtime"), port=int(e.get("PORT", "8080")),
                    symbols=symbols, start_balance=_f(e, "PAPER_START_BALANCE", 20_000.0),
                    dashboard_token=e.get("DASHBOARD_TOKEN", ""), risk=risk,
-                   decision_interval_min=interval, symbols_per_cycle=per_cycle)
+                   decision_interval_min=interval, symbols_per_cycle=per_cycle,
+                   data_source=source, spreads_pips=spreads)
 
     def public(self) -> dict:
         return {"mode": self.mode, "symbols": list(self.symbols), "start_balance": self.start_balance,
                 "decision_interval_min": self.decision_interval_min, "symbols_per_cycle": self.symbols_per_cycle,
+                "data_source": self.data_source,
                 "dashboard_token_configured": bool(self.dashboard_token),
                 "risk": {k: v for k, v in self.risk.__dict__.items() if k != "funded"},
                 "funded": (self.risk.funded.__dict__ if self.risk.funded else None)}

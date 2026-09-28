@@ -57,7 +57,7 @@ function renderStatus(s) {
   const killed = !ks || ks.active !== false;
   $("status-row").innerHTML = [
     chip("SYSTEM", s.system, s.system === "ONLINE" ? "good" : "critical"),
-    chip("DATA", c.data, c.data === "CONNECTED" ? "good" : c.data.startsWith("QUOTES ONLY") ? "critical" : lvl(c.data, ["CONNECTED"], ["NOT"])),
+    chip("DATA", `${c.data}${c.data_source === "yahoo" ? " · Yahoo" : ""}`, c.data === "CONNECTED" ? "good" : c.data.startsWith("QUOTES ONLY") ? "critical" : lvl(c.data, ["CONNECTED"], ["NOT"])),
     chip("BROKER", c.broker, lvl(c.broker, ["CONNECTED", "PAPER"], ["NOT"])),
     chip("AI", c.ai, lvl(c.ai, ["READY"], [])),
     chip("DATABASE", c.database, c.database === "HEALTHY" ? "good" : "critical"),

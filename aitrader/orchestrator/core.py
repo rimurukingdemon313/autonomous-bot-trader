@@ -60,7 +60,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.6.0: model modes: holding time in minutes, M1 bars, and each cycle the model reviews its open
 #: positions (HOLD or CLOSE; it can never open, resize or move a level through a review).
 #: 1.7.0: an open position is reviewed on its pair's turn in the rotation, not every cycle.
-ORCHESTRATOR_VERSION = "orchestrator-1.7.0"
+#: 1.8.0: a feature the data source declares it never provides is excluded, not "missing".
+ORCHESTRATOR_VERSION = "orchestrator-1.8.0"
 
 
 class NullKnowledge:
@@ -212,6 +213,13 @@ class Orchestrator:
         if age > self.cfg.max_data_age_s:
             flags.append(f"latest bar closed {age // 60} minutes ago")
         fv = compute_at(window, t)
+        absent = tuple(getattr(self.feed, "unavailable_features", ()))
+        if absent and any(m in absent for m in fv.missing):
+            # A field this data source never provides (Yahoo publishes no FX volume) is not a gap
+            # in the data: it is excluded, and said so. Everything the source does provide must
+            # still be present, or the decision stops as before.
+            fv = dataclasses.replace(fv, missing=tuple(m for m in fv.missing if m not in absent),
+                                     metadata={**fv.metadata, "not_provided_by_source": list(absent)})
         regime_model = self.regime_for(t)
         regime = regime_model.classify(fv.values)
         atr = float(atr24(window)[-1]) if len(window) > 25 else float("nan")

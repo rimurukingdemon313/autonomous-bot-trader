@@ -45,6 +45,28 @@ does not trade. It answers every request with HTTP 503 and the reason
 (`{"system": "STARTUP_FAILED", "reason": ...}`), and the deploy's health
 check fails, so the reason is on the URL and in the logs.
 
+## Where prices come from
+
+- **`DATA_SOURCE=yahoo` (PAPER only).** Prices come from Yahoo Finance's
+  public chart data, with no broker, account or key. The TradeLocker
+  variables are ignored and can be deleted.
+  - **Spread.** Yahoo publishes one price per bar, so the paper account
+    pays a fixed, typical spread per pair. It is an estimate (EURUSD 0.8
+    pip, GBPUSD 1.2, USDJPY 1.0, ...) and can be overridden with
+    `PAPER_SPREAD_PIPS_<PAIR>`.
+  - **Price time.** A price carries Yahoo's own timestamp, so a delay stays
+    visible. With this source the risk engine accepts prices up to 90 s
+    old (`RISK_MAX_QUOTE_AGE_S`).
+  - **No FX volume.** Yahoo publishes none, so the one volume-based
+    feature is excluded (and recorded as not provided), not reported as
+    missing data.
+  - **Rate of requests.** Prices are cached 10 s and bars per timeframe
+    window.
+  - **If Yahoo refuses.** The dashboard's DATA chip turns red with Yahoo's
+    reason.
+- **`DATA_SOURCE=tradelocker` (or `auto` with credentials).** The broker's
+  own prices, needed for DEMO.
+
 ## Who decides
 
 `DECISION_MODE=evidence` (default) is the quantitative system.
