@@ -200,7 +200,9 @@ function candleChart(el, data) {
 function lineChart(el, points, label, fmtY) {
   if (!points || points.length < 2) { el.innerHTML = `<p class="muted">${esc(label)}: not enough closed trades yet.</p>`; return; }
   const W = Math.max(el.clientWidth, 320), H = 150, pad = { l: 6, r: 56, t: 16, b: 16 };
-  const ys = points.map((p) => p[1]), min = Math.min(...ys), max = Math.max(...ys);
+  const ys = points.map((p) => p[1]);
+  let min = Math.min(...ys), max = Math.max(...ys);
+  if (max - min < 1e-9) { const m = Math.abs(max) * 1e-4 || 1; min -= m; max += m; }  // a flat line sits mid-chart, not on the top edge
   const x = (i) => pad.l + i * (W - pad.l - pad.r) / (points.length - 1);
   const y = (v) => pad.t + (max - v) / (max - min || 1) * (H - pad.t - pad.b);
   let s = svgEl(W, H) + `<text x="${pad.l}" y="11" font-size="11" fill="var(--text-secondary)">${esc(label)}</text>`;
