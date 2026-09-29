@@ -101,16 +101,17 @@ def main() -> int:
         spread = tr["spread_only"].cost if same["spread_only"] else None
         comm = (tr["spread_commission"].cost - spread) if same["spread_commission"] and spread is not None else None
         slip = (tr["spread_slippage"].cost - spread) if same["spread_slippage"] and spread is not None else None
-        swap = t.cost - (spread + comm + slip) if None not in (spread, comm, slip) else None
+        swap = t.cost - (spread + comm + slip) if all(x is not None for x in (spread, comm, slip)) else None
         regime = {}
         for st_name in STATES:
             if st_name not in data[t.symbol[0]].columns:
                 continue
             vals = [data[sym].columns[st_name][int(row)] for sym, row in zip(t.symbol, t.row)]
             regime[st_name] = _group([None if not np.isfinite(v) else int(v) for v in vals], t.r)
-        for st_name, edges in (("er120", (0.3,)), ("atr_pctile", (0.5,))):
+        for st_name in ("er120", "atr_pctile"):  # split at the median of the values at entry (descriptive)
             vals = np.array([data[sym].columns[st_name][int(row)] for sym, row in zip(t.symbol, t.row)])
-            regime[st_name] = _group([None if not np.isfinite(v) else ("high" if v >= edges[0] else "low")
+            med = float(np.nanmedian(vals)) if np.isfinite(vals).any() else np.nan
+            regime[st_name] = _group([None if not np.isfinite(v) else ("above_median" if v >= med else "below_median")
                                       for v in vals], t.r)
         out["hypotheses"][s.hid] = {
             "condition": s.condition, "side": s.side, "exit": s.exit, "n": int(n),
