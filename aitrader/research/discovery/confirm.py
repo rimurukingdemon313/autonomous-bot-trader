@@ -82,9 +82,10 @@ class ConfirmDesign:
 class ConfirmatoryProgram:
     def __init__(self, design: ConfirmDesign, registry: Registry, ledger: Ledger, catalog: FeatureCatalog,
                  knowledge_dir: Path | str, clock: Callable[[], datetime],
-                 code_hash: Callable[[], str] = code_sha256) -> None:
+                 code_hash: Callable[[], str] = code_sha256, study_factory: Callable[..., Study] = Study) -> None:
         self.design, self.registry, self.ledger, self.catalog = design, registry, ledger, catalog
         self.knowledge_dir, self.clock, self.code_hash = Path(knowledge_dir), clock, code_hash
+        self.study_factory = study_factory  # e.g. a CarryStudy: trade R that includes the carry proxy
         parts = self.knowledge_dir.resolve().parts
         if "models" in parts and "artifacts" in parts:
             raise ProgramError("research knowledge never goes where production loads models")
@@ -157,13 +158,13 @@ class ConfirmatoryProgram:
         hs = self._hypotheses()
         feats = sorted({f for h in hs for f in Condition.parse(h.condition).features} | set(REGIME_FEATURES))
         groups = {f: g for f, g in d.groups}
-        base = Study(data, d.fit, {}, d.costs)
+        base = self.study_factory(data, d.fit, {}, d.costs)
         vals = {f: {s: data[s].columns[f][base.rows[s]] for s in base.symbols} for f in feats}
         binn = {f: fit_binning(f, vals[f], groups=groups.get(f)) for f in feats}
         pert = [{f: fit_binning(f, vals[f], quantiles=(1 / 3 + q, 2 / 3 + q)) for f in feats if f not in groups}
                 for q in (-d.rules.perturb, d.rules.perturb)]
         ctx = regime_binnings({f: vals[f] for f in REGIME_FEATURES})
-        judge = Study(data, d.judge, binn, d.costs, context=ctx)
+        judge = self.study_factory(data, d.judge, binn, d.costs, context=ctx)
         out = []
         for h in hs:
             # a resumed run recomputes every judgment (it is deterministic) so the artifact is complete,

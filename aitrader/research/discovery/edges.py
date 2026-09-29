@@ -30,12 +30,14 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 #: 1.1.0: Round 2 promotion levels (RESEARCH, HYPOTHESIS, TESTING, PROMISING) and the PROMISING rule
-EDGES_VERSION = "edges-1.1.0"
-STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "DISCOVERED", "VALIDATING", "VALIDATED", "REJECTED",
-            "DEGRADED", "RETIRED")
+#: 1.2.0: UNCERTAIN; frozen-but-unrun hypotheses (Round 3) enter the registry as HYPOTHESIS
+EDGES_VERSION = "edges-1.2.0"
+STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
+            "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
     "RESEARCH": ("HYPOTHESIS", "REJECTED"),
-    "HYPOTHESIS": ("TESTING", "REJECTED"),
+    "HYPOTHESIS": ("TESTING", "REJECTED", "UNCERTAIN"),
+    "UNCERTAIN": ("TESTING", "REJECTED"),  # evidence insufficient either way (e.g. data unavailable)
     "TESTING": ("PROMISING", "VALIDATED", "REJECTED"),
     "PROMISING": ("TESTING", "VALIDATED", "REJECTED"),
     "DISCOVERED": ("VALIDATING", "REJECTED"),
@@ -188,6 +190,19 @@ def build(root: Path | str) -> dict:
         res = json.loads(p.read_text())
         edges.append(from_walk_forward(res))
         programs[res["trial"]] = {"verdict": res["verdict"], "judged": 1, "threshold_t": res.get("threshold_t")}
+    spec_p = root / "specs" / "R3.json"
+    if spec_p.exists() and not (root / "knowledge" / "R3.json").exists():
+        spec = json.loads(spec_p.read_text())["spec"]
+        for h in spec["hypotheses"]:
+            edges.append(EdgeRecord(
+                edge_id=h["id"], program="R3", direction=h["side"], instrument=(), timeframe="D1", market_regime=None,
+                entry_conditions=h["condition"], exit_conditions=spec["exit"].split(" ")[0], sample_size=None,
+                gross_expectancy=None, net_expectancy=None, t_stat=None, t_required=None, profit_factor=None,
+                drawdown=None, out_of_sample_expectancy=None, walk_forward_expectancy=None, cost_sensitivity=None,
+                complexity=len(h["condition"].split("&")), stability=None, status="HYPOTHESIS",
+                failed_checks=("not run: policy-rate data unavailable (scripts/round3.py status)",),
+                source="research/specs/R3.json"))
+        programs["R3"] = {"verdict": "NOT RUN (data unavailable)", "judged": 0, "threshold_t": None}
     edges.sort(key=lambda e: e.edge_id)
     counts = {s: sum(1 for e in edges if e.status == s) for s in STATUSES}
     return {"version": EDGES_VERSION, "counts": counts, "programs": programs,

@@ -1,0 +1,114 @@
+{
+ "frozen": "2026-09-29T19:17:22+00:00",
+ "sha256": "267cf64622a30e05c1f52000c00eef99a0a779d816e2ba8975c59eb5681445a2",
+ "spec": {
+  "comparisons": {
+   "previously_rejected": "R2A-1 (-0.119R) and CP-001 (trend) for reference",
+   "price_only": "the spot component of the same trades, reported beside the combined R",
+   "random_direction": "the battery's random-entry baseline (Welch t >= 2 required)"
+  },
+  "costs": {
+   "carry": "RATE-DIFFERENTIAL CARRY PROXY: side x differential in force each day x days/365 x price/risk",
+   "commission_pips_rt": 0.7,
+   "financing_markup_pct_per_year": 0.5,
+   "sensitivity": "costs lower/normal/higher; markup 0 / 0.5 / 1.0",
+   "slippage_pips": 0.1,
+   "spread": "measured bid/ask",
+   "swap": "NOT charged: replaced by the carry proxy and the financing markup"
+  },
+  "exit": "D4 (20 trading days, 3 ATR protective stop): carry is a monthly-horizon premium",
+  "fit": [
+   "2007-04-02",
+   "2008-07-01"
+  ],
+  "fit_use": "regime medians for the battery only; every condition is a fixed-level state, nothing is fitted",
+  "hypotheses": [
+   {
+    "claim": "buying a pair whose base out-yields its quote by >= 1pp (carry long) has positive net expectancy",
+    "condition": "rate_level=high",
+    "id": "R3-A",
+    "rationale": "the forward-premium anomaly (Fama 1984) and the carry premium (Lustig & Verdelhan 2007)",
+    "side": "BUY"
+   },
+   {
+    "claim": "selling a pair whose quote out-yields its base by >= 1pp (carry long via the quote) has positive net expectancy",
+    "condition": "rate_level=low",
+    "id": "R3-B",
+    "rationale": "the mirror of R3-A",
+    "side": "SELL"
+   },
+   {
+    "claim": "after the differential widened >= 0.25pp in the base's favour over 91 days, buying has positive net expectancy",
+    "condition": "rate_change=high",
+    "id": "R3-C",
+    "rationale": "capital follows a widening differential slowly (Engel 1996)",
+    "side": "BUY"
+   },
+   {
+    "claim": "after the differential narrowed >= 0.25pp over 91 days, selling has positive net expectancy",
+    "condition": "rate_change=low",
+    "id": "R3-D",
+    "rationale": "the mirror of R3-C",
+    "side": "SELL"
+   },
+   {
+    "claim": "when the widening of the differential accelerates (>= 0.25pp), buying has positive net expectancy",
+    "condition": "rate_accel=high",
+    "id": "R3-E",
+    "rationale": "an accelerating policy divergence is repriced slowly (inferred)",
+    "side": "BUY"
+   },
+   {
+    "claim": "after a policy move in the base's favour within 30 days (base hike or quote cut, >= 0.10pp), buying has positive net expectancy",
+    "condition": "policy_move=high",
+    "id": "R3-F",
+    "rationale": "policy surprises are absorbed over weeks (post-announcement drift; inferred from Engel 1996)",
+    "side": "BUY"
+   },
+   {
+    "claim": "carry long (>= 1pp) only while VIX < 20 has positive net expectancy",
+    "condition": "rate_level=high&vix_state=low",
+    "id": "R3-G",
+    "rationale": "carry crashes in risk-off (Brunnermeier, Nagel & Pedersen 2008; Menkhoff et al. 2012)",
+    "side": "BUY"
+   },
+   {
+    "claim": "carry long (>= 1pp) only when neither central bank moved in the last 30 days has positive net expectancy",
+    "condition": "rate_level=high&policy_move=mid",
+    "id": "R3-H",
+    "rationale": "event filter: carry is exposed to repricing around policy decisions",
+    "side": "BUY"
+   }
+  ],
+  "id": "R3",
+  "judge": [
+   "2008-07-11",
+   "2017-01-01"
+  ],
+  "not_repeated": {
+   "R2A-1/R2A-2": "static carry SIGN on 3 pairs conditioned on VIX: Round 3 uses the measured differential on every covered pair",
+   "R2B": "US 10y change only: Round 3 uses the two-sided policy differential"
+  },
+  "pass": "the existing 12-check battery at the registry's frozen threshold, then the board; PROMISING / UNCERTAIN / REJECTED otherwise (aitrader/research/discovery/edges.py)",
+  "question": "Does point-in-time interest-rate information (the level, change, acceleration of the policy-rate differential, and policy moves) improve directional prediction on the FX pairs, and does carry (spot + RATE-DIFFERENTIAL CARRY PROXY - financing - costs) have positive net expectancy?",
+  "rate_type": "POLICY",
+  "rate_type_rule": "policy rates only (central-bank target/official rates; not revised). If the data obtained is not policy rates, Round 3 is re-preregistered as a new version; the type is never switched silently, and two rate types are never mixed within a pair.",
+  "report": [
+   "P(direction correct)",
+   "gross R",
+   "carry R",
+   "spot R",
+   "costs",
+   "financing",
+   "net R",
+   "MFE",
+   "MAE",
+   "holding",
+   "by instrument",
+   "by year",
+   "by VIX regime"
+  ],
+  "title": "Genuine interest-rate information and FX carry",
+  "universe_rule": "every pair of the 12 whose BOTH currencies have policy-rate coverage over the whole judged period; decided from coverage alone before any outcome is read; at least 6 pairs or Round 3 does not run"
+ }
+}

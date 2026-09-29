@@ -84,6 +84,6 @@ def test_the_committed_registry_matches_the_committed_evidence():
             assert k not in e
     # nothing in the evidence has passed, so nothing in the registry may say it did
     assert reg["counts"]["VALIDATED"] == 0
-    assert all(p["verdict"] in ("FAILED", "FAIL") for p in reg["programs"].values())
+    assert all(p["verdict"] in ("FAILED", "FAIL") or p["verdict"].startswith("NOT RUN") for p in reg["programs"].values())
     committed = ROOT / "research" / "knowledge" / "edge_registry.json"
     assert json.loads(committed.read_text())["counts"] == reg["counts"]
