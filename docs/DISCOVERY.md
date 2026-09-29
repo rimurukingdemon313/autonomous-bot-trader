@@ -157,8 +157,9 @@ python scripts/discover.py status | search TEXT
 | Program | Verdict | Summary |
 |---|---|---|
 | DP-001 (H1, 1,734 cells + stumps model) | **FAILED** | 0 screen discoveries. Every cell had a negative net mean; the best was −0.089R. The model: 0 of 48 validation configurations passed, best +0.008R (t 0.16). Descriptively, gross expectancy on H1 is within ±0.03R of zero for every exit, while costs are 0.09–0.21R per trade. See [research/results/DP-001-summary.md](../research/results/DP-001-summary.md). |
+| DP-002 (D1, 966 cells + stumps model) | **FAILED** | 0 screen discoveries (956 testable). 14.9% of cells had a positive net mean, against 0% on H1, so costs matter less on D1. The best cell had t 2.87 among 966 tests: noise-level. The model: 0 of 30 configurations passed. See [research/results/DP-002-summary.md](../research/results/DP-002-summary.md). |
 
-## The next experiment to register: DP-002 (not registered, not run)
+## DP-002 as designed (registered in `8575918` and run once: FAILED)
 
 The motivation comes from DP-001's descriptive result. On H1, costs are 0.09–0.21R per trade
 against a gross expectancy near zero. At a daily horizon, the same spread, slippage and
