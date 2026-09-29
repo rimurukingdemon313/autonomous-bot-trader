@@ -46,3 +46,33 @@ are `research/results/R2?-report.json` (descriptive). The verdicts are the progr
 **Family conclusion.** No conditional carry edge is detectable in the spot moves of the three
 positive-carry majors. The carry family is **not closed**: its core ingredient, the interest
 differential, could not be measured. It needs rate data (ROUND2_DATA_AUDIT.md).
+
+## R2B: US rate-differential changes — FAILED
+
+| | R2B-1: buy the pair last month's US-yield change favours (D4) | R2B-2: sell the pair it disfavours (D4) |
+|---|---|---|
+| Trades (7 USD pairs) | 396 | 381 |
+| P(direction correct), gross | 46.5% | 50.7% |
+| Gross R per trade | −0.019 | +0.028 |
+| Costs: spread / commission / slippage / swap | 0.011 / 0.002 / 0.001 / **0.075** | 0.011 / 0.002 / 0.001 / **0.076** |
+| Net R: lower / normal / higher cost | −0.103 / −0.108 / −0.150 | −0.056 / −0.061 / −0.107 |
+| t (required 3.291) | −1.81 | −0.94 |
+| Mean MFE / MAE / worst MAE | +0.75 / −0.68 / −2.86 R | +0.79 / −0.64 / −2.39 R |
+| Instruments positive | 1 of 7 | 1 of 7 |
+| Years positive | 2 of 9 | 3 of 9 |
+
+### Reading
+
+1. **Direction carries no information.** After a 10bp monthly move in US yields, the pair the
+   move favoured went the favoured way 46–51% of the time. That is a coin flip.
+2. **The forward-premium anomaly is documented at the level of the differential, not in the
+   next month's response to its change.** Measured this way it is absent from the majors in
+   2008–2016.
+3. **A modelling caveat.** On month-long holds most of the cost is the declared swap
+   approximation (0.01 ATR per night, always charged). Real swap is a credit on the high-yield
+   side and a debit on the other. Without any swap, R2B-2 would be about +0.015R, which is
+   noise-level and far below the detectable 0.2R. The verdict does not depend on this
+   approximation.
+
+**Family conclusion.** No edge from US rate changes. Only the US side of the differential
+was observable, which is a real limitation; ROUND2_DATA_AUDIT.md lists what would lift it.
