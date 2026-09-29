@@ -1,0 +1,62 @@
+{
+ "source": "human",
+ "universe": "fx-majors",
+ "symbols": [
+  "EURUSD",
+  "GBPUSD",
+  "USDJPY",
+  "AUDUSD",
+  "USDCAD",
+  "USDCHF",
+  "NZDUSD",
+  "EURGBP",
+  "EURJPY",
+  "GBPJPY",
+  "EURCHF",
+  "AUDJPY"
+ ],
+ "timeframe": "H1",
+ "template": "T2",
+ "fit_start": "2007-04-01",
+ "judge_start": "2011-01-01",
+ "judge_end": "2017-01-01",
+ "threshold_r": 0.0,
+ "sides": [
+  1,
+  -1
+ ],
+ "every": 4,
+ "fold_days": 365,
+ "llm_cutoff": null,
+ "compare_features": null,
+ "rules": {
+  "min_trades": 200,
+  "beat_random_t": 2.0,
+  "min_positive_fold_share": 0.6,
+  "robustness_mean_positive": true
+ },
+ "seed": 7,
+ "id": "WF-001",
+ "model": "knn",
+ "features": [
+  "r6",
+  "r24",
+  "r120",
+  "er24",
+  "er120",
+  "dist_ma48",
+  "ma_slope",
+  "vol_ratio",
+  "rv_ratio",
+  "range_pos24",
+  "range_pos120",
+  "brk_hi120",
+  "brk_lo120",
+  "smc_hi_dist",
+  "smc_lo_dist",
+  "smc_structure",
+  "hour_sin",
+  "hour_cos"
+ ],
+ "statement": "The production analog estimator (k-NN on its 18 features) predicts net R of template T2 (1.5/3.0 ATR, 48 bars): trading only where its walk-forward prediction is positive after costs has positive net expectancy. Lead: in PR-001 the analog family beat random entries by about 0.1R/trade but costs of T1-heavy trading left it negative; T2 carries a lower cost share."
+}
