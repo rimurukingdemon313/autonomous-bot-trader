@@ -1,0 +1,192 @@
+{
+ "trial": "WF-001",
+ "lab": "lab-1.1.0",
+ "spec": {
+  "id": "WF-001",
+  "statement": "The production analog estimator (k-NN on its 18 features) predicts net R of template T2 (1.5/3.0 ATR, 48 bars): trading only where its walk-forward prediction is positive after costs has positive net expectancy. Lead: in PR-001 the analog family beat random entries by about 0.1R/trade but costs of T1-heavy trading left it negative; T2 carries a lower cost share.",
+  "source": "human",
+  "universe": "fx-majors",
+  "symbols": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "EURGBP",
+   "EURJPY",
+   "GBPJPY",
+   "EURCHF",
+   "AUDJPY"
+  ],
+  "timeframe": "H1",
+  "features": [
+   "r6",
+   "r24",
+   "r120",
+   "er24",
+   "er120",
+   "dist_ma48",
+   "ma_slope",
+   "vol_ratio",
+   "rv_ratio",
+   "range_pos24",
+   "range_pos120",
+   "brk_hi120",
+   "brk_lo120",
+   "smc_hi_dist",
+   "smc_lo_dist",
+   "smc_structure",
+   "hour_sin",
+   "hour_cos"
+  ],
+  "model": "knn",
+  "template": "T2",
+  "fit_start": "2007-04-01",
+  "judge_start": "2011-01-01",
+  "judge_end": "2017-01-01",
+  "threshold_r": 0.0,
+  "sides": [
+   1,
+   -1
+  ],
+  "every": 4,
+  "fold_days": 365,
+  "llm_cutoff": null,
+  "compare_features": null,
+  "rules": {
+   "min_trades": 200,
+   "beat_random_t": 2.0,
+   "min_positive_fold_share": 0.6,
+   "robustness_mean_positive": true
+  },
+  "seed": 7,
+  "knn_baseline": true
+ },
+ "threshold_t": 3.1888,
+ "system": {
+  "n": 22539,
+  "mean_R": -0.1164,
+  "t": -12.62,
+  "win_rate": 0.3195
+ },
+ "folds": [
+  {
+   "start": "2011-01-01",
+   "n": 4007,
+   "mean_R": -0.1251
+  },
+  {
+   "start": "2012-01-01",
+   "n": 3903,
+   "mean_R": -0.1336
+  },
+  {
+   "start": "2012-12-31",
+   "n": 3676,
+   "mean_R": -0.1197
+  },
+  {
+   "start": "2013-12-31",
+   "n": 3678,
+   "mean_R": -0.1206
+  },
+  {
+   "start": "2014-12-31",
+   "n": 3627,
+   "mean_R": -0.1266
+  },
+  {
+   "start": "2015-12-31",
+   "n": 3648,
+   "mean_R": -0.0706
+  },
+  {
+   "start": "2016-12-30",
+   "n": 0,
+   "mean_R": null
+  }
+ ],
+ "by_symbol": {
+  "EURUSD": {
+   "n": 1927,
+   "mean_R": -0.0134
+  },
+  "GBPUSD": {
+   "n": 1849,
+   "mean_R": -0.0975
+  },
+  "USDJPY": {
+   "n": 1875,
+   "mean_R": -0.0946
+  },
+  "AUDUSD": {
+   "n": 1985,
+   "mean_R": -0.0637
+  },
+  "USDCAD": {
+   "n": 1814,
+   "mean_R": -0.1532
+  },
+  "USDCHF": {
+   "n": 1880,
+   "mean_R": -0.16
+  },
+  "NZDUSD": {
+   "n": 1911,
+   "mean_R": -0.1016
+  },
+  "EURGBP": {
+   "n": 1905,
+   "mean_R": -0.1641
+  },
+  "EURJPY": {
+   "n": 1849,
+   "mean_R": -0.0884
+  },
+  "GBPJPY": {
+   "n": 1882,
+   "mean_R": -0.072
+  },
+  "EURCHF": {
+   "n": 1750,
+   "mean_R": -0.2969
+  },
+  "AUDJPY": {
+   "n": 1912,
+   "mean_R": -0.1095
+  }
+ },
+ "vs_random_welch_t": 2.245,
+ "robustness": {
+  "costs_x1.5_slip_x2": {
+   "n": 19033,
+   "mean_R": -0.1633,
+   "t": -16.436,
+   "win_rate": 0.305
+  },
+  "one_bar_delay": {
+   "n": 21375,
+   "mean_R": -0.1265,
+   "t": -13.371,
+   "win_rate": 0.3171
+  }
+ },
+ "verdict": "FAIL",
+ "checks": {
+  "mean_R_positive": false,
+  "t_above_registry_threshold": false,
+  "min_trades": true,
+  "beats_random": true,
+  "positive_fold_share": false,
+  "robust": false
+ },
+ "result_hash": "ec09cef6e7e88afa",
+ "random": {
+  "n": 450780,
+  "mean_R": -0.1376,
+  "t": -66.95,
+  "win_rate": 0.3132
+ }
+}

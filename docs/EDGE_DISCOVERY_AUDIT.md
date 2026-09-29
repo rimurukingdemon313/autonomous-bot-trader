@@ -175,7 +175,8 @@ registry's multiple-testing threshold:
 - published time-series momentum and moving-average trend (CP-001);
 - Donchian breakout, trend pullback and narrow-range breakout, both sides (SL-001);
 - local-hours depreciation (SL-002);
-- a boosted-stumps model on the 23 production features, walked forward (WF-002);
+- a boosted-stumps model on the 23 production features, walked forward (WF-002), and the same on M15 with H1/H4 context (WF-003);
+- the production k-NN analog estimator, walked forward (WF-001): better than random by about 0.02R, still −0.116R net;
 - cross-sectional currency momentum on the seven majors (XS-001).
 
 The complete list, with numbers, is in [TRADING_EDGE_REGISTRY.md](TRADING_EDGE_REGISTRY.md).
@@ -197,3 +198,30 @@ None of the three was significant (t 0.6–1.0 against a required 3.2). CP-001-T
 +0.86R per trade in 2014 and lost in 2013 and 2016, which is the signature of one episode
 (the 2014–15 US dollar rally), not a rule. It is recorded as an **UNCERTAIN CONCLUSION**.
 Testing it would need data the holdout seals, or data recorded from now on.
+
+## 7. Where this research cycle ends
+
+The 2013–2017 judged period has now carried 16 judged hypotheses and 2,700 screened
+cells in this repository, on top of the archive's tests. The next test on it must clear
+t ≥ 3.27.
+
+At that bar, with 300–500 trades, the smallest detectable edge is about 0.15–0.2R per trade.
+That is larger than anything the documented methods report for liquid majors after
+costs. Spending more tests on this period would mostly buy false hope, so this cycle stops
+here, as [RESEARCH_PROCESS.md](RESEARCH_PROCESS.md) § Budgets prescribes.
+
+**The result.**
+
+- No validated BUY or SELL edge.
+- The edge engine abstains, and says why.
+- The risk engine, the demo guard and the execution guards are unchanged.
+
+What can move this forward is new evidence, not new tests on old evidence:
+
+1. **Interest-rate data.** This unlocks carry, the best-documented FX premium, which remains
+   untested here. The environment's network policy must allow `fred.stlouisfed.org`,
+   `data-api.ecb.europa.eu` or `stats.bis.org`. Today all three are refused.
+2. **Prospective data.** Bars and spreads recorded from now on are untouched evidence. A
+   hypothesis frozen before that data exists can be judged on it without spending the holdout.
+3. **The holdout.** It stays sealed. It is spent only on a candidate that has passed
+   everything above, and none has.

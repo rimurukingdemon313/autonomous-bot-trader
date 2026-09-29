@@ -86,7 +86,9 @@ the holdout's prior exposure is declared in the registry.
 | Hypothesis | The production analog estimator (k-NN, 18 features) predicts T2 net R. This is PR-001's only lead, moved to the lower-cost exit |
 | Commit | Pre-registered `329f701` |
 | Tests / threshold | 1; t ≥ 3.189 |
-| Result | *Running.* Recorded here when it finishes |
+| Result | **FAIL.** n 22,539, −0.116R, t −12.6. Negative in every fold and on all 12 instruments. Costs ×1.5: −0.163R. One bar late: −0.127R |
+| Against random | It **beats random entries** (−0.138R; Welch t 2.25). This is the only check it passes |
+| Conclusion | PR-001's lead is confirmed and closed. The analog estimator carries real but tiny information, about +0.02R per trade over random, against about 0.1R of cost per trade. No exit or threshold choice made after this result could bridge a gap five times its size without being curve-fitting |
 
 ## WF-003: the M15 architecture
 
