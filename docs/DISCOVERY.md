@@ -161,6 +161,7 @@ python scripts/discover.py status | search TEXT
 | CP-001 (published trend following, D1) | **FAILED** | Longs ≈ 0; shorts +0.19R / +0.21R at t ≈ 1.0 (required 3.18), concentrated in 2014. [CP-001-summary.md](../research/results/CP-001-summary.md) |
 | SL-001 / SL-002 (strategy library) | **FAILED** | Donchian, pullback, narrow-range breakout (both sides, D1) and local-hours depreciation (H1, n 8,901, −0.105R, t −8.0) all rejected. [PROFESSIONAL_TRADER_RESEARCH.md](PROFESSIONAL_TRADER_RESEARCH.md) |
 | WF-002 (stumps, H1, every 4 bars) | **FAIL** | n 1,328, −0.126R; vs random t 0.25. |
+| WF-003 (stumps, M15 + H1/H4 context, every M15 close) | **FAIL** | n 359, −0.199R; vs random t 0.89. Worse than WF-002 per trade and in its random baseline (−0.265R vs −0.135R): the M15 architecture is not better. |
 
 Every judged hypothesis, with its numbers and status, is in [TRADING_EDGE_REGISTRY.md](TRADING_EDGE_REGISTRY.md);
 the protocol is [RESEARCH_PROTOCOL.md](RESEARCH_PROTOCOL.md); the audit behind this phase is

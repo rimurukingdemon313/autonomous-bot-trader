@@ -62,6 +62,20 @@ in `service/runtime.py`. It runs only with `DECISION_MODE=edges`, `llm_trader` o
 `trading_room`. The evidence mode keeps its H1 cadence, because its knowledge card was
 validated on it.
 
+**What the evidence says about M15.** WF-003 judged this exact architecture (M15 execution,
+H1/H4 context) against WF-002 (H1, every 4 bars), with identical data, costs and walk-forward
+method.
+
+| Architecture | Net R per trade | Random entries, same exit |
+|---|---|---|
+| M15 (WF-003) | −0.199 | −0.265 |
+| H1 (WF-002) | −0.126 | −0.135 |
+
+The M15 cadence is therefore **not** better. It is kept only as the edge engine's scan cadence.
+There it costs nothing, because the engine trades only promoted edges and each edge carries
+its own tested exit. For `llm_trader` and `trading_room`, H1 is the cheaper choice on this
+evidence: a stop sized to M15 volatility pays the spread on a smaller move.
+
 At every M15 close, `orchestrator/core.py` `_frames` computes causal features on:
 
 - M15 (execution);

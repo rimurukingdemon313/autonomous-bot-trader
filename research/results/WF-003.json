@@ -1,0 +1,207 @@
+{
+ "trial": "WF-003",
+ "lab": "lab-1.1.0",
+ "spec": {
+  "id": "WF-003",
+  "statement": "The M15 opportunity-scanner architecture: boosted stumps on the 23 production features computed on M15 bars plus H1 and H4 context (r24, er120, ma_slope, vol_ratio, range_pos120 on the last closed bar), deciding at every M15 close, trading only where the walk-forward prediction of T2 net R is positive. Identical to WF-002 (the current H1, every-4-bars architecture) in model, exit definition, cost model, data, folds and judgement; it is better only if its out-of-sample evidence is.",
+  "source": "human",
+  "universe": "fx-majors",
+  "symbols": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "EURGBP",
+   "EURJPY",
+   "GBPJPY",
+   "EURCHF",
+   "AUDJPY"
+  ],
+  "timeframe": "M15",
+  "features": [
+   "r1",
+   "r6",
+   "r24",
+   "r120",
+   "er24",
+   "er120",
+   "dist_ma48",
+   "ma_slope",
+   "vol_ratio",
+   "rv_ratio",
+   "range_pos24",
+   "range_pos120",
+   "brk_hi120",
+   "brk_lo120",
+   "spread_rel",
+   "tick_activity",
+   "hour_sin",
+   "hour_cos",
+   "bar_body",
+   "smc_hi_dist",
+   "smc_lo_dist",
+   "smc_structure",
+   "smc_sweep",
+   "H1:r24",
+   "H1:er120",
+   "H1:ma_slope",
+   "H1:vol_ratio",
+   "H1:range_pos120",
+   "H4:r24",
+   "H4:er120",
+   "H4:ma_slope",
+   "H4:vol_ratio",
+   "H4:range_pos120"
+  ],
+  "model": "stumps",
+  "template": "T2",
+  "fit_start": "2007-04-01",
+  "judge_start": "2011-01-01",
+  "judge_end": "2017-01-01",
+  "threshold_r": 0.0,
+  "sides": [
+   1,
+   -1
+  ],
+  "every": 1,
+  "fold_days": 365,
+  "llm_cutoff": null,
+  "compare_features": null,
+  "rules": {
+   "min_trades": 200,
+   "beat_random_t": 2.0,
+   "min_positive_fold_share": 0.6,
+   "robustness_mean_positive": true
+  },
+  "seed": 7,
+  "knn_baseline": false
+ },
+ "threshold_t": 3.2048,
+ "system": {
+  "n": 359,
+  "mean_R": -0.1986,
+  "t": -2.734,
+  "win_rate": 0.2925
+ },
+ "folds": [
+  {
+   "start": "2011-01-01",
+   "n": 172,
+   "mean_R": -0.165
+  },
+  {
+   "start": "2012-01-01",
+   "n": 46,
+   "mean_R": -0.2644
+  },
+  {
+   "start": "2012-12-31",
+   "n": 38,
+   "mean_R": -0.3759
+  },
+  {
+   "start": "2013-12-31",
+   "n": 49,
+   "mean_R": -0.2743
+  },
+  {
+   "start": "2014-12-31",
+   "n": 25,
+   "mean_R": -0.1219
+  },
+  {
+   "start": "2015-12-31",
+   "n": 29,
+   "mean_R": 0.0008
+  },
+  {
+   "start": "2016-12-30",
+   "n": 0,
+   "mean_R": null
+  }
+ ],
+ "by_symbol": {
+  "EURUSD": {
+   "n": 58,
+   "mean_R": -0.2046
+  },
+  "GBPUSD": {
+   "n": 43,
+   "mean_R": -0.3345
+  },
+  "USDJPY": {
+   "n": 44,
+   "mean_R": -0.3368
+  },
+  "AUDUSD": {
+   "n": 34,
+   "mean_R": -0.3903
+  },
+  "USDCAD": {
+   "n": 4,
+   "mean_R": 0.4701
+  },
+  "USDCHF": {
+   "n": 31,
+   "mean_R": 0.1788
+  },
+  "NZDUSD": {
+   "n": 9,
+   "mean_R": -0.7359
+  },
+  "EURGBP": {
+   "n": 3,
+   "mean_R": -0.0308
+  },
+  "EURJPY": {
+   "n": 36,
+   "mean_R": -0.0313
+  },
+  "GBPJPY": {
+   "n": 22,
+   "mean_R": -0.2794
+  },
+  "EURCHF": {
+   "n": 39,
+   "mean_R": 0.2549
+  },
+  "AUDJPY": {
+   "n": 36,
+   "mean_R": -0.5646
+  }
+ },
+ "vs_random_welch_t": 0.887,
+ "robustness": {
+  "costs_x1.5_slip_x2": {
+   "n": 24,
+   "mean_R": -0.4248,
+   "t": -1.95,
+   "win_rate": 0.25
+  },
+  "one_bar_delay": {
+   "n": 130,
+   "mean_R": -0.2029,
+   "t": -1.635,
+   "win_rate": 0.3
+  }
+ },
+ "verdict": "FAIL",
+ "checks": {
+  "mean_R_positive": false,
+  "t_above_registry_threshold": false,
+  "min_trades": true,
+  "beats_random": false,
+  "positive_fold_share": false,
+  "robust": false
+ },
+ "result_hash": "2d4b7b123890b4c6",
+ "random": {
+  "n": 7180,
+  "mean_R": -0.2645,
+  "t": -16.79,
+  "win_rate": 0.2914
+ }
+}

@@ -95,7 +95,8 @@ the holdout's prior exposure is declared in the registry.
 | Hypothesis | The same model as WF-002, deciding at every M15 close, on M15 features plus H1/H4 context from the last closed bar. Everything else identical to WF-002 |
 | Commit | Pre-registered `e13ae38` |
 | Tests / threshold | 1; t ≥ 3.205 |
-| Result | *Running.* Recorded here when it finishes |
+| Result | **FAIL.** n 359, −0.199R, t −2.73. Versus random: Welch t 0.89. Positive in 1 of 6 folds, and that one only at +0.001R. Costs ×1.5: −0.42R. One bar late: −0.20R |
+| Against WF-002 | **Not better, by every measure.** It is worse per trade (−0.199R against −0.126R) and has fewer trades. Its random baseline is much worse (−0.265R against −0.135R): the same 1.5/3.0-ATR exit on M15 is a smaller move, so the spread is a larger share of the risk. Fold stability is no better. The M15 architecture is therefore **not** adopted as a source of edge. It stays available as a scan cadence for the edge engine, which abstains without a promoted edge |
 
 ## SL-001: strategy library, daily forms
 

@@ -94,8 +94,14 @@ currently has an edge to resolve.
 The M15/H1/H4 architecture is the synthesis the documented approaches suggest when they are
 combined rather than copied: H4 for regime (where the grade-A trend evidence lives), H1 for
 structure, M15 only for the entry. WF-003 tests exactly that on M15 with H1/H4 context, against
-WF-002's H1 architecture, with identical data, costs and walk-forward method — see the
-comparison in [TRADING_EDGE_REGISTRY.md](TRADING_EDGE_REGISTRY.md).
+WF-002's H1 architecture, with identical data, costs and walk-forward method.
+
+**Result: FAIL, and worse than H1.** WF-003 made −0.199R per trade (n 359), against WF-002's
+−0.126R (n 1,328). Its random baseline was −0.265R, against −0.135R on H1, because the same ATR
+exit on M15 bars is a smaller move, and so the spread takes a larger share of the risk.
+
+The synthesis is sound as reasoning. On our data, adding a faster execution frame adds cost
+faster than it adds information. The details are in [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md).
 
 ## UNCERTAIN CONCLUSION: the SELL side of trend
 
