@@ -158,6 +158,13 @@ python scripts/discover.py status | search TEXT
 |---|---|---|
 | DP-001 (H1, 1,734 cells + stumps model) | **FAILED** | 0 screen discoveries. Every cell had a negative net mean; the best was −0.089R. The model: 0 of 48 validation configurations passed, best +0.008R (t 0.16). Descriptively, gross expectancy on H1 is within ±0.03R of zero for every exit, while costs are 0.09–0.21R per trade. See [research/results/DP-001-summary.md](../research/results/DP-001-summary.md). |
 | DP-002 (D1, 966 cells + stumps model) | **FAILED** | 0 screen discoveries (956 testable). 14.9% of cells had a positive net mean, against 0% on H1, so costs matter less on D1. The best cell had t 2.87 among 966 tests: noise-level. The model: 0 of 30 configurations passed. See [research/results/DP-002-summary.md](../research/results/DP-002-summary.md). |
+| CP-001 (published trend following, D1) | **FAILED** | Longs ≈ 0; shorts +0.19R / +0.21R at t ≈ 1.0 (required 3.18), concentrated in 2014. [CP-001-summary.md](../research/results/CP-001-summary.md) |
+| SL-001 / SL-002 (strategy library) | **FAILED** | Donchian, pullback, narrow-range breakout (both sides, D1) and local-hours depreciation (H1, n 8,901, −0.105R, t −8.0) all rejected. [PROFESSIONAL_TRADER_RESEARCH.md](PROFESSIONAL_TRADER_RESEARCH.md) |
+| WF-002 (stumps, H1, every 4 bars) | **FAIL** | n 1,328, −0.126R; vs random t 0.25. |
+
+Every judged hypothesis, with its numbers and status, is in [TRADING_EDGE_REGISTRY.md](TRADING_EDGE_REGISTRY.md);
+the protocol is [RESEARCH_PROTOCOL.md](RESEARCH_PROTOCOL.md); the audit behind this phase is
+[EDGE_DISCOVERY_AUDIT.md](EDGE_DISCOVERY_AUDIT.md).
 
 ## DP-002 as designed (registered in `8575918` and run once: FAILED)
 

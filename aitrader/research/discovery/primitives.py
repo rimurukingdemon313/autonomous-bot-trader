@@ -235,7 +235,40 @@ PRIMITIVES: tuple[Primitive, ...] = (
     Primitive("atr_pctile", "volatility state", "rank of ATR24 within its last 240 values", "continuous",
               ("own bars",), _atr_pctile),
 )
-PRIMITIVE_BY_NAME = {p.name: p for p in PRIMITIVES}
+
+#: cross-sectional primitives, kept apart from PRIMITIVES so that the registered DP-001/DP-002 designs
+#: (which enumerate PRIMITIVES) are unchanged; each program that uses one names it explicitly
+XS_VERSION = "xs-1.0.0"
+XS_MIN = 6  # of the 7 USD pairs
+
+
+def _xs_mom(s, m, o):
+    """This pair's currency's r24 against the dollar minus the median across the 7 USD pairs,
+    signed to the pair's direction (+ = buying this pair buys the relatively strong currency).
+    Own bars from `s`; the others aligned on the same open time; NaN for a non-USD pair."""
+    if s.symbol not in USD_SIGN:
+        return np.full(len(s), np.nan)
+    rows = []
+    for sym, sign in USD_SIGN.items():
+        col = m[:, INDEX["r24"]] if sym == s.symbol else (
+            _aligned(s, o[sym], _matrix(o, sym)[:, INDEX["r24"]]) if sym in o else np.full(len(s), np.nan))
+        rows.append(-sign * col)  # strength of the non-USD currency against the dollar
+    stack = np.vstack(rows)
+    cnt = np.isfinite(stack).sum(axis=0)
+    ok = cnt >= XS_MIN
+    med = np.full(len(s), np.nan)
+    if ok.any():
+        med[ok] = np.nanmedian(stack[:, ok], axis=0)
+    own = -USD_SIGN[s.symbol] * m[:, INDEX["r24"]]
+    return np.where(ok, -USD_SIGN[s.symbol] * (own - med), np.nan)
+
+
+XS_PRIMITIVES: tuple[Primitive, ...] = (
+    Primitive("xs_mom", "cross-sectional", "r24 of this pair's currency against the dollar minus the median of the "
+              "7 USD pairs' currencies (at least 6 present), signed so + = buying the pair buys the relatively "
+              "strong currency; NaN for a pair without USD", "continuous", ("own bars", "USD pairs"), _xs_mom),
+)
+PRIMITIVE_BY_NAME = {p.name: p for p in PRIMITIVES + XS_PRIMITIVES}
 
 
 def primitive_leakage(p: Primitive, series: BarSeries, others: dict, rows) -> list[int]:

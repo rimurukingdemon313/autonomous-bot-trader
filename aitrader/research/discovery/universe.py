@@ -25,7 +25,7 @@ from ..registry import Registry
 from .battery import BatteryRules
 from .catalog import FeatureRecord, truncation_leaks
 from .exits import DAILY_EXITS, EXIT_BY_KEY
-from .primitives import PRIMITIVE_BY_NAME, PRIMITIVES, PRIMITIVES_VERSION, USD_SIGN, Others
+from .primitives import PRIMITIVE_BY_NAME, PRIMITIVES, PRIMITIVES_VERSION, USD_SIGN, XS_PRIMITIVES, XS_VERSION, Others
 from .program import ModelPlan, ProgramDesign
 from .study import Segment, SymbolData
 
@@ -83,10 +83,22 @@ def feature_records_daily(program: str) -> dict[str, FeatureRecord]:
     return out
 
 
-def load_universe(store, symbols=FX, timeframe: str = "H1") -> tuple[dict[str, SymbolData], dict[str, str]]:
+def xs_records(program: str, timeframe: str = "D1") -> dict[str, FeatureRecord]:
+    """Catalog records of the cross-sectional primitives, on `timeframe` bars."""
+    return {p.name: FeatureRecord(
+        f"{p.name}.{timeframe}", f"on {timeframe} bars: {p.definition}", p.dimension, p.kind, timeframe, p.requires,
+        f"aitrader/research/discovery/primitives.py ({XS_VERSION}); research only", XS_VERSION,
+        "other instruments aligned on the same open time; NaN when fewer than 6 USD pairs have a value, never a "
+        "default", "does relative strength across currencies persist (cross-sectional momentum)?", program)
+        for p in XS_PRIMITIVES}
+
+
+def load_universe(store, symbols=FX, timeframe: str = "H1",
+                  extra: tuple[str, ...] = ()) -> tuple[dict[str, SymbolData], dict[str, str]]:
     series = {s: store.load(s, timeframe) for s in symbols}
     usd = Others({s: v for s, v in series.items() if s in USD_SIGN})
     prims = PRIMITIVES if timeframe == "H1" else tuple(PRIMITIVE_BY_NAME[n] for n in DAILY_PRIMITIVES)
+    prims = prims + tuple(PRIMITIVE_BY_NAME[n] for n in extra)
     data, hashes = {}, {}
     for s, ser in series.items():
         m = compute_matrix(ser)
