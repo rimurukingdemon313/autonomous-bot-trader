@@ -147,3 +147,12 @@ def test_screening_twice_gives_identical_tables():
     a = screen(Study(planted(), ALL, binnings(planted()), FREE), Grid(("B",), ("A",)), min_n=30)
     b = screen(Study(planted(), ALL, binnings(planted()), FREE), Grid(("B",), ("A",)), min_n=30)
     assert a == b
+
+
+def test_noise_produces_positive_cells_and_the_false_discovery_control_admits_none():
+    data = planted(plant=False, seed=7)
+    st = Study(data, ALL, binnings(data), FREE)
+    res = screen(st, Grid(("B",), ("A",)), min_n=30)
+    positive = [r for r in res["table"] if r["testable"] and r["mean_R"] > 0]
+    assert positive  # an uncorrected "mean > 0" screen would report these as findings
+    assert res["discoveries"] == 0

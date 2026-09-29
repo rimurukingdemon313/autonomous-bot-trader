@@ -26,7 +26,8 @@ from aitrader.data.store import DataStore  # noqa: E402
 from aitrader.research.discovery.catalog import FeatureCatalog  # noqa: E402
 from aitrader.research.discovery.hypothesis import Ledger  # noqa: E402
 from aitrader.research.discovery.program import DiscoveryProgram  # noqa: E402
-from aitrader.research.discovery.universe import FX, dp001, feature_records, leakage_checker, load_universe  # noqa: E402
+from aitrader.research.discovery.universe import (FX, dp001, dp001_as_registered, feature_records,  # noqa: E402
+                                                  leakage_checker, load_universe)
 from aitrader.research.registry import Holdout, Registry  # noqa: E402
 
 RESEARCH = ROOT / "research"
@@ -40,19 +41,11 @@ def _clock() -> datetime:
 def _program() -> tuple[DiscoveryProgram, DataStore]:
     holdout = Holdout.load(RESEARCH / "holdout.json")
     reg = Registry.load(RESEARCH / "registry.jsonl", holdout)
-    design = dp001(reg) if not any(t.id == "DP-001" for t in reg.trials) else _registered_design(reg)
+    design = dp001_as_registered(reg) if any(t.id == "DP-001" for t in reg.trials) else dp001(reg)
     prog = DiscoveryProgram(design, reg, Ledger(RESEARCH / "discovery" / "ledger.jsonl"),
                             FeatureCatalog(RESEARCH / "discovery" / "features.jsonl"), RESEARCH / "knowledge", _clock,
                             feature_records("DP-001"))
     return prog, DataStore(ROOT / "data" / "processed", holdout)
-
-
-def _registered_design(reg: Registry):
-    """After registration the threshold is the one frozen then (the registry now counts DP-001 itself)."""
-    from dataclasses import replace
-    frozen = reg.get("DP-001").design["discovery_program"]["rules"]["t_threshold"]
-    d = dp001(reg)
-    return replace(d, rules=replace(d.rules, t_threshold=frozen))
 
 
 def main() -> int:

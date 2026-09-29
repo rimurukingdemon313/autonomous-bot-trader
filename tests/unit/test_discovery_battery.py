@@ -60,6 +60,7 @@ def test_a_market_without_the_effect_fails_on_the_core_checks():
 def test_an_edge_on_one_instrument_fails_the_cross_instrument_checks():
     st, _ = study(planted(n=N, weak=("BBB", "CCC")))
     res = run_battery(st, A_HIGH, BUY, "E1", RULES)
+    assert res["verdict"] == "REJECTED" and res["checks"]["significance"]["pass"]  # significant, yet one market
     assert {"instruments", "leave_one_out"} <= set(res["failed"])
     assert res["checks"]["instruments"]["positive"] == ["AAA"]
     assert res["checks"]["leave_one_out"]["worst"] == "AAA"
@@ -68,7 +69,7 @@ def test_an_edge_on_one_instrument_fails_the_cross_instrument_checks():
 def test_an_edge_that_reverses_in_one_regime_fails_the_regime_check():
     st, _ = study(planted(n=N, regime_flip=True))
     res = run_battery(st, A_HIGH, BUY, "E1", RULES)
-    assert "regimes" in res["failed"]
+    assert res["verdict"] == "REJECTED" and "regimes" in res["failed"]
     assert all(k.startswith("er_low") for k in res["checks"]["regimes"]["significantly_negative"])
 
 
@@ -80,7 +81,7 @@ def test_an_edge_that_costs_eat_fails_the_cost_stress():
     comm = (m0 - 0.3) * atr / 0.0001  # leaves about +0.3R before stress
     st, _ = study(data, CostModel(0.0, comm, 0.0))
     res = run_battery(st, A_HIGH, BUY, "E1", RULES)
-    assert res["checks"]["significance"]["mean_R"] > 0
+    assert res["checks"]["significance"]["mean_R"] > 0 and res["verdict"] == "REJECTED"
     assert "costs_stress" in res["failed"] and res["checks"]["costs_stress"]["mean_R"] < 0
 
 

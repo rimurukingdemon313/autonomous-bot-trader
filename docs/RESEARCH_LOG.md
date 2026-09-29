@@ -32,6 +32,14 @@ Sources cited from prior knowledge are marked as such.
   embargoed cross-validation, triple-barrier labels, deflated Sharpe ratio —
   used for the embargo, the cost-aware barrier labels and the trial counting.
 - Holm (1979), Bonferroni: multiple-testing control, used by the registry.
+- Benjamini & Hochberg (1995): false-discovery-rate control, used by the
+  discovery screen over every declared cell (`discovery/stats.py`).
+- Bailey & López de Prado, *The Deflated Sharpe Ratio* (2014): reported for
+  every judged discovery hypothesis over all configurations the program examined.
+- Cluster-robust (CR1) standard errors, clustered by calendar week of entry:
+  trades on different pairs in the same week are not independent evidence.
+- Circular-shift permutation of a signal against fixed outcomes: tests whether
+  the signal's timing matters while keeping both series' autocorrelation.
 - Shinn et al., *Reflexion* (2023); Park et al., *Generative Agents* (2023):
   reflection over episodic memory. Adopted in spirit (post-mortem, periodic
   reflection, versioned lessons) but with a statistical gate: a lesson acts

@@ -213,3 +213,27 @@ Commits `1373d0c` → the current head. Each line names its evidence.
 **Plainly:** the system can now conduct disciplined research within a
 declared space. It has not yet *discovered* anything. Discovery is what
 the next pre-registered hypothesis will test.
+
+---
+
+## I. After the discovery engine (2026-09-29)
+
+The discovery engine (`aitrader/research/discovery/`, [DISCOVERY.md](DISCOVERY.md)) closes gaps
+from section H. Rows that changed:
+
+| Requirement | Status | What exists | What does not |
+|---|---|---|---|
+| Choose the features | **IMPLEMENTED within a declared space** | 12 new causal primitives (session, weekday, H4/D1 trend, USD basket, basket correlation, lagged move, range contraction/expansion, regime transition, persistence, volatility percentile); a feature catalog with provenance, budget and a real-bar leakage gate covering other instruments | No synthesis from raw data beyond declared primitives and the grammar |
+| Pattern discovery | **IMPLEMENTED** | a declared state×trigger screen, every cell counted, week-clustered t, BH-FDR; known-answer tests (a planted effect is found, a null market yields nothing) | Conditions of more than two terms only via the model |
+| Hypotheses | **IMPLEMENTED** | complete falsifiable objects; append-only lifecycle ledger; rejected substance blocked; sources: screen, model, lessons (veto), follow-ups, LLM (prospective only) | Prospective drafts wait for data recorded after them |
+| Choose the model | **IMPLEMENTED within a declared space** | + boosted stumps (numpy); trained on discovery, thresholded on validation, judged by the battery | Deeper trees, time-series and Bayesian families |
+| Stop / target / exit logic | **IMPLEMENTED within a declared space** | 8 declared exits (barrier, time, trailing, breakeven, partial, structure) with pessimistic fills; exit choice counted as configurations | Learned exits; exits in production are unchanged |
+| Validation | **IMPLEMENTED** | a 12-check battery + expectancy decomposition; the registry's Bonferroni threshold frozen at preregistration; deflated Sharpe reported | — |
+| Research board | **IMPLEMENTED** | 5 analysts incl. an independent reviewer recomputing from raw trades; no vote; objections only subtract | — |
+| Experiment lifecycle | **IMPLEMENTED** | registry trial + ledger + catalog; preregistration document with design and code hashes; one run; deterministic replay; resumable | — |
+| Learning → hypotheses → experiments | **IMPLEMENTED (research side)** | `from_lesson`, `derive_next`, the confirmatory program | Live lessons must be exported from the production database by hand; no scheduled research job |
+| Authority | **IMPLEMENTED** | nothing that runs imports discovery; discovery imports only data, features and research; knowledge never under `models/artifacts`; 21 discovery guards in the mutation audit | — |
+
+**Plainly:** the system can now search a bounded space for an edge and say, with the multiple
+testing counted, whether it found one. Whether it *has* found one is DP-001's question. DP-001 is
+preregistered before it runs.

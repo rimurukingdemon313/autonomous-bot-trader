@@ -127,3 +127,11 @@ def dp001(registry: Registry) -> ProgramDesign:
         lookback_start=date(2007, 3, 30))
     thr = registry.threshold_for_next(d.universe, d.segments[2].start, d.segments[2].end, new_tests=d.judged_tests())
     return replace(d, rules=replace(d.rules, t_threshold=thr))
+
+
+def dp001_as_registered(registry: Registry) -> ProgramDesign:
+    """DP-001 as frozen at registration. Afterwards the registry counts DP-001's own tests, so the
+    threshold is read back from the trial instead of being recomputed (which would differ)."""
+    frozen = registry.get("DP-001").design["discovery_program"]["rules"]["t_threshold"]
+    d = dp001(registry)
+    return replace(d, rules=replace(d.rules, t_threshold=frozen))

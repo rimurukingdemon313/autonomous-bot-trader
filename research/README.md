@@ -8,6 +8,8 @@ The research record that travels with the code.
 | [`holdout.json`](holdout.json) | The sealed final holdout (fx-majors from 2017-01-01): single use, by a pre-registered final test only. |
 | [`preregistrations/`](preregistrations/) | Pre-registration documents, committed **before** their experiments ran. Amendments are appended before the judged run, never after. |
 | `results/` | Summaries of completed experiments (full per-trade output stays under `data/results/`, not committed). |
+| [`discovery/`](discovery/) | The discovery engine's append-only records: `features.jsonl` (the feature catalog: provenance, budget, leakage status, uses, results) and `ledger.jsonl` (every hypothesis and each step of its lifecycle, rejected ones included). |
+| `knowledge/` | What discovery and confirmatory programs concluded: the program artifact, the full screen table, the judged trades, frozen models. Research knowledge only; nothing here is loaded by the running system. See [docs/DISCOVERY.md](../docs/DISCOVERY.md). |
 
 ## The research lab
 

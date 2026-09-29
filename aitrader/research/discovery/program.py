@@ -34,8 +34,8 @@ from ..labels import BUY, SELL, CostModel
 from ..models import Fitted, fit_stumps
 from ..registry import Registry, RegistryError, Trial, Use, Verdict
 from .battery import BATTERY_VERSION, BatteryRules, regime_binnings, run_battery
-from .board import (BOARD_VERSION, adversarial_analyst, market_analyst, opportunity_analyst, reviewer,
-                    risk_analyst, synthesize)
+from .board import (BOARD_VERSION, CONCENTRATION, TAIL_LOSS_R, adversarial_analyst, market_analyst,
+                    opportunity_analyst, reviewer, risk_analyst, synthesize)
 from .catalog import CATALOG_VERSION, FeatureCatalog, FeatureRecord
 from .exits import EXIT_BY_KEY, EXITS_VERSION
 from .hypothesis import (HYPOTHESIS_VERSION, Hypothesis, Ledger, LedgerError, derive_next, falsification_from,
@@ -413,6 +413,9 @@ class DiscoveryProgram:
             else:
                 why = res["failed"] + [f"blocked: {b}" for b in syn["blocked_by"]]
                 self._step(h.id, "REJECTED", reason="; ".join(why))
+            if self.ledger.state(h.id) != syn["verdict"]:
+                raise ProgramError(f"{h.id} is {self.ledger.state(h.id)} in the ledger but judges {syn['verdict']} "
+                                   "now: the run is not a replay")
             confirmations.append({"id": h.id, "statement": h.statement, "condition": h.condition, "side": h.side,
                                   "exit": exit_key, "kind": kind or "cell", "battery": res, "board": syn,
                                   "per_segment": per_segment,
@@ -517,21 +520,29 @@ class DiscoveryProgram:
     def _falsification(self) -> dict:
         return self.design.rules.describe()
 
-    def _next_experiment(self, scr: dict, val_rows: list, confirmations: list, validated: list, follow: list) -> str:
+    def _next_experiment(self, scr: dict, val_rows: list, confirmations: list, validated: list, follow: list,
+                         model_out: dict | None) -> str:
         d = self.design
         if validated:
             return (f"Prospective paper monitoring of {', '.join(validated)}: record every signal from the frozen rule "
                     "on data after this run, judge with the same battery after >= 100 trades, and change nothing in "
                     "production before that verdict.")
+        model = ""
+        if model_out is not None:
+            judged = [c for c in confirmations if c["kind"] == "model"]
+            model = (f" The model finalist {judged[0]['id']} was rejected ({', '.join(judged[0]['battery']['failed']) or 'blocked by the board'})."
+                     if judged else " The stumps model had no configuration that passed validation.")
         if scr["discoveries"] == 0:
-            return (f"The {d.id} grid produced no cell at FDR q <= {d.screen_q} on the discovery segment. Register the "
-                    "next program on a dimension this grid did not cover (daily-horizon exits or regime transitions "
-                    "as states) BEFORE it runs, rather than widening this grid after seeing it.")
+            return (f"The {d.id} grid produced no cell at FDR q <= {d.screen_q} on the discovery segment.{model} Register "
+                    "the next program on a dimension this grid did not cover (daily-horizon exits or regime "
+                    "transitions as states) BEFORE it runs, rather than widening this grid after seeing it.")
         if not any(v["best_exit"] for v in val_rows):
-            return ("Every screen discovery failed validation: they were most likely discovery-period noise. The next "
-                    "experiment should test the screen's stability itself (split-half discovery) before new cells.")
-        return (f"All {len(confirmations)} finalists were rejected on the judged segment. Follow-ups drafted for "
-                f"prospective testing only: {', '.join(follow) or 'none (every failure was in the core claim)'}.")
+            return ("Every screen discovery failed validation: they were most likely discovery-period noise." + model +
+                    " The next experiment should test the screen's stability itself (split-half discovery) before "
+                    "new cells.")
+        return (f"All {len(confirmations)} judged hypotheses were rejected on the confirmation segment.{model} "
+                f"Follow-ups drafted for prospective testing only: "
+                f"{', '.join(follow) or 'none (every failure was in the core claim)'}.")
 
     def _artifact(self, scr, val_rows, finalist_ids, model_out, confirmations, validated, follow, hashes) -> dict:
         d = self.design
@@ -551,7 +562,7 @@ class DiscoveryProgram:
                            "status": "VALIDATED research finding — not a trading rule"}
                           for c in confirmations if c["id"] in validated],
             "follow_up_drafts": follow,
-            "next_experiment": self._next_experiment(scr, val_rows, confirmations, validated, follow),
+            "next_experiment": self._next_experiment(scr, val_rows, confirmations, validated, follow, model_out),
             "ledger": self.ledger.counts(),
         }
         body = json.loads(json.dumps(body, sort_keys=True, default=_jsonable))
@@ -642,8 +653,18 @@ A finalist is VALIDATED only if every check passes:
 
 Then the research board (market, opportunity, risk, adversarial, independent reviewer) reads the
 result. There is no vote: any blocking objection turns VALIDATED into REJECTED; nothing turns
-REJECTED into VALIDATED. The deflated Sharpe ratio over all {d.configurations()} configurations is
-reported for information.
+REJECTED into VALIDATED. The objections that block are declared now:
+
+- risk: any single trade worse than {TAIL_LOSS_R:.0f}R (a gap carried it past its stop; no per-trade
+  limit bounds that loss);
+- adversarial: one instrument or one year carries more than {CONCENTRATION:.0%} of the total R while the
+  remaining trades earn less than a third as much per trade;
+- reviewer: its independent recomputation of n or the clustered t disagrees with the battery; a trade
+  lies outside the judged segment or reaches the holdout; two trades overlap on one instrument; the
+  exit, the threshold or the design hash is not the one frozen here.
+
+Market and opportunity analysts record concerns only. The deflated Sharpe ratio over all
+{d.configurations()} configurations is reported for information.
 
 ## What the outcome means
 

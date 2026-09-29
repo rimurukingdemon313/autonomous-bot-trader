@@ -66,3 +66,18 @@ def test_the_research_lab_is_not_imported_by_the_live_decision_path():
            if imports_of(p) & {"aitrader.research.lab", "aitrader.research.models", "aitrader.research.features_lab",
                                "aitrader.research.hypotheses"}]
     assert bad == []
+
+
+def test_nothing_that_runs_imports_the_discovery_engine():
+    """Discovery is research: a VALIDATED hypothesis is knowledge, never a rule the system executes."""
+    bad = [f"{p.relative_to(PKG)}" for p in PKG.rglob("*.py")
+           if not p.relative_to(PKG).as_posix().startswith("research/discovery/")
+           and any(m.startswith("aitrader.research.discovery") for m in imports_of(p))]
+    assert bad == []
+
+
+def test_the_discovery_engine_reads_only_data_features_and_research():
+    allowed = ("aitrader.data", "aitrader.features", "aitrader.research")
+    bad = [f"{p.relative_to(PKG)} imports {m}" for p in modules("research/discovery") for m in imports_of(p)
+           if m.startswith("aitrader") and not m.startswith(allowed)]
+    assert bad == []  # no risk engine, execution, broker, service, orchestrator, agents, memory or llm client

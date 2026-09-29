@@ -198,3 +198,20 @@ def test_research_knowledge_never_goes_where_production_loads(tmp_path):
     with pytest.raises(ProgramError):
         DiscoveryProgram(make_design(reg), reg, Ledger(tmp_path / "l.jsonl"), FeatureCatalog(tmp_path / "f.jsonl"),
                          tmp_path / "models" / "artifacts", lambda: NOW, RECORDS)
+
+
+def test_the_committed_dp001_design_is_the_one_the_code_builds():
+    """While DP-001 is pending, the design the code builds must hash to the one in the registry, or
+    the run would be refused; before registration it must at least be valid."""
+    from pathlib import Path
+    from aitrader.research.discovery.universe import dp001, dp001_as_registered, feature_records
+    root = Path(__file__).resolve().parents[2]
+    h = Holdout.load(root / "research" / "holdout.json")
+    reg = Registry.load(root / "research" / "registry.jsonl", h)
+    assert set(feature_records("DP-001")) >= set(dp001(reg).features())
+    if not any(t.id == "DP-001" for t in reg.trials):
+        dp001(reg).validate()
+        return
+    if reg.status_of("DP-001") == "PENDING":
+        d = dp001_as_registered(reg)
+        assert reg.get("DP-001").design["design_sha256"] == d.sha256()
