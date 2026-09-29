@@ -25,6 +25,11 @@ budget, the next one answers):
     AI_<NAME>_BASE_URL         optional for the known names below
     AI_<NAME>_FALLBACK_MODELS  optional, same provider
     AI_<NAME>_DAILY_BUDGET     optional cap for that provider (free tiers)
+    AI_<NAME>_MAX_REQUEST_TOKENS  optional: the most one request may count (prompt + reply budget).
+                               Groq's free tier refuses more than its per-minute limit in one request
+                               (HTTP 413), so `groq` defaults to 7000. A caller that can shorten its
+                               packet (`shrink`) sends that provider a shortened view instead of nothing;
+                               a 413 that states "Limit L, Requested R" recalibrates the size estimate.
 
 Common:
 
@@ -76,6 +81,7 @@ class Endpoint:
     daily_budget: int | None = None
     max_tokens: int | None = None  # AI_<NAME>_MAX_TOKENS: a smaller reply budget for a provider whose
                                    # per-minute limit counts the reply budget in the request (Groq)
+    max_request_tokens: int | None = None  # AI_<NAME>_MAX_REQUEST_TOKENS (groq: 7000 by default)
 
     @property
     def usable(self) -> bool:
@@ -141,7 +147,10 @@ class LLMConfig:
                 model=e.get(f"AI_{up}_MODEL", "").strip(),
                 fallback=tuple(m.strip() for m in e.get(f"AI_{up}_FALLBACK_MODELS", "").split(",") if m.strip()),
                 daily_budget=int(budget) if budget else None,
-                max_tokens=int(e[f"AI_{up}_MAX_TOKENS"]) if e.get(f"AI_{up}_MAX_TOKENS", "").strip() else None))
+                max_tokens=int(e[f"AI_{up}_MAX_TOKENS"]) if e.get(f"AI_{up}_MAX_TOKENS", "").strip() else None,
+                max_request_tokens=(int(e[f"AI_{up}_MAX_REQUEST_TOKENS"])
+                                    if e.get(f"AI_{up}_MAX_REQUEST_TOKENS", "").strip()
+                                    else DEFAULT_MAX_REQUEST_TOKENS.get(name))))
         return cls(
             providers=tuple(providers),
             provider=e.get("AI_PROVIDER", "none").strip().lower(),
@@ -274,6 +283,10 @@ def extract_json(text: str) -> dict | None:
 #: (Retry-After, or "try again in 7.6s"), that is used instead, at least a minute. Nothing is spent while waiting,
 #: and the next model or provider answers instead. A success clears it.
 COOLDOWN_S = {429: 600, 404: 6 * 3600, 401: 1800, 403: 1800, 413: 600}
+#: providers whose free tier refuses a single request above its per-minute token limit
+DEFAULT_MAX_REQUEST_TOKENS = {"groq": 7000}
+CHARS_PER_TOKEN = 3.0  # conservative for JSON full of numbers; recalibrated by a 413 that states its sizes
+SHRINK_LEVELS = 3
 MAX_QUOTA_COOLDOWN_S = 3600
 
 
@@ -289,6 +302,8 @@ class LLMClient:
         self._ep_day: dict[tuple[str, str], int] = {}  # (UTC day, provider) -> calls
         self._ep_stats: dict[str, dict] = {}  # provider -> ok / failed / last error (no secrets: status + message)
         self._cool: dict[str, tuple[float, str, int]] = {}  # "provider:model" -> (until, why, refusals in a row)
+        self._cpt: dict[str, float] = {}  # provider -> chars per token, learned from a 413 that states its sizes
+        self._limits: dict[str, int] = {}  # provider -> request limit learned from a 413 (lower than configured)
         self.stats = {"calls": 0, "ok": 0, "failed": 0, "retries": 0, "cache_hits": 0}
 
     def _day(self) -> str:
@@ -304,11 +319,14 @@ class LLMClient:
             self._calls = {d: self._calls.get(d, 0) + 1}
 
     def complete_json(self, agent: str, system: str, packet: dict, validate: Callable[[dict], str | None],
-                      *, cache_key: str | None = None, only: str | None = None) -> LLMResult:
+                      *, cache_key: str | None = None, only: str | None = None,
+                      shrink: Callable[[dict, int], dict] | None = None) -> LLMResult:
         """Ask for a JSON object; return it only if `validate` returns None.
 
         `only` restricts the call to one named provider (and its own fallback models): a
         trading-room member speaks with its own model, and never borrows another's voice.
+        `shrink(packet, level)` (level 1..3) returns a shorter view of the packet for a provider
+        whose request limit the full one exceeds; without it such a provider is skipped (TOO_LARGE).
         """
         cfg = self.config
         if not cfg.enabled:
@@ -336,7 +354,21 @@ class LLMClient:
                 if resting:
                     last = LLMResult(False, agent, label, "COOLDOWN", error=resting)
                     continue  # not asked, nothing spent: the next model or provider answers
-                last = self._try_model(agent, ep, model, system, user, validate)
+                level, ep_user = self._fit(ep, system, packet, user, shrink, 0)
+                while True:
+                    if ep_user is None:
+                        last = LLMResult(False, agent, label, "TOO_LARGE",
+                                         error=f"the request exceeds {ep.name}'s limit of {self._limit(ep)} "
+                                               "tokens even shortened: not sent")
+                        break
+                    last = self._try_model(agent, ep, model, system, ep_user, validate)
+                    size = re.search(r"Limit (\d+), Requested (\d+)", last.error or "") if not last.ok else None
+                    if size and (last.error or "").startswith("HTTP 413"):
+                        self._calibrate(ep, system, ep_user, int(size.group(1)), int(size.group(2)))
+                        if shrink is not None and level < SHRINK_LEVELS:
+                            level, ep_user = self._fit(ep, system, packet, user, shrink, level + 1)
+                            continue  # the same model, a shorter view: no rest needed for a size problem
+                    break
                 self._note(ep.name, last)
                 self._after(label, last)
                 if last.ok or last.status == "BUDGET":
@@ -348,6 +380,40 @@ class LLMClient:
             if len(self._cache) > 2000:
                 self._cache.pop(next(iter(self._cache)))
         return last
+
+    def _tokens(self, ep: "Endpoint", system: str, user: str) -> float:
+        cpt = self._cpt.get(ep.name, CHARS_PER_TOKEN)
+        return (len(system) + len(user)) / cpt + (ep.max_tokens or self.config.max_tokens)
+
+    def _fit(self, ep: "Endpoint", system: str, packet: dict, user: str, shrink, start: int):
+        """(level, user text) within the endpoint's request limit, starting at `start`; (level, None)
+        when even the shortest view does not fit."""
+        limit = self._limit(ep)
+        if limit is None:
+            return start, user
+        level, text = start, user if start == 0 else json.dumps(shrink(packet, start), sort_keys=True,
+                                                                  separators=(",", ":"), default=str)
+        while self._tokens(ep, system, text) > limit:
+            if shrink is None or level >= SHRINK_LEVELS:
+                return level, None
+            level += 1
+            text = json.dumps(shrink(packet, level), sort_keys=True, separators=(",", ":"), default=str)
+        return level, text
+
+    def _calibrate(self, ep: "Endpoint", system: str, user: str, limit: int, requested: int) -> None:
+        """A 413 that states its sizes tells us how this provider counts: learn its chars per token and,
+        if it is lower than configured, its limit."""
+        prompt = requested - (ep.max_tokens or self.config.max_tokens)
+        if prompt > 0:
+            with self._lock:
+                self._cpt[ep.name] = max(1.0, (len(system) + len(user)) / prompt)
+        known = self._limit(ep)
+        if known is None or limit * 0.9 < known:
+            with self._lock:
+                self._limits[ep.name] = int(limit * 0.9)
+
+    def _limit(self, ep: "Endpoint") -> int | None:
+        return self._limits.get(ep.name, ep.max_request_tokens)
 
     def _resting(self, label: str) -> str | None:
         with self._lock:

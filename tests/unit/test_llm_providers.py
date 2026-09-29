@@ -261,3 +261,85 @@ def test_a_provider_can_have_its_own_reply_budget():
     c.complete_json("trader", "s", {}, ok_validate, only="openrouter")
     c.complete_json("trader", "s", {}, ok_validate, only="gemini")
     assert sent == [("openrouter.ai", 900), ("generativelanguage.googleapis.com", 1500)]
+
+
+# ── request size: a provider with a small per-request limit gets a shortened view, not nothing ──
+
+import io  # noqa: E402
+
+from aitrader.agents.llm_trader import compact_packet  # noqa: E402
+
+GROQ = {"AI_PROVIDERS": "groq", "AI_GROQ_API_KEY": "gq-key", "AI_GROQ_MODEL": "gpt-oss", "AI_GROQ_MAX_TOKENS": "800"}
+BIG = {"instrument": "EURUSD", "decision_time": "2026-09-29T11:00:00+00:00",
+       "quote": {"bid": 1.1, "ask": 1.1001}, "account": {"equity": 20000},
+       "discussion": [{"member": "gemini", "thesis": "x" * 900}],
+       "strategy_desk": {"best": "trend", "table": [[i, i * 0.1] for i in range(3000)]},
+       "history": {"n": 5, "rows": list(range(3000))}, "market_map": {"levels": list(range(2000)), "bias": "up"},
+       "timeframes": {"M1": {"bars": list(range(400))}, "H1": {"bars": list(range(50))}}}
+
+
+def sent_packets(calls_body):
+    return [json.loads(b["messages"][1]["content"]) for b in calls_body]
+
+
+def capture(reply=OK, fail_first=None):
+    bodies = []
+
+    def t(url, headers, body, timeout):
+        bodies.append(body)
+        if fail_first and len(bodies) == 1:
+            raise urllib.error.HTTPError(url, 413, "too large", {}, io.BytesIO(fail_first.encode()))
+        return {"choices": [{"message": {"content": reply}}]}
+    return t, bodies
+
+
+def test_groq_gets_a_shortened_packet_that_fits_instead_of_a_413():
+    t, bodies = capture()
+    client = LLMClient(LLMConfig.from_env(GROQ), t)
+    assert LLMConfig.from_env(GROQ).endpoints()[0].max_request_tokens == 7000  # the groq default
+    res = client.complete_json("room:groq", "system", BIG, ok_validate, shrink=compact_packet)
+    assert res.ok and len(bodies) == 1
+    sent = sent_packets(bodies)[0]
+    assert "shortened view" in sent["packet_note"]
+    assert sent["quote"] == BIG["quote"] and sent["account"] == BIG["account"]  # kept, unaltered
+    assert len(json.dumps(sent)) / 3 + 800 <= 7000
+
+
+def test_without_a_way_to_shorten_an_oversized_request_is_not_sent():
+    t, bodies = capture()
+    client = LLMClient(LLMConfig.from_env(GROQ), t)
+    res = client.complete_json("room:groq", "system", BIG, ok_validate)
+    assert not res.ok and res.status == "TOO_LARGE" and bodies == []
+
+
+def test_a_413_that_states_its_sizes_is_answered_with_a_shorter_view_at_once():
+    env = GROQ | {"AI_GROQ_MAX_REQUEST_TOKENS": "100000"}  # configured too high: only the 413 tells the truth
+    msg = json.dumps({"error": {"message": "Request too large for model `gpt-oss` on tokens per minute (TPM): "
+                                           "Limit 8000, Requested 30000, please reduce your message size"}})
+    t, bodies = capture(fail_first=msg)
+    client = LLMClient(LLMConfig.from_env(env), t)
+    res = client.complete_json("room:groq", "system", BIG, ok_validate, shrink=compact_packet)
+    assert res.ok and len(bodies) == 2  # the same model, asked again shortened: no 10-minute rest
+    assert "packet_note" not in sent_packets(bodies)[0] and "packet_note" in sent_packets(bodies)[1]
+    assert client._resting("groq:gpt-oss") is None
+    t2, bodies2 = capture()
+    client._transport = t2
+    assert client.complete_json("room:groq", "system2", BIG, ok_validate, shrink=compact_packet).ok
+    assert "packet_note" in sent_packets(bodies2)[0]  # the learned limit applies from the first try next time
+
+
+def test_providers_without_a_limit_still_get_the_full_packet():
+    t, bodies = capture()
+    env = {"AI_PROVIDERS": "gemini", "AI_GEMINI_API_KEY": "k", "AI_GEMINI_MODEL": "flash"}
+    assert LLMClient(LLMConfig.from_env(env), t).complete_json("x", "s", BIG, ok_validate, shrink=compact_packet).ok
+    assert sent_packets(bodies)[0] == json.loads(json.dumps(BIG))
+
+
+def test_shortening_only_cuts_and_gets_shorter_level_by_level():
+    sizes = [len(json.dumps(compact_packet(BIG, lv))) for lv in (1, 2, 3)]
+    assert len(json.dumps(BIG)) > sizes[0] >= sizes[1] >= sizes[2]
+    for lv in (1, 2, 3):
+        c = compact_packet(BIG, lv)
+        assert c["instrument"] == "EURUSD" and c["quote"] == BIG["quote"] and c["discussion"]
+    assert compact_packet(BIG, 1)["strategy_desk"] == {"best": "trend"}  # headline kept, table cut
+    assert "strategy_desk" not in compact_packet(BIG, 3)

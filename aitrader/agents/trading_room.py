@@ -41,7 +41,8 @@ from dataclasses import dataclass
 
 from ..decision.synthesis import Decision, decision_id
 from .llm_trader import (
-    FAMILY, LLM_TRADER_VERSION, agent_digest, hold_minutes, lesson_block, level_problem, market_packet, no_trade_decision,
+    FAMILY, LLM_TRADER_VERSION, agent_digest, compact_packet, hold_minutes, lesson_block, level_problem, market_packet,
+    no_trade_decision,
     pre_model_block, trade_decision, validate_proposal,
 )
 from .types import MarketContext
@@ -287,7 +288,7 @@ class TradingRoom:
                 f"room:{m}", SPEAK.format(name=m, n=n, members=names, time=packet["decision_time"], role=role)
                 + STYLES[self.config.style],
                 {**packet, "you": m, "discussion": list(said)}, validate_speech,
-                cache_key=f"{ctx.symbol}|{ctx.t}|speak|{len(said)}", only=m)
+                cache_key=f"{ctx.symbol}|{ctx.t}|speak|{len(said)}", only=m, shrink=compact_packet)
             if not res.ok:
                 room["discussion"].append({"member": m, "role": "+".join(roles[m]), "status": res.status,
                                            "model": res.model})
@@ -319,10 +320,10 @@ class TradingRoom:
         system = JOINT.format(name=head, n=n, members=names, time=packet["decision_time"]) + STYLES[self.config.style]
         joint_packet = {**packet, "discussion": said}
         res = self.llm.complete_json("room:joint", system, joint_packet, validate_proposal,
-                                     cache_key=f"{ctx.symbol}|{ctx.t}|joint", only=head)
+                                     cache_key=f"{ctx.symbol}|{ctx.t}|joint", only=head, shrink=compact_packet)
         if not res.ok:  # that provider failed: another member's model writes it, under the same rules
             res = self.llm.complete_json("room:joint", system, joint_packet, validate_proposal,
-                                         cache_key=f"{ctx.symbol}|{ctx.t}|joint-any")
+                                         cache_key=f"{ctx.symbol}|{ctx.t}|joint-any", shrink=compact_packet)
         if not res.ok:
             return no_trade(f"the team's joint decision could not be written ({res.status}): failing closed")
         p = res.data

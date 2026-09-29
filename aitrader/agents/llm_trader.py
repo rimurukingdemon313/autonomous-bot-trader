@@ -241,6 +241,59 @@ def market_packet(ctx: MarketContext, reports: dict) -> dict:
     }
 
 
+def _scalars(x):
+    """The top-level numbers, words and flags of a section; nested lists and tables dropped."""
+    if not isinstance(x, dict):
+        return x
+    return {k: v for k, v in x.items() if isinstance(v, (int, float, str, bool)) or v is None}
+
+
+def _trim(x, n: int):
+    """Every list inside `x` cut to its last `n` items (the most recent bars/events)."""
+    if isinstance(x, list):
+        return [_trim(v, n) for v in x[-n:]]
+    if isinstance(x, dict):
+        return {k: _trim(v, n) for k, v in x.items()}
+    return x
+
+
+def compact_packet(packet: dict, level: int) -> dict:
+    """A shorter view of the same market for a provider whose request limit the full packet exceeds.
+
+    Nothing is invented or summarised by guesswork: sections are only cut, least important first,
+    and the packet says so. The quote, account, regime, the member's own role and what the team
+    has said are always kept.
+    1: the desk statistics (strategy desk, history, intermarket) keep only their headline numbers;
+    2: also the market map, memory and calendar, and every bar list is cut to its last 5 entries;
+    3: those sections are dropped, the timeframes are H1/H4/D1 with 3 bars, the discussion is abridged."""
+    p = dict(packet)
+    heavy = ("strategy_desk", "history", "intermarket")
+    for k in heavy:
+        if k in p:
+            p[k] = _scalars(p[k])
+    if level >= 2:
+        for k in ("market_map", "memory"):
+            if k in p:
+                p[k] = _scalars(p[k])
+        if isinstance(p.get("calendar"), dict):
+            p["calendar"] = _trim(p["calendar"], 3)
+        if "timeframes" in p:
+            p["timeframes"] = _trim(p["timeframes"], 5)
+    if level >= 3:
+        for k in heavy + ("market_map", "memory"):
+            p.pop(k, None)
+        if isinstance(p.get("timeframes"), dict):
+            p["timeframes"] = {k: _trim(v, 3) for k, v in p["timeframes"].items() if k in ("H1", "H4", "D1")}
+        if isinstance(p.get("quant_agents"), dict):
+            p["quant_agents"] = {k: {"summary": v.get("summary")} for k, v in p["quant_agents"].items()}
+        if isinstance(p.get("discussion"), list):
+            p["discussion"] = [{k: (str(v)[:200] if isinstance(v, str) else v) for k, v in d.items()}
+                               for d in p["discussion"]]
+    p["packet_note"] = (f"shortened view (level {level}) to fit this provider's request limit: some sections "
+                        "were cut or omitted, never altered")
+    return p
+
+
 def level_problem(ctx: MarketContext, p: dict) -> str | None:
     """A proposed trade whose prices cannot stand, or None. Checked against the live quote; never repaired."""
     side = 1 if p["action"] == "BUY" else -1
@@ -319,7 +372,7 @@ class LLMTrader:
             return no_trade(blocked[0], contra=blocked[1])
         packet = market_packet(ctx, reports)
         res = self.llm.complete_json("trader", SYSTEM.format(time=packet["decision_time"]), packet,
-                                     validate_proposal, cache_key=f"{ctx.symbol}|{ctx.t}")
+                                     validate_proposal, cache_key=f"{ctx.symbol}|{ctx.t}", shrink=compact_packet)
         if not res.ok:
             return no_trade(f"language model unavailable or reply rejected ({res.status}): failing closed")
         p = res.data
