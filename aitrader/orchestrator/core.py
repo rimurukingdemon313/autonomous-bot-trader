@@ -203,6 +203,28 @@ class Orchestrator:
                            ((equity - ds["equity"]) / ds["equity"] * 100) if equity and ds else None)
         return state, view
 
+    def _frames(self, symbol: str, t: int, h1) -> tuple[dict, float | None]:
+        """Feature values at the last COMPLETED bar of M15 (execution), H1 and H4 (context), and the
+        M15 ATR the edge engine prices stops with. A timeframe the feed cannot give is left out: an
+        edge that needs it is then not matched, never assumed."""
+        frames, exec_atr = {}, None
+        series = {"H1": h1}
+        if hasattr(self.feed, "bars_tf"):
+            for tf in ("M15", "H4"):
+                try:
+                    series[tf] = self.feed.bars_tf(symbol, tf, t, LOOKBACK)
+                except Exception:
+                    series[tf] = None
+        for tf, s in series.items():
+            if s is None or len(s) == 0:
+                continue
+            fv = compute_at(s, t)
+            frames[tf] = {k: v for k, v in fv.values.items() if v is not None}
+            if tf == "M15" and len(s) > 25:
+                a = float(atr24(s)[-1])
+                exec_atr = a if np.isfinite(a) else None
+        return frames, exec_atr
+
     def decide(self, symbol: str, t: int) -> Decision | None:
         window = self.feed.bars(symbol, t, LOOKBACK)
         if window is None or len(window) == 0:
@@ -239,6 +261,9 @@ class Orchestrator:
             analog_meta={"available": ev.available if ev else 0, "memory_version": self.memory.version},
             knowledge=self.experience if self.cfg.learning_enabled else NullKnowledge(), mode=self.cfg.mode)
         mode = getattr(getattr(self.brain, "config", None), "decision_mode", "evidence")
+        if mode == "edges":
+            ctx.frames, ctx.exec_atr = self._frames(symbol, t, window)
+            ctx.open_symbols = tuple(p["symbol"] for p in state.open_positions)
         if mode in ("llm_trader", "trading_room"):
             # The model trader reads more than the quantitative agents: three timeframes of
             # COMPLETED bars, its own trade memory, and whether trading is allowed at all

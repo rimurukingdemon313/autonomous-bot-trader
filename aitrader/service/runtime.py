@@ -86,8 +86,12 @@ def storage_state(data_dir: str, env=None) -> dict:
 #: positions are checked on M1 bars between H1 closes; live memory saved at most every 15 min.
 #: 1.5.0: DATA reads CONNECTED only when bars arrive (quotes alone: QUOTES ONLY, NO BARS, with the
 #: reason); a pair with no data shows NO_DATA and why.
-SERVICE_VERSION = "service-1.5.0"
+#: 1.6.0: SCAN_TIMEFRAME=M15 (the opportunity scanner: every M15 close, H1/H4 as context) and
+#: DECISION_MODE=edges (promoted edges only); the evidence system keeps its tested H1 cadence.
+SERVICE_VERSION = "service-1.6.0"
 MODEL_MODES = ("llm_trader", "trading_room")
+#: modes that may decide more often than the evidence system's tested H1 cadence
+FLEX_MODES = MODEL_MODES + ("edges",)
 FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
 MEMORY_SAVE_EVERY_S = 900
 
@@ -238,11 +242,16 @@ class Runtime:
         self._last_fast_seen: dict[str, int] = {}
         self._rotation = 0
         self._memory_saved_at = 0.0
-        if cfg.decision_interval_min and self.orch.brain.config.decision_mode not in MODEL_MODES:
+        if cfg.decision_interval_min and self.orch.brain.config.decision_mode not in FLEX_MODES:
             raise ServiceConfigError(
-                f"DECISION_INTERVAL_MIN={cfg.decision_interval_min} applies only to DECISION_MODE=llm_trader or "
-                "trading_room: the evidence system runs at the cadence it was tested at (every "
+                f"DECISION_INTERVAL_MIN={cfg.decision_interval_min} applies only to DECISION_MODE=llm_trader, "
+                "trading_room or edges: the evidence system runs at the cadence it was tested at (every "
                 f"{self.decide_every_bars} H1 closes)")
+        if cfg.scan_timeframe == "M15" and self.orch.brain.config.decision_mode not in FLEX_MODES:
+            raise ServiceConfigError(
+                "SCAN_TIMEFRAME=M15 applies only to DECISION_MODE=edges, llm_trader or trading_room: the evidence "
+                f"system was tested deciding every {self.decide_every_bars} H1 closes, and a cadence it was never "
+                "tested at would run a system whose trade frequency and overlap were never measured")
         self._reconcile_at_start()
 
     # ── wiring ──────────────────────────────────────────────────────────
@@ -411,7 +420,10 @@ class Runtime:
 
     @property
     def decision_interval_s(self) -> int | None:
-        """Seconds between decisions in the model-trader modes when DECISION_INTERVAL_MIN is set, else None."""
+        """Seconds between decisions: 900 for the M15 scanner, DECISION_INTERVAL_MIN in the model modes, else
+        None (the H1 clock at the tested cadence)."""
+        if self.cfg.scan_timeframe == "M15":
+            return 900  # every M15 close (+ FAST_DELAY_S for the broker to publish it)
         return self.cfg.decision_interval_min * 60 if self.cfg.decision_interval_min else None
 
     def _cycle_symbols(self) -> list[str] | None:

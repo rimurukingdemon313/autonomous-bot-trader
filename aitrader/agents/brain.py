@@ -29,6 +29,8 @@ from .analysts import (
     AdversarialAnalyst, MarketAnalyst, ReviewerAnalyst, RiskAnalyst, SetupAnalyst, validate_llm_review,
 )
 from .llm_trader import LLMTrader
+from ..decision.edge_engine import load_promoted
+from .edge_trader import edge_decision
 from .trading_room import RoomConfig, TradingRoom
 from .types import AGENT_VERSION, AgentReport, MarketContext, Objection
 
@@ -57,7 +59,7 @@ SYSTEM_RULES = (
 )
 
 
-DECISION_MODES = ("evidence", "llm_trader", "trading_room")
+DECISION_MODES = ("evidence", "llm_trader", "trading_room", "edges")
 
 
 @dataclass
@@ -108,6 +110,7 @@ class Brain:
         self.config = config or BrainConfig()
         self.room = TradingRoom(llm, self.config.room)
         self.synth = synthesizer or EvidenceSynthesizer()
+        self.edges = load_promoted()[0] if self.config.decision_mode == "edges" else []
         self.llm = llm
         self._pool = ThreadPoolExecutor(max_workers=6, thread_name_prefix="agent") if self.config.parallel else None
 
@@ -207,7 +210,11 @@ class Brain:
                                  "reviewer": (self.reviewer.analyze, ctx, cands)})
         reports = {**first, **second}
         t1 = time.perf_counter()
-        if self.config.decision_mode in ("llm_trader", "trading_room"):
+        if self.config.decision_mode == "edges":
+            opinions = []  # promoted, measured edges decide; no model opinion is consulted
+            decision = edge_decision(ctx, versions, self.edges)
+            t2 = time.perf_counter()
+        elif self.config.decision_mode in ("llm_trader", "trading_room"):
             opinions = []  # the models ARE the traders here: no separate review calls
             trader = self.room if self.config.decision_mode == "trading_room" else self.llm_trader
             decision = trader.decide(ctx, reports, versions)

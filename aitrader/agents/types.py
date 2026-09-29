@@ -193,6 +193,11 @@ class MarketContext:
     market_map: dict | None = None  # SMC/ICT structure from completed bars (features/market_map.py)
     intermarket: dict | None = None  # DXY, US 10y, gold, S&P futures (data/yahoo.py); None = not available
     strategy_desk: dict | None = None  # indicators, 16 strategies firing now, their scoreboard (features/strategy_desk.py)
+    # Filled only in DECISION_MODE=edges: feature values at the last COMPLETED bar of each timeframe
+    # (M15 execution, H1 and H4 context), and the ATR and cost the edge engine prices with.
+    frames: dict = field(default_factory=dict)
+    exec_atr: float | None = None
+    open_symbols: tuple = ()
 
     def as_dict(self) -> dict:
         return {

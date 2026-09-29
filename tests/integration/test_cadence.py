@@ -416,3 +416,28 @@ def test_once_the_daily_loss_limit_is_spent_the_models_are_not_asked(tmp_path, m
     assert asked == []
     last = json.loads(rt.db.one("SELECT payload FROM decisions ORDER BY rowid DESC LIMIT 1")["payload"])
     assert "daily_loss" in last["no_trade_reason"] and "not consulted" in last["no_trade_reason"]
+
+
+# ── the M15 opportunity scanner ──────────────────────────────────────────
+
+
+@pytest.mark.parametrize("env,ok", [({"SCAN_TIMEFRAME": "M15"}, True), ({"SCAN_TIMEFRAME": "h1"}, True),
+                                    ({"SCAN_TIMEFRAME": "M5"}, False),
+                                    ({"SCAN_TIMEFRAME": "M15", "DECISION_INTERVAL_MIN": "5"}, False)])
+def test_the_scan_timeframe_is_declared_and_never_ambiguous(env, ok):
+    if ok:
+        assert ServiceConfig.from_env({"MODE": "PAPER", **env}).scan_timeframe == env["SCAN_TIMEFRAME"].upper()
+    else:
+        with pytest.raises(ServiceConfigError):
+            ServiceConfig.from_env({"MODE": "PAPER", **env})
+
+
+def test_the_m15_scanner_runs_every_fifteen_minutes_but_never_for_the_untested_evidence_system(tmp_path, monkeypatch):
+    with pytest.raises(ServiceConfigError):
+        build(tmp_path, monkeypatch, mode="evidence", scan_timeframe="M15")
+    rt, clock, _ = build(tmp_path / "e", monkeypatch, mode="edges", scan_timeframe="M15")
+    assert rt.decision_interval_s == 900
+    nxt = rt._next_decision_time()
+    assert (nxt - FAST_DELAY_S) % 900 == 0 and 0 < nxt - clock() <= 900 + FAST_DELAY_S
+    assert rt.status()["config"]["scan_timeframe"] == "M15"
+

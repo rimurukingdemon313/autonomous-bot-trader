@@ -45,6 +45,9 @@ class ServiceConfig:
     #: Pairs analysed per decision cycle, in rotation; 0 = all. Keeps a frequent
     #: cadence inside the language-model providers' rate limits.
     symbols_per_cycle: int = 0
+    #: SCAN_TIMEFRAME: "H1" = decide on H1 closes at the tested cadence; "M15" = the opportunity
+    #: scanner: every M15 close, with H1 and H4 as context (edges / model modes only, see runtime).
+    scan_timeframe: str = "H1"
     #: Where prices come from: "auto" (TradeLocker when its credentials are set, else none),
     #: "tradelocker", or "yahoo" (PAPER only: no broker, no account, estimated spreads).
     data_source: str = "auto"
@@ -91,18 +94,24 @@ class ServiceConfig:
         interval = int(_f(e, "DECISION_INTERVAL_MIN", 0))
         if not 0 <= interval <= 240:
             raise ServiceConfigError(f"DECISION_INTERVAL_MIN must be 0 (the tested cadence) or 1..240, got {interval}")
+        scan = e.get("SCAN_TIMEFRAME", "H1").strip().upper() or "H1"
+        if scan not in ("H1", "M15"):
+            raise ServiceConfigError(f"SCAN_TIMEFRAME must be H1 or M15, got {scan!r}; an unknown value is refused")
+        if scan == "M15" and interval:
+            raise ServiceConfigError("SCAN_TIMEFRAME=M15 already decides every 15 minutes: unset DECISION_INTERVAL_MIN")
         per_cycle = int(_f(e, "SYMBOLS_PER_CYCLE", 0))
         if not 0 <= per_cycle <= len(symbols):
             raise ServiceConfigError(f"SYMBOLS_PER_CYCLE must be 0 (all) or 1..{len(symbols)}, got {per_cycle}")
         return cls(mode=mode, data_dir=e.get("DATA_DIR", "./runtime"), port=int(e.get("PORT", "8080")),
                    symbols=symbols, start_balance=_f(e, "PAPER_START_BALANCE", 20_000.0),
                    dashboard_token=e.get("DASHBOARD_TOKEN", ""), risk=risk,
-                   decision_interval_min=interval, symbols_per_cycle=per_cycle,
+                   decision_interval_min=interval, symbols_per_cycle=per_cycle, scan_timeframe=scan,
                    data_source=source, spreads_pips=spreads)
 
     def public(self) -> dict:
         return {"mode": self.mode, "symbols": list(self.symbols), "start_balance": self.start_balance,
                 "decision_interval_min": self.decision_interval_min, "symbols_per_cycle": self.symbols_per_cycle,
+                "scan_timeframe": self.scan_timeframe,
                 "data_source": self.data_source,
                 "dashboard_token_configured": bool(self.dashboard_token),
                 "risk": {k: v for k, v in self.risk.__dict__.items() if k != "funded"},
