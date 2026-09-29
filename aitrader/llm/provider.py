@@ -25,6 +25,9 @@ budget, the next one answers):
     AI_<NAME>_BASE_URL         optional for the known names below
     AI_<NAME>_FALLBACK_MODELS  optional, same provider
     AI_<NAME>_DAILY_BUDGET     optional cap for that provider (free tiers)
+    Two seats at one provider: name the second e.g. groq2 or gemini2 and give it its own
+    AI_GROQ2_MODEL (a different model is a different mind); the address, key and limits of
+    `groq` are reused unless AI_GROQ2_* sets them.
     AI_<NAME>_MAX_REQUEST_TOKENS  optional: the most one request may count (prompt + reply budget).
                                Groq's free tier refuses more than its per-minute limit in one request
                                (HTTP 413), so `groq` defaults to 7000. A caller that can shorten its
@@ -69,6 +72,13 @@ KNOWN_PROVIDERS = {
     "gemini": "https://generativelanguage.googleapis.com/v1beta/openai",
     "bytez": "https://api.bytez.com/models/v2/openai/v1",
 }
+
+
+def provider_family(name: str) -> str:
+    """The provider behind a seat name: "groq2" / "groq_b" -> "groq" when "groq" is a known provider.
+    A second seat reuses the family's address, key and request limit unless it sets its own."""
+    base = re.sub(r"(?:[_-]?[a-z]|[_-]?\d+)$", "", name) if name not in KNOWN_PROVIDERS else name
+    return base if base in KNOWN_PROVIDERS else name
 
 
 @dataclass(frozen=True)
@@ -139,18 +149,21 @@ class LLMConfig:
         providers = []
         for name in (n.strip().lower() for n in e.get("AI_PROVIDERS", "").split(",") if n.strip()):
             up = name.upper()
+            fam = provider_family(name)  # "groq2" is a second seat at groq: same address, key and limits
+            fup = fam.upper()
             budget = e.get(f"AI_{up}_DAILY_BUDGET", "").strip()
             providers.append(Endpoint(
                 name=name,
-                base_url=(e.get(f"AI_{up}_BASE_URL", "").strip() or KNOWN_PROVIDERS.get(name, "")).rstrip("/"),
-                api_key=e.get(f"AI_{up}_API_KEY", "").strip(),
+                base_url=(e.get(f"AI_{up}_BASE_URL", "").strip() or e.get(f"AI_{fup}_BASE_URL", "").strip()
+                          or KNOWN_PROVIDERS.get(fam, "")).rstrip("/"),
+                api_key=e.get(f"AI_{up}_API_KEY", "").strip() or e.get(f"AI_{fup}_API_KEY", "").strip(),
                 model=e.get(f"AI_{up}_MODEL", "").strip(),
                 fallback=tuple(m.strip() for m in e.get(f"AI_{up}_FALLBACK_MODELS", "").split(",") if m.strip()),
                 daily_budget=int(budget) if budget else None,
                 max_tokens=int(e[f"AI_{up}_MAX_TOKENS"]) if e.get(f"AI_{up}_MAX_TOKENS", "").strip() else None,
                 max_request_tokens=(int(e[f"AI_{up}_MAX_REQUEST_TOKENS"])
                                     if e.get(f"AI_{up}_MAX_REQUEST_TOKENS", "").strip()
-                                    else DEFAULT_MAX_REQUEST_TOKENS.get(name))))
+                                    else DEFAULT_MAX_REQUEST_TOKENS.get(fam))))
         return cls(
             providers=tuple(providers),
             provider=e.get("AI_PROVIDER", "none").strip().lower(),

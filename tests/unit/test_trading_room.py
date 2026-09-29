@@ -264,3 +264,10 @@ def test_the_scalp_style_is_stated_as_the_owners_wish_and_m1_is_offered():
     assert not any("one-minute trading" in s for _, s in plain.systems)
     with pytest.raises(ValueError):
         RoomConfig(style="yolo")
+
+
+
+def test_two_seats_per_provider_make_a_team_of_four_with_every_role_held():
+    from aitrader.agents.trading_room import assign_roles
+    roles = assign_roles(["groq", "gemini", "groq2", "gemini2"])
+    assert roles == {"groq": ["TREND"], "gemini": ["PRICE"], "groq2": ["NEWS"], "gemini2": ["RISK"]}

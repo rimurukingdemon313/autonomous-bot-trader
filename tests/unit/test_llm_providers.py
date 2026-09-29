@@ -343,3 +343,22 @@ def test_shortening_only_cuts_and_gets_shorter_level_by_level():
         assert c["instrument"] == "EURUSD" and c["quote"] == BIG["quote"] and c["discussion"]
     assert compact_packet(BIG, 1)["strategy_desk"] == {"best": "trend"}  # headline kept, table cut
     assert "strategy_desk" not in compact_packet(BIG, 3)
+
+
+def test_a_second_seat_at_a_provider_reuses_its_key_address_and_limit_with_its_own_model():
+    env = {"AI_PROVIDERS": "groq,gemini,groq2,gemini2",
+           "AI_GROQ_API_KEY": "gq-key", "AI_GROQ_MODEL": "openai/gpt-oss-120b",
+           "AI_GROQ2_MODEL": "llama-3.3-70b-versatile",
+           "AI_GEMINI_API_KEY": "gm-key", "AI_GEMINI_MODEL": "gemini-2.5-flash",
+           "AI_GEMINI2_MODEL": "gemini-2.5-flash-lite",
+           "AI_OPENROUTER_API_KEY": "kept-for-later"}  # a key alone does not seat a provider
+    eps = {e.name: e for e in LLMConfig.from_env(env).endpoints()}
+    assert list(eps) == ["groq", "gemini", "groq2", "gemini2"]
+    assert eps["groq2"].base_url == eps["groq"].base_url and eps["groq2"].api_key == "gq-key"
+    assert eps["gemini2"].base_url == eps["gemini"].base_url and eps["gemini2"].api_key == "gm-key"
+    assert eps["groq2"].model != eps["groq"].model and eps["gemini2"].model != eps["gemini"].model
+    assert eps["groq2"].max_request_tokens == 7000 and eps["gemini2"].max_request_tokens is None
+    calls = []
+    client = LLMClient(LLMConfig.from_env(env), router({}, calls))
+    assert client.complete_json("room:groq2", "s", {"x": 1}, ok_validate, only="groq2").ok
+    assert calls == [("api.groq.com", "Bearer gq-key", True)]  # the seat speaks through its own provider only
