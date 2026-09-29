@@ -107,8 +107,43 @@ would have happened otherwise. The priority order is fixed:
 6. NORMAL_VARIANCE.
 
 `tests/unit/test_discovery_forensics.py` tests each cause on a path built so the answer is
-known. It is applied to the walk-forward trades in the experiment log where a result
-records them.
+known.
+
+**Applied to every judged trade.** `scripts/loss_forensics.py` re-derives the exact trades of
+CP-001, SL-001, SL-002 and XS-001: 13 hypotheses and 12,703 trades. Every trade reproduces
+its judged R to 1e-9. The results are in `research/results/LOSS-FORENSICS.json`.
+
+This is descriptive, not a test.
+
+| Share of R lost | D1 (3,802 trades, 12 hypotheses) | H1 (8,901 trades, SL-002) |
+|---|---|---|
+| COSTS (a gross winner turned net loser) | 0.4% | 0.0% |
+| EXIT_GAVE_BACK (reached +1R, then lost) | 8.1% | 5.9% |
+| STOP_TOO_TIGHT (a 2× stop would have won) | 10.4% | 24.8% |
+| ENTRY_TIMING (one bar earlier or later would have won) | 16.1% | 33.6% |
+| WRONG_DIRECTION (never +0.25R; the other side would have won) | 30.2% | 14.7% |
+| NORMAL_VARIANCE | 34.8% | 21.0% |
+| Mean cost per trade | 0.096R | 0.089R |
+| Median MAE of winners / median MFE of losers | −0.29R / +0.36R | −0.40R / +0.36R |
+
+**Reading.**
+
+1. **Costs almost never flip one trade**, which is why COSTS is near 0%. They are still the
+   difference between break-even and loss *on average*. At about 0.09R per trade, they are
+   larger than every judged hypothesis's gross edge except the short-trend legs.
+2. **On H1, most of the R lost goes to ENTRY_TIMING and STOP_TOO_TIGHT.** A one-bar shift or a
+   wider stop would have turned 58% of the lost R into wins. That does **not** mean a better
+   entry or a wider stop would fix it. Winners routinely went 0.40R against the trade first,
+   and losers routinely went 0.36R in their favour first. That is what a price path with no
+   directional information looks like: small perturbations decide the outcome.
+   - Every one of these hypotheses failed `beats_random`: taken together, their trades do
+     no better than random entries with the same exit.
+   - A lesson such as "widen the stop" would be curve-fitting to noise. It is recorded as a
+     hypothesis only.
+3. **On D1, WRONG_DIRECTION and NORMAL_VARIANCE dominate.** Together they are 65% of the R
+   lost: the rules do not know which way price will go over a month.
+4. **Nothing here identifies a fixable error.** The losses are the signature of an absent
+   edge, not of a present edge badly executed.
 
 ## 5. Are the backtests themselves honest?
 
