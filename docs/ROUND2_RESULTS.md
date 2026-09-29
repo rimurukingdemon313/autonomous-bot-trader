@@ -76,3 +76,36 @@ differential, could not be measured. It needs rate data (ROUND2_DATA_AUDIT.md).
 
 **Family conclusion.** No edge from US rate changes. Only the US side of the differential
 was observable, which is a real limitation; ROUND2_DATA_AUDIT.md lists what would lift it.
+
+## R2C: cross-asset, oil and the Canadian dollar — FAILED
+
+| | R2C-1: buy USDCAD after Brent fell > 5% in 20 obs (D3) | R2C-2: sell USDCAD after Brent rose > 5% (D3) |
+|---|---|---|
+| Trades | 169 | 147 |
+| P(direction correct), gross | **55.6%** | 48.3% |
+| Gross R per trade | +0.099 | −0.038 |
+| Costs: spread / commission / slippage / swap | 0.021 / 0.004 / 0.001 / 0.027 | (split not reported: the cost variants changed the position schedule) |
+| Net R: lower / normal / higher cost | +0.050 / **+0.047** / +0.023 | −0.079 / −0.088 / −0.112 |
+| t (required 3.302) | 0.77 | −1.61 |
+| Beats random entries | no | no |
+| Years positive | 4 of 9, with +0.29R in 2014 and 2015 | 1 of 8 with ≥ 20 trades |
+| Mean MFE / MAE / worst MAE | +0.66 / −0.52 / −1.62 R | +0.51 / −0.57 / −1.99 R |
+
+### Reading
+
+- **R2C-1 is the first Round 2 result above zero after costs, and it survives the cost stress.**
+  - It is not significant: t 0.77 against 3.30 required.
+  - It does not beat random USDCAD entries.
+  - Its gain comes from the 2014–15 oil collapse, when selling CAD after oil fell kept working.
+  - That is the signature of **one episode, not a rule**. Its evidence falls short of PROMISING,
+    which needs t ≥ 2.
+- **The documented evidence predicted this.** Ferraro, Rogoff & Rossi (2015) find the oil–CAD
+  link contemporaneous, not lagged.
+
+The result is recorded as an **UNCERTAIN CONCLUSION**:
+
+- the lagged oil→CAD effect may exist in large, persistent oil moves;
+- it is not distinguishable from luck on this sample;
+- testing it needs new data recorded from now on.
+
+**Family conclusion.** No cross-asset edge, oil→CAD, at the required level.
