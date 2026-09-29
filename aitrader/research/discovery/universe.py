@@ -93,12 +93,13 @@ def xs_records(program: str, timeframe: str = "D1") -> dict[str, FeatureRecord]:
         for p in XS_PRIMITIVES}
 
 
-def load_universe(store, symbols=FX, timeframe: str = "H1",
-                  extra: tuple[str, ...] = ()) -> tuple[dict[str, SymbolData], dict[str, str]]:
+def load_universe(store, symbols=FX, timeframe: str = "H1", extra: tuple[str, ...] = (),
+                  bound: tuple = ()) -> tuple[dict[str, SymbolData], dict[str, str]]:
+    """`extra`: registered primitives by name; `bound`: primitives bound to external data (Round 2)."""
     series = {s: store.load(s, timeframe) for s in symbols}
     usd = Others({s: v for s, v in series.items() if s in USD_SIGN})
     prims = PRIMITIVES if timeframe == "H1" else tuple(PRIMITIVE_BY_NAME[n] for n in DAILY_PRIMITIVES)
-    prims = prims + tuple(PRIMITIVE_BY_NAME[n] for n in extra)
+    prims = prims + tuple(PRIMITIVE_BY_NAME[n] for n in extra) + tuple(bound)
     data, hashes = {}, {}
     for s, ser in series.items():
         m = compute_matrix(ser)

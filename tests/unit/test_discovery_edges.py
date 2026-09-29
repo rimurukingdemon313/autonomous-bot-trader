@@ -57,6 +57,23 @@ def test_the_lifecycle_is_fixed_and_rejected_or_retired_is_final():
         transition(bad, "VALIDATED")  # a rejected idea never becomes validated in place
 
 
+def test_promising_is_a_near_miss_with_real_evidence_and_never_validated():
+    def judged(hid, mean, t, costs_ok, random_ok):
+        c = _judged(hid, "BUY", mean, t)
+        c["battery"]["checks"]["costs_stress"]["pass"] = costs_ok
+        c["battery"]["checks"]["beats_random"] = {"pass": random_ok}
+        return c
+    art = {"program": "X-3", "validated": [], "judged": [
+        judged("P", 0.2, 2.4, True, True), judged("Q", 0.2, 1.9, True, True), judged("S", 0.2, 2.4, False, True),
+        judged("U", 0.2, 2.4, True, False), judged("V", -0.2, -2.4, True, True)]}
+    got = {e.edge_id: e.status for e in from_confirmatory(art)}
+    assert got == {"P": "PROMISING", "Q": "REJECTED", "S": "REJECTED", "U": "REJECTED", "V": "REJECTED"}
+    p = next(e for e in from_confirmatory(art) if e.edge_id == "P")
+    assert transition(p, "TESTING").status == "TESTING"  # the next step is a fresh test, not a trade
+    with pytest.raises(TransitionError):
+        transition(p, "DEGRADED")
+
+
 def test_the_committed_registry_matches_the_committed_evidence():
     reg = build(ROOT / "research")
     ids = {e["edge_id"] for e in reg["edges"]}

@@ -5,12 +5,18 @@ research/knowledge and the walk-forward results in research/results — so it ca
 than the evidence does. A field the evidence does not contain is None, never a plausible
 number (CLAUDE.md rule 6).
 
-Status lifecycle (transitions outside this table are refused):
+Promotion levels (Round 2; transitions outside TRANSITIONS are refused):
 
-    DISCOVERED -> VALIDATING -> VALIDATED -> DEGRADED -> RETIRED
-         \\             \\            \\_________________^
-          \\             \\-> REJECTED
-           \\-> REJECTED
+    RESEARCH -> HYPOTHESIS -> TESTING -> PROMISING -> VALIDATED -> DEGRADED -> RETIRED
+                    \\            \\          \\                          ^
+                     +------------+----------+--> REJECTED   (DEGRADED -> VALIDATED if it recovers)
+
+(DISCOVERED -> VALIDATING are Round 1's names for HYPOTHESIS -> TESTING and are still accepted.)
+
+PROMISING is NOT validated. A judged hypothesis is PROMISING when it failed the registry's bar but
+its judged, out-of-sample result is positive after costs with t >= 2, survives the cost stress and
+beats random entries: evidence worth a fresh, preregistered test on NEW data, never a trade. A
+VALIDATED edge passed everything (battery, board, registry threshold); none exists yet.
 
 REJECTED and RETIRED are final: a rejected idea returns only as a NEW hypothesis with a new id,
 charged against the registry like any other test. A registry record is research evidence, not a
@@ -23,16 +29,35 @@ import json
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
-EDGES_VERSION = "edges-1.0.0"
-STATUSES = ("DISCOVERED", "VALIDATING", "VALIDATED", "REJECTED", "DEGRADED", "RETIRED")
+#: 1.1.0: Round 2 promotion levels (RESEARCH, HYPOTHESIS, TESTING, PROMISING) and the PROMISING rule
+EDGES_VERSION = "edges-1.1.0"
+STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "DISCOVERED", "VALIDATING", "VALIDATED", "REJECTED",
+            "DEGRADED", "RETIRED")
 TRANSITIONS = {
+    "RESEARCH": ("HYPOTHESIS", "REJECTED"),
+    "HYPOTHESIS": ("TESTING", "REJECTED"),
+    "TESTING": ("PROMISING", "VALIDATED", "REJECTED"),
+    "PROMISING": ("TESTING", "VALIDATED", "REJECTED"),
     "DISCOVERED": ("VALIDATING", "REJECTED"),
-    "VALIDATING": ("VALIDATED", "REJECTED"),
+    "VALIDATING": ("PROMISING", "VALIDATED", "REJECTED"),
     "VALIDATED": ("DEGRADED", "RETIRED"),
     "DEGRADED": ("VALIDATED", "RETIRED"),
     "REJECTED": (),
     "RETIRED": (),
 }
+PROMISING_T = 2.0
+
+
+def judged_status(validated: bool, checks: dict) -> str:
+    """VALIDATED only if the program validated it; PROMISING if it failed the bar but its judged result
+    is positive (t >= 2), survives the cost stress and beats random entries; otherwise REJECTED."""
+    if validated:
+        return "VALIDATED"
+    sig = checks.get("significance", {})
+    if (sig.get("mean_R") or 0) > 0 and (sig.get("t") or 0) >= PROMISING_T \
+            and checks.get("costs_stress", {}).get("pass") and checks.get("beats_random", {}).get("pass"):
+        return "PROMISING"
+    return "REJECTED"
 _DIR = {"BUY": "BUY", "SELL": "SELL", 1: "BUY", -1: "SELL"}
 
 
@@ -103,7 +128,7 @@ def from_confirmatory(art: dict, drafts: dict[str, dict] | None = None) -> list[
             out_of_sample_expectancy=_r(sig.get("mean_R")), walk_forward_expectancy=None,
             cost_sensitivity=_r(ch.get("costs_stress", {}).get("mean_R")),
             complexity=len((c.get("condition") or "").split("&")) if c.get("condition") else 0,
-            stability={"by_year": yrs} if yrs else None, status="VALIDATED" if ok else "REJECTED",
+            stability={"by_year": yrs} if yrs else None, status=judged_status(ok, ch),
             failed_checks=tuple(c["battery"].get("failed", [])), source=f"research/knowledge/{art['program']}.json"))
     return out
 
