@@ -235,5 +235,10 @@ from section H. Rows that changed:
 | Authority | **IMPLEMENTED** | nothing that runs imports discovery; discovery imports only data, features and research; knowledge never under `models/artifacts`; 21 discovery guards in the mutation audit | — |
 
 **Plainly:** the system can now search a bounded space for an edge and say, with the multiple
-testing counted, whether it found one. Whether it *has* found one is DP-001's question. DP-001 is
-preregistered before it runs.
+testing counted, whether it found one. DP-001 asked, preregistered before it ran, and the answer
+is **no**:
+
+- 0 of 1,734 cells, and 0 of 48 model configurations, survived. Every cell's net mean was negative.
+- On H1, costs of 0.09–0.21R per trade face a gross expectancy near zero
+  ([research/results/DP-001-summary.md](../research/results/DP-001-summary.md)).
+- The next experiment is DP-002, on the daily horizon ([DISCOVERY.md](DISCOVERY.md)).

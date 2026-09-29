@@ -151,3 +151,59 @@ python scripts/discover.py status | search TEXT
   paper-trading data back into a confirmatory program automatically.
 - A VALIDATED finding changes nothing in production. Promotion is a separate, reviewed step,
   gated by the single-use holdout.
+
+## Results so far
+
+| Program | Verdict | Summary |
+|---|---|---|
+| DP-001 (H1, 1,734 cells + stumps model) | **FAILED** | 0 screen discoveries. Every cell had a negative net mean; the best was −0.089R. The model: 0 of 48 validation configurations passed, best +0.008R (t 0.16). Descriptively, gross expectancy on H1 is within ±0.03R of zero for every exit, while costs are 0.09–0.21R per trade. See [research/results/DP-001-summary.md](../research/results/DP-001-summary.md). |
+
+## The next experiment to register: DP-002 (not registered, not run)
+
+The motivation comes from DP-001's descriptive result. On H1, costs are 0.09–0.21R per trade
+against a gross expectancy near zero. At a daily horizon, the same spread, slippage and
+commission in pips are about a fifth as large per unit of risk.
+
+- **Question.** With decisions made once a day at the New York close, does any cell of a declared
+  daily grid, or a boosted-stumps model on daily features, have positive net expectancy? It must
+  survive validation and then the frozen battery.
+- **Data.** The same 12 FX pairs, as D1 bars from complete M15 bars. Lookback from 2007-03-30.
+  The holdout stays sealed.
+- **Segments.** The same as DP-001:
+  - fit: 2007-06-01 → 2011-01-01;
+  - select: 2011-01-11 → 2013-07-01;
+  - judge: 2013-07-11 → 2017-01-01.
+- **Grid.** 2 × (14 × 3 + 49 × 9) = **966 tests**.
+  - States (7): er120, vol_ratio, ma_slope, range_pos120, usd_basket, atr_pctile, usd_corr.
+  - Triggers (7): r1, r6, r24, bar_body, range_pos24, up_persistence, range_contraction.
+  - All are computed on D1 bars, with windows counted in days.
+  - Excluded because they are meaningless on D1: hour_sin, hour_cos, session, h4_trend, d1_trend.
+- **Exits.** A declared daily menu, counted in D1 bars:
+  - D1: barrier 1.0/1.5 ATR, 10 bars (the screen's exit);
+  - D2: barrier 1.5/3.0 ATR, 20 bars;
+  - D3: time exit after 5 bars, 2 ATR stop;
+  - D4: time exit after 20 bars, 3 ATR stop;
+  - D5: trailing 2 ATR, 40 bars.
+- **Costs.**
+  - Spread as measured, slippage 0.1 pip per fill, commission 0.7 pip per round trip.
+  - Swap re-expressed as 0.01 × ATR24(D1) per night. That matches DP-001's 0.05 × ATR24(H1),
+    since D1 ATR ≈ 5 × H1 ATR.
+- **Stages.**
+  - Screen: BH q = 0.10, n ≥ 100, keep 20.
+  - Validation: n ≥ 80 and t ≥ 2.0.
+  - Judged: 5 finalists plus the stumps model (stride 1) = **6 judged tests**.
+- **Threshold.** The registry now counts 24 tests on the judged period (18 earlier + DP-001's 6),
+  so with 6 more the threshold is **t ≥ 3.144**. It is re-read from the registry at registration.
+- **Battery and board.** Unchanged.
+- **Power, stated before it runs.** At t ≥ 3.144 and a standard deviation of about 1R, the
+  smallest detectable net mean is 0.18R at 300 judged trades, 0.16R at 400 and 0.13R at 600.
+  A smaller edge will go undetected. That is the price of a period that 30 tests have now used.
+- **Code to add and test before registering.**
+  - A D1 loader restricted to the features above.
+  - The D exit menu.
+  - The swap scaling.
+  - The truncation leakage test on D1 bars.
+  - A synthetic D1 program run with a planted effect.
+- **If DP-002 fails too:** stop searching price-only features on these bars. The next evidence
+  must come from data the system lacks (interest rates for carry, positioning, order flow), or
+  from prospective data recorded after a hypothesis is frozen.
