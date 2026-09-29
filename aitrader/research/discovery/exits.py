@@ -33,7 +33,8 @@ from ...data.resample import bucket_start
 from ...features.store import SWING_K, _swings
 from ..labels import BUY, CostModel, _widen, atr24
 
-EXITS_VERSION = "exits-1.0.0"
+#: 1.1.0: the daily menu (D1..D5); the hourly menu is unchanged.
+EXITS_VERSION = "exits-1.1.0"
 
 
 @dataclass(frozen=True)
@@ -68,7 +69,16 @@ EXIT_MENU: tuple[ExitSpec, ...] = (
     ExitSpec("E7", "partial", 1.0, None, 48, trail_atr=1.0, partial_at_r=1.0),
     ExitSpec("E8", "structure", 1.0, None, 48, target_r=2.0),
 )
-EXIT_BY_KEY = {e.key: e for e in EXIT_MENU}
+#: the same kinds for DAILY bars (counted in D1 bars, ATR = 24-day ATR): decided once a day, where the
+#: spread and commission are a far smaller fraction of the risk than on H1 (DP-001)
+DAILY_EXITS: tuple[ExitSpec, ...] = (
+    ExitSpec("D1", "barrier", 1.0, 1.5, 10),
+    ExitSpec("D2", "barrier", 1.5, 3.0, 20),
+    ExitSpec("D3", "time", 2.0, None, 5),
+    ExitSpec("D4", "time", 3.0, None, 20),
+    ExitSpec("D5", "trailing", 2.0, None, 40, trail_atr=2.0),
+)
+EXIT_BY_KEY = {e.key: e for e in EXIT_MENU + DAILY_EXITS}
 STRUCTURE_BUFFER_ATR, STRUCTURE_MIN_ATR, STRUCTURE_MAX_ATR = 0.1, 0.5, 3.0
 
 

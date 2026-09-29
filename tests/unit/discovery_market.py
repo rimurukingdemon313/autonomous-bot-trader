@@ -19,12 +19,13 @@ T0 = 1_262_563_200  # 2010-01-04 00:00 UTC, a Monday
 SYMBOLS = ("AAA", "BBB", "CCC")
 
 
-def series(symbol, mid, rng, wick=0.0001, half=0.00001, t0=T0):
+def series(symbol, mid, rng, wick=0.0001, half=0.00001, t0=T0, timeframe="H1"):
     n = len(mid)
+    step = {"H1": 3600, "D1": 86400}[timeframe]
     o = np.concatenate(([mid[0]], mid[:-1]))
     w = np.abs(rng.normal(0, wick, n))
     hi, lo = np.maximum(o, mid) + w, np.minimum(o, mid) - w
-    return BarSeries.from_columns(symbol, "H1", "synthetic", open_time=t0 + 3600 * np.arange(n),
+    return BarSeries.from_columns(symbol, timeframe, "synthetic", open_time=t0 + step * np.arange(n),
                                   bid_open=o - half, bid_high=hi - half, bid_low=lo - half, bid_close=mid - half,
                                   ask_open=o + half, ask_high=hi + half, ask_low=lo + half, ask_close=mid + half,
                                   ticks=rng.integers(50, 500, n), spread_mean=np.full(n, 2 * half),
@@ -32,7 +33,7 @@ def series(symbol, mid, rng, wick=0.0001, half=0.00001, t0=T0):
 
 
 def planted(symbols=SYMBOLS, n=3000, every=40, drift=0.0003, noise=0.0002, seed=1, plant=True, t0=T0,
-            weak=(), regime_flip=False):
+            weak=(), regime_flip=False, timeframe="H1"):
     """dict symbol -> SymbolData with columns A (0/1 random, 2 at a signal), B (uniform noise) and
     er120 / vol_ratio (uniform, for regime cells). Symbols in `weak` get no effect; with
     `regime_flip` the effect REVERSES (price falls) at signals where er120 < 0.5."""
@@ -48,7 +49,7 @@ def planted(symbols=SYMBOLS, n=3000, every=40, drift=0.0003, noise=0.0002, seed=
                 steps[s + 1: s + 7] += d  # the effect: six bars in its direction after the signal ...
                 steps[s + 21: s + 27] -= d  # ... given back later, so the market has no overall trend
         mid = 1.1 + np.cumsum(steps)
-        s_ = series(sym, mid, rng, t0=t0)
+        s_ = series(sym, mid, rng, t0=t0, timeframe=timeframe)
         a = rng.integers(0, 2, n).astype(float)
         a[sig] = 2.0
         cols = {"A": a, "B": rng.random(n), "er120": er, "vol_ratio": rng.random(n)}

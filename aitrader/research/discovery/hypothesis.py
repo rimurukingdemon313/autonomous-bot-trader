@@ -48,7 +48,7 @@ ORIGINS = ("screen", "model", "llm", "lesson", "derived", "human")
 KINDS = ("opportunity", "veto")  # veto: the claim is that trading this LOSES (it can only subtract)
 RISK = "1R = the exit's initial stop distance; the position size is the Risk Engine's alone; one position per " \
        "instrument; no pyramiding, no averaging down"
-ENTRY = "market order at the next bar's open after an H1 close where the condition holds; a signal while the " \
+ENTRY = "market order at the next bar's open after a bar close where the condition holds; a signal while the " \
         "hypothesis already holds a position on that instrument is not a trade"
 FORBIDDEN_FIELDS = ("size", "lots", "units", "leverage", "risk_amount", "risk_pct", "position_size")
 
@@ -309,16 +309,16 @@ def falsification_from(rules: dict) -> tuple[str, ...]:
 
 
 def from_screen(hid: str, row: dict, *, program: str, instruments: tuple[str, ...], feature_ids: dict[str, str],
-                rules: dict, budget: int) -> Hypothesis:
+                rules: dict, budget: int, timeframe: str = "H1") -> Hypothesis:
     cond = Condition.parse(row["condition"])
     side = row["side"]
     return Hypothesis(
-        id=hid, statement=f"When {describe(cond)} at an H1 close, a {side} at the next open has positive net "
+        id=hid, statement=f"When {describe(cond)} at a {timeframe} close, a {side} at the next open has positive net "
                           "expectancy under at least one declared exit.",
         rationale=(f"screen observation on the discovery segment only: n={row['n']}, mean {row['mean_R']:+.3f}R "
                    f"(exit E1), clustered t {row['t']}, BH q {row['q']:.4f} among {rules.get('screen_tests')} tests"),
         mechanism=mechanism_for(cond, side), features=tuple(feature_ids[f] for f in cond.features),
-        condition=cond.key, side=side, instruments=tuple(instruments), timeframe="H1", exit="MENU",
+        condition=cond.key, side=side, instruments=tuple(instruments), timeframe=timeframe, exit="MENU",
         expected_effect="mean net R per trade > 0 on data the screen never saw",
         falsification=falsification_from({k: v for k, v in rules.items() if k != "screen_tests"}), budget=budget,
         origin="screen", program=program,

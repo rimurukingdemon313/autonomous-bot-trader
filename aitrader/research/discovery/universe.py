@@ -20,11 +20,11 @@ import numpy as np
 from ...data import instruments
 from ...data.bars import BarSeries
 from ...features.store import FEATURE_VERSION, INDEX, NAMES, SPECS, compute_matrix
-from ..labels import atr24
+from ..labels import CostModel, atr24
 from ..registry import Registry
 from .battery import BatteryRules
 from .catalog import FeatureRecord, truncation_leaks
-from .exits import EXIT_BY_KEY
+from .exits import DAILY_EXITS, EXIT_BY_KEY
 from .primitives import PRIMITIVE_BY_NAME, PRIMITIVES, PRIMITIVES_VERSION, USD_SIGN, Others
 from .program import ModelPlan, ProgramDesign
 from .study import Segment, SymbolData
@@ -60,14 +60,38 @@ def feature_records(program: str) -> dict[str, FeatureRecord]:
     return out
 
 
-def load_universe(store, symbols=FX) -> tuple[dict[str, SymbolData], dict[str, str]]:
-    series = {s: store.load(s, "H1") for s in symbols}
+#: features that mean something on DAILY bars (windows counted in days). Excluded: the hour of the
+#: close (constant on D1), session and weekday-of-hour, and the H4/D1 trend (not a higher timeframe)
+DAILY_PRIMITIVES = ("usd_basket", "usd_corr", "lag_r24", "range_contraction", "bar_range", "vol_shift",
+                    "up_persistence", "atr_pctile")
+DAILY_FEATURES = tuple(n for n in NAMES if n not in ("hour_sin", "hour_cos")) + DAILY_PRIMITIVES
+DAILY_STATES = ("er120", "vol_ratio", "ma_slope", "range_pos120", "usd_basket", "atr_pctile", "usd_corr")
+DAILY_TRIGGERS = ("r1", "r6", "r24", "bar_body", "range_pos24", "up_persistence", "range_contraction")
+
+
+def feature_records_daily(program: str) -> dict[str, FeatureRecord]:
+    """The same definitions computed on D1 bars: a different feature (windows in days), so a
+    different catalog id (`<name>.D1@<version>`), keyed here by the column name the study uses."""
+    base = feature_records(program)
+    out = {}
+    for name in DAILY_FEATURES:
+        r = base[name]
+        out[name] = FeatureRecord(
+            f"{name}.D1", f"on D1 bars (New York close), windows counted in days: {r.definition}", r.dimension,
+            r.kind, "D1", tuple(x.replace("H1", "D1") for x in r.requires), r.provenance, r.version,
+            r.point_in_time.replace("the decision bar", "the decision D1 bar"), r.hypothesis, program)
+    return out
+
+
+def load_universe(store, symbols=FX, timeframe: str = "H1") -> tuple[dict[str, SymbolData], dict[str, str]]:
+    series = {s: store.load(s, timeframe) for s in symbols}
     usd = Others({s: v for s, v in series.items() if s in USD_SIGN})
+    prims = PRIMITIVES if timeframe == "H1" else tuple(PRIMITIVE_BY_NAME[n] for n in DAILY_PRIMITIVES)
     data, hashes = {}, {}
     for s, ser in series.items():
         m = compute_matrix(ser)
         cols = {name: m[:, INDEX[name]] for name in NAMES}
-        for p in PRIMITIVES:
+        for p in prims:
             cols[p.name] = p.column(ser, m, usd)
         data[s] = SymbolData(s, ser, instruments.get(s).pip, cols, atr24(ser))
         hashes[s] = ser.content_hash()
@@ -130,8 +154,39 @@ def dp001(registry: Registry) -> ProgramDesign:
 
 
 def dp001_as_registered(registry: Registry) -> ProgramDesign:
-    """DP-001 as frozen at registration. Afterwards the registry counts DP-001's own tests, so the
-    threshold is read back from the trial instead of being recomputed (which would differ)."""
-    frozen = registry.get("DP-001").design["discovery_program"]["rules"]["t_threshold"]
-    d = dp001(registry)
+    return as_registered(registry, "DP-001")
+
+
+def dp002(registry: Registry) -> ProgramDesign:
+    """DP-001 moved to the daily horizon, where the same pip costs are about a fifth of the risk.
+    Declared in docs/DISCOVERY.md before any daily outcome was computed."""
+    d = ProgramDesign(
+        id="DP-002",
+        title="Daily-horizon state x trigger discovery on FX, where costs are a smaller fraction of risk",
+        question=("With one decision per day at the New York close, does any cell of a declared daily grid "
+                  "(14 features in terciles, both sides), or a boosted-stumps model of 29 daily features, have "
+                  "positive net expectancy that survives a validation period it never saw and then a frozen "
+                  "battery on a confirmation period — across instruments, years, regimes, costs, delays and bin "
+                  "perturbations?"),
+        universe=instruments.UNIVERSE_KEY, instruments=FX,
+        segments=(Segment("discovery", "fit", date(2007, 6, 1), date(2011, 1, 1)),
+                  Segment("validation", "select", date(2011, 1, 11), date(2013, 7, 1)),
+                  Segment("confirmation", "judge", date(2013, 7, 11), date(2017, 1, 1))),
+        states=DAILY_STATES, triggers=DAILY_TRIGGERS, groups=(), exits=tuple(e.key for e in DAILY_EXITS),
+        screen_exit="D1", validation_min_n=80, rules=BatteryRules(t_threshold=1.0),
+        holdout_start=registry.holdout.start if registry.holdout else date(2017, 1, 1),
+        model=ModelPlan(features=DAILY_FEATURES, stride=1, target_exit="D1"), feature_budget=35,
+        min_embargo_days=10, lookback_start=date(2007, 3, 30), timeframe="D1",
+        costs=CostModel(swap_atr_per_night=0.01))  # 0.05 x ATR(H1) per night ~ 0.01 x ATR(D1)
+    thr = registry.threshold_for_next(d.universe, d.segments[2].start, d.segments[2].end, new_tests=d.judged_tests())
+    return replace(d, rules=replace(d.rules, t_threshold=thr))
+
+
+DESIGNS = {"DP-001": dp001, "DP-002": dp002}
+
+
+def as_registered(registry: Registry, program: str) -> ProgramDesign:
+    """A program's design with the threshold frozen at its registration (read back, not recomputed)."""
+    frozen = registry.get(program).design["discovery_program"]["rules"]["t_threshold"]
+    d = DESIGNS[program](registry)
     return replace(d, rules=replace(d.rules, t_threshold=frozen))

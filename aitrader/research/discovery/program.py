@@ -100,6 +100,7 @@ class ProgramDesign:
     costs: CostModel = field(default_factory=CostModel)
     min_embargo_days: int = 5
     lookback_start: date | None = None  # first bar features may read (warm-up); counted as fit exposure
+    timeframe: str = "H1"  # the decision bar; exits and features are counted in these bars
 
     @property
     def grid(self) -> Grid:
@@ -334,7 +335,8 @@ class DiscoveryProgram:
         drafts = []
         for k, row in enumerate(scr["survivors"], 1):
             h = from_screen(f"{d.id}-H{k:02d}", row, program=d.id, instruments=d.instruments, feature_ids=ids,
-                            rules=rules_text | {"screen_tests": scr["tests"]}, budget=len(d.exits))
+                            rules=rules_text | {"screen_tests": scr["tests"]}, budget=len(d.exits),
+                            timeframe=d.timeframe)
             drafts.append(self._draft(h))
             self._step(h.id, "PREREGISTERED", trial=d.id, preregistration_sha256=d.sha256())
         if stop_after == "screen":
@@ -500,7 +502,7 @@ class DiscoveryProgram:
                        f"validation segment among {d.model_configurations()} configurations (t {best['t']})"),
             mechanism="state-dependent (conjectured): no single mechanism; an additive model of one-feature steps",
             features=tuple(self.records[f].id for f in feats), condition=f"model:{hid}:q{best['quantile']}",
-            side=best["side"], instruments=d.instruments, timeframe="H1", exit=best["exit"],
+            side=best["side"], instruments=d.instruments, timeframe=d.timeframe, exit=best["exit"],
             expected_effect="mean net R per trade > 0 on the confirmation segment",
             falsification=falsification_from(self._falsification()), budget=d.model_configurations(),
             origin="model", program=d.id, evidence={"validation": best})
@@ -612,7 +614,8 @@ judged by the rules below, unchanged.
 
 ## Data
 
-- Instruments ({len(d.instruments)}): {' '.join(d.instruments)} — H1 bid/ask bars built from complete M15 bars.
+- Instruments ({len(d.instruments)}): {' '.join(d.instruments)} — {d.timeframe} bid/ask bars built from complete M15 bars
+  (decisions at each {d.timeframe} close; exits and feature windows are counted in {d.timeframe} bars).
 - The sealed holdout (from {d.holdout_start}) is not read: the loader truncates there and every
   outcome must resolve inside its segment.
 
