@@ -59,7 +59,8 @@ from .types import MarketContext
 #: 2.6.0: the schema lists M1; TRADE_STYLE=scalp states the owner's one-minute preference; the room
 #:        publishes its progress (who is thinking, who has spoken) for the dashboard.
 #: 2.7.0: the market map and intermarket context in the packet; any method invited, and named.
-ROOM_VERSION = "trading-room-2.7.0"
+#: 2.8.0: the strategy desk in the packet.
+ROOM_VERSION = "trading-room-2.8.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -92,7 +93,8 @@ the account, the quantitative agents' findings (information, not orders), the ec
 desk (what fixed trades did in the most similar past situations), the market map (structure computed from
 completed bars: swings, BOS/CHoCH, order blocks, fair value gaps, liquidity and sweeps, previous day/week and
 session levels, round numbers), intermarket context (dollar index, US 10-year yield, gold, S&P 500 futures),
-and the team's memory of its past trades
+the strategy desk (the classic indicators, which of 16 well-known strategies fire on the last completed bar, and a
+scoreboard of how each did on this pair's recent history after spread), and the team's memory of its past trades
 (losses first) with the reflections written on them. The decision time is {time}; treat it as the
 present and do not use any knowledge of prices or events after it."""
 
@@ -200,6 +202,10 @@ def _context_line(ctx) -> dict:
                                           if s.get("last_break") else None)}
                       for tf, s in (mm.get("structure") or {}).items()},
         "session": (mm.get("levels") or {}).get("session_now"),
+        "firing": [f"{f['strategy']} {f['signal']} ({f['tf']})" for f in (ctx.strategy_desk or {}).get("firing_now", [])][:8],
+        "best_recent": [f"{r[0]} {r[3]:+.2f}R n={r[1]}" for r in
+                        (((ctx.strategy_desk or {}).get("scoreboard") or {}).get("M5") or {}).get("rows", [])
+                        if r[3] is not None and r[1] >= 10][:3],
         "intermarket_4h": {k: v.get("chg_4h_pct") for k, v in im.items() if isinstance(v, dict) and "last" in v},
     }
 

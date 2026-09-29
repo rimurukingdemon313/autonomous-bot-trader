@@ -208,6 +208,7 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
     assert all("history" in p and "calendar" in p for p in packets)  # every decision carries both desks
     assert all(p["market_map"].get("structure") and p["market_map"]["levels"].get("round_numbers") for p in packets)
     assert all(p["intermarket"]["available"] is False for p in packets)  # this feed has none: said, not invented
+    assert all(len(p["strategy_desk"]["strategies"]) == 16 and "H1" in p["strategy_desk"]["scoreboard"] for p in packets)
     traded = rt.db.query("SELECT d.timeframe AS tf, v.approved AS ok, v.payload AS vp FROM decisions d "
                          "JOIN risk_verdicts v ON v.decision_id = d.id")
     assert traded and all(r["tf"] == "M5" for r in traded)

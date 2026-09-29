@@ -588,7 +588,9 @@ function renderAnalysis(r) {
   const st = Object.entries(cx.structure || {}).map(([tf, v]) => `${tf} ${esc(v.trend || "?")}${v.last_break ? ` (${esc(v.last_break)})` : ""}`).join(" · ");
   const im = Object.entries(cx.intermarket_4h || {}).filter(([, v]) => v !== null && v !== undefined)
     .map(([k, v]) => `${esc(k)} <span class="${v >= 0 ? "pos" : "neg"}">${v >= 0 ? "+" : ""}${Number(v).toFixed(2)}%</span>`).join(" · ");
-  const ctxLine = (st || im) ? `<div class="small muted" style="margin-bottom:8px">${st ? `Structure: ${st}` : ""}${cx.session ? ` · session ${esc(cx.session)}` : ""}${im ? `<br>Related markets (4h): ${im}` : ""}</div>` : "";
+  const fire = (cx.firing || []).map(esc).join(" · ");
+  const best = (cx.best_recent || []).map(esc).join(" · ");
+  const ctxLine = (st || im || fire || best) ? `<div class="small muted" style="margin-bottom:8px">${st ? `Structure: ${st}` : ""}${cx.session ? ` · session ${esc(cx.session)}` : ""}${im ? `<br>Related markets (4h): ${im}` : ""}${fire ? `<br>Strategies firing now: ${fire}` : "<br>Strategies firing now: none of the 16"}${best ? `<br>Best on M5 recently: ${best}` : ""}</div>` : "";
   let line;
   if (r.stage === "discussing") line = `<span class="muted">The team is discussing ${esc(r.symbol)}…</span>`;
   else if (r.stage === "deciding") line = `<b>100%</b> · ${esc(r.head || "the team")} is writing the team's decision<span class="dots"></span>`;

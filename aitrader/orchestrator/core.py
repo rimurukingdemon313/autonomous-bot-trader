@@ -49,6 +49,7 @@ from ..memory.patterns import PatternMemory
 from ..memory.trade_memory import TradeMemory
 from ..research.labels import TEMPLATE_BY_KEY, CostModel, atr24
 from ..features.market_map import market_map
+from ..features.strategy_desk import strategy_desk
 from ..risk.engine import AccountState, RiskEngine
 from .tracker import ACTIONS, OutcomeTracker, Tracked
 
@@ -63,7 +64,8 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.7.0: an open position is reviewed on its pair's turn in the rotation, not every cycle.
 #: 1.8.0: a feature the data source declares it never provides is excluded, not "missing".
 #: 1.10.0: model modes read the market map (SMC/ICT structure) and intermarket context.
-ORCHESTRATOR_VERSION = "orchestrator-1.10.0"
+#: 1.11.0: ... and the strategy desk (indicators, 16 classic strategies, their scoreboard on this pair).
+ORCHESTRATOR_VERSION = "orchestrator-1.11.0"
 
 
 class NullKnowledge:
@@ -245,9 +247,11 @@ class Orchestrator:
             lower = {}
             if hasattr(self.feed, "bars_tf"):  # a broker feed; the research replay has H1 only
                 # more M5/M15 history than the packet shows: the market map reads structure from it
-                lower = {tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M1", 60), ("M5", 120), ("M15", 120))}
+                lower = {tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M1", 60), ("M5", 600), ("M15", 300))}
             ctx.mtf = multi_timeframe(long, t, lower) if long is not None and len(long) else {}
             ctx.market_map = market_map(symbol, long, lower, t) if long is not None and len(long) else None
+            ctx.strategy_desk = strategy_desk(symbol, {**{k: v for k, v in lower.items() if k in ("M5", "M15")},
+                                                       "H1": long}, t) if long is not None and len(long) else None
             if hasattr(self.feed, "intermarket"):
                 ctx.intermarket = self.feed.intermarket(t)
             ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)

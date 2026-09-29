@@ -192,6 +192,7 @@ class MarketContext:
     history: dict | None = None  # the history desk's brief (memory/history.py); None = not configured
     market_map: dict | None = None  # SMC/ICT structure from completed bars (features/market_map.py)
     intermarket: dict | None = None  # DXY, US 10y, gold, S&P futures (data/yahoo.py); None = not available
+    strategy_desk: dict | None = None  # indicators, 16 strategies firing now, their scoreboard (features/strategy_desk.py)
 
     def as_dict(self) -> dict:
         return {
@@ -205,4 +206,6 @@ class MarketContext:
             "history": ({k: v for k, v in self.history.items() if k != "closest_examples"}
                         if isinstance(self.history, dict) else None),
             "market_map": self.market_map, "intermarket": self.intermarket,
+            "strategy_desk": ({k: v for k, v in self.strategy_desk.items() if k not in ("strategies", "note")}
+                              if isinstance(self.strategy_desk, dict) else None),
         }

@@ -48,10 +48,11 @@ from .types import MarketContext
 #:        each timeframe keeps its 20-bar summary): fewer tokens per decision, so more decisions per free day.
 #: 1.8.0: the reply schema lists M1, which was always accepted but never offered.
 #: 1.9.0: the packet carries the market map and intermarket context; any method is invited and named.
+#: 1.11.0: the packet carries the strategy desk.
 #: 1.10.0: fewer rows (H1 12, M1 15, H4 6, D1 5; levels are in the map), no history example list, a leaner
 #:         map, so the joint call fits
 #:         a free tier's per-minute token limit (Groq answered 413 "request too large").
-LLM_TRADER_VERSION = "llm-trader-1.10.0"
+LLM_TRADER_VERSION = "llm-trader-1.11.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -69,7 +70,8 @@ the account, the quantitative agents' findings (information, not orders), the ec
 desk (what fixed trades did, after costs, in the most similar past situations), the market map (structure
 computed from completed bars: swings, BOS/CHoCH, order blocks, fair value gaps, liquidity and sweeps, previous
 day/week and session levels, round numbers), intermarket context (dollar index, US 10-year yield, gold, S&P 500
-futures), and YOUR OWN MEMORY: your record,
+futures), the strategy desk (the classic indicators, which of 16 well-known strategies fire on the last completed
+bar, and a scoreboard of how each did on this pair's recent history after spread), and YOUR OWN MEMORY: your record,
 your past trades most relevant now (losses first) with your own reflections on them, and validated lessons.
 Do not use any knowledge of prices or events after the decision time, even if you have it.
 
@@ -233,6 +235,7 @@ def market_packet(ctx: MarketContext, reports: dict) -> dict:
         "history": ({k: v for k, v in ctx.history.items() if k != "closest_examples"} if ctx.history is not None
                     else {"available": False, "reason": "no history desk"}),
         "market_map": ctx.market_map if ctx.market_map is not None else {"available": False},
+        "strategy_desk": ctx.strategy_desk if ctx.strategy_desk is not None else {"available": False},
         "intermarket": ctx.intermarket if ctx.intermarket is not None else {"available": False,
                                                                             "reason": "not provided by this data source"},
     }
