@@ -131,6 +131,11 @@
    "to": "hypothesis:SL-DONCHIAN:brk_lo120=low:SELL"
   },
   {
+   "from": "method:SL-DONCHIAN",
+   "rel": "judged_by",
+   "to": "result:SL-001:SL-DONCHIAN"
+  },
+  {
    "from": "source:Connors & Alvarez, Short Term Trading Strategies That Work (2008)",
    "rel": "documents",
    "to": "method:SL-PULLBACK"
@@ -164,6 +169,11 @@
    "from": "method:SL-PULLBACK",
    "rel": "tested_as",
    "to": "hypothesis:SL-PULLBACK:ma_slope=low&r6=high:SELL"
+  },
+  {
+   "from": "method:SL-PULLBACK",
+   "rel": "judged_by",
+   "to": "result:SL-001:SL-PULLBACK"
   },
   {
    "from": "source:Crabel, Day Trading with Short Term Price Patterns and Opening Range Breakout (1990)",
@@ -201,6 +211,11 @@
    "to": "hypothesis:SL-NR-BREAKOUT:range_contraction=low&r1=low:SELL"
   },
   {
+   "from": "method:SL-NR-BREAKOUT",
+   "rel": "judged_by",
+   "to": "result:SL-001:SL-NR-BREAKOUT"
+  },
+  {
    "from": "source:Breedon & Ranaldo, Intraday patterns in FX returns and order flow, J. Money, Credit and Banking 45 (2013)",
    "rel": "documents",
    "to": "method:SL-LOCAL-HOURS"
@@ -219,6 +234,11 @@
    "from": "method:SL-LOCAL-HOURS",
    "rel": "tested_as",
    "to": "hypothesis:SL-LOCAL-HOURS:session=mid:SELL"
+  },
+  {
+   "from": "method:SL-LOCAL-HOURS",
+   "rel": "judged_by",
+   "to": "result:SL-002:SL-LOCAL-HOURS"
   },
   {
    "from": "source:Bollinger, Bollinger on Bollinger Bands (2001)",
@@ -531,7 +551,7 @@
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Channel breakout (Donchian / Turtle rules)",
-   "status": "RESEARCHED"
+   "status": "REJECTED"
   },
   {
    "id": "source:Faith, Way of the Turtle (2007)",
@@ -578,12 +598,20 @@
    "timeframe": "D1"
   },
   {
+   "hypothesis": "SL-001-01/02",
+   "id": "result:SL-001:SL-DONCHIAN",
+   "kind": "result",
+   "summary": "long -0.04R (n 266); short +0.17R (n 290) but fails permutation, years, instruments, outliers; t 0.65",
+   "trial": "SL-001",
+   "verdict": "REJECTED"
+  },
+  {
    "evidence_quality": "C",
    "id": "method:SL-PULLBACK",
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Short-term pullback within a trend",
-   "status": "RESEARCHED"
+   "status": "REJECTED"
   },
   {
    "id": "source:Connors & Alvarez, Short Term Trading Strategies That Work (2008)",
@@ -626,12 +654,20 @@
    "timeframe": "D1"
   },
   {
+   "hypothesis": "SL-001-03/04",
+   "id": "result:SL-001:SL-PULLBACK",
+   "kind": "result",
+   "summary": "long -0.01R (n 395); short -0.01R (n 343); nothing beats random entries",
+   "trial": "SL-001",
+   "verdict": "REJECTED"
+  },
+  {
    "evidence_quality": "C",
    "id": "method:SL-NR-BREAKOUT",
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Volatility contraction then expansion (narrow-range breakout)",
-   "status": "RESEARCHED"
+   "status": "REJECTED"
   },
   {
    "id": "source:Crabel, Day Trading with Short Term Price Patterns and Opening Range Breakout (1990)",
@@ -672,12 +708,20 @@
    "timeframe": "D1"
   },
   {
+   "hypothesis": "SL-001-05/06",
+   "id": "result:SL-001:SL-NR-BREAKOUT",
+   "kind": "result",
+   "summary": "long -0.16R (n 552, t -2.9); short -0.06R (n 579): breakouts after contraction lose after costs",
+   "trial": "SL-001",
+   "verdict": "REJECTED"
+  },
+  {
    "evidence_quality": "B",
    "id": "method:SL-LOCAL-HOURS",
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Currencies weaken during their own trading hours",
-   "status": "RESEARCHED"
+   "status": "REJECTED"
   },
   {
    "id": "source:Breedon & Ranaldo, Intraday patterns in FX returns and order flow, J. Money, Credit and Banking 45 (2013)",
@@ -707,6 +751,14 @@
    "knowledge_class": "HYPOTHESIS",
    "side": "SELL",
    "timeframe": "H1"
+  },
+  {
+   "hypothesis": "SL-002-01",
+   "id": "result:SL-002:SL-LOCAL-HOURS",
+   "kind": "result",
+   "summary": "n 8,901, -0.105R per trade (t -8.0): the documented effect is far smaller than an H1 trade's costs",
+   "trial": "SL-002",
+   "verdict": "REJECTED"
   },
   {
    "evidence_quality": "C",

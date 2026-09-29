@@ -58,7 +58,10 @@ def test_the_graph_links_source_method_principle_hypothesis_and_result():
 
 
 def test_only_untested_testable_methods_become_new_hypotheses():
-    ids = {m.strategy_id for m, _ in pending_tests()}
-    assert ids and all(m.status in ("RESEARCHED", "HYPOTHESIS") for m, _ in pending_tests())
-    assert "SL-TSMOM" not in ids and "SL-CARRY" not in ids  # judged already / untestable
+    new = Method("SL-NEW", "n", "s", (Source("paper", "academic", "B"),), ("BREAKOUT",), {"assumptions": "x"}, "", "",
+                 "", "", "D1", "FX", ("r24",), tests=({"condition": "r24=high", "side": "BUY", "exit": "D4",
+                                                       "timeframe": "D1"},))
+    ids = {m.strategy_id for m, _ in pending_tests(LIBRARY + (new,))}
+    assert ids == {"SL-NEW"}  # judged methods and untestable ones never come back as "new"
+    assert all(m.status != "RESEARCHED" or not m.tests for m in LIBRARY)  # every testable one has been judged
     assert len(to_json()) == len(LIBRARY) and set(PRINCIPLES)
