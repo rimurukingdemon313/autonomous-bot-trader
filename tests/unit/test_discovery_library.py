@@ -20,7 +20,7 @@ def test_every_method_is_graded_and_is_either_testable_or_says_why_not():
         for t in m.tests:
             condition_key(t["condition"])  # in the engine's closed vocabulary
             feats = {p.split("=")[0] for p in t["condition"].split("&")}
-            known = (set(DAILY_FEATURES) | {"xs_mom"}) if t["timeframe"] == "D1" else set(NAMES) | set(PRIMITIVE_BY_NAME)
+            known = (set(DAILY_FEATURES) | {"xs_mom", "vix_state", "vix_trend", "usd_rate", "oil_pull", "trend_sign"}) if t["timeframe"] == "D1" else set(NAMES) | set(PRIMITIVE_BY_NAME)
             assert feats <= known, (m.strategy_id, feats - known)
     with pytest.raises(ValueError):
         Method("X", "x", "x", (Source("a", "book", "C"),), ("TREND_CONTINUATION",), {}, "", "", "", "", "", "", ())
@@ -65,3 +65,17 @@ def test_only_untested_testable_methods_become_new_hypotheses():
     assert ids == {"SL-NEW"}  # judged methods and untestable ones never come back as "new"
     assert all(m.status != "RESEARCHED" or not m.tests for m in LIBRARY)  # every testable one has been judged
     assert len(to_json()) == len(LIBRARY) and set(PRINCIPLES)
+
+
+def test_every_claim_is_labelled_and_an_inference_cannot_pose_as_fact():
+    with pytest.raises(ValueError):
+        Method("Z", "z", "z", (Source("a", "academic", "A"),), ("CARRY",), {}, "", "", "", "", "", "", (),
+               untestable_because="n/a", claims=(("PROVEN", "carry always works"),))
+    labelled = [m for m in LIBRARY if m.claims]
+    assert {m.strategy_id for m in labelled} >= {"SL-CARRY", "SL-FORWARD-PREMIUM", "SL-COMMODITY-FX",
+                                                 "SL-MOMENTUM-CRASH"}
+    for m in labelled:  # a method with a judged result says so in a REJECTED/VALIDATED claim, not only in prose
+        if m.results:
+            assert any(label in ("REJECTED", "VALIDATED") for label, _ in m.claims)
+    g = knowledge_graph()
+    assert any(n["kind"] == "claim" and n["knowledge_class"] == "UNCERTAIN" for n in g["nodes"])

@@ -77,6 +77,39 @@ evidence share a small set of habits:
 5. **Short-horizon practitioner rules** (grades C/D) carry no audited record, and on our data
    none survived costs.
 
+## Round 2: methods that need information beyond the bars
+
+Round 2 added the information four documented methods require (`ROUND2_DATA_AUDIT.md`). It also
+labels every claim in the library with how much we know: DOCUMENTED FACT, INFERRED PRINCIPLE,
+HYPOTHESIS, TESTING, VALIDATED, REJECTED or UNCERTAIN (`Method.claims`).
+
+| Method | Source (DOCUMENTED FACT) | Grade | Information it uses | Our test | Result | Status |
+|---|---|---|---|---|---|---|
+| Carry, managed by risk regime | Lustig & Verdelhan 2007; Menkhoff et al. 2012; Brunnermeier et al. 2008 | A | rate differentials, global volatility | R2A: spot legs of AUDJPY/AUDUSD/NZDUSD by VIX regime | −0.119R calm-long; −0.056R stress-short | **TESTING.** Spot legs rejected; the interest income is untestable here |
+| Forward-premium / rate-differential momentum | Fama 1984; Engel 1996 | A | interest-rate changes | R2B: last month's US 10y change, 7 USD pairs | −0.108R / −0.061R, coin-flip direction | REJECTED |
+| Commodity currencies | Chen & Rogoff 2003; against: Ferraro, Rogoff & Rossi 2015 | A | the export commodity's price | R2C: Brent 20-day move → USDCAD | +0.047R (t 0.77, one episode) / −0.088R | REJECTED (UNCERTAIN for large, persistent moves) |
+| Momentum outside panic states | Daniel & Moskowitz 2016; Moskowitz et al. 2012 | A | the trend sign and a risk gauge | R2D: 120-day sign while VIX < 20, 12 pairs | −0.040R / +0.077R (t 0.85, outliers) | REJECTED |
+
+### What the trader-intelligence system learned in Round 2
+
+1. **The documented FX premia are portfolio results across many currencies, including minor,
+   high-yield and costly ones, at monthly horizons.**
+   - This is a DOCUMENTED FACT about the sources.
+   - Reduced to a few majors and to the spot leg alone, none of them survives on 2008–2016.
+   - We **infer** that the premia's size depends on breadth and on the carry income that we
+     cannot measure here.
+2. **Conditioning on a documented regime did not rescue a failed rule** (R2A-1, R2D). The
+   regimes are real (VIX states), but the direction after them was not predictable.
+3. **Where Round 2 was closest to positive** (R2C-1, R2D-2), the result belonged to one
+   episode: the 2014–15 oil and dollar moves and the 2015 CHF shock. This is the same pattern
+   as Round 1's short-trend legs. It is **UNCERTAIN**: possibly a real tendency in large
+   dislocations, possibly luck.
+4. **The binding constraint moved.**
+   - On H1 it was costs.
+   - On D1, costs other than the swap approximation are 0.02R.
+   - What is missing is directional information: P(direction correct) ranged from 45% to 56%
+     in every family.
+
 ## Principle priority and conflicts
 
 Priority = independent sources × best evidence grade (`principle_priority()`):

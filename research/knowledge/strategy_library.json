@@ -127,6 +127,15 @@
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
   },
   {
+   "a": "SL-PULLBACK",
+   "b": "SL-MOMENTUM-CRASH",
+   "principles": [
+    "TREND_CONTINUATION",
+    "SHORT_TERM_REVERSAL"
+   ],
+   "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
+  },
+  {
    "a": "SL-NR-BREAKOUT",
    "b": "SL-RANGE-REVERSION",
    "principles": [
@@ -163,8 +172,35 @@
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
   },
   {
+   "a": "SL-RANGE-REVERSION",
+   "b": "SL-MOMENTUM-CRASH",
+   "principles": [
+    "TREND_CONTINUATION",
+    "SHORT_TERM_REVERSAL"
+   ],
+   "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
+  },
+  {
    "a": "SL-SMC-SWEEP",
    "b": "SL-REGIME-SWITCH",
+   "principles": [
+    "TREND_CONTINUATION",
+    "SHORT_TERM_REVERSAL"
+   ],
+   "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
+  },
+  {
+   "a": "SL-SMC-SWEEP",
+   "b": "SL-MOMENTUM-CRASH",
+   "principles": [
+    "TREND_CONTINUATION",
+    "SHORT_TERM_REVERSAL"
+   ],
+   "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
+  },
+  {
+   "a": "SL-REGIME-SWITCH",
+   "b": "SL-MOMENTUM-CRASH",
    "principles": [
     "TREND_CONTINUATION",
     "SHORT_TERM_REVERSAL"
@@ -174,6 +210,7 @@
  ],
  "methods": [
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "under-reaction and slow-moving capital make trends persist over 1-12 months",
     "avoids": "nothing explicitly: always positioned",
@@ -249,6 +286,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "a price above its long average is in an uptrend",
     "avoids": "choppy markets (whipsaws accepted as a cost)",
@@ -321,6 +359,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "a new N-day extreme marks the start of a trend",
     "avoids": "re-entering soon after a losing breakout (a filter in the original rules)",
@@ -396,6 +435,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "short-term extremes revert, and do so best in the direction of the longer trend",
     "avoids": "trading against the long-term trend",
@@ -464,6 +504,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "volatility clusters and mean-reverts: contraction precedes expansion",
     "avoids": "already-expanded markets",
@@ -532,6 +573,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "domestic order flow (local buyers of foreign currency) during local hours",
     "avoids": "n/a (a documented pattern, not a trading doctrine)",
@@ -596,6 +638,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "in a range, extremes revert to the middle",
     "avoids": "trending markets (band walks)",
@@ -664,6 +707,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "institutions run stops beyond swings, then reverse",
     "avoids": "no sweep",
@@ -731,6 +775,32 @@
    "untestable_because": null
   },
   {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "carry portfolios across many currencies earned a premium, with crashes in global risk-off (Lustig & Verdelhan 2007; Menkhoff et al. 2012)"
+    ],
+    [
+     "DOCUMENTED FACT",
+     "AUD and NZD out-yielded USD and JPY at every date from 2008-07 to 2016-12 (prior knowledge of RBA/RBNZ/Fed/BoJ policy rates; not re-opened here)"
+    ],
+    [
+     "INFERRED PRINCIPLE",
+     "the premium is compensation for crash risk, so it should be earned in calm regimes"
+    ],
+    [
+     "REJECTED",
+     "the spot legs of three positive-carry majors rise in calm regimes (R2A-1)"
+    ],
+    [
+     "REJECTED",
+     "carry currencies keep falling for a week after VIX starts rising (R2A-2)"
+    ],
+    [
+     "UNCERTAIN",
+     "whether carry INCLUDING its interest income is profitable on our majors: untested, no rate data"
+    ]
+   ],
    "decision_process": {
     "assumptions": "interest differentials are not fully offset by depreciation (a risk premium)",
     "avoids": "volatility spikes (carry crashes)",
@@ -750,14 +820,24 @@
    "entry_logic": "long the high-rate currency",
    "evidence_quality": "A",
    "exit_logic": "monthly",
-   "features": [],
+   "features": [
+    "vix_state",
+    "vix_trend"
+   ],
    "instruments": "G10 FX",
    "market_conditions": "calm markets",
    "name": "Currency carry",
    "principles": [
     "CARRY"
    ],
-   "results": [],
+   "results": [
+    {
+     "hypothesis": "R2A-1/R2A-2",
+     "summary": "spot legs only (no carry income measurable): long AUDJPY/AUDUSD/NZDUSD while VIX < 20 -0.119R (n 263, P(direction) 45%); short after VIX rises -0.056R (n 475). The omitted income is estimated at +0.05-0.08R and would not change the sign",
+     "trial": "R2A",
+     "verdict": "REJECTED"
+    }
+   ],
    "risk_logic": "portfolio",
    "school": "macro / systematic",
    "sources": [
@@ -774,13 +854,27 @@
      "verification": "cited from prior knowledge; not re-opened in this project"
     }
    ],
-   "status": "RESEARCHED",
+   "status": "TESTING",
    "strategy_id": "SL-CARRY",
-   "tests": [],
+   "tests": [
+    {
+     "condition": "vix_state=low",
+     "exit": "D4",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "vix_trend=high",
+     "exit": "D3",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
    "timeframe": "monthly",
-   "untestable_because": "needs interest-rate data per currency; the rate sources are blocked by the network policy here (FRED, BIS, ECB refused)"
+   "untestable_because": "its core, the interest income, needs interest-rate data per currency; the rate sources are blocked by the network policy here (FRED, BIS, ECB refused). Only the spot legs were testable (R2A)"
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "relative winners keep winning",
     "avoids": "n/a",
@@ -847,6 +941,7 @@
    "untestable_because": null
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "exchange rates revert slowly to PPP",
     "prefers": "long horizons"
@@ -879,6 +974,7 @@
    "untestable_because": "needs price-level (CPI) data; not available here"
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "earn the spread, manage inventory and adverse selection"
    },
@@ -910,6 +1006,7 @@
    "untestable_because": "needs order-book data, limit orders and latency a retail broker does not offer; a retail account pays the spread instead of earning it"
   },
   {
+   "claims": [],
    "decision_process": {
     "assumptions": "both schools are right in their own regime"
    },
@@ -964,20 +1061,290 @@
    ],
    "timeframe": "H1",
    "untestable_because": null
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "regressions of currency changes on the forward premium give the wrong sign for UIP (Fama 1984)"
+    ],
+    [
+     "INFERRED PRINCIPLE",
+     "a CHANGE in the differential should be followed by appreciation of the currency it favours"
+    ],
+    [
+     "HYPOTHESIS",
+     "with only US rates observable, the US 10y change stands in for the differential change (other rates near their floors in 2008-2016)"
+    ],
+    [
+     "REJECTED",
+     "the next month's move follows last month's US-yield change (R2B)"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "uncovered interest parity fails: capital chases yield slowly, so the currency whose relative rate rose keeps appreciating; information used: interest-rate changes",
+    "avoids": "rate moves driven by risk-off flight to safety",
+    "direction": "with the change in the differential",
+    "entry": "after the rate change is known (monthly)",
+    "ignores": "charts",
+    "invalidation": "the differential moving back",
+    "losers": "held; rebalanced monthly",
+    "prefers": "clear, persistent policy divergence",
+    "regime_change": "reverses in crises (flight to safety)",
+    "sizing": "portfolio",
+    "stays_out": "not documented",
+    "stop": "none documented; portfolio risk",
+    "target": "none",
+    "winners": "held"
+   },
+   "entry_logic": "buy the currency whose relative yield rose",
+   "evidence_quality": "A",
+   "exit_logic": "monthly",
+   "features": [
+    "usd_rate"
+   ],
+   "instruments": "G10 FX",
+   "market_conditions": "policy divergence",
+   "name": "Rate-differential momentum (the forward-premium anomaly)",
+   "principles": [
+    "FORWARD_PREMIUM"
+   ],
+   "results": [
+    {
+     "hypothesis": "R2B-1/R2B-2",
+     "summary": "last month's US 10y change (> 10bp) as the differential change, 7 USD pairs: -0.108R (n 396, P(direction) 46%) and -0.061R (n 381, 51%): coin-flip direction",
+     "trial": "R2B",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "portfolio",
+   "school": "macro / systematic",
+   "sources": [
+    {
+     "citation": "Fama, Forward and spot exchange rates, J. Monetary Economics 14 (1984)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    },
+    {
+     "citation": "Engel, The forward discount anomaly and the risk premium, J. Empirical Finance 3 (1996)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "REJECTED",
+   "strategy_id": "SL-FORWARD-PREMIUM",
+   "tests": [
+    {
+     "condition": "usd_rate=high",
+     "exit": "D4",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "usd_rate=low",
+     "exit": "D4",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
+   "timeframe": "monthly",
+   "untestable_because": null
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "the oil-CAD link is strong at daily frequency but contemporaneous; lagged oil does not forecast CAD out of sample (Ferraro et al. 2015)"
+    ],
+    [
+     "REJECTED",
+     "a 20-day oil move predicts the next week of USDCAD at the required level (R2C)"
+    ],
+    [
+     "UNCERTAIN",
+     "a lagged effect in LARGE, persistent oil moves (2014-15): positive here, not distinguishable from one episode"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "terms of trade drive the real exchange rate of commodity exporters; information used: the commodity price",
+    "avoids": "moves driven by the USD itself",
+    "direction": "with the export price",
+    "entry": "documented as CONTEMPORANEOUS (same day), not lagged",
+    "ignores": "n/a",
+    "invalidation": "n/a",
+    "losers": "n/a",
+    "prefers": "large, persistent commodity moves",
+    "regime_change": "the link weakens when the commodity's share of exports falls",
+    "sizing": "n/a",
+    "stays_out": "n/a",
+    "stop": "n/a (a documented relationship, not a trading rule)",
+    "target": "n/a",
+    "winners": "n/a"
+   },
+   "entry_logic": "buy the currency oil favours after a 5% move in 20 days",
+   "evidence_quality": "A",
+   "exit_logic": "5-day time exit",
+   "features": [
+    "oil_pull"
+   ],
+   "instruments": "USDCAD",
+   "market_conditions": "large oil moves",
+   "name": "Commodity currencies follow their export prices",
+   "principles": [
+    "COMMODITY_CURRENCY"
+   ],
+   "results": [
+    {
+     "hypothesis": "R2C-1/R2C-2",
+     "summary": "buy USDCAD after oil fell > 5%: +0.047R net (n 169, P(direction) 56%, t 0.77), mostly the 2014-15 oil collapse; the mirror -0.088R",
+     "trial": "R2C",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "fixed",
+   "school": "macro / cross-asset",
+   "sources": [
+    {
+     "citation": "Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    },
+    {
+     "citation": "Ferraro, Rogoff & Rossi, Can oil prices forecast exchange rates?, J. Int. Money and Finance 54 (2015)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "REJECTED",
+   "strategy_id": "SL-COMMODITY-FX",
+   "tests": [
+    {
+     "condition": "oil_pull=high",
+     "exit": "D3",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "oil_pull=low",
+     "exit": "D3",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
+   "timeframe": "D1",
+   "untestable_because": null
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "equity momentum's worst losses occur in panic states and rebounds (Daniel & Moskowitz 2016)"
+    ],
+    [
+     "INFERRED PRINCIPLE",
+     "the same crash mechanism applies to FX time-series momentum"
+    ],
+    [
+     "REJECTED",
+     "restricting FX momentum to VIX < 20 produces a net edge on either side (R2D)"
+    ],
+    [
+     "UNCERTAIN",
+     "the SELL side of FX trend: positive but insignificant in four separate tests (CP-001-T2, CP-001-T4, SL-001-02, R2D-2), each dominated by one episode"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "momentum's losses cluster in high-volatility panic states and rebounds; information used: the trend sign and a risk-regime gauge",
+    "avoids": "panic states (high implied volatility)",
+    "direction": "the sign of the 120-day move",
+    "entry": "while the risk regime is calm",
+    "ignores": "value",
+    "invalidation": "the regime or the trend sign changing",
+    "losers": "exit when the sign flips",
+    "prefers": "calm, trending markets",
+    "regime_change": "the gauge moving to stress",
+    "sizing": "volatility-scaled (documented); ours: the Risk Engine",
+    "stays_out": "panic states",
+    "stop": "documented versions scale down instead of stopping",
+    "target": "none",
+    "winners": "held"
+   },
+   "entry_logic": "trend sign while VIX < 20",
+   "evidence_quality": "A",
+   "exit_logic": "20-day time exit, 3 ATR stop",
+   "features": [
+    "trend_sign",
+    "vix_state"
+   ],
+   "instruments": "G10 FX",
+   "market_conditions": "calm regimes",
+   "name": "Momentum only outside panic states",
+   "principles": [
+    "TREND_CONTINUATION",
+    "MOMENTUM_CRASH",
+    "RISK_REGIME"
+   ],
+   "results": [
+    {
+     "hypothesis": "R2D-1/R2D-2",
+     "summary": "12 pairs, 2008-07 -> 2017-01: BUY uptrends while calm -0.040R (n 593); SELL downtrends while calm +0.077R (n 581, t 0.85, passes cost/delay stress; fails significance, random, years, instruments, outliers: EURCHF 2015 dominates)",
+     "trial": "R2D",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "fixed",
+   "school": "systematic",
+   "sources": [
+    {
+     "citation": "Daniel & Moskowitz, Momentum crashes, J. Financial Economics 122 (2016)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    },
+    {
+     "citation": "Moskowitz, Ooi & Pedersen, Time series momentum, J. Financial Economics 104 (2012)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "REJECTED",
+   "strategy_id": "SL-MOMENTUM-CRASH",
+   "tests": [
+    {
+     "condition": "trend_sign=high&vix_state=low",
+     "exit": "D4",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "trend_sign=low&vix_state=low",
+     "exit": "D4",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
+   "timeframe": "D1",
+   "untestable_because": null
   }
  ],
  "principle_priority": [
   {
    "best_quality": "A",
-   "independent_sources": 7,
+   "independent_sources": 8,
    "methods": [
     "SL-TSMOM",
     "SL-MA-TREND",
     "SL-DONCHIAN",
-    "SL-REGIME-SWITCH"
+    "SL-REGIME-SWITCH",
+    "SL-MOMENTUM-CRASH"
    ],
    "principle": "TREND_CONTINUATION",
-   "priority": 21
+   "priority": 24
   },
   {
    "best_quality": "A",
@@ -1018,6 +1385,42 @@
     "SL-CARRY"
    ],
    "principle": "CARRY",
+   "priority": 6
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 2,
+   "methods": [
+    "SL-COMMODITY-FX"
+   ],
+   "principle": "COMMODITY_CURRENCY",
+   "priority": 6
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 2,
+   "methods": [
+    "SL-FORWARD-PREMIUM"
+   ],
+   "principle": "FORWARD_PREMIUM",
+   "priority": 6
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 2,
+   "methods": [
+    "SL-MOMENTUM-CRASH"
+   ],
+   "principle": "MOMENTUM_CRASH",
+   "priority": 6
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 2,
+   "methods": [
+    "SL-MOMENTUM-CRASH"
+   ],
+   "principle": "RISK_REGIME",
    "priority": 6
   },
   {

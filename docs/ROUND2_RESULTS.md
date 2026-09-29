@@ -109,3 +109,61 @@ The result is recorded as an **UNCERTAIN CONCLUSION**:
 - testing it needs new data recorded from now on.
 
 **Family conclusion.** No cross-asset edge, oil→CAD, at the required level.
+
+## R2D: regime-conditioned time-series momentum — FAILED
+
+| | R2D-1: buy an uptrend while VIX < 20 (D4) | R2D-2: sell a downtrend while VIX < 20 (D4) |
+|---|---|---|
+| Trades (12 pairs) | 593 | 581 |
+| P(direction correct), gross | 48.4% | 52.3% |
+| Gross R per trade | +0.055 | **+0.172** |
+| Costs: spread / commission / slippage / swap | 0.015 / 0.003 / 0.001 / 0.077 | 0.016 / 0.003 / 0.001 / 0.076 |
+| Net R: lower / normal / higher cost | −0.034 / −0.040 / −0.090 | +0.085 / **+0.077** / +0.029 |
+| t (required 3.312) | −0.86 | 0.85 |
+| Beats random entries | yes (t 2.12), but still negative | **no** (t 0.91) |
+| Robustness passed | permutation, perturbation (fixed states: trivially) | costs, delay, permutation, perturbation, leave-one-out, regimes |
+| Robustness failed | costs, delay, years, instruments, leave-one-out, regimes, outliers | significance, random, years (57% positive), instruments (50%), **outliers** |
+| Worst MAE | **−11.6R** (a CHF gap through the stop) | −3.0R |
+
+### Reading
+
+1. **R2D-2 is the strongest Round 2 result, and it is still not an edge.**
+   - Its gross expectancy of +0.17R per trade is the largest measured in either round. It
+     survives the cost stress, the one-bar delay and removing any single instrument.
+   - But t = 0.85, it does not beat random entries, and its total is carried by outliers.
+     EURCHF alone earned +0.72R per trade (61 trades), almost all around the January 2015
+     removal of the SNB floor.
+   - Without its top trades it is not positive. That falls short of PROMISING.
+2. **The SELL side of trend has now come out positive four times, and been insignificant
+   four times:** CP-001-T2 +0.19R, CP-001-T4 +0.21R, SL-001-02 +0.17R, R2D-2 +0.08R.
+   - The periods overlap, so these are not four independent confirmations. Each is dominated
+     by one episode (the 2014–15 dollar rally, the 2015 CHF shock).
+   - It stays an **UNCERTAIN CONCLUSION**, not a rule. The only honest test is new data.
+3. **Gap risk is real.** R2D-1 lost 11.6R on one trade when the price gapped through its stop
+   (the CHF shock). This is recorded for the risk engine's stress assumptions; no rule is
+   changed here.
+
+## Families not run, and why
+
+- **Session and liquidity.** Round 1 covered them: the DP-001 session × trigger grid found 0
+  discoveries, and the SL-002 local-hours effect was −0.105R over 8,901 trades. On H1 the
+  costs (0.09–0.21R) exceed any gross effect found. A new session test would spend budget where
+  costs were measured as the binding constraint.
+- **Synthesis** (carry + momentum + calm, and similar). The plan made it conditional on a
+  component family reaching PROMISING. None did. Combining four failed components adds tests
+  without a reason to expect an edge.
+
+## Round 2 in one table
+
+| Family | New information | Hypotheses | Best net R (n, t) | Verdict |
+|---|---|---|---|---|
+| R2A carry × risk regime | VIX; policy-rate signs | 2 | −0.056 (475, −1.1) | FAILED |
+| R2B rate-differential change | Fed H.15 10y | 2 | −0.061 (381, −0.9) | FAILED |
+| R2C oil → CAD | EIA Brent | 2 | +0.047 (169, 0.8) | FAILED, uncertain |
+| R2D momentum × calm | VIX | 2 | +0.077 (581, 0.9) | FAILED, uncertain |
+
+**8 hypotheses judged, 0 VALIDATED, 0 PROMISING.** Every family ran once on 8.5 years that
+include 2008, with fixed states, all costs and the full battery.
+
+The evidence **does not support deployment**. The edge engine keeps abstaining, and the risk
+engine, the demo guard and the execution guards are unchanged.

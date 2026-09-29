@@ -31,8 +31,13 @@ import json
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 
-LIBRARY_VERSION = "library-1.0.0"
+#: 1.1.0: Round 2 methods (risk-regime carry, forward premium, commodity currencies, momentum crashes) and
+#: labelled claims per method
+LIBRARY_VERSION = "library-1.1.0"
 STATUSES = ("RESEARCHED", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED", "DEGRADED", "RETIRED")
+#: every claim a method record makes is labelled with how much we actually know
+CLAIM_LABELS = ("DOCUMENTED FACT", "INFERRED PRINCIPLE", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED",
+                "UNCERTAIN")
 QUALITY = {"A": "peer-reviewed, long multi-market evidence", "B": "peer-reviewed or institutional, narrower",
            "C": "practitioner rules, reproducible, unaudited", "D": "practitioner doctrine, no reproducible record"}
 
@@ -51,6 +56,10 @@ PRINCIPLES = {
     "VOLATILITY_SCALING": "risk per position scaled to its volatility keeps risk steady",
     "CUT_LOSSES_LET_WINNERS_RUN": "small fixed losses, open-ended gains (trailing exits)",
     "INVENTORY_SPREAD_CAPTURE": "providing liquidity earns the spread against adverse selection",
+    "RISK_REGIME": "risk appetite (e.g. implied volatility) decides whether risky currencies are bought or dumped",
+    "FORWARD_PREMIUM": "a currency whose relative interest rate rose tends to appreciate, not depreciate as UIP says",
+    "COMMODITY_CURRENCY": "a commodity exporter's currency moves with the price of its main export",
+    "MOMENTUM_CRASH": "momentum strategies lose most in panic states and sharp rebounds; calm states are safer",
 }
 
 
@@ -82,10 +91,13 @@ class Method:
     untestable_because: str | None = None
     status: str = "RESEARCHED"
     results: tuple[dict, ...] = ()  # {"trial", "hypothesis", "verdict", "summary"}
+    claims: tuple[tuple[str, str], ...] = ()  # (label, statement): never inference presented as fact
 
     def __post_init__(self) -> None:
         if self.status not in STATUSES:
             raise ValueError(f"{self.strategy_id}: unknown status {self.status}")
+        if any(label not in CLAIM_LABELS or not text.strip() for label, text in self.claims):
+            raise ValueError(f"{self.strategy_id}: every claim needs a known label and a statement")
         if any(p not in PRINCIPLES for p in self.principles):
             raise ValueError(f"{self.strategy_id}: undeclared principle")
         if not self.sources or any(s.quality not in QUALITY for s in self.sources):
@@ -247,9 +259,28 @@ LIBRARY: tuple[Method, ...] = (
                target="none", sizing="portfolio weights", winners="held", losers="held through; crash risk",
                regime_change="crashes in global risk-off", invalidation="rate differential closing",
                stays_out="when volatility spikes (in managed versions)", ignores="charts"),
-           "calm markets", "long the high-rate currency", "monthly", "portfolio", "monthly", "G10 FX", (),
-           untestable_because="needs interest-rate data per currency; the rate sources are blocked by the network "
-                              "policy here (FRED, BIS, ECB refused)"),
+           "calm markets", "long the high-rate currency", "monthly", "portfolio", "monthly", "G10 FX",
+           ("vix_state", "vix_trend"),
+           tests=({"condition": "vix_state=low", "side": "BUY", "exit": "D4", "timeframe": "D1"},
+                  {"condition": "vix_trend=high", "side": "SELL", "exit": "D3", "timeframe": "D1"}),
+           untestable_because="its core, the interest income, needs interest-rate data per currency; the rate "
+                              "sources are blocked by the network policy here (FRED, BIS, ECB refused). Only the "
+                              "spot legs were testable (R2A)",
+           status="TESTING",
+           results=({"trial": "R2A", "hypothesis": "R2A-1/R2A-2", "verdict": "REJECTED",
+                     "summary": "spot legs only (no carry income measurable): long AUDJPY/AUDUSD/NZDUSD while VIX < 20 "
+                                "-0.119R (n 263, P(direction) 45%); short after VIX rises -0.056R (n 475). The omitted "
+                                "income is estimated at +0.05-0.08R and would not change the sign"},),
+           claims=(("DOCUMENTED FACT", "carry portfolios across many currencies earned a premium, with crashes in "
+                                       "global risk-off (Lustig & Verdelhan 2007; Menkhoff et al. 2012)"),
+                   ("DOCUMENTED FACT", "AUD and NZD out-yielded USD and JPY at every date from 2008-07 to 2016-12 "
+                                       "(prior knowledge of RBA/RBNZ/Fed/BoJ policy rates; not re-opened here)"),
+                   ("INFERRED PRINCIPLE", "the premium is compensation for crash risk, so it should be earned in "
+                                          "calm regimes"),
+                   ("REJECTED", "the spot legs of three positive-carry majors rise in calm regimes (R2A-1)"),
+                   ("REJECTED", "carry currencies keep falling for a week after VIX starts rising (R2A-2)"),
+                   ("UNCERTAIN", "whether carry INCLUDING its interest income is profitable on our majors: untested, "
+                                 "no rate data"))),
     Method("SL-XS-MOMENTUM", "Cross-sectional currency momentum", "systematic",
            (Source("Menkhoff, Sarno, Schmeling & Schrimpf, Currency momentum strategies, J. Financial Economics 106 "
                    "(2012)", "academic", "A"),),
@@ -293,6 +324,87 @@ LIBRARY: tuple[Method, ...] = (
            status="REJECTED",
            results=({"trial": "DP-001", "hypothesis": "screen cells er120 x r24 (both sides)", "verdict": "REJECTED",
                      "summary": "no cell discovered; every cell negative net of costs"},)),
+    Method("SL-FORWARD-PREMIUM", "Rate-differential momentum (the forward-premium anomaly)", "macro / systematic",
+           (Source("Fama, Forward and spot exchange rates, J. Monetary Economics 14 (1984)", "academic", "A"),
+            Source("Engel, The forward discount anomaly and the risk premium, J. Empirical Finance 3 (1996)",
+                   "academic", "A")),
+           ("FORWARD_PREMIUM",),
+           _dp(assumptions="uncovered interest parity fails: capital chases yield slowly, so the currency whose "
+                           "relative rate rose keeps appreciating; information used: interest-rate changes",
+               prefers="clear, persistent policy divergence", avoids="rate moves driven by risk-off flight to safety",
+               direction="with the change in the differential", entry="after the rate change is known (monthly)",
+               stop="none documented; portfolio risk", target="none", sizing="portfolio", winners="held",
+               losers="held; rebalanced monthly", regime_change="reverses in crises (flight to safety)",
+               invalidation="the differential moving back", stays_out="not documented", ignores="charts"),
+           "policy divergence", "buy the currency whose relative yield rose", "monthly", "portfolio", "monthly",
+           "G10 FX", ("usd_rate",),
+           tests=({"condition": "usd_rate=high", "side": "BUY", "exit": "D4", "timeframe": "D1"},
+                  {"condition": "usd_rate=low", "side": "SELL", "exit": "D4", "timeframe": "D1"}),
+           status="REJECTED",
+           results=({"trial": "R2B", "hypothesis": "R2B-1/R2B-2", "verdict": "REJECTED",
+                     "summary": "last month's US 10y change (> 10bp) as the differential change, 7 USD pairs: "
+                                "-0.108R (n 396, P(direction) 46%) and -0.061R (n 381, 51%): coin-flip direction"},),
+           claims=(("DOCUMENTED FACT", "regressions of currency changes on the forward premium give the wrong sign "
+                                       "for UIP (Fama 1984)"),
+                   ("INFERRED PRINCIPLE", "a CHANGE in the differential should be followed by appreciation of the "
+                                          "currency it favours"),
+                   ("HYPOTHESIS", "with only US rates observable, the US 10y change stands in for the differential "
+                                  "change (other rates near their floors in 2008-2016)"),
+                   ("REJECTED", "the next month's move follows last month's US-yield change (R2B)"))),
+    Method("SL-COMMODITY-FX", "Commodity currencies follow their export prices", "macro / cross-asset",
+           (Source("Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003)", "academic", "A"),
+            Source("Ferraro, Rogoff & Rossi, Can oil prices forecast exchange rates?, J. Int. Money and Finance 54 "
+                   "(2015)", "academic", "A")),
+           ("COMMODITY_CURRENCY",),
+           _dp(assumptions="terms of trade drive the real exchange rate of commodity exporters; information used: "
+                           "the commodity price",
+               prefers="large, persistent commodity moves", avoids="moves driven by the USD itself",
+               direction="with the export price", entry="documented as CONTEMPORANEOUS (same day), not lagged",
+               stop="n/a (a documented relationship, not a trading rule)", target="n/a", sizing="n/a",
+               winners="n/a", losers="n/a", regime_change="the link weakens when the commodity's share of exports "
+                                                         "falls", invalidation="n/a",
+               stays_out="n/a", ignores="n/a"),
+           "large oil moves", "buy the currency oil favours after a 5% move in 20 days", "5-day time exit", "fixed",
+           "D1", "USDCAD", ("oil_pull",),
+           tests=({"condition": "oil_pull=high", "side": "BUY", "exit": "D3", "timeframe": "D1"},
+                  {"condition": "oil_pull=low", "side": "SELL", "exit": "D3", "timeframe": "D1"}),
+           status="REJECTED",
+           results=({"trial": "R2C", "hypothesis": "R2C-1/R2C-2", "verdict": "REJECTED",
+                     "summary": "buy USDCAD after oil fell > 5%: +0.047R net (n 169, P(direction) 56%, t 0.77), "
+                                "mostly the 2014-15 oil collapse; the mirror -0.088R"},),
+           claims=(("DOCUMENTED FACT", "the oil-CAD link is strong at daily frequency but contemporaneous; lagged "
+                                       "oil does not forecast CAD out of sample (Ferraro et al. 2015)"),
+                   ("REJECTED", "a 20-day oil move predicts the next week of USDCAD at the required level (R2C)"),
+                   ("UNCERTAIN", "a lagged effect in LARGE, persistent oil moves (2014-15): positive here, not "
+                                 "distinguishable from one episode"))),
+    Method("SL-MOMENTUM-CRASH", "Momentum only outside panic states", "systematic",
+           (Source("Daniel & Moskowitz, Momentum crashes, J. Financial Economics 122 (2016)", "academic", "A"),
+            Source("Moskowitz, Ooi & Pedersen, Time series momentum, J. Financial Economics 104 (2012)", "academic",
+                   "A")),
+           ("TREND_CONTINUATION", "MOMENTUM_CRASH", "RISK_REGIME"),
+           _dp(assumptions="momentum's losses cluster in high-volatility panic states and rebounds; information "
+                           "used: the trend sign and a risk-regime gauge",
+               prefers="calm, trending markets", avoids="panic states (high implied volatility)",
+               direction="the sign of the 120-day move", entry="while the risk regime is calm",
+               stop="documented versions scale down instead of stopping", target="none",
+               sizing="volatility-scaled (documented); ours: the Risk Engine", winners="held",
+               losers="exit when the sign flips", regime_change="the gauge moving to stress",
+               invalidation="the regime or the trend sign changing", stays_out="panic states", ignores="value"),
+           "calm regimes", "trend sign while VIX < 20", "20-day time exit, 3 ATR stop", "fixed", "D1", "G10 FX",
+           ("trend_sign", "vix_state"),
+           tests=({"condition": "trend_sign=high&vix_state=low", "side": "BUY", "exit": "D4", "timeframe": "D1"},
+                  {"condition": "trend_sign=low&vix_state=low", "side": "SELL", "exit": "D4", "timeframe": "D1"}),
+           status="REJECTED",
+           results=({"trial": "R2D", "hypothesis": "R2D-1/R2D-2", "verdict": "REJECTED",
+                     "summary": "12 pairs, 2008-07 -> 2017-01: BUY uptrends while calm -0.040R (n 593); SELL "
+                                "downtrends while calm +0.077R (n 581, t 0.85, passes cost/delay stress; fails "
+                                "significance, random, years, instruments, outliers: EURCHF 2015 dominates)"},),
+           claims=(("DOCUMENTED FACT", "equity momentum's worst losses occur in panic states and rebounds (Daniel & "
+                                       "Moskowitz 2016)"),
+                   ("INFERRED PRINCIPLE", "the same crash mechanism applies to FX time-series momentum"),
+                   ("REJECTED", "restricting FX momentum to VIX < 20 produces a net edge on either side (R2D)"),
+                   ("UNCERTAIN", "the SELL side of FX trend: positive but insignificant in four separate tests "
+                                 "(CP-001-T2, CP-001-T4, SL-001-02, R2D-2), each dominated by one episode"))),
 )
 
 
@@ -350,6 +462,8 @@ def knowledge_graph(methods=LIBRARY) -> dict:
             edges.append((mid, "rests_on", node("principle", p, text=PRINCIPLES[p], knowledge_class="INFERRED_PRINCIPLE")))
         for f in m.features:
             edges.append((mid, "measured_by", node("feature", f)))
+        for i, (label, text) in enumerate(m.claims):
+            edges.append((mid, "claims", node("claim", f"{m.strategy_id}:{i}", text=text, knowledge_class=label)))
         for t in m.tests:
             tid = node("hypothesis", f"{m.strategy_id}:{t['condition']}:{t['side']}", knowledge_class="HYPOTHESIS", **t)
             edges.append((mid, "tested_as", tid))

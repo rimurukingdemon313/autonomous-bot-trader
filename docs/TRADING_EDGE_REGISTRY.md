@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 22 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 24 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -31,6 +31,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | DISCOVERED 0 | VALIDATING 
 | R2A | FAILED | — | 2 | 0 | 3.279 |
 | R2B | FAILED | — | 2 | 0 | 3.291 |
 | R2C | FAILED | — | 2 | 0 | 3.301 |
+| R2D | FAILED | — | 2 | 0 | 3.312 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
 | WF-001 | FAIL | — | 1 | 0 | 3.189 |
@@ -52,6 +53,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | DISCOVERED 0 | VALIDATING 
 | R2B-2 | SELL | D1 | `usd_rate=low` | D4 | 381 | -0.061 | -0.94 (3.29) | -0.107 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2C-1 | BUY | D1 | `oil_pull=high` | D3 | 169 | +0.047 | +0.77 (3.30) | +0.023 | — | 1 | **REJECTED** | significance, beats_random, permutation, delay_stress, instruments, leave_one_out, outliers |
 | R2C-2 | SELL | D1 | `oil_pull=low` | D3 | 147 | -0.088 | -1.61 (3.30) | -0.112 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R2D-1 | BUY | D1 | `trend_sign=high&vix_state=low` | D4 | 593 | -0.040 | -0.86 (3.31) | -0.090 | — | 2 | **REJECTED** | significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R2D-2 | SELL | D1 | `trend_sign=low&vix_state=low` | D4 | 581 | +0.077 | +0.85 (3.31) | +0.029 | — | 2 | **REJECTED** | significance, beats_random, years, instruments, outliers |
 | SL-001-01 | BUY | D1 | `brk_hi120=high` | D5 | 266 | -0.038 | -0.42 (3.25) | -0.104 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
 | SL-001-02 | SELL | D1 | `brk_lo120=low` | D5 | 290 | +0.175 | +0.65 (3.25) | +0.113 | — | 1 | **REJECTED** | significance, beats_random, permutation, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-03 | BUY | D1 | `ma_slope=high&r6=low` | D3 | 395 | -0.014 | -0.33 (3.25) | -0.046 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers |

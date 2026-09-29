@@ -1,0 +1,600 @@
+[
+ {
+  "cost_assumptions": "swap is NOT charged on these legs: the historical broker swap on a long high-yield position was a credit, and its size is unknown here. The spot move alone is judged, so the carry income itself is left out, which biases the test AGAINST the long leg (R2A-1) and in favour of the short leg (R2A-2), whose true swap was a cost; R2A-2 is also reported with the standard swap charged",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "Cboe Global Markets (VIX index, daily close)"
+  ],
+  "data_timestamp_availability": {
+   "vix": "the close of date d is public at 16:15 New York; taken as available at 16:45 New York on d (before the 17:00 New York close that ends our D1 bar)"
+  },
+  "direction": "BUY",
+  "economic_rationale": "carry is compensation for crash risk: in calm markets carry currencies drift up as capital seeks yield, and they crash when risk appetite collapses",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D4",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "permutation",
+   "costs_stress",
+   "delay_stress",
+   "years",
+   "instruments",
+   "leave_one_out",
+   "regimes",
+   "outliers"
+  ],
+  "family_rationale": "DOCUMENTED FACT (prior knowledge; the primary sources are refused by this environment's network policy): from 2008-07 to 2016-12 the RBA cash rate never fell below 1.50% and the RBNZ OCR never below 1.75%, while the Fed funds target never exceeded 2.00% and the BoJ rate 0.50%; so AUD and NZD out-yielded USD and JPY at every date judged. Only the SIGN of the differential is used; its size is not, because no historical series of it is available here.",
+  "features": [
+   "vix_state"
+  ],
+  "hypothesis_id": "R2A-1",
+  "instruments": [
+   "AUDJPY",
+   "AUDUSD",
+   "NZDUSD"
+  ],
+  "library_method": "SL-CARRY",
+  "out_of_sample_result": {
+   "gross_R": -0.0991,
+   "n": 263,
+   "net_R": -0.11886,
+   "net_R_by_cost": {
+    "higher": -0.1301,
+    "lower": -0.1131,
+    "normal": -0.1189,
+    "standard_swap": -0.1925
+   },
+   "p_direction_correct": 0.4525
+  },
+  "research_family": "R2A: Carry, conditional on the risk regime",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": false,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": false,
+   "years": false
+  },
+  "signal": "vix_state=low",
+  "source_methodology": "Lustig & Verdelhan, The cross-section of foreign currency risk premia, American Economic Review 97 (2007); Menkhoff, Sarno, Schmeling & Schrimpf, Carry trades and global FX volatility, J. Finance 67 (2012) (Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macro Annual 23 (2008); Menkhoff, Sarno, Schmeling & Schrimpf, Carry trades and global FX volatility, J. Finance 67 (2012))",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.9652,
+   "t": -1.78,
+   "t_required": 3.279
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "swap is NOT charged on these legs: the historical broker swap on a long high-yield position was a credit, and its size is unknown here. The spot move alone is judged, so the carry income itself is left out, which biases the test AGAINST the long leg (R2A-1) and in favour of the short leg (R2A-2), whose true swap was a cost; R2A-2 is also reported with the standard swap charged",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "Cboe Global Markets (VIX index, daily close)"
+  ],
+  "data_timestamp_availability": {
+   "vix": "the close of date d is public at 16:15 New York; taken as available at 16:45 New York on d (before the 17:00 New York close that ends our D1 bar)"
+  },
+  "direction": "SELL",
+  "economic_rationale": "carry unwinds are forced deleveraging that continues for days once volatility starts rising",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D3",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "permutation",
+   "costs_stress",
+   "delay_stress",
+   "years",
+   "instruments",
+   "leave_one_out",
+   "regimes",
+   "outliers"
+  ],
+  "family_rationale": "DOCUMENTED FACT (prior knowledge; the primary sources are refused by this environment's network policy): from 2008-07 to 2016-12 the RBA cash rate never fell below 1.50% and the RBNZ OCR never below 1.75%, while the Fed funds target never exceeded 2.00% and the BoJ rate 0.50%; so AUD and NZD out-yielded USD and JPY at every date judged. Only the SIGN of the differential is used; its size is not, because no historical series of it is available here.",
+  "features": [
+   "vix_trend"
+  ],
+  "hypothesis_id": "R2A-2",
+  "instruments": [
+   "AUDJPY",
+   "AUDUSD",
+   "NZDUSD"
+  ],
+  "library_method": "SL-CARRY",
+  "out_of_sample_result": {
+   "gross_R": -0.0294,
+   "n": 475,
+   "net_R": -0.05587,
+   "net_R_by_cost": {
+    "higher": -0.0676,
+    "lower": -0.0459,
+    "normal": -0.0559,
+    "standard_swap": -0.0813
+   },
+   "p_direction_correct": 0.4674
+  },
+  "research_family": "R2A: Carry, conditional on the risk regime",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": false,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": false,
+   "years": false
+  },
+  "signal": "vix_trend=high",
+  "source_methodology": "Lustig & Verdelhan, The cross-section of foreign currency risk premia, American Economic Review 97 (2007); Menkhoff, Sarno, Schmeling & Schrimpf, Carry trades and global FX volatility, J. Finance 67 (2012) (Brunnermeier, Nagel & Pedersen (2008); Menkhoff et al. (2012))",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.9303,
+   "t": -1.117,
+   "t_required": 3.279
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "standard D1 costs (swap 0.01 x ATR24(D1) per night charged)",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "Federal Reserve H.15, 10-year Treasury constant maturity, monthly average"
+  ],
+  "data_timestamp_availability": {
+   "us10y": "the average for month m is known once m ends; taken as available at 17:00 New York on the 2nd calendar day of month m+1"
+  },
+  "direction": "BUY",
+  "economic_rationale": "rate differentials attract capital slowly; the currency whose relative yield rose keeps appreciating (the forward-premium anomaly: high-yield currencies do not depreciate as UIP says)",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D4",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "permutation",
+   "costs_stress",
+   "delay_stress",
+   "years",
+   "instruments",
+   "leave_one_out",
+   "regimes",
+   "outliers"
+  ],
+  "family_rationale": "only the US side of the differential is observable here; the foreign rates of the six other currencies moved far less than US yields over 2008-2016 (most were at or near their floors), so the US change is taken as the change of the differential: an INFERRED assumption, stated",
+  "features": [
+   "usd_rate"
+  ],
+  "hypothesis_id": "R2B-1",
+  "instruments": [
+   "AUDUSD",
+   "EURUSD",
+   "GBPUSD",
+   "NZDUSD",
+   "USDCAD",
+   "USDCHF",
+   "USDJPY"
+  ],
+  "library_method": "SL-FORWARD-PREMIUM",
+  "out_of_sample_result": {
+   "gross_R": -0.0186,
+   "n": 396,
+   "net_R": -0.10793,
+   "net_R_by_cost": {
+    "higher": -0.1504,
+    "lower": -0.1026,
+    "normal": -0.1079,
+    "standard_swap": -0.1079
+   },
+   "p_direction_correct": 0.4646
+  },
+  "research_family": "R2B: US rate-differential changes",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": false,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": false,
+   "years": false
+  },
+  "signal": "usd_rate=high",
+  "source_methodology": "Fama, Forward and spot exchange rates, J. Monetary Economics 14 (1984); Engel, The forward discount anomaly and the risk premium, J. Empirical Finance 3 (1996) (Fama, Forward and spot exchange rates, J. Monetary Economics 14 (1984); Engel, The forward discount anomaly and the risk premium, J. Empirical Finance 3 (1996))",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.3632,
+   "t": -1.814,
+   "t_required": 3.291
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "standard D1 costs (swap 0.01 x ATR24(D1) per night charged)",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "Federal Reserve H.15, 10-year Treasury constant maturity, monthly average"
+  ],
+  "data_timestamp_availability": {
+   "us10y": "the average for month m is known once m ends; taken as available at 17:00 New York on the 2nd calendar day of month m+1"
+  },
+  "direction": "SELL",
+  "economic_rationale": "the mirror of R2B-1",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D4",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "permutation",
+   "costs_stress",
+   "delay_stress",
+   "years",
+   "instruments",
+   "leave_one_out",
+   "regimes",
+   "outliers"
+  ],
+  "family_rationale": "only the US side of the differential is observable here; the foreign rates of the six other currencies moved far less than US yields over 2008-2016 (most were at or near their floors), so the US change is taken as the change of the differential: an INFERRED assumption, stated",
+  "features": [
+   "usd_rate"
+  ],
+  "hypothesis_id": "R2B-2",
+  "instruments": [
+   "AUDUSD",
+   "EURUSD",
+   "GBPUSD",
+   "NZDUSD",
+   "USDCAD",
+   "USDCHF",
+   "USDJPY"
+  ],
+  "library_method": "SL-FORWARD-PREMIUM",
+  "out_of_sample_result": {
+   "gross_R": 0.0283,
+   "n": 381,
+   "net_R": -0.06114,
+   "net_R_by_cost": {
+    "higher": -0.1074,
+    "lower": -0.056,
+    "normal": -0.0611,
+    "standard_swap": -0.0611
+   },
+   "p_direction_correct": 0.5066
+  },
+  "research_family": "R2B: US rate-differential changes",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": false,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": false,
+   "years": false
+  },
+  "signal": "usd_rate=low",
+  "source_methodology": "Fama, Forward and spot exchange rates, J. Monetary Economics 14 (1984); Engel, The forward discount anomaly and the risk premium, J. Empirical Finance 3 (1996) (Fama (1984); Engel (1996))",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.3781,
+   "t": -0.935,
+   "t_required": 3.291
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "standard D1 costs",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "U.S. EIA, Europe Brent Spot Price FOB (RBRTE), daily"
+  ],
+  "data_timestamp_availability": {
+   "brent": "the assessment for date d is taken as available at 17:00 New York on the NEXT calendar day (one full day of lag: the spot assessment is published after the London close)"
+  },
+  "direction": "BUY",
+  "economic_rationale": "Canada's terms of trade move with oil; if FX absorbs oil news slowly, the CAD follows oil with a lag",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D3",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "permutation",
+   "delay_stress",
+   "instruments",
+   "leave_one_out",
+   "outliers"
+  ],
+  "family_rationale": "the documented evidence is AGAINST a lagged effect (Ferraro et al. 2015): this family is tested because cross-asset information is new here, with a low prior stated in advance",
+  "features": [
+   "oil_pull"
+  ],
+  "hypothesis_id": "R2C-1",
+  "instruments": [
+   "USDCAD"
+  ],
+  "library_method": "SL-COMMODITY-FX",
+  "out_of_sample_result": {
+   "gross_R": 0.0992,
+   "n": 169,
+   "net_R": 0.04707,
+   "net_R_by_cost": {
+    "higher": 0.0229,
+    "lower": 0.05,
+    "normal": 0.0471,
+    "standard_swap": 0.0471
+   },
+   "p_direction_correct": 0.5562
+  },
+  "research_family": "R2C: Cross-asset: oil and the Canadian dollar",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": true,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": true,
+   "years": true
+  },
+  "signal": "oil_pull=high",
+  "source_methodology": "Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003); Ferraro, Rogoff & Rossi, Can oil prices forecast exchange rates?, J. Int. Money and Finance 54 (2015) (Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003); against: Ferraro, Rogoff & Rossi, Can oil prices forecast exchange rates?, J. Int. Money and Finance 54 (2015): the link is contemporaneous and daily, not lagged)",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.1095,
+   "t": 0.774,
+   "t_required": 3.302
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "standard D1 costs",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "U.S. EIA, Europe Brent Spot Price FOB (RBRTE), daily"
+  ],
+  "data_timestamp_availability": {
+   "brent": "the assessment for date d is taken as available at 17:00 New York on the NEXT calendar day (one full day of lag: the spot assessment is published after the London close)"
+  },
+  "direction": "SELL",
+  "economic_rationale": "the mirror of R2C-1",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D3",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "permutation",
+   "costs_stress",
+   "delay_stress",
+   "years",
+   "instruments",
+   "leave_one_out",
+   "regimes",
+   "outliers"
+  ],
+  "family_rationale": "the documented evidence is AGAINST a lagged effect (Ferraro et al. 2015): this family is tested because cross-asset information is new here, with a low prior stated in advance",
+  "features": [
+   "oil_pull"
+  ],
+  "hypothesis_id": "R2C-2",
+  "instruments": [
+   "USDCAD"
+  ],
+  "library_method": "SL-COMMODITY-FX",
+  "out_of_sample_result": {
+   "gross_R": -0.0378,
+   "n": 147,
+   "net_R": -0.08768,
+   "net_R_by_cost": {
+    "higher": -0.1123,
+    "lower": -0.0792,
+    "normal": -0.0877,
+    "standard_swap": -0.0877
+   },
+   "p_direction_correct": 0.483
+  },
+  "research_family": "R2C: Cross-asset: oil and the Canadian dollar",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": false,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": false,
+   "years": false
+  },
+  "signal": "oil_pull=low",
+  "source_methodology": "Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003); Ferraro, Rogoff & Rossi, Can oil prices forecast exchange rates?, J. Int. Money and Finance 54 (2015) (Chen & Rogoff (2003); Ferraro et al. (2015))",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.3582,
+   "t": -1.611,
+   "t_required": 3.302
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "standard D1 costs",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "Cboe Global Markets (VIX index, daily close)"
+  ],
+  "data_timestamp_availability": {
+   "vix": "the close of date d is public at 16:15 New York; taken as available at 16:45 New York on d (before the 17:00 New York close that ends our D1 bar)"
+  },
+  "direction": "BUY",
+  "economic_rationale": "momentum crashes happen in high-volatility panic states and rebounds; excluding them in advance should remove the crashes that erase momentum's premium",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D4",
+  "failure_reason": [
+   "significance",
+   "costs_stress",
+   "delay_stress",
+   "years",
+   "instruments",
+   "leave_one_out",
+   "regimes",
+   "outliers"
+  ],
+  "family_rationale": "a pre-registered CONDITIONAL hypothesis that explains why the unconditional rule failed (crash states); not a re-run of CP-001, whose sign rule and period differ",
+  "features": [
+   "trend_sign",
+   "vix_state"
+  ],
+  "hypothesis_id": "R2D-1",
+  "instruments": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "EURGBP",
+   "EURJPY",
+   "GBPJPY",
+   "EURCHF",
+   "AUDJPY"
+  ],
+  "library_method": "SL-MOMENTUM-CRASH",
+  "out_of_sample_result": {
+   "gross_R": 0.0545,
+   "n": 593,
+   "net_R": -0.0402,
+   "net_R_by_cost": {
+    "higher": -0.0896,
+    "lower": -0.034,
+    "normal": -0.0402,
+    "standard_swap": -0.0402
+   },
+   "p_direction_correct": 0.484
+  },
+  "research_family": "R2D: Regime-conditioned time-series momentum",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": false,
+   "delay_stress": false,
+   "instruments": false,
+   "leave_one_out": false,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": false,
+   "years": false
+  },
+  "signal": "trend_sign=high&vix_state=low",
+  "source_methodology": "Daniel & Moskowitz, Momentum crashes, J. Financial Economics 122 (2016); Moskowitz, Ooi & Pedersen, Time series momentum, J. Financial Economics 104 (2012) (Daniel & Moskowitz, Momentum crashes, J. Financial Economics 122 (2016); Moskowitz, Ooi & Pedersen, Time series momentum, JFE 104 (2012))",
+  "statistical_result": {
+   "beats_random": true,
+   "permutation_p": 0.005,
+   "t": -0.863,
+   "t_required": 3.312
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ },
+ {
+  "cost_assumptions": "standard D1 costs",
+  "data_sources": [
+   "Dukascopy bid/ask D1 bars (data/manifest.json)",
+   "Cboe Global Markets (VIX index, daily close)"
+  ],
+  "data_timestamp_availability": {
+   "vix": "the close of date d is public at 16:15 New York; taken as available at 16:45 New York on d (before the 17:00 New York close that ends our D1 bar)"
+  },
+  "direction": "SELL",
+  "economic_rationale": "the mirror of R2D-1",
+  "entry": "market order at the next D1 open after a close where the condition holds; one position per instrument at a time",
+  "evidence_quality": "A",
+  "exit": "D4",
+  "failure_reason": [
+   "significance",
+   "beats_random",
+   "years",
+   "instruments",
+   "outliers"
+  ],
+  "family_rationale": "a pre-registered CONDITIONAL hypothesis that explains why the unconditional rule failed (crash states); not a re-run of CP-001, whose sign rule and period differ",
+  "features": [
+   "trend_sign",
+   "vix_state"
+  ],
+  "hypothesis_id": "R2D-2",
+  "instruments": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "EURGBP",
+   "EURJPY",
+   "GBPJPY",
+   "EURCHF",
+   "AUDJPY"
+  ],
+  "library_method": "SL-MOMENTUM-CRASH",
+  "out_of_sample_result": {
+   "gross_R": 0.1724,
+   "n": 581,
+   "net_R": 0.07709,
+   "net_R_by_cost": {
+    "higher": 0.029,
+    "lower": 0.0852,
+    "normal": 0.0771,
+    "standard_swap": 0.0771
+   },
+   "p_direction_correct": 0.5232
+  },
+  "research_family": "R2D: Regime-conditioned time-series momentum",
+  "risk": "sized by the Risk Engine only; the hypothesis carries no size",
+  "robustness": {
+   "costs_stress": true,
+   "delay_stress": true,
+   "instruments": false,
+   "leave_one_out": true,
+   "outliers": false,
+   "perturbation": true,
+   "regimes": true,
+   "years": false
+  },
+  "signal": "trend_sign=low&vix_state=low",
+  "source_methodology": "Daniel & Moskowitz, Momentum crashes, J. Financial Economics 122 (2016); Moskowitz, Ooi & Pedersen, Time series momentum, J. Financial Economics 104 (2012) (Daniel & Moskowitz (2016); Moskowitz et al. (2012))",
+  "statistical_result": {
+   "beats_random": false,
+   "permutation_p": 0.005,
+   "t": 0.854,
+   "t_required": 3.312
+  },
+  "status": "REJECTED",
+  "training_period": "2007-04-02 -> 2008-07-01 (regime medians only; states are fixed)",
+  "validation_period": "2008-07-11 -> 2017-01-01 (judged once, out of sample)"
+ }
+]

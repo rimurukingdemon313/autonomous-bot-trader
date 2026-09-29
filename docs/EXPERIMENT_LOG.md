@@ -131,3 +131,27 @@ the holdout's prior exposure is declared in the registry.
 | Costs | Standard D1 costs |
 | Result | **FAILED.** L −0.130R (n 203, t −2.13); S −0.112R (n 188, t −1.74). Every battery check failed |
 | Conclusion | No cross-sectional momentum on the majors after costs. The negative sign is not significant, and it is **not** turned into a reversal hypothesis: doing so after seeing it would be a selection the registry never counted |
+
+## Round 2: R2A–R2D (new information, conditional hypotheses)
+
+The plan is [ROUND2_PLAN.md](ROUND2_PLAN.md) and the data is described in
+[ROUND2_DATA_AUDIT.md](ROUND2_DATA_AUDIT.md). The full results are in
+[ROUND2_RESULTS.md](ROUND2_RESULTS.md) and the ledger in [ROUND2_LEDGER.md](ROUND2_LEDGER.md).
+
+Common to all four programs:
+
+| Field | Value |
+|---|---|
+| Periods | Fit 2007-04 to 2008-07 (regime medians only); judge 2008-07-11 to 2017-01-01 |
+| States | Fixed levels; nothing fitted |
+| Costs | Standard D1 costs, except R2A, where swap is not charged (declared) |
+
+| Program | Hypotheses | Threshold | Result |
+|---|---|---|---|
+| R2A: carry × risk regime (VIX, policy-rate signs) | 2 | t ≥ 3.279 | **FAILED.** −0.119R (n 263), −0.056R (n 475) |
+| R2B: US rate-differential change (Fed H.15) | 2 | t ≥ 3.291 | **FAILED.** −0.108R (n 396), −0.061R (n 381) |
+| R2C: oil → CAD (EIA Brent) | 2 | t ≥ 3.302 | **FAILED.** +0.047R (n 169, t 0.77), −0.088R (n 147) |
+| R2D: momentum × calm (VIX) | 2 | t ≥ 3.312 | **FAILED.** −0.040R (n 593), +0.077R (n 581, t 0.85; outliers) |
+
+Each program was preregistered and pushed before it ran; the commits are in the git history,
+"Preregister R2A" to "Preregister R2D". Round 2 made 8 tests: 0 validated, 0 promising.
