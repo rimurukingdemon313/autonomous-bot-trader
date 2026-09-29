@@ -59,7 +59,8 @@ from .labels import BUY, SELL, TEMPLATE_BY_KEY, CostModel, compute_labels
 from .models import MODEL_FAMILIES, MODELS_VERSION
 from .registry import Registry, RegistryError, Trial, Use, Verdict
 
-LAB_VERSION = "lab-1.0.0"
+#: 1.1.0: M15 decisions and higher-timeframe context features ("H4:er120"); knn_baseline flag.
+LAB_VERSION = "lab-1.1.0"
 EMBARGO_DAYS = 5
 PRODUCTION_ARTIFACTS = Path(__file__).resolve().parents[2] / "models" / "artifacts"
 SOURCES = ("human", "scan", "reflection", "lesson", "feature", "llm")
@@ -76,7 +77,7 @@ class LabError(RegistryError):
 class HypothesisSpace:
     universe: str
     symbols: tuple[str, ...]
-    timeframes: tuple[str, ...] = ("H1", "H4", "D1")
+    timeframes: tuple[str, ...] = ("M15", "H1", "H4", "D1")
     base_features: tuple[str, ...] = NAMES
     allow_candidate_features: bool = True
     models: tuple[str, ...] = tuple(MODEL_FAMILIES)
@@ -91,6 +92,11 @@ class HypothesisSpace:
             problems.append(f"timeframe {spec.timeframe} not declared")
         for f in spec.features:
             if f in self.base_features:
+                continue
+            ctx = context_feature(f)
+            if ctx is not None:  # "H1:er120" / "H4:ma_slope": a base feature on a closed higher-timeframe bar
+                if ctx[1] not in self.base_features or not _higher(ctx[0], spec.timeframe):
+                    problems.append(f"context feature {f}: needs a declared feature on a higher timeframe")
                 continue
             if not self.allow_candidate_features:
                 problems.append(f"feature {f} not declared")
@@ -137,6 +143,7 @@ class HypothesisSpec:
     compare_features: tuple[str, ...] | None = None  # feature hypothesis: the base set it must beat
     rules: PassRules = PassRules()
     seed: int = 7
+    knn_baseline: bool = True  # the k-NN comparison; impractical (quadratic) on M15-sized data
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
@@ -169,6 +176,21 @@ class HypothesisSpec:
         d["compare_features"] = tuple(d["compare_features"]) if d.get("compare_features") else None
         d["rules"] = PassRules(**d["rules"])
         return cls(**d)
+
+
+_TF_SECONDS = {"M15": 900, "H1": 3600, "H4": 14400, "D1": 86400}
+
+
+def context_feature(f: str) -> tuple[str, str] | None:
+    """("H4", "er120") for "H4:er120": a base feature read on the last CLOSED bar of a higher timeframe."""
+    if ":" not in f:
+        return None
+    tf, name = f.split(":", 1)
+    return (tf, name) if tf in _TF_SECONDS and name in INDEX else None
+
+
+def _higher(tf: str, decision_tf: str) -> bool:
+    return _TF_SECONDS.get(tf, 0) > _TF_SECONDS.get(decision_tf, 10 ** 9)
 
 
 def _epoch(d: date) -> int:
@@ -234,7 +256,7 @@ class ResearchLab:
         rnd = self._random_baseline(spec, data, main)
         result["random"] = rnd
         result["vs_random_welch_t"] = _welch(main["r"], rnd["r_all"])
-        if spec.model != "knn":
+        if spec.model != "knn" and spec.knn_baseline:
             knn = self._walk_forward(replace(spec, model="knn"), data, spec.features)
             result["knn_baseline"] = knn["stats"]
             result["vs_knn_welch_t"] = _welch(main["r"], knn["r"])
@@ -263,7 +285,8 @@ class ResearchLab:
 
     def _dataset(self, spec: HypothesisSpec, series: dict[str, BarSeries], costs: CostModel, delay: int) -> dict:
         cands = {f: candidate(f) for f in set(spec.features) | set(spec.compare_features or ())
-                 if f not in INDEX}
+                 if f not in INDEX and context_feature(f) is None}
+        ctx_feats = [f for f in set(spec.features) | set(spec.compare_features or ()) if context_feature(f)]
         out = {}
         for sym in spec.symbols:
             s = series[sym]
@@ -273,6 +296,18 @@ class ResearchLab:
             cols = {n: m[:, INDEX[n]] for n in NAMES}
             for f, c in cands.items():
                 cols[f] = c.column(m)
+            htf = {}
+            for f in ctx_feats:
+                tf, name = context_feature(f)
+                if tf not in htf:
+                    h = resample(s, tf, as_of=int(s.available_at[-1]))
+                    k = np.searchsorted(h.available_at, s.available_at, side="right") - 1  # last CLOSED bar
+                    htf[tf] = (compute_matrix(h), k)
+                hm, k = htf[tf]
+                col = np.full(len(s), np.nan)
+                ok = k >= 0
+                col[ok] = hm[k[ok], INDEX[name]]
+                cols[f] = col
             rows = np.arange(0, len(s), spec.every)
             lab = compute_labels(s, instruments.get(sym).pip, rows=rows, costs=costs, delay_bars=delay)
             out[sym] = {"cols": cols, "rows": rows, "t": s.available_at[rows], "labels": lab}

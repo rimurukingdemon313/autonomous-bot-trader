@@ -63,7 +63,8 @@ def main() -> int:
         print(json.dumps(lab.register(spec).to_json(), indent=1, default=str))
     else:
         spec = HypothesisSpec.from_json(lab.registry.get(a.trial).design["spec"])
-        series = {s: store.load(s, "H1") for s in spec.symbols}
+        base_tf = "M15" if spec.timeframe == "M15" else "H1"  # M15 cannot be built from H1: load it directly
+        series = {s: store.load(s, base_tf) for s in spec.symbols}
         res = lab.run(a.trial, series)
         out = ROOT / "research" / "results" / f"{a.trial}.json"
         out.write_text(json.dumps({k: v for k, v in res.items() if k != "random"} |

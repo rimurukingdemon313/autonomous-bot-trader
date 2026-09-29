@@ -1,0 +1,203 @@
+{
+ "trial": "WF-002",
+ "lab": "lab-1.0.0",
+ "spec": {
+  "id": "WF-002",
+  "statement": "Boosted stumps on the 23 production features predict net R of template T2: trading only where the walk-forward prediction is positive after costs has positive net expectancy.",
+  "source": "human",
+  "universe": "fx-majors",
+  "symbols": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "EURGBP",
+   "EURJPY",
+   "GBPJPY",
+   "EURCHF",
+   "AUDJPY"
+  ],
+  "timeframe": "H1",
+  "features": [
+   "r1",
+   "r6",
+   "r24",
+   "r120",
+   "er24",
+   "er120",
+   "dist_ma48",
+   "ma_slope",
+   "vol_ratio",
+   "rv_ratio",
+   "range_pos24",
+   "range_pos120",
+   "brk_hi120",
+   "brk_lo120",
+   "spread_rel",
+   "tick_activity",
+   "hour_sin",
+   "hour_cos",
+   "bar_body",
+   "smc_hi_dist",
+   "smc_lo_dist",
+   "smc_structure",
+   "smc_sweep"
+  ],
+  "model": "stumps",
+  "template": "T2",
+  "fit_start": "2007-04-01",
+  "judge_start": "2011-01-01",
+  "judge_end": "2017-01-01",
+  "threshold_r": 0.0,
+  "sides": [
+   1,
+   -1
+  ],
+  "every": 4,
+  "fold_days": 365,
+  "llm_cutoff": null,
+  "compare_features": null,
+  "rules": {
+   "min_trades": 200,
+   "beat_random_t": 2.0,
+   "min_positive_fold_share": 0.6,
+   "robustness_mean_positive": true
+  },
+  "seed": 7
+ },
+ "threshold_t": 3.197,
+ "system": {
+  "n": 1328,
+  "mean_R": -0.1257,
+  "t": -3.312,
+  "win_rate": 0.3148
+ },
+ "folds": [
+  {
+   "start": "2011-01-01",
+   "n": 663,
+   "mean_R": -0.1282
+  },
+  {
+   "start": "2012-01-01",
+   "n": 283,
+   "mean_R": -0.2081
+  },
+  {
+   "start": "2012-12-31",
+   "n": 198,
+   "mean_R": -0.1796
+  },
+  {
+   "start": "2013-12-31",
+   "n": 78,
+   "mean_R": 0.2127
+  },
+  {
+   "start": "2014-12-31",
+   "n": 75,
+   "mean_R": -0.1491
+  },
+  {
+   "start": "2015-12-31",
+   "n": 31,
+   "mean_R": 0.2292
+  },
+  {
+   "start": "2016-12-30",
+   "n": 0,
+   "mean_R": null
+  }
+ ],
+ "by_symbol": {
+  "EURUSD": {
+   "n": 247,
+   "mean_R": -0.0183
+  },
+  "GBPUSD": {
+   "n": 150,
+   "mean_R": -0.1133
+  },
+  "USDJPY": {
+   "n": 146,
+   "mean_R": -0.2331
+  },
+  "AUDUSD": {
+   "n": 155,
+   "mean_R": -0.0255
+  },
+  "USDCAD": {
+   "n": 63,
+   "mean_R": -0.0543
+  },
+  "USDCHF": {
+   "n": 79,
+   "mean_R": -0.1789
+  },
+  "NZDUSD": {
+   "n": 40,
+   "mean_R": 0.1757
+  },
+  "EURGBP": {
+   "n": 25,
+   "mean_R": -0.37
+  },
+  "EURJPY": {
+   "n": 209,
+   "mean_R": -0.2673
+  },
+  "GBPJPY": {
+   "n": 66,
+   "mean_R": -0.2419
+  },
+  "EURCHF": {
+   "n": 36,
+   "mean_R": 0.0344
+  },
+  "AUDJPY": {
+   "n": 112,
+   "mean_R": -0.1523
+  }
+ },
+ "vs_random_welch_t": 0.251,
+ "knn_baseline": {
+  "n": 22989,
+  "mean_R": -0.1084,
+  "t": -11.822,
+  "win_rate": 0.3218
+ },
+ "vs_knn_welch_t": -0.444,
+ "robustness": {
+  "costs_x1.5_slip_x2": {
+   "n": 267,
+   "mean_R": -0.0948,
+   "t": -1.12,
+   "win_rate": 0.3258
+  },
+  "one_bar_delay": {
+   "n": 1620,
+   "mean_R": -0.1059,
+   "t": -3.087,
+   "win_rate": 0.321
+  }
+ },
+ "verdict": "FAIL",
+ "checks": {
+  "mean_R_positive": false,
+  "t_above_registry_threshold": false,
+  "min_trades": true,
+  "beats_random": false,
+  "positive_fold_share": false,
+  "robust": false
+ },
+ "result_hash": "3ff1fc7cda83c47a",
+ "random": {
+  "n": 26560,
+  "mean_R": -0.1354,
+  "t": -15.967,
+  "win_rate": 0.3139
+ }
+}

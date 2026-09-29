@@ -20,6 +20,7 @@ from aitrader.features.store import INDEX
 from aitrader.llm.provider import LLMClient, LLMConfig
 from aitrader.research import features_lab as fl
 from aitrader.research.hypotheses import llm_drafts, proposals_from_reflection
+from aitrader.research.labels import CostModel
 from aitrader.research.lab import HypothesisSpace, HypothesisSpec, LabError, PassRules, ResearchLab
 from aitrader.research.models import MODEL_FAMILIES, fit_knn, fit_logistic, fit_ridge, fit_stumps
 from aitrader.research.registry import Holdout, Registry, Trial, Use
@@ -321,3 +322,34 @@ def test_boosted_stumps_learn_a_threshold_a_rare_category_and_ignore_missing_val
     again = fit_stumps(X, y)
     assert np.array_equal(again.predict(q), p) and json.dumps(m.to_json())  # deterministic, plain data
     assert "stumps" in MODEL_FAMILIES
+
+
+def test_a_context_feature_reads_only_the_last_closed_higher_timeframe_bar():
+    from aitrader.data.resample import resample
+    from aitrader.features.store import INDEX as IX
+    from aitrader.research.lab import context_feature
+    assert context_feature("H4:er120") == ("H4", "er120") and context_feature("r24") is None
+    assert context_feature("W1:er120") is None and context_feature("H4:nonsense") is None
+    rng = np.random.default_rng(2)
+    n = 4 * 24 * 60  # 60 days of M15
+    mid = 1.2 + np.cumsum(rng.normal(0, 0.0003, n))
+    o = np.concatenate(([mid[0]], mid[:-1]))
+    w = np.abs(rng.normal(0, 0.0002, n))
+    t0 = 1_262_563_200
+    s = BarSeries.from_columns("EURUSD", "M15", "t", open_time=t0 + 900 * np.arange(n), bid_open=o, ask_open=o + 1e-5,
+                               bid_high=np.maximum(o, mid) + w, ask_high=np.maximum(o, mid) + w + 1e-5,
+                               bid_low=np.minimum(o, mid) - w, ask_low=np.minimum(o, mid) - w + 1e-5, bid_close=mid,
+                               ask_close=mid + 1e-5, ticks=np.ones(n), spread_mean=np.full(n, 1e-5),
+                               spread_max=np.full(n, 1e-5))
+    lab = ResearchLab(Registry(Path("/dev/null")), HypothesisSpace("u", ("EURUSD",)), Path("/tmp/lab-art"))
+    spec = HypothesisSpec("C-1", "context", "human", "u", ("EURUSD",), "M15", ("r24", "H1:r24", "H4:er120"), "stumps",
+                          "T2", date(2010, 1, 1), date(2010, 2, 1), date(2010, 3, 1), every=1)
+    lab.space.check(spec)
+    cols = lab._dataset(spec, {"EURUSD": s}, CostModel(), 0)["EURUSD"]["cols"]
+    i = 5000  # a mid-bucket M15 row
+    part = s.take(slice(0, i + 1))
+    h4 = resample(part, "H4", as_of=int(part.available_at[-1]))  # only buckets closed by row i
+    from aitrader.features.store import compute_matrix as cm
+    assert cols["H4:er120"][i] == pytest.approx(cm(h4)[-1, IX["er120"]], nan_ok=True)
+    with pytest.raises(LabError):
+        lab.space.check(replace(spec, id="C-2", timeframe="H4", features=("H1:r24",)))  # not a HIGHER timeframe
