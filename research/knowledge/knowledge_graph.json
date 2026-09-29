@@ -347,8 +347,23 @@
   },
   {
    "from": "method:SL-XS-MOMENTUM",
-   "rel": "blocked_by",
-   "to": "gap:SL-XS-MOMENTUM"
+   "rel": "measured_by",
+   "to": "feature:xs_mom"
+  },
+  {
+   "from": "method:SL-XS-MOMENTUM",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-XS-MOMENTUM:xs_mom=high:BUY"
+  },
+  {
+   "from": "method:SL-XS-MOMENTUM",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-XS-MOMENTUM:xs_mom=low:SELL"
+  },
+  {
+   "from": "method:SL-XS-MOMENTUM",
+   "rel": "judged_by",
+   "to": "result:XS-001:SL-XS-MOMENTUM"
   },
   {
    "from": "source:Asness, Moskowitz & Pedersen, Value and momentum everywhere, J. Finance 68 (2013)",
@@ -902,7 +917,7 @@
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Cross-sectional currency momentum",
-   "status": "RESEARCHED"
+   "status": "REJECTED"
   },
   {
    "id": "source:Menkhoff, Sarno, Schmeling & Schrimpf, Currency momentum strategies, J. Financial Economics 106 (2012)",
@@ -917,10 +932,34 @@
    "text": "currencies that outperformed others keep outperforming for a while"
   },
   {
-   "id": "gap:SL-XS-MOMENTUM",
-   "kind": "gap",
-   "knowledge_class": "UNCERTAIN",
-   "reason": "a ranking portfolio across currencies; the engine judges per-instrument signals (planned: a portfolio study)"
+   "id": "feature:xs_mom",
+   "kind": "feature"
+  },
+  {
+   "condition": "xs_mom=high",
+   "exit": "D4",
+   "id": "hypothesis:SL-XS-MOMENTUM:xs_mom=high:BUY",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "BUY",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "xs_mom=low",
+   "exit": "D4",
+   "id": "hypothesis:SL-XS-MOMENTUM:xs_mom=low:SELL",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SELL",
+   "timeframe": "D1"
+  },
+  {
+   "hypothesis": "XS-001-L/S",
+   "id": "result:XS-001:SL-XS-MOMENTUM",
+   "kind": "result",
+   "summary": "the dollar legs of the seven majors (24-day rank, ~1-month hold): strongest BUY -0.13R (n 203, t -2.1), weakest SELL -0.11R (n 188, t -1.7); every battery check failed. The paper's effect lives mostly in minor currencies, absent here",
+   "trial": "XS-001",
+   "verdict": "REJECTED"
   },
   {
    "evidence_quality": "A",

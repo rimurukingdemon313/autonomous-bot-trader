@@ -75,6 +75,7 @@ The thresholds so far:
 | WF-003 | t ≥ 3.205 |
 | SL-001 | t ≥ 3.248 |
 | SL-002 | t ≥ 3.254 |
+| XS-001 | t ≥ 3.267 |
 
 The bar rises with every test. That is the point.
 

@@ -116,3 +116,15 @@ the holdout's prior exposure is declared in the registry.
 | Tests / threshold | 1; t ≥ 3.254 |
 | Result | **FAILED.** n 8,901, −0.105R, t −8.0 |
 | Conclusion | The documented effect is real in the literature but far smaller than an H1 trade's costs |
+
+## XS-001: cross-sectional currency momentum
+
+| Field | Value |
+|---|---|
+| Hypotheses | Menkhoff et al. (JFE 2012). Rank the 7 USD-pair currencies by their 24-day move against the dollar (the new causal primitive `xs_mom`). BUY the top tercile (XS-001-L), SELL the bottom (XS-001-S). D1, exit D4 |
+| Commits | Pre-registered `e01114f`; result in the commit that adds this entry |
+| Periods | Fit 2007-06 to 2013-07; judge 2013-07 to 2017-01 |
+| Tests / threshold | 2; t ≥ 3.267 |
+| Costs | Standard D1 costs |
+| Result | **FAILED.** L −0.130R (n 203, t −2.13); S −0.112R (n 188, t −1.74). Every battery check failed |
+| Conclusion | No cross-sectional momentum on the majors after costs. The negative sign is not significant, and it is **not** turned into a reversal hypothesis: doing so after seeing it would be a selection the registry never counted |

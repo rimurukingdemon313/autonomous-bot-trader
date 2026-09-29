@@ -46,10 +46,13 @@ def programs(reg: Registry):
         if e.get("event") == "DRAFT" and e["hypothesis"].get("program") in sl.PROGRAMS:
             h = {k: v for k, v in e["hypothesis"].items() if k in names}
             hs.append(Hypothesis(**{k: tuple(v) if isinstance(v, list) else v for k, v in h.items()}))
-    yield "CP-001", "D1", cp001.program(reg), cp001.hypotheses()
+    import xs001
+    yield "CP-001", "D1", cp001.program(reg), cp001.hypotheses(), ()
     for pid, tf in sl.PROGRAMS.items():
         mine = [h for h in hs if h.program == pid]
-        yield pid, tf, sl.program(reg, pid, mine), mine
+        yield pid, tf, sl.program(reg, pid, mine), mine, ()
+    if reg.status_of(xs001.PID) != "PENDING":
+        yield xs001.PID, "D1", xs001.program(reg), xs001.hypotheses(), ("xs_mom",)
 
 
 def main() -> int:
@@ -59,11 +62,11 @@ def main() -> int:
     out = {"version": FORENSICS_VERSION, "note": "descriptive; not a test and not a rule", "hypotheses": {}}
     cache = {}
     pooled: dict[str, list] = {}
-    for pid, tf, prog, hs in programs(reg):
-        if tf not in cache:
-            cache[tf] = load_universe(store, timeframe=tf)[0]
+    for pid, tf, prog, hs, extra in programs(reg):
+        if (tf, extra) not in cache:
+            cache[(tf, extra)] = load_universe(store, timeframe=tf, extra=extra)[0]
         d = prog.design
-        data = {s: cache[tf][s] for s in d.instruments}
+        data = {s: cache[(tf, extra)][s] for s in d.instruments}
         judged = {c["id"]: c for c in json.loads((R / "knowledge" / f"{pid}.json").read_text())["judged"]}
         groups = {f: g for f, g in d.groups}
         feats = sorted({f for h in hs for f in Condition.parse(h.condition).features})
@@ -88,7 +91,8 @@ def main() -> int:
             b = breakdown(res)
             pooled.setdefault(tf, []).extend(res)
             out["hypotheses"][h.id] = {"program": pid, "timeframe": tf, "side": h.side, "condition": h.condition,
-                                       "exit": h.exit, **b}
+                                       "exit": h.exit, "R_lost": round(-sum(x["r"] for x in res if x["cause"]), 3),
+                                       **b}
             print(h.id, b["trades"], b["mean_R"], {k: v["share_of_R_lost"] for k, v in b["causes"].items()})
     # pooled over every judged trade, per timeframe: where the R went
     out["pooled"] = {tf: breakdown(v) for tf, v in sorted(pooled.items())}

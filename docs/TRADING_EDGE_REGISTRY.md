@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 12 | DEGRADED 0 | RETIRED 0
+DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 14 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -31,6 +31,7 @@ DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 12 | DEGRADED 0 | RETIRED 0
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
 | WF-002 | FAIL | — | 1 | 0 | 3.197 |
+| XS-001 | FAILED | — | 2 | 0 | 3.267 |
 
 ## Edges
 
@@ -48,3 +49,5 @@ DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 12 | DEGRADED 0 | RETIRED 0
 | SL-001-06 | SELL | D1 | `range_contraction=low&r1=low` | D1 | 579 | -0.056 | -1.09 (3.25) | -0.103 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | SL-002-01 | SELL | H1 | `session=mid` | E3 | 8901 | -0.105 | -8.02 (3.25) | -0.153 | — | 1 | **REJECTED** | significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | WF-002 | BOTH | H1 | `stumps on 23 features, trade where predicted net R > 0.0` | template T2 | 1328 | -0.126 | -3.31 (3.20) | -0.095 | -0.126 | 23 | **REJECTED** | mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust |
+| XS-001-L | BUY | D1 | `xs_mom=high` | D4 | 203 | -0.130 | -2.13 (3.27) | -0.183 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
+| XS-001-S | SELL | D1 | `xs_mom=low` | D4 | 188 | -0.112 | -1.74 (3.27) | -0.157 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |

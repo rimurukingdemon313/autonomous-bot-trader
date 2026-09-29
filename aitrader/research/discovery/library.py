@@ -259,9 +259,15 @@ LIBRARY: tuple[Method, ...] = (
                sizing="equal-weight portfolios", winners="held", losers="rotated out",
                regime_change="weakens after high volatility", invalidation="rank change", stays_out="never",
                ignores="n/a"),
-           "any", "long the top-ranked currencies, short the bottom", "monthly", "portfolio", "monthly", "G10 FX", (),
-           untestable_because="a ranking portfolio across currencies; the engine judges per-instrument signals "
-                              "(planned: a portfolio study)"),
+           "any", "long the top-ranked currencies, short the bottom", "monthly", "portfolio", "monthly", "G10 FX",
+           ("xs_mom",),
+           tests=({"condition": "xs_mom=high", "side": "BUY", "exit": "D4", "timeframe": "D1"},
+            {"condition": "xs_mom=low", "side": "SELL", "exit": "D4", "timeframe": "D1"}),
+           status="REJECTED",
+           results=({"trial": "XS-001", "hypothesis": "XS-001-L/S", "verdict": "REJECTED",
+                     "summary": "the dollar legs of the seven majors (24-day rank, ~1-month hold): strongest BUY "
+                                "-0.13R (n 203, t -2.1), weakest SELL -0.11R (n 188, t -1.7); every battery check "
+                                "failed. The paper's effect lives mostly in minor currencies, absent here"},)),
     Method("SL-PPP-VALUE", "FX value (purchasing-power parity)", "macro / systematic",
            (Source("Asness, Moskowitz & Pedersen, Value and momentum everywhere, J. Finance 68 (2013)", "academic", "A"),),
            ("VALUE_PPP",), _dp(assumptions="exchange rates revert slowly to PPP", prefers="long horizons"),

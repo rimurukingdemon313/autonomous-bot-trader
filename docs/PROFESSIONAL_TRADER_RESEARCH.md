@@ -45,7 +45,7 @@ export` regenerates both.
 | Liquidity sweep (SMC/ICT) | teaching material only | D | smc_sweep cells; SWEEP_REVERSAL family in PR-001; archive tests | no FDR discovery; lost in PR-001 | REJECTED |
 | Regime switch (synthesis) | our synthesis of the continuation/reversal conflict | B | DP-001 cells er120 × r24 | every cell negative net | REJECTED |
 | Carry | Lustig & Verdelhan, AER 2007; Menkhoff et al., JF 2012 | A | not testable here | needs interest rates; FRED/BIS/ECB blocked | RESEARCHED |
-| Cross-sectional momentum | Menkhoff et al., JFE 2012 | A | not testable here | needs a ranking portfolio across many currencies | RESEARCHED |
+| Cross-sectional momentum | Menkhoff et al., JFE 2012 | A | XS-001: rank the 7 currencies by 24-day move against the dollar; BUY the strongest, SELL the weakest, hold ~1 month (D4) | strongest −0.13R (n 203, t −2.1); weakest −0.11R (n 188, t −1.7); every check failed | REJECTED (on the 7 majors; the paper's effect is mostly in minor currencies) |
 | PPP value | Asness, Moskowitz & Pedersen, JF 2013 | A | not testable here | needs CPI data | RESEARCHED |
 | Market making | Avellaneda & Stoikov, QF 2008 | B | not testable here | needs order-book data and limit-order latency; a retail account pays the spread instead of earning it | RESEARCHED |
 
@@ -132,6 +132,6 @@ Evidence the system does not have yet, in the order the library ranks it:
 
 1. **Interest-rate data** (carry, grade A) — needs a network policy that allows FRED/ECB/BIS or a
    manually committed rate file.
-2. **A wider universe** for cross-sectional momentum (grade A).
+2. **A wider universe** for cross-sectional momentum (grade A). XS-001 found nothing on the seven majors, as the paper's own finding (strongest in minor, costly currencies) would predict.
 3. **Prospective data**: every M15 decision the scanner records from now on is new, untouched
    evidence. A hypothesis frozen today can be judged on it without spending the holdout.

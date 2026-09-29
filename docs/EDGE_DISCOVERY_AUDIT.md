@@ -140,7 +140,8 @@ registry's multiple-testing threshold:
 - published time-series momentum and moving-average trend (CP-001);
 - Donchian breakout, trend pullback and narrow-range breakout, both sides (SL-001);
 - local-hours depreciation (SL-002);
-- a boosted-stumps model on the 23 production features, walked forward (WF-002).
+- a boosted-stumps model on the 23 production features, walked forward (WF-002);
+- cross-sectional currency momentum on the seven majors (XS-001).
 
 The complete list, with numbers, is in [TRADING_EDGE_REGISTRY.md](TRADING_EDGE_REGISTRY.md).
 
@@ -148,7 +149,7 @@ The complete list, with numbers, is in [TRADING_EDGE_REGISTRY.md](TRADING_EDGE_R
 
 - **Carry and PPP value.** They need interest-rate and price-level data. FRED, BIS and ECB
   are blocked by this environment's network policy.
-- **Cross-sectional momentum.** It needs a wider universe than 12 pairs.
+- **Cross-sectional momentum beyond the majors.** XS-001 tested it on the seven USD majors and rejected it (−0.13R and −0.11R). The minor currencies where the paper finds it are not in our data.
 - **Order flow, positioning and market making.** No data.
 
 These remain RESEARCHED in the strategy library, not REJECTED.

@@ -76,7 +76,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-PULLBACK",
    "principles": [
-    "BREAKOUT",
+    "TREND_CONTINUATION",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -85,7 +85,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-RANGE-REVERSION",
    "principles": [
-    "BREAKOUT",
+    "TREND_CONTINUATION",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -94,7 +94,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-SMC-SWEEP",
    "principles": [
-    "BREAKOUT",
+    "TREND_CONTINUATION",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -103,7 +103,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-REGIME-SWITCH",
    "principles": [
-    "BREAKOUT",
+    "TREND_CONTINUATION",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -140,7 +140,7 @@
    "b": "SL-SMC-SWEEP",
    "principles": [
     "BREAKOUT",
-    "SHORT_TERM_REVERSAL"
+    "LIQUIDITY_SWEEP"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
   },
@@ -800,14 +800,23 @@
    "entry_logic": "long the top-ranked currencies, short the bottom",
    "evidence_quality": "A",
    "exit_logic": "monthly",
-   "features": [],
+   "features": [
+    "xs_mom"
+   ],
    "instruments": "G10 FX",
    "market_conditions": "any",
    "name": "Cross-sectional currency momentum",
    "principles": [
     "CROSS_SECTIONAL_MOMENTUM"
    ],
-   "results": [],
+   "results": [
+    {
+     "hypothesis": "XS-001-L/S",
+     "summary": "the dollar legs of the seven majors (24-day rank, ~1-month hold): strongest BUY -0.13R (n 203, t -2.1), weakest SELL -0.11R (n 188, t -1.7); every battery check failed. The paper's effect lives mostly in minor currencies, absent here",
+     "trial": "XS-001",
+     "verdict": "REJECTED"
+    }
+   ],
    "risk_logic": "portfolio",
    "school": "systematic",
    "sources": [
@@ -818,11 +827,24 @@
      "verification": "cited from prior knowledge; not re-opened in this project"
     }
    ],
-   "status": "RESEARCHED",
+   "status": "REJECTED",
    "strategy_id": "SL-XS-MOMENTUM",
-   "tests": [],
+   "tests": [
+    {
+     "condition": "xs_mom=high",
+     "exit": "D4",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "xs_mom=low",
+     "exit": "D4",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
    "timeframe": "monthly",
-   "untestable_because": "a ranking portfolio across currencies; the engine judges per-instrument signals (planned: a portfolio study)"
+   "untestable_because": null
   },
   {
    "decision_process": {
