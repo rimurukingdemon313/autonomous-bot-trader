@@ -30,10 +30,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from statistics import NormalDist
 
-EDGE_ENGINE_VERSION = "edge-engine-1.0.0"
+#: 1.1.0: the result carries `answers` (the twelve questions). Decisions are unchanged.
+EDGE_ENGINE_VERSION = "edge-engine-1.1.0"
 PROMOTED_PATH = Path(__file__).resolve().parents[2] / "models" / "artifacts" / "promoted_edges.json"
 USABLE = ("PAPER_TEST", "DEMO_TEST", "LIVE_APPROVED")
 TIMEFRAMES = ("M15", "H1", "H4")
+REGIME_FEATURES = ("er120", "vol_ratio", "ma_slope", "range_pos120")  # reported as measured, never labelled
 
 
 class EdgeFileError(ValueError):
@@ -129,6 +131,40 @@ def setup_id(edge_id: str, symbol: str, t: int, side: str) -> str:
     return hashlib.sha256(json.dumps([edge_id, symbol, int(t), side]).encode()).hexdigest()[:20]
 
 
+def _answers(result: dict, edges: list[PromotedEdge], symbol: str, frames: dict) -> dict:
+    """The twelve questions, answered from the result and the edges' own evidence only."""
+    mine = [e for e in edges if symbol in e.instruments]
+    cands = result.get("candidates", [])
+    viable = [c for c in cands if c["score_R"] > 0]
+    best = {side: max((c for c in viable if c["side"] == side), key=lambda c: c["score_R"], default=None)
+            for side in ("BUY", "SELL")}
+    matched_ids = {c["edge_id"] for c in cands}
+    principles = sorted({p for e in mine if e.edge_id in matched_ids for p in e.evidence.get("principles", [])})
+    chosen = result.get("chosen")
+    regime = {tf: {k: (frames.get(tf) or {}).get(k) for k in REGIME_FEATURES} for tf in ("H4", "H1")}
+    conflict = ([{"buy": best["BUY"]["edge_id"], "sell": best["SELL"]["edge_id"],
+                  "resolved_by": "the higher conservative expected value"}] if best["BUY"] and best["SELL"] else [])
+    return {
+        "1_regime": {"measured": regime, "note": "raw higher-timeframe values; a regime label is only as good as "
+                                                "the thresholds an edge was tested with"},
+        "2_principles_that_apply": principles or None,
+        "3_principles_in_conflict": conflict,
+        "4_relevant_edges": [e.edge_id for e in mine] or None,
+        "5_validated_buy": best["BUY"]["edge_id"] if best["BUY"] else None,
+        "6_validated_sell": best["SELL"]["edge_id"] if best["SELL"] else None,
+        "7_expected_value_after_costs_R": chosen["score_R"] if chosen else None,
+        "8_entry": chosen["entry"] if chosen else None,
+        "9_invalidation": ({"stop": chosen["stop"], "max_hold_minutes": chosen["max_hold_minutes"]} if chosen
+                           else None),
+        "10_exit_model": ({"stop_atr": next(e.stop_atr for e in mine if e.edge_id == chosen["edge_id"]),
+                           "target_atr": next(e.target_atr for e in mine if e.edge_id == chosen["edge_id"]),
+                           "tested_in": chosen["trial"]} if chosen else None),
+        "11_current_risk": "decided by the Risk Engine (size, exposure, daily and drawdown limits); not here",
+        "12_recently_degraded": {e.edge_id: e.health for e in mine} or None,
+        "decision": result["decision"],
+    }
+
+
 def evaluate(edges: list[PromotedEdge], symbol: str, t: int, frames: dict, bid: float | None, ask: float | None,
              atr: float | None, cost_r_now_per_atr: float | None, open_symbols: set[str] = frozenset(),
              decided_setups: set[str] = frozenset()) -> dict:
@@ -136,7 +172,8 @@ def evaluate(edges: list[PromotedEdge], symbol: str, t: int, frames: dict, bid: 
     report = {"version": EDGE_ENGINE_VERSION, "symbol": symbol, "t": int(t), "checked": [], "candidates": []}
 
     def abstain(reason: str) -> dict:
-        return {"decision": "ABSTAIN", "reason": reason, **report}
+        out = {"decision": "ABSTAIN", "reason": reason, **report}
+        return out | {"answers": _answers(out, edges, symbol, frames)}
 
     if bid is None or ask is None or not atr or not math.isfinite(atr) or atr <= 0:
         return abstain("no live quote or ATR: nothing can be priced")
@@ -182,6 +219,7 @@ def evaluate(edges: list[PromotedEdge], symbol: str, t: int, frames: dict, bid: 
             return abstain("no promoted edges exist: the research has not validated one")
         return abstain("no promoted edge both matches now and keeps a positive expected value after today's costs")
     best = max(viable, key=lambda c: (c["score_R"], c["oos_n"]))
-    return {"decision": best["side"], "reason": f"edge {best['edge_id']}: expected {best['score_R']:+.4f}R after costs "
-                                                f"(conservative: tested mean minus one standard error)",
-            "chosen": best, **report}
+    out = {"decision": best["side"], "reason": f"edge {best['edge_id']}: expected {best['score_R']:+.4f}R after costs "
+                                               f"(conservative: tested mean minus one standard error)",
+           "chosen": best, **report}
+    return out | {"answers": _answers(out, edges, symbol, frames)}

@@ -1,0 +1,169 @@
+"""The trading-edge registry: every hypothesis the research has judged, as one edge record each.
+
+Built from the committed evidence only — the confirmatory and discovery artifacts in
+research/knowledge and the walk-forward results in research/results — so it cannot say more
+than the evidence does. A field the evidence does not contain is None, never a plausible
+number (CLAUDE.md rule 6).
+
+Status lifecycle (transitions outside this table are refused):
+
+    DISCOVERED -> VALIDATING -> VALIDATED -> DEGRADED -> RETIRED
+         \\             \\            \\_________________^
+          \\             \\-> REJECTED
+           \\-> REJECTED
+
+REJECTED and RETIRED are final: a rejected idea returns only as a NEW hypothesis with a new id,
+charged against the registry like any other test. A registry record is research evidence, not a
+promotion: only a person writes models/artifacts/promoted_edges.json, and never a size.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import asdict, dataclass, replace
+from pathlib import Path
+
+EDGES_VERSION = "edges-1.0.0"
+STATUSES = ("DISCOVERED", "VALIDATING", "VALIDATED", "REJECTED", "DEGRADED", "RETIRED")
+TRANSITIONS = {
+    "DISCOVERED": ("VALIDATING", "REJECTED"),
+    "VALIDATING": ("VALIDATED", "REJECTED"),
+    "VALIDATED": ("DEGRADED", "RETIRED"),
+    "DEGRADED": ("VALIDATED", "RETIRED"),
+    "REJECTED": (),
+    "RETIRED": (),
+}
+_DIR = {"BUY": "BUY", "SELL": "SELL", 1: "BUY", -1: "SELL"}
+
+
+class TransitionError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class EdgeRecord:
+    edge_id: str
+    program: str
+    direction: str  # BUY | SELL | BOTH (a model trading either side)
+    instrument: tuple[str, ...]
+    timeframe: str | None
+    market_regime: dict | None  # measured per-regime means, not a claim about when it works
+    entry_conditions: str
+    exit_conditions: str
+    sample_size: int | None
+    gross_expectancy: float | None
+    net_expectancy: float | None
+    t_stat: float | None
+    t_required: float | None
+    profit_factor: float | None
+    drawdown: float | None
+    out_of_sample_expectancy: float | None
+    walk_forward_expectancy: float | None
+    cost_sensitivity: float | None  # net mean R with costs x1.5 and slippage x2
+    complexity: int  # number of conditions (a model counts its feature count)
+    stability: dict | None  # per-year or per-fold means
+    status: str
+    failed_checks: tuple[str, ...]
+    source: str
+
+    def __post_init__(self):
+        if self.status not in STATUSES:
+            raise ValueError(f"unknown status {self.status!r}")
+
+
+def transition(rec: EdgeRecord, new: str) -> EdgeRecord:
+    if new not in TRANSITIONS.get(rec.status, ()):
+        raise TransitionError(f"{rec.edge_id}: {rec.status} -> {new} is not allowed")
+    return replace(rec, status=new)
+
+
+def _r(x, nd=4):
+    return None if x is None else round(float(x), nd)
+
+
+def from_confirmatory(art: dict, drafts: dict[str, dict] | None = None) -> list[EdgeRecord]:
+    """Each judged hypothesis of a confirmatory (or discovery) artifact. Judged on a segment
+    nothing was fitted on, so the judged mean IS the out-of-sample expectancy."""
+    out = []
+    validated = set(art.get("validated") or [])
+    for c in art.get("judged") or []:
+        ch = c["battery"]["checks"]
+        sig = ch.get("significance", {})
+        n = ch.get("min_trades", {}).get("n")
+        ok = c["id"] in validated
+        yrs = ch.get("years", {}).get("by_year")
+        h = (drafts or {}).get(c["id"], {})
+        out.append(EdgeRecord(
+            edge_id=c["id"], program=art["program"], direction=_DIR.get(c.get("side"), "BOTH"),
+            instrument=tuple(h.get("instruments") or ()), timeframe=h.get("timeframe"),
+            market_regime=(ch.get("regimes") or {}).get("cells"),
+            entry_conditions=c.get("condition") or c.get("kind", "?"), exit_conditions=c.get("exit") or "?",
+            sample_size=n, gross_expectancy=None, net_expectancy=_r(sig.get("mean_R")), t_stat=_r(sig.get("t"), 3),
+            t_required=_r(sig.get("threshold"), 3), profit_factor=None, drawdown=None,
+            out_of_sample_expectancy=_r(sig.get("mean_R")), walk_forward_expectancy=None,
+            cost_sensitivity=_r(ch.get("costs_stress", {}).get("mean_R")),
+            complexity=len((c.get("condition") or "").split("&")) if c.get("condition") else 0,
+            stability={"by_year": yrs} if yrs else None, status="VALIDATED" if ok else "REJECTED",
+            failed_checks=tuple(c["battery"].get("failed", [])), source=f"research/knowledge/{art['program']}.json"))
+    return out
+
+
+def from_walk_forward(res: dict) -> EdgeRecord:
+    """A walk-forward lab result: the pooled out-of-fold trades ARE the walk-forward expectancy."""
+    spec, sysm = res["spec"], res["system"]
+    rob = res.get("robustness", {}).get("costs_x1.5_slip_x2", {})
+    return EdgeRecord(
+        edge_id=res["trial"], program=res["trial"],
+        direction="BOTH" if len(spec.get("sides", [])) == 2 else _DIR.get(spec["sides"][0], "BOTH"),
+        instrument=tuple(spec["symbols"]), timeframe=spec["timeframe"], market_regime=None,
+        entry_conditions=f"{spec['model']} on {len(spec['features'])} features, trade where predicted net R > "
+                         f"{spec['threshold_r']}", exit_conditions=f"template {spec['template']}",
+        sample_size=sysm.get("n"), gross_expectancy=None, net_expectancy=_r(sysm.get("mean_R")),
+        t_stat=_r(sysm.get("t"), 3), t_required=_r(res.get("threshold_t"), 3), profit_factor=None, drawdown=None,
+        out_of_sample_expectancy=_r(sysm.get("mean_R")), walk_forward_expectancy=_r(sysm.get("mean_R")),
+        cost_sensitivity=_r(rob.get("mean_R")), complexity=len(spec["features"]),
+        stability={"folds": {f["start"]: f["mean_R"] for f in res.get("folds", [])}},
+        status="VALIDATED" if res.get("verdict") == "PASS" else "REJECTED",
+        failed_checks=tuple(k for k, v in (res.get("checks") or {}).items() if not v),
+        source=f"research/results/{res['trial']}.json")
+
+
+def build(root: Path | str) -> dict:
+    """The registry from what is committed under research/. Deterministic: sorted by edge id."""
+    root = Path(root)
+    drafts = {}
+    for line in (root / "discovery" / "ledger.jsonl").read_text().splitlines():
+        d = json.loads(line)
+        if d.get("event") == "DRAFT":
+            drafts[d["hypothesis"]["id"]] = d["hypothesis"]
+    edges: list[EdgeRecord] = []
+    programs = {}
+    for p in sorted((root / "knowledge").glob("*.json")):
+        try:
+            art = json.loads(p.read_text())
+        except ValueError:
+            continue
+        if isinstance(art, dict) and "screen" in art and "program" in art and "judged" not in art:
+            # a discovery program whose screen found nothing never produced an edge to record;
+            # its size is still recorded, because every cell it tested was charged
+            programs[art["program"]] = {"verdict": "FAILED" if not art.get("validated") else "PASS",
+                                        "screened": art["screen"].get("tests"),
+                                        "discoveries": art["screen"].get("discoveries"), "judged": 0,
+                                        "validated": list(art.get("validated") or []),
+                                        "threshold_t": art.get("threshold_t")}
+            continue
+        if not isinstance(art, dict) or "program" not in art or "judged" not in art:
+            continue
+        recs = from_confirmatory(art, drafts)
+        edges += recs
+        programs[art["program"]] = {"verdict": art.get("verdict") or ("PASS" if art.get("validated") else "FAIL"),
+                                    "judged": len(art["judged"]), "validated": list(art.get("validated") or []),
+                                    "threshold_t": art.get("threshold_t")}
+    for p in sorted((root / "results").glob("WF-*.json")):
+        res = json.loads(p.read_text())
+        edges.append(from_walk_forward(res))
+        programs[res["trial"]] = {"verdict": res["verdict"], "judged": 1, "threshold_t": res.get("threshold_t")}
+    edges.sort(key=lambda e: e.edge_id)
+    counts = {s: sum(1 for e in edges if e.status == s) for s in STATUSES}
+    return {"version": EDGES_VERSION, "counts": counts, "programs": programs,
+            "edges": [asdict(e) for e in edges]}

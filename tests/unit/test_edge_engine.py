@@ -108,3 +108,25 @@ def test_an_edge_decision_is_sized_and_approved_only_by_the_risk_engine():
                                      SPEC, Quote("EURUSD", BID, ASK, T), T).approved
     nt = edge_decision(Ctx, {"x": 1}, [])
     assert nt.decision == "NO_TRADE" and nt.no_trade_reason.startswith("ABSTAIN")
+
+
+def test_every_result_answers_the_twelve_questions_without_inventing_an_answer():
+    buy = edge("B", "BUY", mean=0.20, evidence={"principles": ["TREND_CONTINUATION"]})
+    sell = edge("S", "SELL", mean=0.30, evidence={"principles": ["SHORT_TERM_REVERSAL"]})
+    res = evaluate([buy, sell], "EURUSD", T, FRAMES, BID, ASK, ATR, None)
+    a = res["answers"]
+    assert len([k for k in a if k[0].isdigit()]) == 12 and a["decision"] == res["decision"] == "SELL"
+    assert a["1_regime"]["measured"]["H4"]["er120"] == 0.7 and a["1_regime"]["measured"]["H4"]["vol_ratio"] is None
+    assert a["2_principles_that_apply"] == ["SHORT_TERM_REVERSAL", "TREND_CONTINUATION"]
+    assert a["3_principles_in_conflict"][0] == {"buy": "B", "sell": "S", "resolved_by": "the higher conservative "
+                                                                                          "expected value"}
+    assert (a["5_validated_buy"], a["6_validated_sell"]) == ("B", "S")
+    assert a["7_expected_value_after_costs_R"] == res["chosen"]["score_R"] and a["8_entry"] == BID
+    assert a["10_exit_model"]["stop_atr"] == 1.5 and "Risk Engine" in a["11_current_risk"]
+    # nothing promoted: every evidence answer is None, not a guess, and the decision is ABSTAIN
+    none = evaluate([], "EURUSD", T, FRAMES, BID, ASK, ATR, None)["answers"]
+    assert none["decision"] == "ABSTAIN"
+    assert all(none[k] is None for k in ("2_principles_that_apply", "4_relevant_edges", "5_validated_buy",
+                                         "6_validated_sell", "7_expected_value_after_costs_R", "8_entry",
+                                         "9_invalidation", "10_exit_model", "12_recently_degraded"))
+
