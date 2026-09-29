@@ -13,8 +13,13 @@ would be undeclared configurations.
 - `knn`      the analogue method as a family: mean R of the k nearest
              training rows. It is the current system's estimator and serves
              as the baseline the other families must beat.
+- `stumps`   gradient-boosted decision stumps (squared error): an additive
+             model of one-feature steps. It captures thresholds and
+             non-monotone effects the linear families cannot, and stays
+             readable ("when feature j is below c, add v"); depth 1 means no
+             interactions, which keeps its capacity to curve-fit small.
 
-Not implemented: tree/boosting, time-series (ARIMA/GARCH) and Bayesian
+Not implemented: deeper trees, time-series (ARIMA/GARCH) and Bayesian
 families. `MODEL_FAMILIES` is the plug-in point; a new family is a new
 declared entry, and it is counted like any other choice.
 """
@@ -25,7 +30,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-MODELS_VERSION = "models-1.0.0"
+#: 1.1.0: the `stumps` family (the others are unchanged).
+MODELS_VERSION = "models-1.1.0"
 
 
 @dataclass
@@ -122,4 +128,67 @@ def fit_knn(X: np.ndarray, y: np.ndarray, k: int = 100) -> Fitted:
     return Fitted("knn", {"k": kk, "mean": st.mean, "std": st.std, "n_train": len(Z)}, predict)
 
 
-MODEL_FAMILIES = {"ridge": fit_ridge, "logistic": fit_logistic, "knn": fit_knn}
+def fit_stumps(X: np.ndarray, y: np.ndarray, rounds: int = 150, shrink: float = 0.1, bins: int = 16,
+               min_leaf: int = 200) -> Fitted:
+    """Boosted stumps with FIXED hyper-parameters. A missing input is replaced by that feature's
+    training median (stored in the artifact), never by zero; split candidates are the interior
+    `bins`-quantiles of the training data (or the midpoints between values, for a feature with
+    at most `bins` distinct values), so the fit is deterministic."""
+    X, y = np.asarray(X, float), np.asarray(y, float)
+    keep = np.isfinite(y)
+    X, y = X[keep], y[keep]
+    n, p = X.shape
+    with np.errstate(all="ignore"):
+        med = np.nanmedian(X, axis=0) if n else np.zeros(p)
+    med = np.where(np.isfinite(med), med, 0.0)
+    Xf = np.where(np.isnan(X), med, X)
+    qs = np.linspace(0, 1, bins + 1)[1:-1]
+
+    def candidates(x):
+        u = np.unique(x)
+        if len(u) <= bins:  # a feature with few values (a category, a count): split between every pair
+            return (u[:-1] + u[1:]) / 2
+        return np.unique(np.quantile(x, qs))
+
+    cuts = [candidates(Xf[:, j]) if n else np.zeros(0) for j in range(p)]
+    codes = [np.searchsorted(cuts[j], Xf[:, j], side="right") for j in range(p)]
+    base = float(y.mean()) if n else 0.0
+    pred = np.full(n, base)
+    stumps: list[tuple[int, float, float, float]] = []
+    for _ in range(rounds):
+        resid = y - pred
+        best = None
+        for j in range(p):
+            k = len(cuts[j])
+            if k == 0:
+                continue
+            s = np.bincount(codes[j], weights=resid, minlength=k + 1)
+            c = np.bincount(codes[j], minlength=k + 1).astype(float)
+            cs, cc = np.cumsum(s)[:-1], np.cumsum(c)[:-1]  # left = x < cuts[b]
+            rs, rc = s.sum() - cs, c.sum() - cc
+            valid = (cc >= min_leaf) & (rc >= min_leaf)
+            if not valid.any():
+                continue
+            with np.errstate(divide="ignore", invalid="ignore"):
+                gain = np.where(valid, cs ** 2 / cc + rs ** 2 / rc, -np.inf)
+            b = int(np.argmax(gain))
+            if best is None or gain[b] > best[0]:
+                best = (float(gain[b]), j, b, float(cs[b] / cc[b]), float(rs[b] / rc[b]))
+        if best is None:
+            break
+        _, j, b, lv, rv = best
+        pred += shrink * np.where(codes[j] <= b, lv, rv)
+        stumps.append((j, float(cuts[j][b]), shrink * lv, shrink * rv))
+
+    def predict(Xn):
+        Xn = np.where(np.isnan(Xn), med, Xn)
+        out = np.full(len(Xn), base)
+        for j, thr, lv, rv in stumps:
+            out += np.where(Xn[:, j] < thr, lv, rv)
+        return out
+
+    return Fitted("stumps", {"rounds": rounds, "shrink": shrink, "bins": bins, "min_leaf": min_leaf, "base": base,
+                             "median": med, "stumps": [list(t) for t in stumps]}, predict)
+
+
+MODEL_FAMILIES = {"ridge": fit_ridge, "logistic": fit_logistic, "knn": fit_knn, "stumps": fit_stumps}

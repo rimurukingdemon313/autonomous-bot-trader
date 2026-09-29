@@ -21,7 +21,7 @@ from aitrader.llm.provider import LLMClient, LLMConfig
 from aitrader.research import features_lab as fl
 from aitrader.research.hypotheses import llm_drafts, proposals_from_reflection
 from aitrader.research.lab import HypothesisSpace, HypothesisSpec, LabError, PassRules, ResearchLab
-from aitrader.research.models import fit_knn, fit_logistic, fit_ridge
+from aitrader.research.models import MODEL_FAMILIES, fit_knn, fit_logistic, fit_ridge, fit_stumps
 from aitrader.research.registry import Holdout, Registry, Trial, Use
 
 SYMS = ("EURUSD", "GBPUSD")
@@ -303,3 +303,21 @@ def test_the_scan_counts_only_non_overlapping_outcomes(tmp_path, walk):
                   if datetime(2009, 1, 5, tzinfo=timezone.utc).timestamp() <= x < datetime(2009, 5, 1, tzinfo=timezone.utc).timestamp())
     n = res["observations"][0]["n"]
     assert n < decided / 2  # T2 outcomes last far longer than the 4-bar spacing: most rows overlap and are dropped
+
+
+def test_boosted_stumps_learn_a_threshold_a_rare_category_and_ignore_missing_values():
+    rng = np.random.default_rng(4)
+    n = 20_000
+    X = rng.normal(size=(n, 3))
+    X[:, 2] = rng.integers(0, 2, n)
+    X[rng.random(n) < 0.03, 2] = 2.0  # a rare third value: quantile cuts alone would never isolate it
+    y = np.where(X[:, 0] > 0.8, 0.5, 0.0) + np.where(X[:, 2] == 2.0, 1.0, 0.0) + rng.normal(0, 1, n)
+    X[rng.random((n, 3)) < 0.02] = np.nan
+    m = fit_stumps(X, y)
+    q = np.array([[1.5, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 0.0, 2.0], [0.0, 0.0, 1.0], [np.nan, np.nan, np.nan]])
+    p = m.predict(q)
+    assert p[0] - p[1] == pytest.approx(0.5, abs=0.15) and p[2] - p[3] == pytest.approx(1.0, abs=0.2)
+    assert np.isfinite(p[4])  # a missing input takes the training median, it does not break the prediction
+    again = fit_stumps(X, y)
+    assert np.array_equal(again.predict(q), p) and json.dumps(m.to_json())  # deterministic, plain data
+    assert "stumps" in MODEL_FAMILIES
