@@ -138,3 +138,14 @@ def test_a_rate_file_that_disagrees_with_published_values_is_refused():
     good = {("AUD", "POLICY"): step("AUD", [(date(2008, 6, 4), 7.25)])}
     wrong = {("AUD", "POLICY"): step("AUD", [(date(2008, 6, 4), 7.0)])}
     assert round3.validate(good) == [] and round3.validate(wrong)
+
+
+def test_a_publishers_gap_is_a_gap_not_the_last_value_carried_across_it():
+    # the BoJ had no policy RATE under QQE (2013-04 -> 2016-09): BIS publishes nothing for those days
+    raw = (b"FREQ,REF_AREA,TIME_PERIOD,OBS_VALUE\nD,JP,2013-04-01,0.05\nD,JP,2013-04-02,0.05\n"
+           b"D,JP,2013-04-03,0.05\nD,JP,2016-09-21,-0.10\n")
+    jp = parse_bis_cbpol(raw)["JPY"]
+    got = jp.asof([utc(2013, 4, 5, 22), utc(2013, 4, 11, 23), utc(2015, 6, 1), utc(2016, 9, 21, 22)])
+    assert got[0] == 0.05 and np.isnan(got[1]) and np.isnan(got[2]) and got[3] == -0.10
+    cov = coverage({("JPY", "POLICY"): jp}, date(2013, 1, 1), date(2016, 12, 31))
+    assert cov["JPY"]["status"] == "UNAVAILABLE"  # not covered over the period: its pairs are excluded

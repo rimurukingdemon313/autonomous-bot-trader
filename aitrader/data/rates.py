@@ -72,14 +72,19 @@ class RateSeries:
     value: np.ndarray  # percent per year
     available_at: np.ndarray  # epoch seconds, non-decreasing
     published: np.ndarray | None = None  # epoch seconds when known, else None
+    max_stale_days: float | None = None  # an observation older than this is NOT carried forward
 
     def asof(self, t) -> np.ndarray:
         """The rate in force and public at each time in t: the last observation public by then (a step,
-        never an interpolation); NaN before the first."""
+        never an interpolation); NaN before the first, and NaN when the last observation is older than
+        `max_stale_days` -- a publisher's gap (e.g. the BoJ had no policy RATE under QQE, 2013-2016, and
+        BIS publishes none) is a gap, never the last value carried across it."""
         t = np.asarray(t, np.int64)
         k = np.searchsorted(self.available_at, t, side="right") - 1
         out = np.full(len(t), np.nan)
         ok = k >= 0
+        if self.max_stale_days is not None:
+            ok[ok] &= (t[ok] - self.available_at[k[ok]]) <= self.max_stale_days * 86400
         out[ok] = self.value[k[ok]]
         return out
 
@@ -91,15 +96,20 @@ class RateSeries:
         keep = self.available_at <= t
         pub = self.published[keep] if self.published is not None else None
         return RateSeries(self.currency, self.rate_type, self.source, self.revision, self.effective[keep],
-                          self.value[keep], self.available_at[keep], pub)
+                          self.value[keep], self.available_at[keep], pub, self.max_stale_days)
 
 
-def _series(currency, rate_type, source, revision, rows) -> RateSeries:
+#: a daily series is expected every business day (weekends and holidays: <= 7 days); a monthly one
+#: every month (<= 40 days). Beyond that the publisher has no value, and neither do we.
+STALE_DAYS = {"D": 7.0, "M": 40.0}
+
+
+def _series(currency, rate_type, source, revision, rows, max_stale_days=None) -> RateSeries:
     rows = sorted({d: v for d, v in rows}.items())
     eff = np.array([int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp()) for d, _ in rows], np.int64)
     val = np.array([v for _, v in rows], float)
     av = np.array([available_at(rate_type, d) for d, _ in rows], np.int64)
-    return RateSeries(currency, rate_type, source, revision, eff, val, av)
+    return RateSeries(currency, rate_type, source, revision, eff, val, av, None, max_stale_days)
 
 
 def _float(x: str) -> float | None:
@@ -113,9 +123,10 @@ def _float(x: str) -> float | None:
 def parse_bis_cbpol(raw: bytes) -> dict[str, RateSeries]:
     """BIS central-bank policy rates (WS_CBPOL), flat CSV. Policy rates are not revised."""
     rows: dict[str, list] = {}
-    records = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
     freq = lambda r: (r.get("FREQ") or r.get("FREQ:Frequency") or "").split(":")[0].strip()  # noqa: E731
     area_of = lambda r: (r.get("REF_AREA") or r.get("REF_AREA:Reference area") or "").split(":")[0].strip()  # noqa: E731
+    # streamed: the official file holds every country; only the universe's areas are kept
+    records = [r for r in csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))) if area_of(r) in BIS_AREA]
     # the official file carries daily AND monthly rows for the same area: when an area has daily rows,
     # only those are used, so two frequencies of one series are never mixed
     daily_areas = {area_of(r) for r in records if freq(r) == "D"}
@@ -134,8 +145,9 @@ def parse_bis_cbpol(raw: bytes) -> dict[str, RateSeries]:
         else:
             d = date.fromisoformat(tp[:10])
         rows.setdefault(ccy, []).append((d, v))
-    return {c: _series(c, "POLICY", "BIS WS_CBPOL (central-bank policy rates)", "not revised", r)
-            for c, r in rows.items()}
+    return {c: _series(c, "POLICY", "BIS WS_CBPOL (central-bank policy rates)", "not revised", r,
+                       STALE_DAYS["D"] if any(a == c for a in (BIS_AREA.get(x) for x in daily_areas)) else
+                       STALE_DAYS["M"]) for c, r in rows.items()}
 
 
 def parse_fred(raw: bytes, currency: str, rate_type: str, series_id: str) -> RateSeries:
@@ -158,7 +170,7 @@ def parse_euribor(raw: bytes) -> RateSeries:
         if v is not None and r.get("date"):
             rows.append((date.fromisoformat(r["date"][:10]), v))
     return _series("EUR", "INTERBANK_3M", "EMMI Euribor 3M (monthly: first-business-day fixing), via datahub.io",
-                   "not revised", rows)
+                   "not revised", rows, STALE_DAYS["M"])
 
 
 PARSERS = {"bis_cbpol": parse_bis_cbpol, "euribor": parse_euribor}
@@ -215,8 +227,9 @@ def coverage(series: dict[tuple[str, str], RateSeries], start: date, end: date) 
             max_gap = float(gaps.max())
             types[rt] = {"first": datetime.fromtimestamp(int(s.effective[0]), timezone.utc).date().isoformat(),
                          "last": datetime.fromtimestamp(int(s.effective[-1]), timezone.utc).date().isoformat(),
-                         "observations": int(len(s.value)), "covers_period": bool(first_ok and (
-                             rt == "POLICY" or max_gap <= 40)), "max_gap_days": round(max_gap, 1),
+                         "observations": int(len(s.value)), "covers_period": bool(
+                             first_ok and max_gap <= (s.max_stale_days or 40.0)), "max_gap_days": round(max_gap, 1),
+                         "max_stale_days": s.max_stale_days,
                          "source": s.source, "revision": s.revision}
         out[c] = {"status": "AVAILABLE" if any(v["covers_period"] for v in types.values()) else "UNAVAILABLE",
                   "types": types}

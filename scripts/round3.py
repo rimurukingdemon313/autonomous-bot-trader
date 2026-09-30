@@ -23,6 +23,8 @@ from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -173,8 +175,131 @@ def main() -> int:
     if len(pairs) < MIN_PAIRS:
         raise SystemExit(f"Round 3 cannot run: {len(pairs)} pair(s) have {SPEC['rate_type']} rates for both "
                          f"currencies ({pairs}); the frozen design needs {MIN_PAIRS}. Nothing is substituted.")
-    raise SystemExit("coverage is sufficient: implement the draft/preregister/run steps against the frozen spec "
-                     "(scripts/round2.py is the template) and commit before running")
+    return execute(a.cmd, holdout, pairs)
+
+
+# ── execution of the frozen design (added once the data existed; the design itself is unchanged) ──────
+
+def _condition_features(cond: str) -> tuple[str, ...]:
+    return tuple(p.split("=")[0] for p in cond.split("&"))
+
+
+def components(holdout, pairs):
+    """Everything the frozen design needs, bound to the data: rates, primitives, records, program."""
+    import round2
+    from functools import partial
+
+    from aitrader.data.instruments import UNIVERSE_KEY
+    from aitrader.research.discovery.battery import BatteryRules
+    from aitrader.research.discovery.carry import CARRY_VERSION, GROUPS3, CarryStudy, rate_primitives
+    from aitrader.research.discovery.catalog import FeatureCatalog, FeatureRecord
+    from aitrader.research.discovery.confirm import ConfirmatoryProgram, ConfirmDesign
+    from aitrader.research.discovery.hypothesis import Hypothesis, Ledger
+    from aitrader.research.discovery.macro import macro_primitives, macro_records
+    from aitrader.research.discovery.study import Segment
+    from aitrader.research.labels import CostModel
+
+    rates = RateStore(ROOT / "data" / "rates", holdout).load()
+    vix = round2.external(holdout)["vix"]
+    rate_prims = rate_primitives(rates, SPEC["rate_type"])
+    feats = sorted({f for h in SPEC["hypotheses"] for f in _condition_features(h["condition"])})
+    prims = {f: (rate_prims[f] if f in rate_prims else macro_primitives({"vix": vix})[f]) for f in feats}
+    records = {}
+    for f in feats:
+        if f in rate_prims:
+            p = rate_prims[f]
+            records[f] = FeatureRecord(
+                f"{f}.D1", f"on D1 bars: {p.definition}", p.dimension, "categorical", "D1", p.requires,
+                f"aitrader/research/discovery/carry.py ({CARRY_VERSION}); research only", CARRY_VERSION,
+                "policy rates as public at the bar close (aitrader/data/rates.py: announced by 17:00 New York on "
+                "the effective date; a step, never interpolated; a publisher's gap stays a gap); fixed levels",
+                "does interest-rate information predict the pair's direction?", "R3")
+        else:
+            records[f] = macro_records("R3", {f: prims[f]})[f]
+    rules = BatteryRules(t_threshold=1.0)
+    costs = CostModel(slippage_pips=SPEC["costs"]["slippage_pips"], commission_pips_rt=SPEC["costs"]["commission_pips_rt"],
+                      swap_atr_per_night=0.0)
+    design = ConfirmDesign(
+        "R3", SPEC["title"], SPEC["question"], UNIVERSE_KEY, tuple(pairs), tuple(h["id"] for h in SPEC["hypotheses"]),
+        Segment("fit", "fit", date.fromisoformat(SPEC["fit"][0]), date.fromisoformat(SPEC["fit"][1])),
+        Segment("confirmation", "judge", date.fromisoformat(SPEC["judge"][0]), date.fromisoformat(SPEC["judge"][1])),
+        rules, holdout.start, groups=tuple((f, GROUPS3) for f in feats), costs=costs, min_embargo_days=10,
+        lookback_start=date(2007, 3, 30))
+    reg = Registry.load(R / "registry.jsonl", holdout)
+    if any(t.id == "R3" for t in reg.trials):
+        thr = reg.get("R3").design["confirmatory_program"]["rules"]["t_threshold"]
+    else:
+        thr = reg.threshold_for_next(design.universe, design.judge.start, design.judge.end,
+                                     new_tests=len(design.hypotheses))
+    design = replace(design, rules=replace(design.rules, t_threshold=thr))
+    factory = partial(CarryStudy, rates=rates, rate_type=SPEC["rate_type"],
+                      markup_pct=SPEC["costs"]["financing_markup_pct_per_year"])
+    prog = ConfirmatoryProgram(design, reg, Ledger(R / "discovery" / "ledger.jsonl"),
+                               FeatureCatalog(R / "discovery" / "features.jsonl"), R / "knowledge",
+                               lambda: datetime.now(timezone.utc), study_factory=factory)
+    falsify = tuple(f"{k}: {v}" for k, v in rules.describe().items() if k != "significance")
+    hyps = [Hypothesis(
+        id=h["id"], statement=h["claim"],
+        rationale=f"{h['rationale']}. Frozen design research/specs/R3.json (sha256 {spec_sha256()}). Carry: "
+                  f"{SPEC['costs']['carry']}; financing markup {SPEC['costs']['financing_markup_pct_per_year']}%/yr.",
+        mechanism=h["rationale"], features=tuple(records[f].id for f in _condition_features(h["condition"])),
+        condition=h["condition"], side=h["side"], instruments=tuple(pairs), timeframe="D1", exit="D4",
+        expected_effect="mean net R per trade (spot + carry proxy - financing - costs) > 0 on 2008-07 .. 2017-01",
+        falsification=falsify, budget=1, origin="human", program="R3", evidence={"round": 3})
+        for h in SPEC["hypotheses"]]
+    return rates, prims, records, prog, hyps, factory
+
+
+def rate_leaks(name, series, rates, rows) -> list[int]:
+    """Rows whose value changes when every rate series is cut at that row's decision time."""
+    from aitrader.research.discovery.carry import rate_primitives
+    full = rate_primitives(rates, SPEC["rate_type"])[name].column(series, None, {})
+    bad = []
+    for i in rows:
+        t = int(series.available_at[int(i)])
+        cut = {k: v.truncated(t) for k, v in rates.items()}
+        v = rate_primitives(cut, SPEC["rate_type"])[name].column(series, None, {})[int(i)]
+        if not ((np.isnan(v) and np.isnan(full[int(i)])) or v == full[int(i)]):
+            bad.append(int(i))
+    return bad
+
+
+def execute(cmd: str, holdout, pairs) -> int:
+    from aitrader.data.store import DataStore
+    from aitrader.research.discovery.universe import load_universe
+    rates, prims, records, prog, hyps, _ = components(holdout, pairs)
+    store = DataStore(ROOT / "data" / "processed", holdout)
+    now = datetime.now(timezone.utc)
+    doc = "research/preregistrations/R3-round3.md"
+    if cmd == "draft":
+        cat = prog.catalog
+        if cat.budget("R3")[1] == 0:
+            cat.open_program("R3", len(records), now)
+        for name, rec in records.items():
+            rec = cat.register(rec, now)
+            if cat.leakage_status(rec.id) == "PASSED":
+                continue
+            bad, n = [], 0
+            for sym in pairs:
+                ser = store.load(sym, "D1")
+                rows = list(range(300, len(ser), max(1, (len(ser) - 300) // 12)))
+                bad += rate_leaks(name, ser, rates, rows)
+                n += len(rows)
+            print(name, cat.record_leakage(rec.id, bad, n, list(pairs), now), f"{n} rows")
+        for h in hyps:
+            prog.ledger.draft(h, now)
+        print("drafted", [h.id for h in hyps])
+    elif cmd == "preregister":
+        t = prog.preregister(ROOT / doc, doc)
+        print(f"registered {t.id}: {t.tests} tests, t >= {prog.design.rules.t_threshold:.4f}, pairs {list(pairs)}")
+    else:
+        data, hashes = load_universe(store, symbols=tuple(pairs), timeframe="D1", bound=tuple(prims.values()))
+        art = prog.run(data, hashes)
+        print(json.dumps({"verdict": art["verdict"], "judged": [
+            {"id": c["id"], "n": c["battery"]["checks"]["min_trades"]["n"],
+             "mean_R": c["battery"]["checks"]["significance"]["mean_R"], "t": c["battery"]["checks"]["significance"]["t"],
+             "failed": c["battery"]["failed"], "board": c["board"]["verdict"]} for c in art["judged"]]}, indent=1))
+    return 0
 
 
 if __name__ == "__main__":
