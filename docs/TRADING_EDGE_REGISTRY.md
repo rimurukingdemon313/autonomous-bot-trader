@@ -32,7 +32,7 @@ RESEARCH 0 | HYPOTHESIS 8 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R2B | FAILED | — | 2 | 0 | 3.291 |
 | R2C | FAILED | — | 2 | 0 | 3.301 |
 | R2D | FAILED | — | 2 | 0 | 3.312 |
-| R3 | NOT RUN (data unavailable) | — | 0 | 0 | — |
+| R3 | BLOCKED (policy-rate data unavailable) | — | 0 | 0 | — |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
 | WF-001 | FAIL | — | 1 | 0 | 3.189 |

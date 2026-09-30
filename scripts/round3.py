@@ -108,8 +108,40 @@ def frozen() -> dict:
     return stored["spec"]
 
 
+#: published policy rates in force on these dates (single-value targets only; the Fed and the SNB set
+#: ranges, whose BIS representation is checked for plausibility instead). A file that disagrees is refused.
+KNOWN_POLICY = (("AUD", "2008-07-01", 7.25), ("NZD", "2008-07-01", 8.25), ("EUR", "2012-01-02", 1.00),
+                ("GBP", "2010-01-04", 0.50), ("JPY", "2010-01-04", 0.10), ("CAD", "2010-01-04", 0.25))
+PLAUSIBLE = (("USD", "2012-01-03", 0.0, 0.25), ("CHF", "2012-01-03", 0.0, 0.25))
+
+
+def validate(rates: dict) -> list[str]:
+    """Known published values and plausibility ranges; the list of failures (empty = passed)."""
+    bad = []
+
+    def at(ccy, day):
+        s = rates.get((ccy, "POLICY"))
+        if s is None:
+            return None
+        t = int(datetime.fromisoformat(day).replace(hour=23, tzinfo=timezone.utc).timestamp())
+        return float(s.asof([t])[0])
+
+    for ccy, day, want in KNOWN_POLICY:
+        got = at(ccy, day)
+        if got is not None and abs(got - want) > 0.005:
+            bad.append(f"{ccy} {day}: file {got} vs published {want}")
+    for ccy, day, lo, hi in PLAUSIBLE:
+        got = at(ccy, day)
+        if got is not None and not lo <= got <= hi:
+            bad.append(f"{ccy} {day}: file {got} outside [{lo}, {hi}]")
+    return bad
+
+
 def gate(holdout) -> tuple[list[str], dict]:
     rates = RateStore(ROOT / "data" / "rates", holdout).load()
+    failures = validate(rates)
+    if failures:
+        raise SystemExit("the rate file fails validation against published values: " + "; ".join(failures))
     j0, j1 = (date.fromisoformat(x) for x in SPEC["judge"])
     cov = coverage(rates, date.fromisoformat(SPEC["fit"][0]), j1)
     ok = {c for c, v in cov.items() if v["types"].get(SPEC["rate_type"], {}).get("covers_period")}

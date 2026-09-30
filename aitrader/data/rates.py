@@ -113,8 +113,16 @@ def _float(x: str) -> float | None:
 def parse_bis_cbpol(raw: bytes) -> dict[str, RateSeries]:
     """BIS central-bank policy rates (WS_CBPOL), flat CSV. Policy rates are not revised."""
     rows: dict[str, list] = {}
-    for r in csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))):
-        area = (r.get("REF_AREA") or r.get("REF_AREA:Reference area") or "").split(":")[0].strip()
+    records = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
+    freq = lambda r: (r.get("FREQ") or r.get("FREQ:Frequency") or "").split(":")[0].strip()  # noqa: E731
+    area_of = lambda r: (r.get("REF_AREA") or r.get("REF_AREA:Reference area") or "").split(":")[0].strip()  # noqa: E731
+    # the official file carries daily AND monthly rows for the same area: when an area has daily rows,
+    # only those are used, so two frequencies of one series are never mixed
+    daily_areas = {area_of(r) for r in records if freq(r) == "D"}
+    for r in records:
+        area = area_of(r)
+        if area in daily_areas and freq(r) not in ("D", ""):
+            continue
         ccy = BIS_AREA.get(area)
         tp, v = (r.get("TIME_PERIOD") or r.get("TIME_PERIOD:Time period or range") or "").strip(), \
             _float(r.get("OBS_VALUE") or r.get("OBS_VALUE:Observation Value"))

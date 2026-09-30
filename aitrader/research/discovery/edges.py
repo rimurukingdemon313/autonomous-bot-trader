@@ -202,7 +202,7 @@ def build(root: Path | str) -> dict:
                 complexity=len(h["condition"].split("&")), stability=None, status="HYPOTHESIS",
                 failed_checks=("not run: policy-rate data unavailable (scripts/round3.py status)",),
                 source="research/specs/R3.json"))
-        programs["R3"] = {"verdict": "NOT RUN (data unavailable)", "judged": 0, "threshold_t": None}
+        programs["R3"] = {"verdict": "BLOCKED (policy-rate data unavailable)", "judged": 0, "threshold_t": None}
     edges.sort(key=lambda e: e.edge_id)
     counts = {s: sum(1 for e in edges if e.status == s) for s in STATUSES}
     return {"version": EDGES_VERSION, "counts": counts, "programs": programs,

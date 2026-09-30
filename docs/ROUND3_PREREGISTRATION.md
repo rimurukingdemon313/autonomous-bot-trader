@@ -1,6 +1,6 @@
 # Round 3: genuine FX carry and interest-rate information
 
-**Status: the design is frozen, and it did not run because the data does not exist here.**
+**Status: BLOCKED (2026-09-30).** The policy-rate data it needs is unavailable in this environment. The design is frozen and unchanged.
 
 - VALIDATED = 0.
 - Round 3 tests run: 0.
@@ -123,3 +123,34 @@ Either of these, then `python scripts/round3.py status`:
 With 6 or more covered pairs, Round 3 is registered, with its threshold frozen from the
 registry at that moment. It is then committed, run once, and reported with gross, carry, spot,
 costs, financing and net R, the direction accuracy, and all robustness checks.
+
+## 5. Data access attempt, 2026-09-30: BLOCKED
+
+| Host | Request | Result |
+|---|---|---|
+| `stats.bis.org` | WS_CBPOL, daily, 8 areas (SDMX v2 CSV) | 403 from the egress proxy (`connect_rejected`, organisation policy) |
+| `data.bis.org` | the WS_CBPOL bulk flat CSV | 403 (`connect_rejected`) |
+| `fred.stlouisfed.org` | DFF | 403 (`connect_rejected`) |
+| `data-api.ecb.europa.eu` | ECB MRO, daily | 403 (`connect_rejected`) |
+
+The proxy documentation says not to retry or route around policy denials, so none was retried.
+
+Reachable mirrors were checked once for the exact WS_CBPOL dataset:
+
+- **datahub.io core packages on GitHub.** No policy-rate package exists; 9 candidate names all
+  returned 404.
+- **PyPI.** Its search is behind a JavaScript challenge. The SDMX packages there (`sdmx1`,
+  `pandasdmx`) are clients that fetch from `stats.bis.org`. They bundle no data.
+
+No trustworthy source of the exact dataset is reachable. **Round 3 is BLOCKED.**
+
+Nothing was substituted, and no synthetic rate exists in the data path. The only rate file
+present is Euribor 3M; it is used for no pair.
+
+Two changes were made to the data layer, neither touching the frozen design:
+
+- **The BIS parser.** The official file carries daily and monthly rows for the same area; the
+  parser keeps only the daily rows.
+- **`round3.py`.** It now validates a supplied file against published single-value policy
+  rates, plus plausibility ranges for the Fed and SNB target ranges. A file that fails is
+  refused.

@@ -120,3 +120,21 @@ def test_a_carry_trade_splits_into_spot_carry_and_financing_and_the_battery_sees
     assert (o["carry"][ok] > 0).all() and (o["financing"][ok] > 0).all()  # long EUR earns; the broker's markup costs
     tr = st.trades(st.masks(Condition.parse("A=high")), "D4", BUY)
     assert tr.n > 0 and np.isfinite(tr.r).all()
+
+
+def test_the_official_bis_file_keeps_daily_rows_and_never_mixes_them_with_monthly_ones():
+    raw = (b"FREQ,REF_AREA,TIME_PERIOD,OBS_VALUE\nD,AU,2008-07-01,7.25\nM,AU,2008-06,7.25\nM,AU,2008-07,7.25\n"
+           b"D,AU,2008-08-01,7.25\nM,CA,2008-06,3.00\n")
+    got = parse_bis_cbpol(raw)
+    assert list(got["AUD"].effective) == [utc(2008, 7, 1), utc(2008, 8, 1)]  # monthly AU rows dropped
+    assert got["CAD"].effective[0] == utc(2008, 7, 1)  # an area with monthly rows only keeps them
+
+
+def test_a_rate_file_that_disagrees_with_published_values_is_refused():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+    import round3
+    good = {("AUD", "POLICY"): step("AUD", [(date(2008, 6, 4), 7.25)])}
+    wrong = {("AUD", "POLICY"): step("AUD", [(date(2008, 6, 4), 7.0)])}
+    assert round3.validate(good) == [] and round3.validate(wrong)
