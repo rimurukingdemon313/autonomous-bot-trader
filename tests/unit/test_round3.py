@@ -42,7 +42,8 @@ def test_round3_is_in_the_registry_as_unrun_hypotheses_and_repeats_no_earlier_id
     assert len(r3) == len(round3.SPEC["hypotheses"])
     judged = (ROOT / "research" / "knowledge" / "R3.json").exists()
     assert all(e["status"] in (("VALIDATED", "PROMISING", "REJECTED") if judged else ("HYPOTHESIS",)) for e in r3)
-    earlier = {h.condition for h in Ledger(ROOT / "research" / "discovery" / "ledger.jsonl").hypotheses()}
+    earlier = {h.condition for h in Ledger(ROOT / "research" / "discovery" / "ledger.jsonl").hypotheses()
+               if h.program != "R3"}  # Round 1 and Round 2 only: Round 3's own drafts are not "earlier"
     assert len(earlier) >= 20  # Round 1 and Round 2 drafts are all there
     for h in round3.SPEC["hypotheses"]:
         assert "rate_" in h["condition"] or "policy_move" in h["condition"]  # every one uses the differential
