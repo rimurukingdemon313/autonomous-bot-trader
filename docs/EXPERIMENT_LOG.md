@@ -167,3 +167,16 @@ Each program was preregistered and pushed before it ran; the commits are in the 
 | Costs | Spread, 0.1 pip slippage, 0.7 pip commission. Swap replaced by the RATE-DIFFERENTIAL CARRY PROXY and a 0.5% a year financing markup |
 | Result | **FAILED.** All 8 REJECTED. The best, R3-E, is +0.007R (t 0.10). Carry long: −0.083R, with +0.045R of carry and −0.101R of gross spot |
 | Conclusion | Interest-rate information did not improve direction (P 40–47%). Carry income is real, but smaller than the spot losses on the majors, 2008–2016. See [ROUND3_RESULTS.md](ROUND3_RESULTS.md) |
+
+## R4: directional information from outside the FX pair
+
+| Field | Value |
+|---|---|
+| Hypotheses | 5, each requiring the pair NOT to have already moved: gold → AUD catch-up (×2), a VIX spike → safe-haven catch-up, US inflation acceleration → USD (×2) |
+| Data | Dukascopy gold, Cboe VIX, BLS CPI-U (unrevised). COT, consensus surprises and decision surprises are DATA-BLOCKED ([ROUND4_AUDIT.md](ROUND4_AUDIT.md)) |
+| Periods | Judged 2008-07-11 → 2017-01-01 (gold from 2011-05) |
+| Tests / threshold | 5; t ≥ 3.372 |
+| Costs | Standard D1 |
+| Result | **FAILED.** All 5 REJECTED. The best, GOLD-A, is +0.015R (t 0.16): +0.10R over its price-only control, but negative at neighbouring thresholds and without its best trade |
+| Defect | The program judged R4-XA-VIX-A on 11 pairs instead of its 5 registered pairs. It was fixed in confirm-1.1.0; on the registered pairs the result is −0.134R, t −2.07, still rejected (`research/knowledge/corrections.json`) |
+| Conclusion | No outside source tested here adds directional information to FX after costs. See [ROUND4_RESULTS.md](ROUND4_RESULTS.md) |

@@ -33,7 +33,8 @@ from dataclasses import asdict, dataclass, field
 
 #: 1.1.0: Round 2 methods (risk-regime carry, forward premium, commodity currencies, momentum crashes) and
 #: labelled claims per method
-LIBRARY_VERSION = "library-1.1.0"
+#: 1.2.0: Round 4 methods (positioning, news surprises, safe havens, gold/AUD, Taylor-rule inflation)
+LIBRARY_VERSION = "library-1.2.0"
 STATUSES = ("RESEARCHED", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED", "DEGRADED", "RETIRED")
 #: every claim a method record makes is labelled with how much we actually know
 CLAIM_LABELS = ("DOCUMENTED FACT", "INFERRED PRINCIPLE", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED",
@@ -60,6 +61,10 @@ PRINCIPLES = {
     "FORWARD_PREMIUM": "a currency whose relative interest rate rose tends to appreciate, not depreciate as UIP says",
     "COMMODITY_CURRENCY": "a commodity exporter's currency moves with the price of its main export",
     "MOMENTUM_CRASH": "momentum strategies lose most in panic states and sharp rebounds; calm states are safer",
+    "POSITIONING": "crowded speculative positioning precedes reversals (or: position changes carry information)",
+    "NEWS_SURPRISE": "the unexpected part of a macro release moves the currency",
+    "SAFE_HAVEN": "in risk-off episodes investors buy the safe-haven currencies (JPY, CHF)",
+    "TAYLOR_RULE": "inflation and output gaps predict policy, and so the currency, through expected rates",
 }
 
 
@@ -415,6 +420,106 @@ LIBRARY: tuple[Method, ...] = (
                    ("REJECTED", "restricting FX momentum to VIX < 20 produces a net edge on either side (R2D)"),
                    ("UNCERTAIN", "the SELL side of FX trend: positive but insignificant in four separate tests "
                                  "(CP-001-T2, CP-001-T4, SL-001-02, R2D-2), each dominated by one episode"))),
+    Method("SL-POSITIONING", "Speculative positioning (CFTC Commitments of Traders)", "positioning / sentiment",
+           (Source("Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, "
+                   "FRBNY Economic Policy Review 10 (2004)", "institutional", "B"),
+            Source("Tornell & Yuan, Speculation and hedging in the currency futures markets: are they informative to "
+                   "the spot exchange rates?, J. Futures Markets 32 (2012)", "academic", "B")),
+           ("POSITIONING",),
+           _dp(assumptions="speculators' net futures positions reveal flows; extremes mark crowded trades; "
+                           "information used: weekly CFTC positions (Tuesday data, released Friday)",
+               direction="against extremes (reversal) or with changes (flow)", entry="after the Friday release",
+               stop="not documented", target="not documented", sizing="not documented", winners="n/a", losers="n/a",
+               regime_change="extremes can persist in strong trends", invalidation="positions unwinding",
+               stays_out="no extreme", ignores="n/a", prefers="liquid CME currency futures", avoids="n/a"),
+           "crowded positioning", "fade the extreme / follow the change", "weeks", "n/a", "weekly", "CME FX futures", (),
+           untestable_because="DATA-BLOCKED: cftc.gov, publicreporting.cftc.gov, Quandl and Nasdaq Data Link are "
+                              "refused by the network policy; no mirror; not approximated",
+           claims=(("DOCUMENTED FACT", "weekly changes in speculators' net positions move WITH the exchange rate in the "
+                                       "same week (Klitgaard & Weir 2004)"),
+                   ("DOCUMENTED FACT", "positioning extremes have been reported to precede reversals (Tornell & Yuan "
+                                       "2012), on pre-2012 data"),
+                   ("UNCERTAIN", "whether positioning PREDICTS direction on our pairs: untested, data unavailable"))),
+    Method("SL-NEWS-SURPRISE", "Macro announcement surprises", "event / macro",
+           (Source("Andersen, Bollerslev, Diebold & Vega, Micro effects of macro announcements: real-time price "
+                   "discovery in foreign exchange, American Economic Review 93 (2003)", "academic", "A"),),
+           ("NEWS_SURPRISE",),
+           _dp(assumptions="only the surprise (actual minus consensus) is news; information used: historical "
+                           "consensus forecasts and first-release values",
+               direction="with the surprise", entry="documented: within minutes of the release", stop="n/a",
+               target="n/a", sizing="n/a", winners="n/a", losers="n/a", regime_change="the response is state-dependent",
+               invalidation="n/a", stays_out="n/a", ignores="n/a", prefers="US releases", avoids="n/a"),
+           "release times", "the surprise's direction", "minutes", "n/a", "intraday", "G10 FX", (),
+           untestable_because="DATA-BLOCKED: historical consensus is proprietary (Bloomberg/Reuters) and the calendar "
+                              "sites are refused; revised values would leak; nothing is reconstructed",
+           claims=(("DOCUMENTED FACT", "surprises move FX within minutes, and the adjustment is fast (Andersen et al. "
+                                       "2003)"),
+                   ("INFERRED PRINCIPLE", "a fast, complete response leaves little for a daily-bar system after costs"),
+                   ("UNCERTAIN", "any multi-day drift after surprises on our pairs: untested, data unavailable"))),
+    Method("SL-SAFE-HAVEN", "Safe-haven currencies after risk shocks", "macro / risk",
+           (Source("Ranaldo & Soederlind, Safe haven currencies, Review of Finance 14 (2010)", "academic", "A"),
+            Source("Habib & Stracca, Getting beyond carry trade: what makes a safe haven currency?, J. International "
+                   "Economics 87 (2012)", "academic", "A")),
+           ("SAFE_HAVEN", "RISK_REGIME"),
+           _dp(assumptions="in risk-off, investors repatriate and buy JPY and CHF; information used: equity "
+                           "implied volatility (VIX)",
+               direction="long JPY/CHF after a risk shock", entry="after the shock", stop="n/a", target="n/a",
+               sizing="n/a", winners="n/a", losers="n/a", regime_change="policy intervention (SNB floor, BoJ QQE)",
+               invalidation="risk appetite returning", stays_out="calm markets", ignores="n/a",
+               prefers="acute shocks", avoids="n/a"),
+           "risk shocks", "buy the haven that has not yet moved", "a week", "fixed", "D1", "JPY/CHF pairs",
+           ("vix_jump", "own5"),
+           tests=({"condition": "vix_jump=high&own5=high", "side": "SELL", "exit": "D3", "timeframe": "D1"},),
+           status="REJECTED",
+           results=({"trial": "R4", "hypothesis": "R4-XA-VIX-A", "verdict": "REJECTED",
+                     "summary": "registered 5 pairs: -0.134R (n 156, t -2.07, P(direction) 53%); the formal run judged "
+                                "11 pairs by an engine defect (fixed; research/knowledge/corrections.json), also "
+                                "rejected"},),
+           claims=(("DOCUMENTED FACT", "JPY and CHF appreciate CONTEMPORANEOUSLY with risk shocks (Ranaldo & "
+                                       "Soederlind 2010)"),
+                   ("REJECTED", "a haven that has not yet moved catches up in the week after a >= 20% VIX jump "
+                                "(R4-XA-VIX-A)"))),
+    Method("SL-GOLD-AUD", "Gold leading the Australian dollar", "cross-asset",
+           (Source("Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003)", "academic", "A"),
+            Source("Chen, Rogoff & Rossi, Can exchange rates forecast commodity prices?, Quarterly J. Economics 125 "
+                   "(2010)", "academic", "A")),
+           ("COMMODITY_CURRENCY",),
+           _dp(assumptions="gold is a large Australian export; information used: the gold price",
+               direction="with gold, when AUD has not followed", entry="after a 2% 5-day gold move", stop="n/a",
+               target="n/a", sizing="n/a", winners="n/a", losers="n/a", regime_change="n/a", invalidation="n/a",
+               stays_out="n/a", ignores="n/a", prefers="n/a", avoids="n/a"),
+           "gold moves", "buy (sell) AUD after gold rose (fell) and AUD did not", "a week", "fixed", "D1", "AUD pairs",
+           ("gold_pull", "own5"),
+           tests=({"condition": "gold_pull=high&own5=low", "side": "BUY", "exit": "D3", "timeframe": "D1"},
+                  {"condition": "gold_pull=low&own5=high", "side": "SELL", "exit": "D3", "timeframe": "D1"}),
+           status="REJECTED",
+           results=({"trial": "R4", "hypothesis": "R4-XA-GOLD-A/B", "verdict": "REJECTED",
+                     "summary": "BUY +0.015R (n 102, t 0.16; +0.10R better than its price-only control, but negative "
+                                "at 1.5% and 2.5% gold thresholds and without its best trade); SELL -0.163R (n 84)"},),
+           claims=(("DOCUMENTED FACT", "commodity-currency exchange rates forecast commodity prices better than the "
+                                       "reverse (Chen, Rogoff & Rossi 2010)"),
+                   ("REJECTED", "gold leads AUD over the following week (R4-XA-GOLD-A/B)"))),
+    Method("SL-TAYLOR-INFLATION", "Inflation-driven policy expectations (Taylor-rule fundamentals)", "macro",
+           (Source("Molodtsova & Papell, Out-of-sample exchange rate predictability with Taylor rule fundamentals, "
+                   "J. International Economics 77 (2009)", "academic", "A"),),
+           ("TAYLOR_RULE",),
+           _dp(assumptions="higher inflation implies a more hawkish central bank and a stronger currency; information "
+                           "used: both countries' inflation and output gaps",
+               direction="toward the currency whose inflation accelerates", entry="monthly, after the CPI release",
+               stop="n/a", target="n/a", sizing="n/a", winners="n/a", losers="n/a", regime_change="zero lower bound",
+               invalidation="n/a", stays_out="n/a", ignores="charts", prefers="both countries' data", avoids="n/a"),
+           "monthly", "buy the pair favoured by US inflation acceleration", "about a month", "fixed", "D1", "USD pairs",
+           ("usd_infl",),
+           tests=({"condition": "usd_infl=high", "side": "BUY", "exit": "D4", "timeframe": "D1"},
+                  {"condition": "usd_infl=low", "side": "SELL", "exit": "D4", "timeframe": "D1"}),
+           status="REJECTED",
+           results=({"trial": "R4", "hypothesis": "R4-MACRO-CPI-A/B", "verdict": "REJECTED",
+                     "summary": "US side only (foreign monthly CPI unavailable): -0.049R (n 337, P(direction) 48%) and "
+                                "-0.003R (n 332, 51%); positive only in 2008-2010 and when VIX >= 30"},),
+           claims=(("DOCUMENTED FACT", "two-country Taylor-rule fundamentals showed out-of-sample predictability on "
+                                       "1973-2006 data (Molodtsova & Papell 2009)"),
+                   ("REJECTED", "US inflation acceleration alone predicts the USD pairs over the next month (R4)"),
+                   ("UNCERTAIN", "the two-country version: untestable, foreign monthly CPI unavailable"))),
 )
 
 

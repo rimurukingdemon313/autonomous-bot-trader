@@ -149,7 +149,7 @@
    "b": "SL-SMC-SWEEP",
    "principles": [
     "BREAKOUT",
-    "LIQUIDITY_SWEEP"
+    "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
   },
@@ -1350,6 +1350,369 @@
    ],
    "timeframe": "D1",
    "untestable_because": null
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "weekly changes in speculators' net positions move WITH the exchange rate in the same week (Klitgaard & Weir 2004)"
+    ],
+    [
+     "DOCUMENTED FACT",
+     "positioning extremes have been reported to precede reversals (Tornell & Yuan 2012), on pre-2012 data"
+    ],
+    [
+     "UNCERTAIN",
+     "whether positioning PREDICTS direction on our pairs: untested, data unavailable"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "speculators' net futures positions reveal flows; extremes mark crowded trades; information used: weekly CFTC positions (Tuesday data, released Friday)",
+    "avoids": "n/a",
+    "direction": "against extremes (reversal) or with changes (flow)",
+    "entry": "after the Friday release",
+    "ignores": "n/a",
+    "invalidation": "positions unwinding",
+    "losers": "n/a",
+    "prefers": "liquid CME currency futures",
+    "regime_change": "extremes can persist in strong trends",
+    "sizing": "not documented",
+    "stays_out": "no extreme",
+    "stop": "not documented",
+    "target": "not documented",
+    "winners": "n/a"
+   },
+   "entry_logic": "fade the extreme / follow the change",
+   "evidence_quality": "B",
+   "exit_logic": "weeks",
+   "features": [],
+   "instruments": "CME FX futures",
+   "market_conditions": "crowded positioning",
+   "name": "Speculative positioning (CFTC Commitments of Traders)",
+   "principles": [
+    "POSITIONING"
+   ],
+   "results": [],
+   "risk_logic": "n/a",
+   "school": "positioning / sentiment",
+   "sources": [
+    {
+     "citation": "Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004)",
+     "kind": "institutional",
+     "quality": "B",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    },
+    {
+     "citation": "Tornell & Yuan, Speculation and hedging in the currency futures markets: are they informative to the spot exchange rates?, J. Futures Markets 32 (2012)",
+     "kind": "academic",
+     "quality": "B",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "RESEARCHED",
+   "strategy_id": "SL-POSITIONING",
+   "tests": [],
+   "timeframe": "weekly",
+   "untestable_because": "DATA-BLOCKED: cftc.gov, publicreporting.cftc.gov, Quandl and Nasdaq Data Link are refused by the network policy; no mirror; not approximated"
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "surprises move FX within minutes, and the adjustment is fast (Andersen et al. 2003)"
+    ],
+    [
+     "INFERRED PRINCIPLE",
+     "a fast, complete response leaves little for a daily-bar system after costs"
+    ],
+    [
+     "UNCERTAIN",
+     "any multi-day drift after surprises on our pairs: untested, data unavailable"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "only the surprise (actual minus consensus) is news; information used: historical consensus forecasts and first-release values",
+    "avoids": "n/a",
+    "direction": "with the surprise",
+    "entry": "documented: within minutes of the release",
+    "ignores": "n/a",
+    "invalidation": "n/a",
+    "losers": "n/a",
+    "prefers": "US releases",
+    "regime_change": "the response is state-dependent",
+    "sizing": "n/a",
+    "stays_out": "n/a",
+    "stop": "n/a",
+    "target": "n/a",
+    "winners": "n/a"
+   },
+   "entry_logic": "the surprise's direction",
+   "evidence_quality": "A",
+   "exit_logic": "minutes",
+   "features": [],
+   "instruments": "G10 FX",
+   "market_conditions": "release times",
+   "name": "Macro announcement surprises",
+   "principles": [
+    "NEWS_SURPRISE"
+   ],
+   "results": [],
+   "risk_logic": "n/a",
+   "school": "event / macro",
+   "sources": [
+    {
+     "citation": "Andersen, Bollerslev, Diebold & Vega, Micro effects of macro announcements: real-time price discovery in foreign exchange, American Economic Review 93 (2003)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "RESEARCHED",
+   "strategy_id": "SL-NEWS-SURPRISE",
+   "tests": [],
+   "timeframe": "intraday",
+   "untestable_because": "DATA-BLOCKED: historical consensus is proprietary (Bloomberg/Reuters) and the calendar sites are refused; revised values would leak; nothing is reconstructed"
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "JPY and CHF appreciate CONTEMPORANEOUSLY with risk shocks (Ranaldo & Soederlind 2010)"
+    ],
+    [
+     "REJECTED",
+     "a haven that has not yet moved catches up in the week after a >= 20% VIX jump (R4-XA-VIX-A)"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "in risk-off, investors repatriate and buy JPY and CHF; information used: equity implied volatility (VIX)",
+    "avoids": "n/a",
+    "direction": "long JPY/CHF after a risk shock",
+    "entry": "after the shock",
+    "ignores": "n/a",
+    "invalidation": "risk appetite returning",
+    "losers": "n/a",
+    "prefers": "acute shocks",
+    "regime_change": "policy intervention (SNB floor, BoJ QQE)",
+    "sizing": "n/a",
+    "stays_out": "calm markets",
+    "stop": "n/a",
+    "target": "n/a",
+    "winners": "n/a"
+   },
+   "entry_logic": "buy the haven that has not yet moved",
+   "evidence_quality": "A",
+   "exit_logic": "a week",
+   "features": [
+    "vix_jump",
+    "own5"
+   ],
+   "instruments": "JPY/CHF pairs",
+   "market_conditions": "risk shocks",
+   "name": "Safe-haven currencies after risk shocks",
+   "principles": [
+    "SAFE_HAVEN",
+    "RISK_REGIME"
+   ],
+   "results": [
+    {
+     "hypothesis": "R4-XA-VIX-A",
+     "summary": "registered 5 pairs: -0.134R (n 156, t -2.07, P(direction) 53%); the formal run judged 11 pairs by an engine defect (fixed; research/knowledge/corrections.json), also rejected",
+     "trial": "R4",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "fixed",
+   "school": "macro / risk",
+   "sources": [
+    {
+     "citation": "Ranaldo & Soederlind, Safe haven currencies, Review of Finance 14 (2010)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    },
+    {
+     "citation": "Habib & Stracca, Getting beyond carry trade: what makes a safe haven currency?, J. International Economics 87 (2012)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "REJECTED",
+   "strategy_id": "SL-SAFE-HAVEN",
+   "tests": [
+    {
+     "condition": "vix_jump=high&own5=high",
+     "exit": "D3",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
+   "timeframe": "D1",
+   "untestable_because": null
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "commodity-currency exchange rates forecast commodity prices better than the reverse (Chen, Rogoff & Rossi 2010)"
+    ],
+    [
+     "REJECTED",
+     "gold leads AUD over the following week (R4-XA-GOLD-A/B)"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "gold is a large Australian export; information used: the gold price",
+    "avoids": "n/a",
+    "direction": "with gold, when AUD has not followed",
+    "entry": "after a 2% 5-day gold move",
+    "ignores": "n/a",
+    "invalidation": "n/a",
+    "losers": "n/a",
+    "prefers": "n/a",
+    "regime_change": "n/a",
+    "sizing": "n/a",
+    "stays_out": "n/a",
+    "stop": "n/a",
+    "target": "n/a",
+    "winners": "n/a"
+   },
+   "entry_logic": "buy (sell) AUD after gold rose (fell) and AUD did not",
+   "evidence_quality": "A",
+   "exit_logic": "a week",
+   "features": [
+    "gold_pull",
+    "own5"
+   ],
+   "instruments": "AUD pairs",
+   "market_conditions": "gold moves",
+   "name": "Gold leading the Australian dollar",
+   "principles": [
+    "COMMODITY_CURRENCY"
+   ],
+   "results": [
+    {
+     "hypothesis": "R4-XA-GOLD-A/B",
+     "summary": "BUY +0.015R (n 102, t 0.16; +0.10R better than its price-only control, but negative at 1.5% and 2.5% gold thresholds and without its best trade); SELL -0.163R (n 84)",
+     "trial": "R4",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "fixed",
+   "school": "cross-asset",
+   "sources": [
+    {
+     "citation": "Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    },
+    {
+     "citation": "Chen, Rogoff & Rossi, Can exchange rates forecast commodity prices?, Quarterly J. Economics 125 (2010)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "REJECTED",
+   "strategy_id": "SL-GOLD-AUD",
+   "tests": [
+    {
+     "condition": "gold_pull=high&own5=low",
+     "exit": "D3",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "gold_pull=low&own5=high",
+     "exit": "D3",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
+   "timeframe": "D1",
+   "untestable_because": null
+  },
+  {
+   "claims": [
+    [
+     "DOCUMENTED FACT",
+     "two-country Taylor-rule fundamentals showed out-of-sample predictability on 1973-2006 data (Molodtsova & Papell 2009)"
+    ],
+    [
+     "REJECTED",
+     "US inflation acceleration alone predicts the USD pairs over the next month (R4)"
+    ],
+    [
+     "UNCERTAIN",
+     "the two-country version: untestable, foreign monthly CPI unavailable"
+    ]
+   ],
+   "decision_process": {
+    "assumptions": "higher inflation implies a more hawkish central bank and a stronger currency; information used: both countries' inflation and output gaps",
+    "avoids": "n/a",
+    "direction": "toward the currency whose inflation accelerates",
+    "entry": "monthly, after the CPI release",
+    "ignores": "charts",
+    "invalidation": "n/a",
+    "losers": "n/a",
+    "prefers": "both countries' data",
+    "regime_change": "zero lower bound",
+    "sizing": "n/a",
+    "stays_out": "n/a",
+    "stop": "n/a",
+    "target": "n/a",
+    "winners": "n/a"
+   },
+   "entry_logic": "buy the pair favoured by US inflation acceleration",
+   "evidence_quality": "A",
+   "exit_logic": "about a month",
+   "features": [
+    "usd_infl"
+   ],
+   "instruments": "USD pairs",
+   "market_conditions": "monthly",
+   "name": "Inflation-driven policy expectations (Taylor-rule fundamentals)",
+   "principles": [
+    "TAYLOR_RULE"
+   ],
+   "results": [
+    {
+     "hypothesis": "R4-MACRO-CPI-A/B",
+     "summary": "US side only (foreign monthly CPI unavailable): -0.049R (n 337, P(direction) 48%) and -0.003R (n 332, 51%); positive only in 2008-2010 and when VIX >= 30",
+     "trial": "R4",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "fixed",
+   "school": "macro",
+   "sources": [
+    {
+     "citation": "Molodtsova & Papell, Out-of-sample exchange rate predictability with Taylor rule fundamentals, J. International Economics 77 (2009)",
+     "kind": "academic",
+     "quality": "A",
+     "verification": "cited from prior knowledge; not re-opened in this project"
+    }
+   ],
+   "status": "REJECTED",
+   "strategy_id": "SL-TAYLOR-INFLATION",
+   "tests": [
+    {
+     "condition": "usd_infl=high",
+     "exit": "D4",
+     "side": "BUY",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "usd_infl=low",
+     "exit": "D4",
+     "side": "SELL",
+     "timeframe": "D1"
+    }
+   ],
+   "timeframe": "D1",
+   "untestable_because": null
   }
  ],
  "principle_priority": [
@@ -1378,12 +1741,32 @@
   },
   {
    "best_quality": "A",
+   "independent_sources": 4,
+   "methods": [
+    "SL-MOMENTUM-CRASH",
+    "SL-SAFE-HAVEN"
+   ],
+   "principle": "RISK_REGIME",
+   "priority": 12
+  },
+  {
+   "best_quality": "A",
    "independent_sources": 3,
    "methods": [
     "SL-DONCHIAN",
     "SL-NR-BREAKOUT"
    ],
    "principle": "BREAKOUT",
+   "priority": 9
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 3,
+   "methods": [
+    "SL-COMMODITY-FX",
+    "SL-GOLD-AUD"
+   ],
+   "principle": "COMMODITY_CURRENCY",
    "priority": 9
   },
   {
@@ -1411,15 +1794,6 @@
    "best_quality": "A",
    "independent_sources": 2,
    "methods": [
-    "SL-COMMODITY-FX"
-   ],
-   "principle": "COMMODITY_CURRENCY",
-   "priority": 6
-  },
-  {
-   "best_quality": "A",
-   "independent_sources": 2,
-   "methods": [
     "SL-FORWARD-PREMIUM"
    ],
    "principle": "FORWARD_PREMIUM",
@@ -1438,9 +1812,9 @@
    "best_quality": "A",
    "independent_sources": 2,
    "methods": [
-    "SL-MOMENTUM-CRASH"
+    "SL-SAFE-HAVEN"
    ],
-   "principle": "RISK_REGIME",
+   "principle": "SAFE_HAVEN",
    "priority": 6
   },
   {
@@ -1451,6 +1825,15 @@
    ],
    "principle": "VOLATILITY_SCALING",
    "priority": 6
+  },
+  {
+   "best_quality": "B",
+   "independent_sources": 2,
+   "methods": [
+    "SL-POSITIONING"
+   ],
+   "principle": "POSITIONING",
+   "priority": 4
   },
   {
    "best_quality": "B",
@@ -1469,6 +1852,24 @@
     "SL-XS-MOMENTUM"
    ],
    "principle": "CROSS_SECTIONAL_MOMENTUM",
+   "priority": 3
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 1,
+   "methods": [
+    "SL-NEWS-SURPRISE"
+   ],
+   "principle": "NEWS_SURPRISE",
+   "priority": 3
+  },
+  {
+   "best_quality": "A",
+   "independent_sources": 1,
+   "methods": [
+    "SL-TAYLOR-INFLATION"
+   ],
+   "principle": "TAYLOR_RULE",
    "priority": 3
   },
   {

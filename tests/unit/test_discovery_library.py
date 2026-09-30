@@ -20,7 +20,7 @@ def test_every_method_is_graded_and_is_either_testable_or_says_why_not():
         for t in m.tests:
             condition_key(t["condition"])  # in the engine's closed vocabulary
             feats = {p.split("=")[0] for p in t["condition"].split("&")}
-            known = (set(DAILY_FEATURES) | {"xs_mom", "vix_state", "vix_trend", "usd_rate", "oil_pull", "trend_sign"}) if t["timeframe"] == "D1" else set(NAMES) | set(PRIMITIVE_BY_NAME)
+            known = (set(DAILY_FEATURES) | {"xs_mom", "vix_state", "vix_trend", "usd_rate", "oil_pull", "trend_sign", "own5", "gold_pull", "vix_jump", "usd_infl"}) if t["timeframe"] == "D1" else set(NAMES) | set(PRIMITIVE_BY_NAME)
             assert feats <= known, (m.strategy_id, feats - known)
     with pytest.raises(ValueError):
         Method("X", "x", "x", (Source("a", "book", "C"),), ("TREND_CONTINUATION",), {}, "", "", "", "", "", "", ())

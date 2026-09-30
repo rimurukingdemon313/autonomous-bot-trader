@@ -85,5 +85,8 @@ def test_the_committed_registry_matches_the_committed_evidence():
     # nothing in the evidence has passed, so nothing in the registry may say it did
     assert reg["counts"]["VALIDATED"] == 0
     assert all(p["verdict"] in ("FAILED", "FAIL") or p["verdict"].startswith("BLOCKED") for p in reg["programs"].values())
+    vix = next((e for e in reg["edges"] if e["edge_id"] == "R4-XA-VIX-A"), None)
+    if vix is not None:  # a recorded correction is carried into the registry, never silently applied
+        assert vix["note"] and "registered population" in vix["note"] and vix["status"] == "REJECTED"
     committed = ROOT / "research" / "knowledge" / "edge_registry.json"
     assert json.loads(committed.read_text())["counts"] == reg["counts"]

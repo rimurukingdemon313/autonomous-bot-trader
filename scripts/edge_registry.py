@@ -64,6 +64,8 @@ def markdown(reg: dict) -> str:
                      f"{e['exit_conditions']} | {_f(e['sample_size'])} | {_f(e['net_expectancy'])} | {req} | "
                      f"{_f(e['cost_sensitivity'])} | {_f(e['walk_forward_expectancy'])} | {e['complexity']} | "
                      f"**{e['status']}** | {', '.join(e['failed_checks']) or '—'} |")
+        if e.get("note"):
+            lines.append(f"| ↳ correction | | | {e['note']} | | | | | | | | | |")
     return "\n".join(lines) + "\n"
 
 

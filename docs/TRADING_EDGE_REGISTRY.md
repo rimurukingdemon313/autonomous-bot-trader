@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 32 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 37 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -33,6 +33,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R2C | FAILED | — | 2 | 0 | 3.301 |
 | R2D | FAILED | — | 2 | 0 | 3.312 |
 | R3 | FAILED | — | 8 | 0 | 3.351 |
+| R4 | FAILED | — | 5 | 0 | 3.372 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
 | WF-001 | FAIL | — | 1 | 0 | 3.189 |
@@ -64,6 +65,12 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R3-F | BUY | D1 | `policy_move=high` | D4 | 95 | -0.151 | -1.48 (3.35) | -0.156 | — | 1 | **REJECTED** | min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R3-G | BUY | D1 | `rate_level=high&vix_state=low` | D4 | 198 | -0.117 | -1.70 (3.35) | -0.126 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R3-H | BUY | D1 | `rate_level=high&policy_move=mid` | D4 | 272 | -0.044 | -0.72 (3.35) | -0.060 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R4-MACRO-CPI-A | BUY | D1 | `usd_infl=high` | D4 | 337 | -0.049 | -0.80 (3.37) | -0.095 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R4-MACRO-CPI-B | SELL | D1 | `usd_infl=low` | D4 | 332 | -0.003 | -0.05 (3.37) | -0.053 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, outliers |
+| R4-XA-GOLD-A | BUY | D1 | `gold_pull=high&own5=low` | D3 | 102 | +0.015 | +0.16 (3.37) | -0.010 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, outliers |
+| R4-XA-GOLD-B | SELL | D1 | `gold_pull=low&own5=high` | D3 | 84 | -0.163 | -1.98 (3.37) | -0.193 | — | 2 | **REJECTED** | min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R4-XA-VIX-A | SELL | D1 | `vix_jump=high&own5=high` | D3 | 361 | -0.056 | -1.34 (3.37) | -0.083 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, leave_one_out, regimes, outliers |
+| ↳ correction | | | judged by confirm-1.0.0 on all 11 of the program's instruments (361 trades) instead of its 5 registered safe-haven pairs; fixed in confirm-1.1.0 (tests/unit/test_discovery_confirm.py::test_each_hypothesis_is_judged_on_its_own_registered_instruments_only) -> on the registered population: {"verdict": "REJECTED", "n": 156, "net_R": -0.1336, "t": -2.067, "note": "descriptive re-run of the same battery after the fix; not a registry verdict"} | | | | | | | | | |
 | SL-001-01 | BUY | D1 | `brk_hi120=high` | D5 | 266 | -0.038 | -0.42 (3.25) | -0.104 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
 | SL-001-02 | SELL | D1 | `brk_lo120=low` | D5 | 290 | +0.175 | +0.65 (3.25) | +0.113 | — | 1 | **REJECTED** | significance, beats_random, permutation, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-03 | BUY | D1 | `ma_slope=high&r6=low` | D3 | 395 | -0.014 | -0.33 (3.25) | -0.046 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers |

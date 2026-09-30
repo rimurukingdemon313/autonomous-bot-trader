@@ -33,7 +33,9 @@ from .hypothesis import Hypothesis, Ledger
 from .program import REGIME_FEATURES, ProgramError, _atomic_write, _dump, _jsonable, _r, code_sha256
 from .study import Condition, Segment, Study, SymbolData, epoch, fit_binning
 
-CONFIRM_VERSION = "confirm-1.0.0"
+#: 1.1.0: each hypothesis is judged on its own registered instruments (a defect found in R4: before, every
+#: hypothesis was judged on all the program's instruments)
+CONFIRM_VERSION = "confirm-1.1.0"
 
 
 @dataclass(frozen=True)
@@ -165,15 +167,22 @@ class ConfirmatoryProgram:
                 for q in (-d.rules.perturb, d.rules.perturb)]
         ctx = regime_binnings({f: vals[f] for f in REGIME_FEATURES})
         judge = self.study_factory(data, d.judge, binn, d.costs, context=ctx)
+        studies = {frozenset(judge.symbols): judge}
         out = []
         for h in hs:
+            # each hypothesis is judged on ITS registered instruments only (before 1.1.0 every hypothesis
+            # was judged on all the program's instruments, which mattered when a hypothesis named fewer)
+            insts = frozenset(s for s in judge.symbols if s in set(h.instruments))
+            if insts not in studies:
+                studies[insts] = self.study_factory({s: data[s] for s in insts}, d.judge, binn, d.costs, context=ctx)
+            study = studies[insts]
             # a resumed run recomputes every judgment (it is deterministic) so the artifact is complete,
             # and only records the ledger steps that are missing
             if self.ledger.state(h.id) == "PREREGISTERED":
                 self.ledger.transition(h.id, "RUNNING", self.clock(), trial=d.id, stage="confirmation", exit=h.exit)
             cond, side = Condition.parse(h.condition), BUY if h.side == "BUY" else SELL
             pb = [x for x in ({f: p[f] for f in cond.features if f in p} for p in pert) if x]
-            res = run_battery(judge, cond, side, h.exit, d.rules, perturbed=pb, kind=h.kind, trials=len(hs), key=h.id)
+            res = run_battery(study, cond, side, h.exit, d.rules, perturbed=pb, kind=h.kind, trials=len(hs), key=h.id)
             sign = -1.0 if h.kind == "veto" else 1.0
             opinions = [market_analyst(res), opportunity_analyst(res, {"mechanism": h.mechanism}, {
                             "confirmation": {"mean_R": res["checks"]["significance"]["mean_R"]}}),

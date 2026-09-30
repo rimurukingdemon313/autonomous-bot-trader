@@ -127,3 +127,18 @@ def test_an_interrupted_confirmation_resumes_to_the_complete_result(tmp_path, mo
                                 tmp_path / "knowledge", lambda: NOW)
     art = again.run(market)
     assert art["validated"] == ["C-1", "C-2"] and art["verdict"] == "PASSED"  # C-1 was not lost on resume
+
+
+def test_each_hypothesis_is_judged_on_its_own_registered_instruments_only(tmp_path):
+    # the defect found in R4: a hypothesis registered on fewer instruments was judged on all of the program's
+    hs = [hyp("C-ALL", "A=high", "BUY"), replace(hyp("C-ONE", "A=high", "BUY", ), id="C-ONE", instruments=("AAA",),
+                                                 exit="E2")]
+    prog = setup(tmp_path, hs)
+    prog.preregister(tmp_path / "CP-T1.md", "CP-T1.md")
+    art = prog.run(planted(n=20_000))
+    got = {c["id"]: c["battery"]["checks"] for c in art["judged"]}
+    one = got["C-ONE"]["instruments"]
+    assert set(one.get("positive", []) + one.get("negative", [])) <= {"AAA"}
+    every = got["C-ALL"]["instruments"]
+    assert len(set(every.get("positive", []) + every.get("negative", []))) == len(SYMBOLS)
+    assert got["C-ONE"]["min_trades"]["n"] < got["C-ALL"]["min_trades"]["n"] / 2

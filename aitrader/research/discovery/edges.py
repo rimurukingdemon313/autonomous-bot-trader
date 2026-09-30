@@ -92,6 +92,7 @@ class EdgeRecord:
     status: str
     failed_checks: tuple[str, ...]
     source: str
+    note: str | None = None  # a recorded correction (research/knowledge/corrections.json), never a silent edit
 
     def __post_init__(self):
         if self.status not in STATUSES:
@@ -203,6 +204,12 @@ def build(root: Path | str) -> dict:
                 failed_checks=("not run: policy-rate data unavailable (scripts/round3.py status)",),
                 source="research/specs/R3.json"))
         programs["R3"] = {"verdict": "BLOCKED (policy-rate data unavailable)", "judged": 0, "threshold_t": None}
+    corr_p = root / "knowledge" / "corrections.json"
+    if corr_p.exists():
+        corr = json.loads(corr_p.read_text())
+        edges = [replace(e, note=corr[e.edge_id]["defect"] + " -> on the registered population: "
+                         + json.dumps(corr[e.edge_id]["battery_on_registered_population"]))
+                 if e.edge_id in corr else e for e in edges]
     edges.sort(key=lambda e: e.edge_id)
     counts = {s: sum(1 for e in edges if e.status == s) for s in STATUSES}
     return {"version": EDGES_VERSION, "counts": counts, "programs": programs,
