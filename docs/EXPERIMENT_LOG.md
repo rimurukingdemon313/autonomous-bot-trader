@@ -155,3 +155,15 @@ Common to all four programs:
 
 Each program was preregistered and pushed before it ran; the commits are in the git history,
 "Preregister R2A" to "Preregister R2D". Round 2 made 8 tests: 0 validated, 0 promising.
+
+## R3: genuine interest-rate information and carry (BIS policy rates)
+
+| Field | Value |
+|---|---|
+| Hypotheses | 8, frozen in `research/specs/R3.json` before the data existed here: carry level (A, B), differential widening and narrowing (C, D), acceleration (E), policy move (F), carry while VIX < 20 (G), carry without a recent policy move (H) |
+| Data | BIS WS_CBPOL, daily; the official file supplied by the user, CSV sha256 `4f7e1170…`. 8 pairs qualify; JPY is not covered (no BoJ policy rate 2013-04 → 2016-09) |
+| Periods | Judged 2008-07-11 → 2017-01-01 |
+| Tests / threshold | 8; t ≥ 3.351 |
+| Costs | Spread, 0.1 pip slippage, 0.7 pip commission. Swap replaced by the RATE-DIFFERENTIAL CARRY PROXY and a 0.5% a year financing markup |
+| Result | **FAILED.** All 8 REJECTED. The best, R3-E, is +0.007R (t 0.10). Carry long: −0.083R, with +0.045R of carry and −0.101R of gross spot |
+| Conclusion | Interest-rate information did not improve direction (P 40–47%). Carry income is real, but smaller than the spot losses on the majors, 2008–2016. See [ROUND3_RESULTS.md](ROUND3_RESULTS.md) |

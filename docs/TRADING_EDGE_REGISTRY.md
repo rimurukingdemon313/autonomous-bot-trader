@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 8 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 24 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 32 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -32,7 +32,7 @@ RESEARCH 0 | HYPOTHESIS 8 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R2B | FAILED | — | 2 | 0 | 3.291 |
 | R2C | FAILED | — | 2 | 0 | 3.301 |
 | R2D | FAILED | — | 2 | 0 | 3.312 |
-| R3 | BLOCKED (policy-rate data unavailable) | — | 0 | 0 | — |
+| R3 | FAILED | — | 8 | 0 | 3.351 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
 | WF-001 | FAIL | — | 1 | 0 | 3.189 |
@@ -56,14 +56,14 @@ RESEARCH 0 | HYPOTHESIS 8 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R2C-2 | SELL | D1 | `oil_pull=low` | D3 | 147 | -0.088 | -1.61 (3.30) | -0.112 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2D-1 | BUY | D1 | `trend_sign=high&vix_state=low` | D4 | 593 | -0.040 | -0.86 (3.31) | -0.090 | — | 2 | **REJECTED** | significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2D-2 | SELL | D1 | `trend_sign=low&vix_state=low` | D4 | 581 | +0.077 | +0.85 (3.31) | +0.029 | — | 2 | **REJECTED** | significance, beats_random, years, instruments, outliers |
-| R3-A | BUY | D1 | `rate_level=high` | D4 | — | — | — | — | — | 1 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-B | SELL | D1 | `rate_level=low` | D4 | — | — | — | — | — | 1 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-C | BUY | D1 | `rate_change=high` | D4 | — | — | — | — | — | 1 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-D | SELL | D1 | `rate_change=low` | D4 | — | — | — | — | — | 1 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-E | BUY | D1 | `rate_accel=high` | D4 | — | — | — | — | — | 1 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-F | BUY | D1 | `policy_move=high` | D4 | — | — | — | — | — | 1 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-G | BUY | D1 | `rate_level=high&vix_state=low` | D4 | — | — | — | — | — | 2 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
-| R3-H | BUY | D1 | `rate_level=high&policy_move=mid` | D4 | — | — | — | — | — | 2 | **HYPOTHESIS** | not run: policy-rate data unavailable (scripts/round3.py status) |
+| R3-A | BUY | D1 | `rate_level=high` | D4 | 341 | -0.083 | -1.50 (3.35) | -0.099 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-B | SELL | D1 | `rate_level=low` | D4 | 12 | -0.627 | -5.05 (3.35) | -0.632 | — | 1 | **REJECTED** | min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-C | BUY | D1 | `rate_change=high` | D4 | 149 | -0.160 | -2.08 (3.35) | -0.165 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-D | SELL | D1 | `rate_change=low` | D4 | 218 | -0.108 | -1.80 (3.35) | -0.120 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-E | BUY | D1 | `rate_accel=high` | D4 | 249 | +0.007 | +0.10 (3.35) | -0.002 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-F | BUY | D1 | `policy_move=high` | D4 | 95 | -0.151 | -1.48 (3.35) | -0.156 | — | 1 | **REJECTED** | min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-G | BUY | D1 | `rate_level=high&vix_state=low` | D4 | 198 | -0.117 | -1.70 (3.35) | -0.126 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| R3-H | BUY | D1 | `rate_level=high&policy_move=mid` | D4 | 272 | -0.044 | -0.72 (3.35) | -0.060 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-01 | BUY | D1 | `brk_hi120=high` | D5 | 266 | -0.038 | -0.42 (3.25) | -0.104 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
 | SL-001-02 | SELL | D1 | `brk_lo120=low` | D5 | 290 | +0.175 | +0.65 (3.25) | +0.113 | — | 1 | **REJECTED** | significance, beats_random, permutation, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-03 | BUY | D1 | `ma_slope=high&r6=low` | D3 | 395 | -0.014 | -0.33 (3.25) | -0.046 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers |

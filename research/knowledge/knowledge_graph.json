@@ -372,6 +372,11 @@
   },
   {
    "from": "method:SL-CARRY",
+   "rel": "claims",
+   "to": "claim:SL-CARRY:6"
+  },
+  {
+   "from": "method:SL-CARRY",
    "rel": "tested_as",
    "to": "hypothesis:SL-CARRY:vix_state=low:BUY"
   },
@@ -387,8 +392,8 @@
   },
   {
    "from": "method:SL-CARRY",
-   "rel": "blocked_by",
-   "to": "gap:SL-CARRY"
+   "rel": "judged_by",
+   "to": "result:R3:SL-CARRY"
   },
   {
    "from": "source:Menkhoff, Sarno, Schmeling & Schrimpf, Currency momentum strategies, J. Financial Economics 106 (2012)",
@@ -537,6 +542,11 @@
   },
   {
    "from": "method:SL-FORWARD-PREMIUM",
+   "rel": "claims",
+   "to": "claim:SL-FORWARD-PREMIUM:4"
+  },
+  {
+   "from": "method:SL-FORWARD-PREMIUM",
    "rel": "tested_as",
    "to": "hypothesis:SL-FORWARD-PREMIUM:usd_rate=high:BUY"
   },
@@ -549,6 +559,11 @@
    "from": "method:SL-FORWARD-PREMIUM",
    "rel": "judged_by",
    "to": "result:R2B:SL-FORWARD-PREMIUM"
+  },
+  {
+   "from": "method:SL-FORWARD-PREMIUM",
+   "rel": "judged_by",
+   "to": "result:R3:SL-FORWARD-PREMIUM"
   },
   {
    "from": "source:Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003)",
@@ -1115,7 +1130,7 @@
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Currency carry",
-   "status": "TESTING"
+   "status": "REJECTED"
   },
   {
    "id": "source:Lustig & Verdelhan, The cross-section of foreign currency risk premia, American Economic Review 97 (2007)",
@@ -1176,8 +1191,14 @@
   {
    "id": "claim:SL-CARRY:5",
    "kind": "claim",
+   "knowledge_class": "REJECTED",
+   "text": "carry INCLUDING its interest income (rate-differential proxy, BIS policy rates) has positive net expectancy on 8 majors, 2008-2016 (R3-A/G/H): the income is smaller than the spot loss"
+  },
+  {
+   "id": "claim:SL-CARRY:6",
+   "kind": "claim",
    "knowledge_class": "UNCERTAIN",
-   "text": "whether carry INCLUDING its interest income is profitable on our majors: untested, no rate data"
+   "text": "carry on the JPY pairs: untestable under the frozen rule (no BoJ policy rate 2013-04 -> 2016-09)"
   },
   {
    "condition": "vix_state=low",
@@ -1206,10 +1227,12 @@
    "verdict": "REJECTED"
   },
   {
-   "id": "gap:SL-CARRY",
-   "kind": "gap",
-   "knowledge_class": "UNCERTAIN",
-   "reason": "its core, the interest income, needs interest-rate data per currency; the rate sources are blocked by the network policy here (FRED, BIS, ECB refused). Only the spot legs were testable (R2A)"
+   "hypothesis": "R3-A/B/G/H",
+   "id": "result:R3:SL-CARRY",
+   "kind": "result",
+   "summary": "BIS policy rates, 8 pairs, 2008-07 -> 2017-01, carry income included as a RATE-DIFFERENTIAL CARRY PROXY: carry long -0.083R net (n 341; carry +0.045R, spot -0.101R gross, P(direction) 41%); while VIX < 20 -0.117R; without a recent policy move -0.044R",
+   "trial": "R3",
+   "verdict": "REJECTED"
   },
   {
    "evidence_quality": "A",
@@ -1412,6 +1435,12 @@
    "text": "the next month's move follows last month's US-yield change (R2B)"
   },
   {
+   "id": "claim:SL-FORWARD-PREMIUM:4",
+   "kind": "claim",
+   "knowledge_class": "REJECTED",
+   "text": "the next month's move follows a widening, narrowing or accelerating policy-rate differential, or a recent policy move (R3-C/D/E/F)"
+  },
+  {
    "condition": "usd_rate=high",
    "exit": "D4",
    "id": "hypothesis:SL-FORWARD-PREMIUM:usd_rate=high:BUY",
@@ -1435,6 +1464,14 @@
    "kind": "result",
    "summary": "last month's US 10y change (> 10bp) as the differential change, 7 USD pairs: -0.108R (n 396, P(direction) 46%) and -0.061R (n 381, 51%): coin-flip direction",
    "trial": "R2B",
+   "verdict": "REJECTED"
+  },
+  {
+   "hypothesis": "R3-C/D/E/F",
+   "id": "result:R3:SL-FORWARD-PREMIUM",
+   "kind": "result",
+   "summary": "the true two-sided policy differential: widening -0.160R (n 149), narrowing -0.108R (n 218), accelerating +0.007R (n 249, t 0.10), after a policy move -0.151R (n 95)",
+   "trial": "R3",
    "verdict": "REJECTED"
   },
   {

@@ -123,7 +123,7 @@ The result is recorded as an **UNCERTAIN CONCLUSION**:
 | Beats random entries | yes (t 2.12), but still negative | **no** (t 0.91) |
 | Robustness passed | permutation, perturbation (fixed states: trivially) | costs, delay, permutation, perturbation, leave-one-out, regimes |
 | Robustness failed | costs, delay, years, instruments, leave-one-out, regimes, outliers | significance, random, years (57% positive), instruments (50%), **outliers** |
-| Worst MAE | **−11.6R** (a CHF gap through the stop) | −3.0R |
+| Worst MAE | **−11.6R** (the CHF shock; booked near −1R at the stop price, see the correction below) | −3.0R |
 
 ### Reading
 
@@ -139,9 +139,14 @@ The result is recorded as an **UNCERTAIN CONCLUSION**:
    - The periods overlap, so these are not four independent confirmations. Each is dominated
      by one episode (the 2014–15 dollar rally, the 2015 CHF shock).
    - It stays an **UNCERTAIN CONCLUSION**, not a rule. The only honest test is new data.
-3. **Gap risk is real.** R2D-1 lost 11.6R on one trade when the price gapped through its stop
-   (the CHF shock). This is recorded for the risk engine's stress assumptions; no rule is
-   changed here.
+3. **Gap risk is real, and the simulator understates it** (corrected 2026-09-30; the earlier
+   wording said this trade "lost 11.6R").
+   - One R2D-1 trade's adverse excursion reached −11.6R during the CHF shock.
+   - The simulator booked it near −1R, because it fills a stop at the stop price when the gap
+     happens inside a daily bar rather than at its open.
+   - Real stop fills on 15 January 2015 were far worse. Round 3 found the same event at −73.9R
+     of MAE, booked at −1.06R (docs/ROUND3_RESULTS.md).
+   - This only makes the reported results better than reality; no verdict changes.
 
 ## Families not run, and why
 

@@ -1,6 +1,6 @@
 # Round 3: genuine FX carry and interest-rate information
 
-**Status: BLOCKED (2026-09-30).** The policy-rate data it needs is unavailable in this environment. The design is frozen and unchanged.
+**Status: RUN on 2026-09-30 with the official BIS WS_CBPOL file, then FAILED: 8 hypotheses, all REJECTED** ([ROUND3_RESULTS.md](ROUND3_RESULTS.md)). It was BLOCKED earlier the same day, until the file was supplied. The design is frozen and unchanged.
 
 - VALIDATED = 0.
 - Round 3 tests run: 0.

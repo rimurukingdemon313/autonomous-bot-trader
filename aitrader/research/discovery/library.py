@@ -263,14 +263,16 @@ LIBRARY: tuple[Method, ...] = (
            ("vix_state", "vix_trend"),
            tests=({"condition": "vix_state=low", "side": "BUY", "exit": "D4", "timeframe": "D1"},
                   {"condition": "vix_trend=high", "side": "SELL", "exit": "D3", "timeframe": "D1"}),
-           untestable_because="its core, the interest income, needs interest-rate data per currency; the rate "
-                              "sources are blocked by the network policy here (FRED, BIS, ECB refused). Only the "
-                              "spot legs were testable (R2A)",
-           status="TESTING",
+           status="REJECTED",
            results=({"trial": "R2A", "hypothesis": "R2A-1/R2A-2", "verdict": "REJECTED",
                      "summary": "spot legs only (no carry income measurable): long AUDJPY/AUDUSD/NZDUSD while VIX < 20 "
                                 "-0.119R (n 263, P(direction) 45%); short after VIX rises -0.056R (n 475). The omitted "
-                                "income is estimated at +0.05-0.08R and would not change the sign"},),
+                                "income is estimated at +0.05-0.08R and would not change the sign"},
+                    {"trial": "R3", "hypothesis": "R3-A/B/G/H", "verdict": "REJECTED",
+                     "summary": "BIS policy rates, 8 pairs, 2008-07 -> 2017-01, carry income included as a "
+                                "RATE-DIFFERENTIAL CARRY PROXY: carry long -0.083R net (n 341; carry +0.045R, spot "
+                                "-0.101R gross, P(direction) 41%); while VIX < 20 -0.117R; without a recent policy "
+                                "move -0.044R"}),
            claims=(("DOCUMENTED FACT", "carry portfolios across many currencies earned a premium, with crashes in "
                                        "global risk-off (Lustig & Verdelhan 2007; Menkhoff et al. 2012)"),
                    ("DOCUMENTED FACT", "AUD and NZD out-yielded USD and JPY at every date from 2008-07 to 2016-12 "
@@ -279,8 +281,11 @@ LIBRARY: tuple[Method, ...] = (
                                           "calm regimes"),
                    ("REJECTED", "the spot legs of three positive-carry majors rise in calm regimes (R2A-1)"),
                    ("REJECTED", "carry currencies keep falling for a week after VIX starts rising (R2A-2)"),
-                   ("UNCERTAIN", "whether carry INCLUDING its interest income is profitable on our majors: untested, "
-                                 "no rate data"))),
+                   ("REJECTED", "carry INCLUDING its interest income (rate-differential proxy, BIS policy rates) has "
+                                "positive net expectancy on 8 majors, 2008-2016 (R3-A/G/H): the income is smaller "
+                                "than the spot loss"),
+                   ("UNCERTAIN", "carry on the JPY pairs: untestable under the frozen rule (no BoJ policy rate "
+                                 "2013-04 -> 2016-09)"))),
     Method("SL-XS-MOMENTUM", "Cross-sectional currency momentum", "systematic",
            (Source("Menkhoff, Sarno, Schmeling & Schrimpf, Currency momentum strategies, J. Financial Economics 106 "
                    "(2012)", "academic", "A"),),
@@ -343,14 +348,19 @@ LIBRARY: tuple[Method, ...] = (
            status="REJECTED",
            results=({"trial": "R2B", "hypothesis": "R2B-1/R2B-2", "verdict": "REJECTED",
                      "summary": "last month's US 10y change (> 10bp) as the differential change, 7 USD pairs: "
-                                "-0.108R (n 396, P(direction) 46%) and -0.061R (n 381, 51%): coin-flip direction"},),
+                                "-0.108R (n 396, P(direction) 46%) and -0.061R (n 381, 51%): coin-flip direction"},
+                    {"trial": "R3", "hypothesis": "R3-C/D/E/F", "verdict": "REJECTED",
+                     "summary": "the true two-sided policy differential: widening -0.160R (n 149), narrowing -0.108R "
+                                "(n 218), accelerating +0.007R (n 249, t 0.10), after a policy move -0.151R (n 95)"}),
            claims=(("DOCUMENTED FACT", "regressions of currency changes on the forward premium give the wrong sign "
                                        "for UIP (Fama 1984)"),
                    ("INFERRED PRINCIPLE", "a CHANGE in the differential should be followed by appreciation of the "
                                           "currency it favours"),
                    ("HYPOTHESIS", "with only US rates observable, the US 10y change stands in for the differential "
                                   "change (other rates near their floors in 2008-2016)"),
-                   ("REJECTED", "the next month's move follows last month's US-yield change (R2B)"))),
+                   ("REJECTED", "the next month's move follows last month's US-yield change (R2B)"),
+                   ("REJECTED", "the next month's move follows a widening, narrowing or accelerating policy-rate "
+                                "differential, or a recent policy move (R3-C/D/E/F)"))),
     Method("SL-COMMODITY-FX", "Commodity currencies follow their export prices", "macro / cross-asset",
            (Source("Chen & Rogoff, Commodity currencies, J. International Economics 60 (2003)", "academic", "A"),
             Source("Ferraro, Rogoff & Rossi, Can oil prices forecast exchange rates?, J. Int. Money and Finance 54 "
