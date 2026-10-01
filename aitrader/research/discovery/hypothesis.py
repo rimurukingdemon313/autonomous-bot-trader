@@ -58,7 +58,13 @@ class LedgerError(ValueError):
 
 
 def condition_key(condition: str) -> str:
-    """The canonical form of a condition: a bin conjunction, or a frozen model score threshold."""
+    """The canonical form of a condition: a bin conjunction, a frozen model score threshold, or a
+    registered rule (`rule:<name>`, defined in code that the trial's code hash freezes)."""
+    if condition.startswith("rule:"):
+        name = condition[5:]
+        if not name or not name.replace("-", "").replace("_", "").replace(".", "").isalnum():
+            raise LedgerError(f"a rule condition is rule:<slug>, not {condition!r}")
+        return condition
     if condition.startswith("model:"):
         parts = condition.split(":")
         if len(parts) != 3 or not parts[1] or not parts[2].startswith("q"):
@@ -76,7 +82,7 @@ class Hypothesis:
     mechanism: str
     features: tuple[str, ...]  # catalog ids (name@version)
     condition: str  # a study.Condition key ("er120=high&r24=low") or a model score ("model:<id>:q0.90")
-    side: str  # BUY | SELL
+    side: str  # BUY | SELL | SIGNED (the rule's own signal names the side, trade by trade)
     instruments: tuple[str, ...]
     timeframe: str
     exit: str  # an exit key, or "MENU" when the exit is itself being selected (budget counts it)
@@ -100,8 +106,10 @@ class Hypothesis:
         if not self.id.replace("-", "").replace("_", "").replace(".", "").isalnum():
             raise LedgerError(f"hypothesis id {self.id!r} must be a plain slug")
         condition_key(self.condition)
-        if self.side not in ("BUY", "SELL"):
-            raise LedgerError("side must be BUY or SELL")
+        if self.side not in ("BUY", "SELL", "SIGNED"):
+            raise LedgerError("side must be BUY, SELL or SIGNED")
+        if (self.side == "SIGNED") != self.condition.startswith("rule:"):
+            raise LedgerError("a SIGNED side belongs to a rule condition, and a rule condition names its own side")
         if self.exit != "MENU" and self.exit not in EXIT_BY_KEY:
             raise LedgerError(f"unknown exit {self.exit!r}")
         if not self.instruments or not self.features or not self.falsification:

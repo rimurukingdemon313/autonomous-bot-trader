@@ -171,13 +171,14 @@ class ExternalStore:
         mf = self.root / "manifest.json"
         self.manifest = json.loads(mf.read_text()) if mf.exists() else {}
 
-    def load(self, key: str) -> ExternalSeries:
+    def load(self, key: str, holdout_key=None) -> ExternalSeries:
+        """`holdout_key`: the data store's HoldoutKey, for a pre-registered final test only."""
         raw = (self.root / f"{key}.csv").read_bytes()
         want = self.manifest.get(key, {}).get("sha256")
         if want is None or hashlib.sha256(raw).hexdigest() != want:
             raise ValueError(f"{key}: the file does not match the manifest; refusing unverified data")
         s = parse(key, raw)
-        if self.holdout is not None:
+        if self.holdout is not None and holdout_key is None:
             seal = int(datetime(self.holdout.start.year, self.holdout.start.month, self.holdout.start.day,
                                 tzinfo=timezone.utc).timestamp())
             s = s.truncated(seal - 1)

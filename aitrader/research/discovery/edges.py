@@ -31,7 +31,10 @@ from pathlib import Path
 
 #: 1.1.0: Round 2 promotion levels (RESEARCH, HYPOTHESIS, TESTING, PROMISING) and the PROMISING rule
 #: 1.2.0: UNCERTAIN; frozen-but-unrun hypotheses (Round 3) enter the registry as HYPOTHESIS
-EDGES_VERSION = "edges-1.2.0"
+#: 1.3.0: a check marked as a preregistered GATE that failed blocks PROMISING (COT-1: development,
+#: validation, incremental-over-control...); a holdout artifact (`holdout_of`) supersedes the record
+#: of the hypothesis it judged
+EDGES_VERSION = "edges-1.3.0"
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -55,6 +58,8 @@ def judged_status(validated: bool, checks: dict) -> str:
     is positive (t >= 2), survives the cost stress and beats random entries; otherwise REJECTED."""
     if validated:
         return "VALIDATED"
+    if any(isinstance(v, dict) and v.get("gate") and not v.get("pass") for v in checks.values()):
+        return "REJECTED"  # a preregistered gate failed: not even a near miss
     sig = checks.get("significance", {})
     if (sig.get("mean_R") or 0) > 0 and (sig.get("t") or 0) >= PROMISING_T \
             and checks.get("costs_stress", {}).get("pass") and checks.get("beats_random", {}).get("pass"):
@@ -165,6 +170,7 @@ def build(root: Path | str) -> dict:
         if d.get("event") == "DRAFT":
             drafts[d["hypothesis"]["id"]] = d["hypothesis"]
     edges: list[EdgeRecord] = []
+    holdout_ids: set[str] = set()  # judged again on the holdout: that record is the final one
     programs = {}
     for p in sorted((root / "knowledge").glob("*.json")):
         try:
@@ -183,6 +189,12 @@ def build(root: Path | str) -> dict:
         if not isinstance(art, dict) or "program" not in art or "judged" not in art:
             continue
         recs = from_confirmatory(art, drafts)
+        if art.get("holdout_of"):
+            superseded = {r.edge_id for r in recs}
+            edges = [e for e in edges if e.edge_id not in superseded]
+            holdout_ids.update(superseded)
+        else:
+            recs = [r for r in recs if r.edge_id not in holdout_ids]
         edges += recs
         programs[art["program"]] = {"verdict": art.get("verdict") or ("PASS" if art.get("validated") else "FAIL"),
                                     "judged": len(art["judged"]), "validated": list(art.get("validated") or []),

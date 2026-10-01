@@ -29,11 +29,14 @@ import io
 import json
 import sys
 import zipfile
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 COT = ROOT / "data" / "cot"
+
+from aitrader.data.cot import LAG_DAYS, UNAVAILABLE, available_on  # noqa: E402
 
 COT_AUDIT_VERSION = "cot-audit-1.0.0"
 FILES = {"fin_fut_txt_2006_2016.zip": "F_TFF_2006_2016.txt", "fut_fin_txt_2017.zip": "FinFutYY.txt"}
@@ -46,22 +49,11 @@ CROSSES = {"299741": "EURGBP (CME)", "399741": "EURJPY (CME)", "299661": "EURJPY
 CATEGORIES = ("Dealer", "Asset_Mgr", "Lev_Money", "Other_Rept")
 JUDGED = (date(2008, 7, 11), date(2017, 1, 1))  # the frozen judged period of every round so far
 HOLDOUT_FROM = date(2017, 1, 1)  # sealed
-LAG_DAYS = 6
 AVAILABLE_AT_NY = "17:00"
+#: the publication rule has ONE definition, used by the audit and by every study: aitrader/data/cot.py.
 #: October 2013 shutdown: as-of dates whose release was delayed by an unknown amount. Wide on purpose:
 #: the CFTC's catch-up schedule is not in the file and could not be fetched, so the window runs from
 #: the first missed report until the release schedule is certainly normal again.
-UNAVAILABLE = (date(2013, 10, 1), date(2013, 12, 24))
-
-
-def available_on(as_of: date) -> date | None:
-    """The New York date from whose 17:00 an as-of observation may be used, or None if unavailable."""
-    if UNAVAILABLE[0] <= as_of <= UNAVAILABLE[1]:
-        return None
-    d = as_of + timedelta(days=LAG_DAYS)
-    while d.weekday() >= 5:
-        d += timedelta(days=1)
-    return d
 
 
 def _sha(b: bytes) -> str:
