@@ -180,3 +180,13 @@ Each program was preregistered and pushed before it ran; the commits are in the 
 | Result | **FAILED.** All 5 REJECTED. The best, GOLD-A, is +0.015R (t 0.16): +0.10R over its price-only control, but negative at neighbouring thresholds and without its best trade |
 | Defect | The program judged R4-XA-VIX-A on 11 pairs instead of its 5 registered pairs. It was fixed in confirm-1.1.0; on the registered pairs the result is −0.134R, t −2.07, still rejected (`research/knowledge/corrections.json`) |
 | Conclusion | No outside source tested here adds directional information to FX after costs. See [ROUND4_RESULTS.md](ROUND4_RESULTS.md) |
+
+## COT data audit (no hypothesis)
+
+| Field | Value |
+|---|---|
+| Data | CFTC TFF Futures-Only bulk files supplied by the user: `fin_fut_txt_2006_2016.zip` (sha256 `c3a8d017…`) and `fut_fin_txt_2017.zip` (`e6e2dd53…`), kept unmodified and not committed |
+| Coverage | 2006-06-13 → 2017-12-26 for EUR, JPY, GBP, CHF, CAD, AUD and the ICE USD index (603 reports). NZD has 600: 3 reports are missing in June–July 2006. 2017 is the sealed holdout |
+| Checks | Futures-only on every row. The open-interest and category identities hold on all 4,821 FX rows. No missing or negative values, no duplicates |
+| Timing rule | Usable from 17:00 New York on the first weekday ≥ as-of + 6 days. The 2013 shutdown reports (as-of 2013-10-01 → 12-24) are UNAVAILABLE |
+| Result | Data sufficient for one small preregistered study on the 7 direct USD pairs. Crosses are derived only. No test has been run. See [COT_DATA_AUDIT.md](COT_DATA_AUDIT.md) |
