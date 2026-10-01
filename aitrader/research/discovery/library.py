@@ -34,7 +34,8 @@ from dataclasses import asdict, dataclass, field
 #: 1.1.0: Round 2 methods (risk-regime carry, forward premium, commodity currencies, momentum crashes) and
 #: labelled claims per method
 #: 1.2.0: Round 4 methods (positioning, news surprises, safe havens, gold/AUD, Taylor-rule inflation)
-LIBRARY_VERSION = "library-1.2.0"
+#: 1.3.0: positioning is no longer data-blocked: tested in COT-1 (CFTC TFF files supplied by the user), rejected
+LIBRARY_VERSION = "library-1.3.0"
 STATUSES = ("RESEARCHED", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED", "DEGRADED", "RETIRED")
 #: every claim a method record makes is labelled with how much we actually know
 CLAIM_LABELS = ("DOCUMENTED FACT", "INFERRED PRINCIPLE", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED",
@@ -432,14 +433,23 @@ LIBRARY: tuple[Method, ...] = (
                stop="not documented", target="not documented", sizing="not documented", winners="n/a", losers="n/a",
                regime_change="extremes can persist in strong trends", invalidation="positions unwinding",
                stays_out="no extreme", ignores="n/a", prefers="liquid CME currency futures", avoids="n/a"),
-           "crowded positioning", "fade the extreme / follow the change", "weeks", "n/a", "weekly", "CME FX futures", (),
-           untestable_because="DATA-BLOCKED: cftc.gov, publicreporting.cftc.gov, Quandl and Nasdaq Data Link are "
-                              "refused by the network policy; no mirror; not approximated",
+           "crowded positioning", "fade the extreme / follow the change", "weeks", "52-week percentile, fixed 0.90/0.10",
+           "weekly", "the seven direct USD pairs (CME currency futures)", ("cot_spec_pct", "cot_spec_flow_pct"),
+           tests=tuple({"condition": f"rule:{r}", "side": "SIGNED", "exit": "D3", "timeframe": "D1"}
+                       for r in ("p_rev", "p_cont", "c_rev", "c_cont", "i_rev", "i_cont", "f_cont", "f_rev", "u_rev",
+                                 "v_rev", "x_veto")),
+           status="REJECTED",
+           results=({"trial": "COT-1", "hypothesis": "COT1-P/C/I/F/U/V/X (11)", "verdict": "REJECTED",
+                     "summary": "Leveraged Money extremes: against -0.063R (n 915, t -1.97), with -0.011R (n 912); "
+                                "with price also extreme, with +0.017R (t 0.37; carried by EURUSD and 2008); COT added "
+                                "under 0.01R to a price-only rule; as a crowding veto on the 13-week trend: no "
+                                "difference (+0.0002R). Judged 2008-07 .. 2016-01 at t >= 3.414; holdout not opened"},),
            claims=(("DOCUMENTED FACT", "weekly changes in speculators' net positions move WITH the exchange rate in the "
                                        "same week (Klitgaard & Weir 2004)"),
-                   ("DOCUMENTED FACT", "positioning extremes have been reported to precede reversals (Tornell & Yuan "
-                                       "2012), on pre-2012 data"),
-                   ("UNCERTAIN", "whether positioning PREDICTS direction on our pairs: untested, data unavailable"))),
+                   ("UNCERTAIN", "positioning extremes have been reported to precede reversals (Tornell & Yuan "
+                                 "2012), on pre-2012 data; not re-opened here"),
+                   ("REJECTED", "Leveraged Money positioning extremes, flows, unwinds or crowding predict the next "
+                                "week's direction of the seven USD pairs after costs, 2008-07 .. 2016-01 (COT-1)"))),
     Method("SL-NEWS-SURPRISE", "Macro announcement surprises", "event / macro",
            (Source("Andersen, Bollerslev, Diebold & Vega, Micro effects of macro announcements: real-time price "
                    "discovery in foreign exchange, American Economic Review 93 (2003)", "academic", "A"),),

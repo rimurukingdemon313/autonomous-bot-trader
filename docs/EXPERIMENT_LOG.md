@@ -190,3 +190,15 @@ Each program was preregistered and pushed before it ran; the commits are in the 
 | Checks | Futures-only on every row. The open-interest and category identities hold on all 4,821 FX rows. No missing or negative values, no duplicates |
 | Timing rule | Usable from 17:00 New York on the first weekday ≥ as-of + 6 days. The 2013 shutdown reports (as-of 2013-10-01 → 12-24) are UNAVAILABLE |
 | Result | Data sufficient for one small preregistered study on the 7 direct USD pairs. Crosses are derived only. No test has been run. See [COT_DATA_AUDIT.md](COT_DATA_AUDIT.md) |
+
+## COT-1: CFTC positioning as directional information
+
+| Field | Value |
+|---|---|
+| Hypotheses | 11, frozen in `research/specs/COT-1.json` and [the preregistration](../research/preregistrations/COT-1.md) (commit `a3201c9`) before any outcome: Leveraged Money extremes against / with (P), with a price extreme (C), without one (I), 4-week flow (F), unwind (U), VIX ≥ 20 (V), crowded-trend veto (X); 7 price-only controls on the same decision bars |
+| Data | CFTC TFF Futures-Only (the user's files), used from 17:00 New York on the first weekday ≥ as-of + 6; 2013 shutdown reports dropped; 7 direct USD pairs, USD-quote pairs inverted |
+| Periods | Development 2008-07-11 → 2014; validation 2014 → 2016; judged 2008-07-11 → 2016. The 2016 confirmation and the sealed 2017 holdout were computed only for what earned them: nothing did |
+| Tests / threshold | 11; t ≥ 3.4136 |
+| Costs | Standard D1; D3 exit (one week, 2 × ATR stop). Cost about 0.047R per trade |
+| Result | **FAILED.** All 11 REJECTED, 0 PROMISING. The best, C-CONT, is +0.017R (t 0.37), carried by EURUSD and 2008. COT over price adds +0.007R. Crowded trend trades equal uncrowded ones. Selection walk-forward: −0.055R |
+| Conclusion | Positioning restates price at a one-week horizon; it adds no tradable information as a signal, confirmation, filter or veto. See [COT1_RESULTS.md](COT1_RESULTS.md) |

@@ -76,7 +76,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-PULLBACK",
    "principles": [
-    "TREND_CONTINUATION",
+    "BREAKOUT",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -85,7 +85,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-RANGE-REVERSION",
    "principles": [
-    "TREND_CONTINUATION",
+    "BREAKOUT",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -94,7 +94,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-SMC-SWEEP",
    "principles": [
-    "TREND_CONTINUATION",
+    "BREAKOUT",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -103,7 +103,7 @@
    "a": "SL-DONCHIAN",
    "b": "SL-REGIME-SWITCH",
    "principles": [
-    "TREND_CONTINUATION",
+    "BREAKOUT",
     "SHORT_TERM_REVERSAL"
    ],
    "question": "under which regime does each hold? (see SL-REGIME-SWITCH)"
@@ -1358,12 +1358,12 @@
      "weekly changes in speculators' net positions move WITH the exchange rate in the same week (Klitgaard & Weir 2004)"
     ],
     [
-     "DOCUMENTED FACT",
-     "positioning extremes have been reported to precede reversals (Tornell & Yuan 2012), on pre-2012 data"
+     "UNCERTAIN",
+     "positioning extremes have been reported to precede reversals (Tornell & Yuan 2012), on pre-2012 data; not re-opened here"
     ],
     [
-     "UNCERTAIN",
-     "whether positioning PREDICTS direction on our pairs: untested, data unavailable"
+     "REJECTED",
+     "Leveraged Money positioning extremes, flows, unwinds or crowding predict the next week's direction of the seven USD pairs after costs, 2008-07 .. 2016-01 (COT-1)"
     ]
    ],
    "decision_process": {
@@ -1385,15 +1385,25 @@
    "entry_logic": "fade the extreme / follow the change",
    "evidence_quality": "B",
    "exit_logic": "weeks",
-   "features": [],
-   "instruments": "CME FX futures",
+   "features": [
+    "cot_spec_pct",
+    "cot_spec_flow_pct"
+   ],
+   "instruments": "the seven direct USD pairs (CME currency futures)",
    "market_conditions": "crowded positioning",
    "name": "Speculative positioning (CFTC Commitments of Traders)",
    "principles": [
     "POSITIONING"
    ],
-   "results": [],
-   "risk_logic": "n/a",
+   "results": [
+    {
+     "hypothesis": "COT1-P/C/I/F/U/V/X (11)",
+     "summary": "Leveraged Money extremes: against -0.063R (n 915, t -1.97), with -0.011R (n 912); with price also extreme, with +0.017R (t 0.37; carried by EURUSD and 2008); COT added under 0.01R to a price-only rule; as a crowding veto on the 13-week trend: no difference (+0.0002R). Judged 2008-07 .. 2016-01 at t >= 3.414; holdout not opened",
+     "trial": "COT-1",
+     "verdict": "REJECTED"
+    }
+   ],
+   "risk_logic": "52-week percentile, fixed 0.90/0.10",
    "school": "positioning / sentiment",
    "sources": [
     {
@@ -1409,11 +1419,78 @@
      "verification": "cited from prior knowledge; not re-opened in this project"
     }
    ],
-   "status": "RESEARCHED",
+   "status": "REJECTED",
    "strategy_id": "SL-POSITIONING",
-   "tests": [],
+   "tests": [
+    {
+     "condition": "rule:p_rev",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:p_cont",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:c_rev",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:c_cont",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:i_rev",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:i_cont",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:f_cont",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:f_rev",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:u_rev",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:v_rev",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    },
+    {
+     "condition": "rule:x_veto",
+     "exit": "D3",
+     "side": "SIGNED",
+     "timeframe": "D1"
+    }
+   ],
    "timeframe": "weekly",
-   "untestable_because": "DATA-BLOCKED: cftc.gov, publicreporting.cftc.gov, Quandl and Nasdaq Data Link are refused by the network policy; no mirror; not approximated"
+   "untestable_because": null
   },
   {
    "claims": [

@@ -19,12 +19,13 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 37 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 48 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
 | Program | Verdict | Screened | Judged | Validated | Threshold t |
 |---|---|---|---|---|---|
+| COT-1 | FAILED | — | 11 | 0 | 3.414 |
 | CP-001 | FAILED | — | 4 | 0 | 3.180 |
 | DP-001 | FAILED | 1734 | 0 | 0 | 3.078 |
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
@@ -45,6 +46,17 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 
 | Edge | Side | TF | Entry | Exit | n | Net R | t (required) | Cost ×1.5 | Walk-fwd R | Complexity | Status | Failed checks |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| COT1-C-CONT | BOTH | D1 | `rule:c_cont` | D3 | 409 | +0.017 | +0.37 (3.41) | -0.005 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, years, instruments, leave_one_out, outliers, development, top5_removed |
+| COT1-C-REV | BOTH | D1 | `rule:c_rev` | D3 | 410 | -0.081 | -1.59 (3.41) | -0.102 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
+| COT1-F-CONT | BOTH | D1 | `rule:f_cont` | D3 | 575 | -0.077 | -2.09 (3.41) | -0.101 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
+| COT1-F-REV | BOTH | D1 | `rule:f_rev` | D3 | 575 | -0.010 | -0.25 (3.41) | -0.032 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers, development, top5_removed |
+| COT1-I-CONT | BOTH | D1 | `rule:i_cont` | D3 | 504 | -0.036 | -0.95 (3.41) | -0.061 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
+| COT1-I-REV | BOTH | D1 | `rule:i_rev` | D3 | 505 | -0.048 | -1.34 (3.41) | -0.070 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, top5_removed |
+| COT1-P-CONT | BOTH | D1 | `rule:p_cont` | D3 | 912 | -0.011 | -0.35 (3.41) | -0.035 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, top5_removed |
+| COT1-P-REV | BOTH | D1 | `rule:p_rev` | D3 | 915 | -0.062 | -1.97 (3.41) | -0.084 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, top5_removed |
+| COT1-U-REV | BOTH | D1 | `rule:u_rev` | D3 | 271 | -0.074 | -1.46 (3.41) | -0.095 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
+| COT1-V-REV | BOTH | D1 | `rule:v_rev` | D3 | 421 | -0.069 | -1.30 (3.41) | -0.090 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
+| COT1-X-VETO | BOTH | D1 | `rule:x_veto` | D3 | 820 | +0.011 | +0.31 (3.41) | +0.034 | — | 1 | **REJECTED** | significance, beats_random, permutation, instruments, leave_one_out, outliers, validation |
 | CP-001-T1 | BUY | D1 | `r120=high` | D4 | 260 | -0.019 | -0.30 (3.18) | -0.070 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | CP-001-T2 | SELL | D1 | `r120=low` | D4 | 251 | +0.186 | +1.03 (3.18) | +0.134 | — | 1 | **REJECTED** | significance, beats_random, years, outliers |
 | CP-001-T3 | BUY | D1 | `ma_slope=high` | D4 | 249 | -0.003 | -0.04 (3.18) | -0.051 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |

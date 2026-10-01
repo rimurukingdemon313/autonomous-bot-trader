@@ -702,6 +702,16 @@
   },
   {
    "from": "method:SL-POSITIONING",
+   "rel": "measured_by",
+   "to": "feature:cot_spec_pct"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "measured_by",
+   "to": "feature:cot_spec_flow_pct"
+  },
+  {
+   "from": "method:SL-POSITIONING",
    "rel": "claims",
    "to": "claim:SL-POSITIONING:0"
   },
@@ -717,8 +727,63 @@
   },
   {
    "from": "method:SL-POSITIONING",
-   "rel": "blocked_by",
-   "to": "gap:SL-POSITIONING"
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:p_rev:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:p_cont:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:c_rev:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:c_cont:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:i_rev:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:i_cont:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:f_cont:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:f_rev:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:u_rev:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:v_rev:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "tested_as",
+   "to": "hypothesis:SL-POSITIONING:rule:x_veto:SIGNED"
+  },
+  {
+   "from": "method:SL-POSITIONING",
+   "rel": "judged_by",
+   "to": "result:COT-1:SL-POSITIONING"
   },
   {
    "from": "source:Andersen, Bollerslev, Diebold & Vega, Micro effects of macro announcements: real-time price discovery in foreign exchange, American Economic Review 93 (2003)",
@@ -1844,7 +1909,7 @@
    "kind": "method",
    "knowledge_class": "DOCUMENTED_FACT",
    "name": "Speculative positioning (CFTC Commitments of Traders)",
-   "status": "RESEARCHED"
+   "status": "REJECTED"
   },
   {
    "id": "source:Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004)",
@@ -1865,6 +1930,14 @@
    "text": "crowded speculative positioning precedes reversals (or: position changes carry information)"
   },
   {
+   "id": "feature:cot_spec_pct",
+   "kind": "feature"
+  },
+  {
+   "id": "feature:cot_spec_flow_pct",
+   "kind": "feature"
+  },
+  {
    "id": "claim:SL-POSITIONING:0",
    "kind": "claim",
    "knowledge_class": "DOCUMENTED FACT",
@@ -1873,20 +1946,121 @@
   {
    "id": "claim:SL-POSITIONING:1",
    "kind": "claim",
-   "knowledge_class": "DOCUMENTED FACT",
-   "text": "positioning extremes have been reported to precede reversals (Tornell & Yuan 2012), on pre-2012 data"
+   "knowledge_class": "UNCERTAIN",
+   "text": "positioning extremes have been reported to precede reversals (Tornell & Yuan 2012), on pre-2012 data; not re-opened here"
   },
   {
    "id": "claim:SL-POSITIONING:2",
    "kind": "claim",
-   "knowledge_class": "UNCERTAIN",
-   "text": "whether positioning PREDICTS direction on our pairs: untested, data unavailable"
+   "knowledge_class": "REJECTED",
+   "text": "Leveraged Money positioning extremes, flows, unwinds or crowding predict the next week's direction of the seven USD pairs after costs, 2008-07 .. 2016-01 (COT-1)"
   },
   {
-   "id": "gap:SL-POSITIONING",
-   "kind": "gap",
-   "knowledge_class": "UNCERTAIN",
-   "reason": "DATA-BLOCKED: cftc.gov, publicreporting.cftc.gov, Quandl and Nasdaq Data Link are refused by the network policy; no mirror; not approximated"
+   "condition": "rule:p_rev",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:p_rev:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:p_cont",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:p_cont:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:c_rev",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:c_rev:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:c_cont",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:c_cont:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:i_rev",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:i_rev:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:i_cont",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:i_cont:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:f_cont",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:f_cont:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:f_rev",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:f_rev:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:u_rev",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:u_rev:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:v_rev",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:v_rev:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "condition": "rule:x_veto",
+   "exit": "D3",
+   "id": "hypothesis:SL-POSITIONING:rule:x_veto:SIGNED",
+   "kind": "hypothesis",
+   "knowledge_class": "HYPOTHESIS",
+   "side": "SIGNED",
+   "timeframe": "D1"
+  },
+  {
+   "hypothesis": "COT1-P/C/I/F/U/V/X (11)",
+   "id": "result:COT-1:SL-POSITIONING",
+   "kind": "result",
+   "summary": "Leveraged Money extremes: against -0.063R (n 915, t -1.97), with -0.011R (n 912); with price also extreme, with +0.017R (t 0.37; carried by EURUSD and 2008); COT added under 0.01R to a price-only rule; as a crowding veto on the 13-week trend: no difference (+0.0002R). Judged 2008-07 .. 2016-01 at t >= 3.414; holdout not opened",
+   "trial": "COT-1",
+   "verdict": "REJECTED"
   },
   {
    "evidence_quality": "A",
@@ -2120,5 +2294,5 @@
    "verdict": "REJECTED"
   }
  ],
- "version": "library-1.2.0"
+ "version": "library-1.3.0"
 }

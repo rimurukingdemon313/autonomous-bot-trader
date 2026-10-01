@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import pytest
 
+from aitrader.research.discovery.cot import RULES as COT_RULES
 from aitrader.research.discovery.hypothesis import condition_key
 from aitrader.research.discovery.library import (LIBRARY, PRINCIPLES, Method, Source, conflicts, knowledge_graph,
                                                  pending_tests, principle_priority, to_json)
@@ -19,6 +20,9 @@ def test_every_method_is_graded_and_is_either_testable_or_says_why_not():
         assert m.tests or m.untestable_because
         for t in m.tests:
             condition_key(t["condition"])  # in the engine's closed vocabulary
+            if t["condition"].startswith("rule:"):  # a registered rule, frozen in code (COT-1)
+                assert t["condition"][5:] in COT_RULES and t["side"] == "SIGNED", (m.strategy_id, t)
+                continue
             feats = {p.split("=")[0] for p in t["condition"].split("&")}
             known = (set(DAILY_FEATURES) | {"xs_mom", "vix_state", "vix_trend", "usd_rate", "oil_pull", "trend_sign", "own5", "gold_pull", "vix_jump", "usd_infl"}) if t["timeframe"] == "D1" else set(NAMES) | set(PRIMITIVE_BY_NAME)
             assert feats <= known, (m.strategy_id, feats - known)
