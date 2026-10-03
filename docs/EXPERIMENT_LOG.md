@@ -202,3 +202,12 @@ Each program was preregistered and pushed before it ran; the commits are in the 
 | Costs | Standard D1; D3 exit (one week, 2 × ATR stop). Cost about 0.047R per trade |
 | Result | **FAILED.** All 11 REJECTED, 0 PROMISING. The best, C-CONT, is +0.017R (t 0.37), carried by EURUSD and 2008. COT over price adds +0.007R. Crowded trend trades equal uncrowded ones. Selection walk-forward: −0.055R |
 | Conclusion | Positioning restates price at a one-week horizon; it adds no tradable information as a signal, confirmation, filter or veto. See [COT1_RESULTS.md](COT1_RESULTS.md) |
+
+## H.10 data audit (no hypothesis)
+
+| Field | Value |
+|---|---|
+| Data | Federal Reserve H.10 noon rates via FRED via the datahub mirror (`github.com/datasets/exchange-rates`). Pinned vintages 2017-12-08, **2018-10-17 (primary, full precision)** and 2026-09-29. The official endpoints are unreachable here |
+| Checks | The official values are recovered exactly (0 of 4,524 off the decimal grid per currency). 0 revisions across three vintages (1999–2016). All 171 no-rate days are explained; the 3 carried copies in 2007 are dropped. Best-matching time is 12:00 New York every year |
+| Cross-source | Against Dukascopy 2008–2016: noon level median 0.6–1.7 bp; daily return correlation 0.996–0.998; weekly ≥ 0.9977. AUD triangulation shows the **repository's Dukascopy AUDUSD** is faulty in 2008-01..09 and 2009-04..09 |
+| Verdict | **SUFFICIENT FOR RV-1**, on conditions (point in time: next business day 17:00 New York; JPY has no policy rate for 2,577 of 4,695 weekdays). See [H10_DATA_AUDIT.md](H10_DATA_AUDIT.md). No RV-1 test run |
