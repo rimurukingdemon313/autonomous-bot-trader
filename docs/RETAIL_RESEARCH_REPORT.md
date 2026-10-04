@@ -1,5 +1,9 @@
 # Retail-CFD research program: final report (2026-10)
 
+> **Follow-up:** `docs/TOM_INVESTIGATION_REPORT.md` investigated the surviving candidate (E1 TOM) in
+> depth. **Verdict: B, a WEAK PROMISING EDGE.** The calendar excess over ordinary days has been about
+> zero on developed indices since 2009 (t 0.36), so the post-2009 net is mostly equity drift.
+
 Every number below is from a committed artifact, produced by preregistered, frozen code:
 
 - `research/knowledge/RC-EQ.json`, `RC-FX.json`, `RC-EQ2.json` and `RC-EQ2-H.json`;

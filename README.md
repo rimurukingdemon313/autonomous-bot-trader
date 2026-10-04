@@ -31,6 +31,13 @@ is measured, never assumed.**
 > +1.9–2.6% a year at 1×, Sharpe ≈ 0.36–0.40, t 2.2 on each universe, and not significant since
 > 2009. Every other premium found (t 2.3–3.7 before the broker) is consumed by the retail markup
 > and spread. Nothing is promoted to live trading; the fx-majors 2017+ holdout is still sealed.
+>
+> **TOM investigation (docs/TOM_INVESTIGATION_REPORT.md): verdict B, WEAK PROMISING EDGE.**
+> - The turn-of-month premium was broad and real until 2008: window days beat other days by
+>   12–16 bps a day, t 7.6–8.9.
+> - Since 2009 it is gone on developed indices (0.6 bps, t 0.36). The +1.1% a year net since then
+>   is equity drift (major CFDs: +0.81%, t 0.41).
+> - It is not implemented.
 
 ---
 

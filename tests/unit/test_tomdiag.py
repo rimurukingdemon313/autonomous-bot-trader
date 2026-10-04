@@ -97,11 +97,12 @@ def test_inverse_volatility_keeps_the_windows_and_reads_only_past_closes():
     late = [j for j in range(300, 900) if tg["LO"][j] > 0]
     assert all(iv["LO"][j] > iv["HI"][j] for j in late)
     assert np.mean([iv["LO"][j] + iv["HI"][j] for j in late]) == pytest.approx(1.0, rel=0.05)
-    cut = 600
-    changed = {k: np.r_[v[:cut + 1], v[cut + 1:] * np.exp(rng.normal(0, 0.1, 900 - cut - 1))] for k, v in closes.items()}
-    iv2 = tomdiag.inverse_vol(tg, changed)
-    for k in closes:
-        assert np.array_equal(iv[k][:cut + 1], iv2[k][:cut + 1])
+    entries = [j for j in range(1, 900) if tg["LO"][j] > 0 and tg["LO"][j - 1] == 0]
+    for cut in (entries[-6], entries[-3]):  # a window opening exactly at the cut: its weight is set there
+        changed = {k: np.r_[v[:cut + 1], v[cut + 1:] * np.exp(rng.normal(0, 0.1, 900 - cut - 1))] for k, v in closes.items()}
+        iv2 = tomdiag.inverse_vol(tg, changed)
+        for k in closes:
+            assert np.array_equal(iv[k][:cut + 1], iv2[k][:cut + 1])
     w = [iv["LO"][j] for j in range(900) if tg["LO"][j] > 0]
     starts = [j for j in range(1, 900) if tg["LO"][j] > 0 and tg["LO"][j - 1] == 0]
     for s in starts:  # the weight is fixed for the whole window
