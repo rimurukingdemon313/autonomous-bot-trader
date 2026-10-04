@@ -1,0 +1,68 @@
+{
+ "code_sha256": "3d27011e8b405e87314da8082d87c5208e177b177b0b8b1a79dc9218ba7c9f49",
+ "sha256": "6d09ec9c406597e4422de3704be32651688a727f2baeaae895e3beef1b0bc985",
+ "spec": {
+  "costs": {
+   "commission_pips_rt": 0.7,
+   "slippage_pips": 0.1,
+   "spread_multiple": 1.0
+  },
+  "costs_x2": {
+   "commission_pips_rt": 1.4,
+   "slippage_pips": 0.2,
+   "spread_multiple": 2.0
+  },
+  "data_note": "hour 00 UTC is absent from the source for 12 of 13 instruments; H1/H2 use the 23:00, 01:00 and 03:00 UTC bar opens, which exist",
+  "fix_pairs": [
+   "EURUSD",
+   "GBPUSD",
+   "AUDUSD",
+   "NZDUSD",
+   "USDJPY",
+   "USDCHF",
+   "USDCAD"
+  ],
+  "gates": {
+   "costs_x2": "mean net > 0 with spread, slippage and commission all doubled",
+   "development": "mean net > 0 in 2007-04..2011",
+   "leave_one_pair_out": "H3/H4: mean net > 0 leaving out any one pair",
+   "specificity": "H1/H2: the gotobi mean exceeds the same window on non-gotobi days (Welch t >= 2)",
+   "t": "t of the mean net bps over the judged period >= the registry's Bonferroni threshold",
+   "top_year": "no single year supplies more than 50% of the total net",
+   "validation": "mean net > 0 in 2012..2016",
+   "years": ">= 60% of years with >= 20 observations have positive net"
+  },
+  "holdout_rule": "holdout mean net > 0 with one-sided t >= z(0.05 / passers), and mean net > 0 with costs x2",
+  "hypotheses": {
+   "FLOW1-H1-GOTOBI-PRE": "On Tokyo gotobi days USDJPY rises from 08:00 to 10:00 JST (importers' dollar demand into the 09:55 fix): long",
+   "FLOW1-H2-GOTOBI-POST": "On gotobi days USDJPY falls from 10:00 to 12:00 JST (the demand is gone after the fix): short",
+   "FLOW1-H3-FIX-MONTHEND": "On the last business day of the month, the 15:00-15:45 London move of the USD majors reverses from 16:15 to 17:15 London: fade it",
+   "FLOW1-H4-FIX-DAILY": "On all other business days, the same fade of the pre-fix move"
+  },
+  "min_fix_pairs": 4,
+  "periods": {
+   "development": [
+    "2007-04-01",
+    "2012-01-01"
+   ],
+   "holdout": [
+    "2017-01-01",
+    "2018-06-01"
+   ],
+   "judged": [
+    "2007-04-01",
+    "2017-01-01"
+   ],
+   "validation": [
+    "2012-01-01",
+    "2017-01-01"
+   ]
+  },
+  "prior_tests_on_period": 79,
+  "program": "FLOW-1",
+  "question": "Do scheduled, non-informational orders at the Tokyo and London fixes move prices predictably, after costs?",
+  "threshold_t": 3.4305,
+  "universe": "fx-majors",
+  "version": "flow-1.0.0"
+ }
+}
