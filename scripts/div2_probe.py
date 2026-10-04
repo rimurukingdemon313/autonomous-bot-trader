@@ -2,7 +2,10 @@
 no returns). Yahoo chart API for index levels; FRED graph CSV (no key) for FX, rates, commodities."""
 
 import json
+import socket
 import urllib.request
+
+socket.setdefaulttimeout(20)
 
 UA = {"User-Agent": "Mozilla/5.0 (research; aitrader DIV-2 probe)"}
 YAHOO = ["^GSPC", "^IXIC", "^N225", "^FTSE", "^GDAXI", "^HSI", "^GSPTSE", "^FCHI", "^AXJO", "^SSMI", "^STOXX50E",
@@ -30,15 +33,11 @@ def fred(sid):
 
 
 out = {}
-for s in YAHOO:
-    try:
-        out[s] = yahoo(s)
-    except Exception as e:
-        out[s] = f"ERROR {type(e).__name__}: {e}"[:120]
-for s in FRED:
-    try:
-        out[s] = fred(s)
-    except Exception as e:
-        out[s] = f"ERROR {type(e).__name__}: {e}"[:120]
-print(json.dumps(out, indent=1))
-open("research/results/DIV-2-probe.json", "w").write(json.dumps(out, indent=1) + "\n")
+for kind, items, fn in (("yahoo", YAHOO, yahoo), ("fred", FRED, fred)):
+    for s in items:
+        try:
+            out[s] = fn(s)
+        except Exception as e:
+            out[s] = f"ERROR {type(e).__name__}: {e}"[:120]
+        print(s, out[s], flush=True)
+        open("research/results/DIV-2-probe.json", "w").write(json.dumps(out, indent=1) + "\n")  # partial results kept
