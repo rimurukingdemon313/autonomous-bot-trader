@@ -1,0 +1,36 @@
+# Descriptive diagnosis of the failed DIV-1 judge (same data and period; holdout sealed; no verdict).
+name: DIV-1 diagnosis
+on:
+  push:
+    branches: [div1-diag]
+permissions:
+  contents: write
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Fetch the same series again (hashes compared with the judged manifest)
+        run: |
+          cp data/div/manifest.json /tmp/judged-manifest.json
+          for i in 1 2 3 4 5; do python scripts/div1.py fetch && break; sleep $((i * 30)); done
+          python - <<'PY'
+          import json
+          a = json.load(open("/tmp/judged-manifest.json"))["assets"]
+          b = json.load(open("data/div/manifest.json"))["assets"]
+          # the provider may have added later days; the judged period must be the same series
+          print({s: (a[s]["first"] == b[s]["first"]) for s in a})
+          PY
+          git checkout data/div/manifest.json
+      - run: python scripts/div1_diagnose.py 2>&1 | tee research/results/div1-diagnose.log
+      - if: always()
+        run: |
+          git config user.name "div1-runner"; git config user.email "div1-runner@users.noreply.github.com"
+          git add -f research/results/DIV-1-diagnosis.json research/results/div1-diagnose.log || true
+          git commit -m "DIV-1 descriptive diagnosis on the GitHub runner [skip ci]" || true
+          git push origin HEAD:div1-diag
