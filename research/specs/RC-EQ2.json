@@ -1,0 +1,251 @@
+{
+ "code_sha256": "90c71e12e066aa41ec887b0b56a149fa1feda46bbea2519a245e30641edd5a97",
+ "sha256": "e786d11852f8ee5b55c8b380a9db33a398de7c5756af46365d94267b4229dcb6",
+ "spec": {
+  "b_gates": {
+   "before_2021": "mean net > 0 before 2021",
+   "costs_x2": "mean net > 0 with every cost doubled",
+   "delay": "mean net > 0 with every fill one close later",
+   "from_2021": "mean net > 0 from 2021",
+   "modern": "mean net > 0 from 2009",
+   "t": "t of the mean monthly net over universe B, 1990-01 -> 2026-09, >= z(1 - 0.05/k), k = candidates on B"
+  },
+  "classes": {
+   "RCEQ-E1-TOM": "B pass -> PROMISING_REPLICATED, else REJECTED (it failed RC-EQ's t gate on A, so it cannot become VALIDATED here)",
+   "RCEQ-E7-ENSEMBLE": "same as E1",
+   "RCEQ2-E8-HALLOWEEN": "every RC-EQ gate on A -> sent to B; A and B pass -> VALIDATED; else REJECTED (PROMISING on A as defined by RC-EQ is reported, not sent to B)"
+  },
+  "costs": {
+   "fx_commission_pips_rt": 0.7,
+   "fx_days": 365,
+   "fx_markup_pa": 1.5,
+   "fx_slippage_pips": 0.1,
+   "index_days": 360,
+   "index_markup_pa": 2.5,
+   "short_dividend_pa": 3.0,
+   "slippage_bps": 1.0,
+   "spread_mult": 1.0
+  },
+  "e8": [
+   "RCEQ2-E8-HALLOWEEN",
+   {
+    "enter_month": 10,
+    "exit_month": 4
+   },
+   {
+    "enter_month": [
+     9,
+     10,
+     11
+    ],
+    "exit_month": [
+     3,
+     4,
+     5
+    ]
+   }
+  ],
+  "e8_gates": {
+   "costs_x2": "mean net > 0 with every cost assumption doubled (spread, slippage, commission, both markups)",
+   "delay": "mean net > 0 with every fill one close later",
+   "development": "mean net > 0 in 1990-2005",
+   "drawdown": "maximum drawdown (sum of monthly net, 1x) <= 30%",
+   "leave_one_out": "mean net > 0 leaving out any one instrument",
+   "modern": "mean net > 0 in 2009-2020",
+   "region": "at least 75% of the neighbourhood grid has mean net > 0 and its median t >= 2.0 (no magic number)",
+   "t": "t of the mean monthly net return, 1990-2020, >= max(3.0, the registry's Bonferroni value)",
+   "top_year": "no year supplies more than 30% of the sum of positive years",
+   "validation": "mean net > 0 in 2006-2020"
+  },
+  "periods": {
+   "b": [
+    "1990-01-01",
+    "2026-10-01"
+   ],
+   "b_modern": [
+    "2009-01-01",
+    "2026-10-01"
+   ],
+   "b_split": "2021-01-01",
+   "judge_a": [
+    "1990-01-01",
+    "2021-01-01"
+   ]
+  },
+  "program": "RC-EQ2",
+  "replicate": [
+   "RCEQ-E1-TOM",
+   "RCEQ-E7-ENSEMBLE"
+  ],
+  "replicate_frozen_in": {
+   "code_sha256": "ef104e65f856eeca5ce6ae36c749553f104f802c96891940ebd062ecedb2c553",
+   "spec_sha256": "bbe20ccd5feb1d9e5ef27b833bdd86af306ad6c2438ebae4b179792a5f592646"
+  },
+  "t_required_e8": 3.0,
+  "universe_a": {
+   "AUS200": [
+    "^AXJO",
+    "AU",
+    2.0,
+    false
+   ],
+   "CAN60": [
+    "^GSPTSE",
+    "CA",
+    5.0,
+    false
+   ],
+   "FRA40": [
+    "^FCHI",
+    "FR|XM",
+    2.0,
+    false
+   ],
+   "GER40": [
+    "^GDAXI",
+    "DE|XM",
+    2.0,
+    true
+   ],
+   "HK50": [
+    "^HSI",
+    "HK",
+    5.0,
+    false
+   ],
+   "JPN225": [
+    "^N225",
+    "JP",
+    2.0,
+    false
+   ],
+   "NAS100": [
+    "^NDX",
+    "US",
+    2.0,
+    false
+   ],
+   "SWI20": [
+    "^SSMI",
+    "CH",
+    5.0,
+    false
+   ],
+   "UK100": [
+    "^FTSE",
+    "GB",
+    2.0,
+    false
+   ],
+   "US500": [
+    "^SP500TR",
+    "US",
+    2.0,
+    true
+   ]
+  },
+  "universe_b": {
+   "AUT20": [
+    "^ATX",
+    "AT|XM",
+    10.0,
+    false
+   ],
+   "BEL20": [
+    "^BFX",
+    "BE|XM",
+    10.0,
+    false
+   ],
+   "BRA60": [
+    "^BVSP",
+    "BR",
+    10.0,
+    false
+   ],
+   "ESP35": [
+    "^IBEX",
+    "ES|XM",
+    5.0,
+    false
+   ],
+   "EU50": [
+    "^STOXX50E",
+    "XM",
+    2.0,
+    false
+   ],
+   "IDN": [
+    "^JKSE",
+    "ID",
+    10.0,
+    false
+   ],
+   "IND50": [
+    "^NSEI",
+    "IN",
+    10.0,
+    false
+   ],
+   "ISR125": [
+    "^TA125.TA",
+    "IL",
+    10.0,
+    false
+   ],
+   "ITA40": [
+    "FTSEMIB.MI",
+    "IT|XM",
+    5.0,
+    false
+   ],
+   "KOR200": [
+    "^KS11",
+    "KR",
+    10.0,
+    false
+   ],
+   "MEX35": [
+    "^MXX",
+    "MX",
+    10.0,
+    false
+   ],
+   "MYS30": [
+    "^KLSE",
+    "MY",
+    10.0,
+    false
+   ],
+   "NETH25": [
+    "^AEX",
+    "NL|XM",
+    5.0,
+    false
+   ],
+   "NZL50": [
+    "^NZ50",
+    "NZ",
+    10.0,
+    false
+   ],
+   "SWE30": [
+    "^OMX",
+    "SE",
+    5.0,
+    false
+   ],
+   "US2000": [
+    "^RUT",
+    "US",
+    5.0,
+    false
+   ]
+  },
+  "versions": {
+   "rc": "rc-1.0.0",
+   "rc2": "rc2-1.0.0",
+   "retail": "retail-1.0.0"
+  }
+ }
+}

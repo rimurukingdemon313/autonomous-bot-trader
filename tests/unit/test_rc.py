@@ -328,3 +328,47 @@ def test_breakout_enters_on_a_new_high_and_leaves_on_a_new_low():
               95.0, np.full(17, 96.0)]
     t = rc.breakout(days, {"A": v}, 1, entry=10, exit_ratio=0.5)["A"]
     assert t[9] == 0 and t[10] == 1.0 and t[21] == 1.0 and t[22] == 0.0
+
+
+# ── RC-EQ2 ──────────────────────────────────────────────────────────────
+
+def test_halloween_holds_november_to_april_and_reads_no_price():
+    from aitrader.research.discovery import rc2
+    days = weekdays(600, start=date(2001, 1, 1))
+    a = rc2.halloween(days, {"A": _prices(600, 1)}, 2)["A"]
+    assert np.array_equal(a, rc2.halloween(days, {"A": _prices(600, 2)}, 2)["A"])
+    on = [days[j] for j in range(1, 600) if a[j] > 0 and a[j - 1] == 0]
+    off = [days[j] for j in range(1, 600) if a[j] == 0 and a[j - 1] > 0]
+    assert on == [date(2001, 10, 31), date(2002, 10, 31)] and off[:2] == [date(2001, 4, 30), date(2002, 4, 30)]
+    assert {days[j].month for j in range(600) if a[j] > 0 and days[j].day < 28} == {11, 12, 1, 2, 3, 4}
+    assert set(a) == {0.0, 0.5}
+
+
+def test_the_rc_eq2_halloween_evaluation_runs_on_synthetic_data(tmp_path, monkeypatch):
+    import sys
+    from pathlib import Path
+    rc_eq, rates = _rc_eq(tmp_path, monkeypatch)
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+    import rc_eq2
+    days, closes, _ = rc_eq.load(rc_eq.UNIVERSE_A, rc_eq.JUDGE[1])
+    e = rc_eq2.evaluate_e8(days, closes, rc_eq.UNIVERSE_A, rates, rc_eq.JUDGE,
+                           {"development": rc_eq.DEV, "validation": rc_eq.VAL, "modern": rc_eq.MODERN})
+    e.pop("_res")
+    g = rc_eq.gates(e, 3.0)
+    assert not g["t"] and len(e["grid"]) == 9 and 0.4 < e["net"]["time_in_market"] < 0.6
+    assert e["net"]["trades_per_year"] == pytest.approx(10, abs=1.5)  # one round trip a year per index
+
+
+def test_the_rc_eq2_design_is_frozen_once_registered():
+    import json
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(root / "scripts"))
+    import rc_eq2
+    spec = root / "research" / "specs" / "RC-EQ2.json"
+    if not spec.exists():
+        pytest.skip("RC-EQ2 not yet specified")
+    frozen = json.loads(spec.read_text())
+    assert frozen["code_sha256"] == rc_eq2.code_hash(), "RC-EQ2 (or RC-EQ) code changed after its spec was frozen"
+    assert frozen["sha256"] == rc_eq2.spec_sha(frozen["spec"])

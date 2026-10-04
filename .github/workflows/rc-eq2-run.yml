@@ -1,0 +1,58 @@
+# One-time execution of RC-EQ2 (research/preregistrations/RC-EQ2.md) on GitHub's runner:
+# fetch universe A, judge E8 on A, then open universe B once for the frozen candidates.
+name: RC-EQ2 judge + replicate (once)
+on:
+  push:
+    branches: [rc-eq2-run]
+permissions:
+  contents: write
+jobs:
+  rceq2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to run twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("RC-EQ2", "RC-EQ2-H"):
+                  sys.exit(f"RC-EQ2 already has a verdict ({r['status']})")
+          PY
+      - name: Fetch universe A (retries on transient errors)
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          for i in 1 2 3 4; do
+            python scripts/rc_eq2.py fetch 2>&1 | tee -a rceq2-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a rceq2-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/rc/fetch_manifest_A2.json
+      - name: Judge E8 on universe A
+        run: |
+          set -o pipefail
+          python scripts/rc_eq2.py judge 2>&1 | tee rceq2-judge.log
+      - name: Replicate on universe B (opened once)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/rc_eq2.py replicate 2>&1 | tee -a rceq2-replicate.log && break
+            grep -q "RC-EQ2-H" research/registry.jsonl && break
+            sleep $((i * 30))
+          done
+      - name: Commit the artifacts and logs
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in rceq2-fetch.log rceq2-judge.log rceq2-replicate.log; do [ -f "$f" ] && mv "$f" research/results/; done
+          git add -f research/results/rceq2-*.log data/rc/fetch_manifest_A2.json data/rc/fetch_manifest_B.json research/knowledge/RC-EQ2.json research/knowledge/RC-EQ2-H.json research/registry.jsonl 2>/dev/null || true
+          git commit -m "RC-EQ2 run on the GitHub runner (E8 judged on A; universe B opened once) [skip ci]" || true
+          git push origin HEAD:rc-eq2-run
