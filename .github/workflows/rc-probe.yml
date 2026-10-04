@@ -1,0 +1,24 @@
+# Availability-only probe for the RC programs: dates, counts and time zones, never prices or returns.
+name: RC availability probe
+on:
+  push:
+    branches: [rc-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/rc_probe.py
+      - name: Commit the probe
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git add -f research/results/rc-probe.json || true
+          git commit -m "RC availability probe (dates and counts only) [skip ci]" || true
+          git push origin HEAD:rc-probe
