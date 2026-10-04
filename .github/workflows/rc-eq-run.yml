@@ -1,0 +1,50 @@
+# One-time execution of the preregistered RC-EQ study (research/preregistrations/RC-EQ.md) on GitHub's
+# runner: `fetch` (universe A only) and `judge`, exactly as frozen. Never `holdout`. Refuses if RC-EQ has a verdict.
+name: RC-EQ fetch + judge (once)
+on:
+  push:
+    branches: [rc-eq-run]
+permissions:
+  contents: write
+jobs:
+  rceq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to judge twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("RC-EQ", "RC-EQ-H"):
+                  sys.exit(f"RC-EQ already has a verdict ({r['status']})")
+          PY
+      - name: Fetch universe A (retries on transient errors)
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          for i in 1 2 3 4; do
+            python scripts/rc_eq.py fetch 2>&1 | tee -a rceq-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a rceq-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/rc/fetch_manifest_A.json
+      - name: Judge (universe A, 1990-2020; universe B stays sealed)
+        run: |
+          set -o pipefail
+          python scripts/rc_eq.py judge 2>&1 | tee rceq-judge.log
+      - name: Commit the artifacts and logs
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in rceq-fetch.log rceq-judge.log; do [ -f "$f" ] && mv "$f" research/results/; done
+          git add -f research/results/rceq-*.log data/rc/fetch_manifest_A.json research/knowledge/RC-EQ.json research/registry.jsonl 2>/dev/null || true
+          git commit -m "RC-EQ judged on the GitHub runner (universe B sealed) [skip ci]" || true
+          git push origin HEAD:rc-eq-run

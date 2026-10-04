@@ -1,0 +1,353 @@
+{
+ "code_sha256": "ef104e65f856eeca5ce6ae36c749553f104f802c96891940ebd062ecedb2c553",
+ "sha256": "bbe20ccd5feb1d9e5ef27b833bdd86af306ad6c2438ebae4b179792a5f592646",
+ "spec": {
+  "costs": {
+   "fx_commission_pips_rt": 0.7,
+   "fx_days": 365,
+   "fx_markup_pa": 1.5,
+   "fx_slippage_pips": 0.1,
+   "index_days": 360,
+   "index_markup_pa": 2.5,
+   "short_dividend_pa": 3.0,
+   "slippage_bps": 1.0,
+   "spread_mult": 1.0
+  },
+  "costs_x2": {
+   "fx_commission_pips_rt": 1.4,
+   "fx_days": 365,
+   "fx_markup_pa": 3.0,
+   "fx_slippage_pips": 0.2,
+   "index_days": 360,
+   "index_markup_pa": 5.0,
+   "short_dividend_pa": 3.0,
+   "slippage_bps": 2.0,
+   "spread_mult": 2.0
+  },
+  "data_rules": {
+   "clean": "rc.clean: one-day 20% spikes and 5+ identical closes removed, never replaced",
+   "dates": "exchange-local trading dates",
+   "rates": "BIS policy rate public at 22:00 UTC; stale > 7 days or > 25% = not held"
+  },
+  "gates": {
+   "costs_x2": "mean net > 0 with every cost assumption doubled (spread, slippage, commission, both markups)",
+   "delay": "mean net > 0 with every fill one close later",
+   "development": "mean net > 0 in 1990-2005",
+   "drawdown": "maximum drawdown (sum of monthly net, 1x) <= 30%",
+   "leave_one_out": "mean net > 0 leaving out any one instrument",
+   "modern": "mean net > 0 in 2009-2020",
+   "region": "at least 75% of the neighbourhood grid has mean net > 0 and its median t >= 2.0 (no magic number)",
+   "t": "t of the mean monthly net return, 1990-2020, >= max(3.0, the registry's Bonferroni value)",
+   "top_year": "no year supplies more than 30% of the sum of positive years",
+   "validation": "mean net > 0 in 2006-2020"
+  },
+  "holdout_rule": "universe B (never loaded), 1990-01 -> 2026-09, once, passers only: t >= the one-sided Bonferroni value z(1 - 0.05/k) for k passers; mean net > 0 before 2021 and from 2021; costs_x2 > 0; delay > 0",
+  "hypotheses": {
+   "RCEQ-E1-TOM": [
+    "tom",
+    {
+     "k_post": 3,
+     "k_pre": 1
+    },
+    {
+     "k_post": [
+      2,
+      3,
+      4
+     ],
+     "k_pre": [
+      1,
+      2,
+      3
+     ]
+    }
+   ],
+   "RCEQ-E2-DIP": [
+    "dip",
+    {
+     "lookback": 5,
+     "threshold": -1.0
+    },
+    {
+     "lookback": [
+      3,
+      5,
+      10
+     ],
+     "threshold": [
+      -0.75,
+      -1.0,
+      -1.5
+     ]
+    }
+   ],
+   "RCEQ-E3-XSMOM": [
+    "xsmom",
+    {
+     "k": 3,
+     "lookback": 12
+    },
+    {
+     "k": [
+      2,
+      3,
+      4
+     ],
+     "lookback": [
+      6,
+      9,
+      12
+     ]
+    }
+   ],
+   "RCEQ-E4-REGIME": [
+    "regime",
+    {
+     "months": 10
+    },
+    {
+     "months": [
+      6,
+      8,
+      10,
+      12,
+      14
+     ]
+    }
+   ],
+   "RCEQ-E5-VOLMAN": [
+    "volman",
+    {
+     "target": 0.15,
+     "window": 21
+    },
+    {
+     "target": [
+      0.1,
+      0.15,
+      0.2
+     ],
+     "window": [
+      21,
+      63
+     ]
+    }
+   ],
+   "RCEQ-E6-BREAKOUT": [
+    "breakout",
+    {
+     "entry": 100,
+     "exit_ratio": 0.5
+    },
+    {
+     "entry": [
+      50,
+      100,
+      150
+     ],
+     "exit_ratio": [
+      0.25,
+      0.5
+     ]
+    }
+   ],
+   "RCEQ-E7-ENSEMBLE": [
+    "ensemble",
+    {},
+    {}
+   ]
+  },
+  "load_from": "1985-01-01",
+  "max_rate_pct": 25.0,
+  "periods": {
+   "development": [
+    "1990-01-01",
+    "2006-01-01"
+   ],
+   "holdout_b": [
+    "1990-01-01",
+    "2026-10-01"
+   ],
+   "holdout_split": "2021-01-01",
+   "judge": [
+    "1990-01-01",
+    "2021-01-01"
+   ],
+   "modern": [
+    "2009-01-01",
+    "2021-01-01"
+   ],
+   "validation": [
+    "2006-01-01",
+    "2021-01-01"
+   ]
+  },
+  "program": "RC-EQ",
+  "promising": "not passed, but t >= 2.0, development > 0, validation > 0 and costs_x2 > 0: reported, never holdout-eligible",
+  "t_required": 3.0,
+  "universe_a": {
+   "AUS200": [
+    "^AXJO",
+    "AU",
+    2.0,
+    false
+   ],
+   "CAN60": [
+    "^GSPTSE",
+    "CA",
+    5.0,
+    false
+   ],
+   "FRA40": [
+    "^FCHI",
+    "FR|XM",
+    2.0,
+    false
+   ],
+   "GER40": [
+    "^GDAXI",
+    "DE|XM",
+    2.0,
+    true
+   ],
+   "HK50": [
+    "^HSI",
+    "HK",
+    5.0,
+    false
+   ],
+   "JPN225": [
+    "^N225",
+    "JP",
+    2.0,
+    false
+   ],
+   "NAS100": [
+    "^NDX",
+    "US",
+    2.0,
+    false
+   ],
+   "SWI20": [
+    "^SSMI",
+    "CH",
+    5.0,
+    false
+   ],
+   "UK100": [
+    "^FTSE",
+    "GB",
+    2.0,
+    false
+   ],
+   "US500": [
+    "^SP500TR",
+    "US",
+    2.0,
+    true
+   ]
+  },
+  "universe_b": {
+   "AUT20": [
+    "^ATX",
+    "AT|XM",
+    10.0,
+    false
+   ],
+   "BEL20": [
+    "^BFX",
+    "BE|XM",
+    10.0,
+    false
+   ],
+   "BRA60": [
+    "^BVSP",
+    "BR",
+    10.0,
+    false
+   ],
+   "ESP35": [
+    "^IBEX",
+    "ES|XM",
+    5.0,
+    false
+   ],
+   "EU50": [
+    "^STOXX50E",
+    "XM",
+    2.0,
+    false
+   ],
+   "IDN": [
+    "^JKSE",
+    "ID",
+    10.0,
+    false
+   ],
+   "IND50": [
+    "^NSEI",
+    "IN",
+    10.0,
+    false
+   ],
+   "ISR125": [
+    "^TA125.TA",
+    "IL",
+    10.0,
+    false
+   ],
+   "ITA40": [
+    "FTSEMIB.MI",
+    "IT|XM",
+    5.0,
+    false
+   ],
+   "KOR200": [
+    "^KS11",
+    "KR",
+    10.0,
+    false
+   ],
+   "MEX35": [
+    "^MXX",
+    "MX",
+    10.0,
+    false
+   ],
+   "MYS30": [
+    "^KLSE",
+    "MY",
+    10.0,
+    false
+   ],
+   "NETH25": [
+    "^AEX",
+    "NL|XM",
+    5.0,
+    false
+   ],
+   "NZL50": [
+    "^NZ50",
+    "NZ",
+    10.0,
+    false
+   ],
+   "SWE30": [
+    "^OMX",
+    "SE",
+    5.0,
+    false
+   ],
+   "US2000": [
+    "^RUT",
+    "US",
+    5.0,
+    false
+   ]
+  },
+  "versions": {
+   "rc": "rc-1.0.0",
+   "retail": "retail-1.0.0"
+  }
+ }
+}

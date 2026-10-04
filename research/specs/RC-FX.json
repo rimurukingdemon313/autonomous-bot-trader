@@ -1,0 +1,179 @@
+{
+ "code_sha256": "5db1cba5da73431edf270d59fec1154c86b17444b22c9aa8d7bf5db6d3058fc5",
+ "sha256": "ac4afb159f53a4030ebf973872af2acdf370ad13aa5731ecfb06bb8c8dce9641",
+ "spec": {
+  "areas": {
+   "AUD": "AU",
+   "CAD": "CA",
+   "CHF": "CH",
+   "EUR": "XM",
+   "GBP": "GB",
+   "JPY": "JP",
+   "NZD": "NZ",
+   "USD": "US"
+  },
+  "classes": "X1: HOLDOUT_ELIGIBLE if every gate passes, else REJECTED. X2 is never holdout-eligible: its base (monthly FX trend) is already rejected (CP-001, R2D) and 2007-2016 is too short to prove an absolute edge; it is PROMISING if value_added passes and its own mean net > 0 (COT is then worth a separate preregistered study), else REJECTED",
+  "costs": {
+   "fx_commission_pips_rt": 0.7,
+   "fx_days": 365,
+   "fx_markup_pa": 1.5,
+   "fx_slippage_pips": 0.1,
+   "index_days": 360,
+   "index_markup_pa": 2.5,
+   "short_dividend_pa": 3.0,
+   "slippage_bps": 1.0,
+   "spread_mult": 1.0
+  },
+  "costs_x2": {
+   "fx_commission_pips_rt": 1.4,
+   "fx_days": 365,
+   "fx_markup_pa": 3.0,
+   "fx_slippage_pips": 0.2,
+   "index_days": 360,
+   "index_markup_pa": 5.0,
+   "short_dividend_pa": 3.0,
+   "slippage_bps": 2.0,
+   "spread_mult": 2.0
+  },
+  "fx": {
+   "AUD": [
+    0.3,
+    0.0001,
+    true
+   ],
+   "CAD": [
+    0.5,
+    0.0001,
+    false
+   ],
+   "CHF": [
+    0.5,
+    0.0001,
+    false
+   ],
+   "EUR": [
+    0.2,
+    0.0001,
+    true
+   ],
+   "GBP": [
+    0.5,
+    0.0001,
+    true
+   ],
+   "JPY": [
+    0.3,
+    0.01,
+    false
+   ],
+   "NZD": [
+    0.5,
+    0.0001,
+    true
+   ]
+  },
+  "fx_lag_fixings": 2,
+  "gates": {
+   "costs_x2": "mean net > 0 with every cost assumption doubled",
+   "delay": "mean net > 0 with every fill one fixing later",
+   "development": "X1: mean net > 0 in 1990-2003; X2: in 2007-04..2011",
+   "drawdown": "maximum drawdown (sum of monthly net, 1x) <= 30%",
+   "leave_one_out": "mean net > 0 leaving out any one currency",
+   "modern": "mean net > 0 in 2009-2016",
+   "region": "at least 75% of the grid has mean net > 0 and its median t >= 2.0",
+   "t": "t of the mean monthly net return over the judged period >= max(3.0, the registry's Bonferroni value)",
+   "top_year": "no year supplies more than 30% of the sum of positive years",
+   "validation": "X1: mean net > 0 in 2004-2016; X2: in 2012-2016",
+   "value_added": "X2 only: (filtered - unfiltered) monthly mean > 0 with paired t >= 2.0, > 0 in both halves, and > 0 in at least 75% of the grid"
+  },
+  "holdout_rule": "fx-majors 2017-01 -> 2026-09, once, passers only: t >= z(1 - 0.05/k) one-sided; mean net > 0 in 2017-2021 and in 2022-2026; costs_x2 > 0. H.10 vintage 2026-09-29 (inverse rounded to 4 decimals, at most ~0.6 bp per fixing: declared)",
+  "hypotheses": {
+   "RCFX-X1-COMPOSITE": [
+    "composite",
+    {
+     "k": 2,
+     "mom": 252,
+     "value_years": 5.0
+    },
+    {
+     "k": [
+      2,
+      3
+     ],
+     "mom": [
+      126,
+      189,
+      252
+     ],
+     "value_years": [
+      4.0,
+      5.0,
+      6.0
+     ]
+    }
+   ],
+   "RCFX-X2-COT-FILTER": [
+    "cot_filter",
+    {
+     "lookback": 252,
+     "threshold": 0.9
+    },
+    {
+     "lookback": [
+      126,
+      252
+     ],
+     "threshold": [
+      0.8,
+      0.9,
+      0.95
+     ]
+    }
+   ]
+  },
+  "periods": {
+   "cot_halves": [
+    [
+     "2007-04-01",
+     "2012-01-01"
+    ],
+    [
+     "2012-01-01",
+     "2017-01-01"
+    ]
+   ],
+   "cot_judge": [
+    "2007-04-01",
+    "2017-01-01"
+   ],
+   "development": [
+    "1990-01-01",
+    "2004-01-01"
+   ],
+   "holdout": [
+    "2017-01-01",
+    "2026-10-01"
+   ],
+   "holdout_split": "2022-01-01",
+   "judge": [
+    "1990-01-01",
+    "2017-01-01"
+   ],
+   "modern": [
+    "2009-01-01",
+    "2017-01-01"
+   ],
+   "validation": [
+    "2004-01-01",
+    "2017-01-01"
+   ]
+  },
+  "program": "RC-FX",
+  "t_required": 3.4554,
+  "versions": {
+   "h10": "h10-1.0.0",
+   "rc": "rc-1.0.0",
+   "retail": "retail-1.0.0"
+  }
+ }
+}
