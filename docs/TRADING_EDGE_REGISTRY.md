@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 54 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 58 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -29,6 +29,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | CP-001 | FAILED | — | 4 | 0 | 3.180 |
 | DP-001 | FAILED | 1734 | 0 | 0 | 3.078 |
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
+| FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
 | R2A | FAILED | — | 2 | 0 | 3.279 |
 | R2B | FAILED | — | 2 | 0 | 3.291 |
 | R2C | FAILED | — | 2 | 0 | 3.301 |
@@ -62,6 +63,14 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | CP-001-T2 | SELL | D1 | `r120=low` | D4 | 251 | +0.186 | +1.03 (3.18) | +0.134 | — | 1 | **REJECTED** | significance, beats_random, years, outliers |
 | CP-001-T3 | BUY | D1 | `ma_slope=high` | D4 | 249 | -0.003 | -0.04 (3.18) | -0.051 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
 | CP-001-T4 | SELL | D1 | `ma_slope=low` | D4 | 226 | +0.207 | +1.00 (3.18) | +0.157 | — | 1 | **REJECTED** | significance, beats_random, years, instruments, outliers |
+| FLOW1-H1-GOTOBI-PRE | BUY | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | -1.328 | -1.68 (3.43) | -3.370 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, specificity |
+| ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
+| FLOW1-H2-GOTOBI-POST | SELL | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | +0.646 | +0.60 (3.43) | -1.163 | — | 1 | **REJECTED** | t, costs_x2, specificity |
+| ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
+| FLOW1-H3-FIX-MONTHEND | BOTH | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 117 | -2.444 | -3.13 (3.43) | -4.713 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, leave_one_pair_out |
+| ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
+| FLOW1-H4-FIX-DAILY | BOTH | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 2419 | -2.200 | -11.59 (3.43) | -4.458 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, leave_one_pair_out |
+| ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | R2A-1 | BUY | D1 | `vix_state=low` | D4 | 263 | -0.119 | -1.78 (3.28) | -0.130 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2A-2 | SELL | D1 | `vix_trend=high` | D3 | 475 | -0.056 | -1.12 (3.28) | -0.068 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2B-1 | BUY | D1 | `usd_rate=high` | D4 | 396 | -0.108 | -1.81 (3.29) | -0.150 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |

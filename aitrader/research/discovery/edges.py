@@ -36,7 +36,7 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.4.0"
+EDGES_VERSION = "edges-1.5.0"  # 1.5.0: scheduled-flow programs (FLOW-1), expectancies in bps
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -199,6 +199,36 @@ def from_cross_sectional(stages: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+FLOW_INSTRUMENTS = {"GOTOBI": ("USDJPY",), "FIX": ("EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDJPY", "USDCHF", "USDCAD")}
+
+
+def from_flow(stages: list[dict]) -> list[EdgeRecord]:
+    """Records of a scheduled-flow program (judged artifact, then its holdout if one was opened).
+    Expectancies are NET basis points of the entry mid per observation, not R."""
+    judged = stages[0]
+    status = {k: ("TESTING" if v == "HOLDOUT_ELIGIBLE" else v) for k, v in judged.get("classification", {}).items()}
+    hold = next((a for a in stages if a.get("holdout_of")), None)
+    for k, v in (hold or {}).get("classification", {}).items():
+        status[k] = v
+    out = []
+    for hid, r in sorted(judged["results"].items()):
+        fam = "GOTOBI" if "GOTOBI" in hid else "FIX"
+        h = (hold or {}).get("results", {}).get(hid)
+        out.append(EdgeRecord(
+            edge_id=hid, program=judged["program"], direction="BUY" if hid.endswith("PRE") else "SELL" if hid.endswith("POST") else "BOTH",
+            instrument=FLOW_INSTRUMENTS[fam], timeframe="M15", market_regime=None,
+            entry_conditions="scheduled clock window (research/preregistrations/FLOW-1.md)",
+            exit_conditions="fixed clock exit", sample_size=r["net"]["n"],
+            gross_expectancy=_r(r["gross"]["mean"]), net_expectancy=_r(r["net"]["mean"]), t_stat=_r(r["net"]["t"], 3),
+            t_required=_r(judged.get("threshold"), 3), profit_factor=None, drawdown=_r(r.get("max_drawdown_bps")),
+            out_of_sample_expectancy=_r(h["net"]["mean"]) if h else _r(r["validation"]["mean"]),
+            walk_forward_expectancy=None, cost_sensitivity=_r(r["costs_x2"]["mean"]), complexity=1,
+            stability={"by_year": r.get("by_year")}, status=status[hid],
+            failed_checks=tuple(r.get("failed_gates", ())), source=f"research/knowledge/{judged['program']}.json",
+            note="scheduled order flow: expectancies are net basis points per observation, not R"))
+    return out
+
+
 def build(root: Path | str) -> dict:
     """The registry from what is committed under research/. Deterministic: sorted by edge id."""
     root = Path(root)
@@ -260,6 +290,22 @@ def build(root: Path | str) -> dict:
         final = arts[-1]
         programs[pid] = {"verdict": final.get("verdict"), "judged": len(arts[0]["results"]),
                          "validated": [k for k, v in final.get("classification", {}).items() if v == "VALIDATED"],
+                         "threshold_t": arts[0].get("threshold")}
+    flows: dict[str, list[dict]] = {}
+    for p in sorted((root / "knowledge").glob("*.json")):
+        try:
+            art = json.loads(p.read_text())
+        except ValueError:
+            continue
+        if isinstance(art, dict) and art.get("kind") == "flow":
+            flows.setdefault(art.get("holdout_of") or art["program"], []).append(art)
+    for pid, arts in sorted(flows.items()):
+        arts.sort(key=lambda a: bool(a.get("holdout_of")))
+        if arts[0].get("holdout_of"):
+            continue
+        edges += from_flow(arts)
+        programs[pid] = {"verdict": arts[-1].get("verdict"), "judged": len(arts[0]["results"]),
+                         "validated": [k for k, v in arts[-1].get("classification", {}).items() if v == "VALIDATED"],
                          "threshold_t": arts[0].get("threshold")}
     spec_p = root / "specs" / "R3.json"
     if spec_p.exists() and not (root / "knowledge" / "R3.json").exists():
