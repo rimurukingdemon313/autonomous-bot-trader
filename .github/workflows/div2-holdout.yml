@@ -1,0 +1,56 @@
+# One-time opening of the DIV-2 sealed holdout (2021-01 onward) on GitHub's runner, permitted only
+# because DIV-2 PASSED its preregistered judge (research/knowledge/DIV-2.json). Re-fetches the same
+# frozen sources, then runs `holdout` exactly once. Refuses if DIV-2-H already has a verdict.
+name: DIV-2 holdout (once)
+on:
+  push:
+    branches: [div2-holdout]
+permissions:
+  contents: write
+jobs:
+  holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse unless DIV-2 passed and DIV-2-H is unopened
+        run: |
+          python - <<'PY'
+          import json, sys
+          verdicts = {}
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict":
+                  verdicts[r.get("trial")] = r.get("status")
+          if verdicts.get("DIV-2") != "PASSED":
+              sys.exit(f"DIV-2 verdict is {verdicts.get('DIV-2')}: the holdout stays sealed")
+          if "DIV-2-H" in verdicts:
+              sys.exit(f"DIV-2-H already opened ({verdicts['DIV-2-H']})")
+          PY
+      - name: Fetch (retries on transient errors)
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          for i in 1 2 3 4; do
+            python scripts/div2.py fetch 2>&1 | tee -a div2h-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a div2h-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/div2/fetch_manifest.json
+      - name: Open the holdout once
+        run: |
+          set -o pipefail
+          python scripts/div2.py holdout 2>&1 | tee div2h-holdout.log
+      - name: Commit the artifacts and logs
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in div2h-fetch.log div2h-holdout.log; do [ -f "$f" ] && mv "$f" research/results/; done
+          git add -f research/results/div2h-*.log research/knowledge/DIV-2-H.json research/registry.jsonl 2>/dev/null || true
+          git commit -m "DIV-2 holdout opened once on the GitHub runner [skip ci]" || true
+          git push origin HEAD:div2-holdout
