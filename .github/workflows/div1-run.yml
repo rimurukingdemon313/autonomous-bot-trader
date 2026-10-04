@@ -1,0 +1,54 @@
+# One-time execution of the preregistered DIV-1 study (research/preregistrations/DIV-1.md)
+# on GitHub's runner, which can reach public market data. It runs `fetch` and `judge` exactly as
+# frozen (scripts/div1.py refuses to run if its code or spec changed) and commits the artifacts.
+# It never runs `holdout`. It refuses to run if DIV-1 already has a verdict.
+name: DIV-1 fetch + judge (once)
+on:
+  push:
+    branches: [div1-run]
+permissions:
+  contents: write
+jobs:
+  div1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to judge twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("DIV-1", "DIV-1-H"):
+                  sys.exit(f"DIV-1 already has a verdict ({r['status']}); not running again")
+          print("DIV-1 has no verdict yet")
+          PY
+      - name: Fetch (retries on transient errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3 4 5; do
+            python scripts/div1.py fetch 2>&1 | tee -a div1-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a div1-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/div/manifest.json
+      - name: Judge (2008-2020; the 2021+ holdout stays sealed)
+        run: |
+          set -o pipefail
+          python scripts/div1.py judge 2>&1 | tee div1-judge.log
+      - name: Commit the artifacts (and the logs, even on failure)
+        if: always()
+        run: |
+          git config user.name "div1-runner"
+          git config user.email "div1-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in div1-fetch.log div1-judge.log; do [ -f "$f" ] && mv "$f" research/results/; done
+          git add -f research/results/div1-*.log 2>/dev/null || true
+          git add -f data/div/manifest.json research/knowledge/DIV-1.json research/registry.jsonl 2>/dev/null || true
+          git commit -m "DIV-1 judged on the GitHub runner (fetch + judge; holdout sealed) [skip ci]" || echo "nothing to commit"
+          git push origin HEAD:div1-run
