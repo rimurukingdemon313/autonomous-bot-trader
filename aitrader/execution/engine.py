@@ -14,6 +14,13 @@ EXECUTION_CONTRACT.md, implemented:
 - Final validation right before submission: kill switch, pause, account
   type, instrument tradable, live price still on the right side of the stop.
 - It never changes side, size, stop or target. It may only refuse.
+- There is no live path. The account must positively verify as demo/paper (`is_demo() is True`);
+  anything else, including "could not tell", blocks. No argument can waive that.
+- Edge status (decision/edge_status.py): only a VALIDATED decision may execute unless the
+  engine was built with `allow_unvalidated=True` (the PAPER broker, or DEMO with
+  EXPERIMENTAL_EXECUTE=true). A decision that does not state its status is unvalidated.
+- A stale decision (older than `max_decision_age_s`) or a price that has already moved against
+  the entry by more than `max_entry_drift_r` of the stop distance is refused, not chased.
 """
 
 from __future__ import annotations
@@ -29,7 +36,9 @@ from ..memory.db import Database
 #: 1.1.0: a model exit (MODEL_EXIT) is recorded under that reason; every other close is unchanged.
 #: 1.2.0: a holding-time exit is recorded as TIME, not the broker's default MANUAL. Label only: the
 #:        price and the moment of the close are unchanged, so P/L replays exactly as before.
-EXECUTION_VERSION = "exec-1.2.0"
+#: 1.3.0: no `allow_live` argument (there is no live path); unvalidated decisions need
+#:        `allow_unvalidated`; stale decisions and adverse entry drift are refused before submission.
+EXECUTION_VERSION = "exec-1.3.0"
 UNKNOWN_RECHECKS = 5
 
 
@@ -47,11 +56,14 @@ def client_id_for(decision_id: str) -> str:
 
 
 class ExecutionEngine:
-    def __init__(self, db: Database, broker, clock: Callable[[], int], *, allow_live: bool = False) -> None:
+    def __init__(self, db: Database, broker, clock: Callable[[], int], *, allow_unvalidated: bool = False,
+                 max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25) -> None:
         self.db = db
         self.broker = broker
         self.clock = clock
-        self.allow_live = allow_live
+        self.allow_unvalidated = allow_unvalidated
+        self.max_decision_age_s = max_decision_age_s
+        self.max_entry_drift_r = max_entry_drift_r
 
     # ── helpers ─────────────────────────────────────────────────────────
 
@@ -86,8 +98,18 @@ class ExecutionEngine:
         if self.db.get_kv("paused", False):
             return "trading paused"
         demo = self.broker.is_demo()
-        if demo is not True and not self.allow_live:
-            return f"account is not verified demo/paper (is_demo={demo})"
+        if demo is not True:
+            return f"account is not verified demo/paper (is_demo={demo}): there is no live path"
+        status = getattr(decision, "edge_status", None)
+        if status != "VALIDATED" and not self.allow_unvalidated:
+            return (f"edge status {status or 'not stated'} is not VALIDATED and unvalidated execution is not enabled "
+                    "(PAPER, or DEMO with EXPERIMENTAL_EXECUTE=true): shadow only")
+        ts = getattr(decision, "timestamp", None)
+        if not isinstance(ts, (int, float)):
+            return "decision has no timestamp: its age cannot be checked"
+        age = self.clock() - ts
+        if age > self.max_decision_age_s:
+            return f"decision is {int(age)}s old (max {self.max_decision_age_s}s): stale, not executed"
         try:
             q = self.broker.quote(decision.instrument)
         except BrokerError as exc:
@@ -100,6 +122,12 @@ class ExecutionEngine:
             return f"price {live} already beyond the stop {verdict.stop}"
         if (verdict.target - live) * side <= 0:
             return f"price {live} already beyond the target {verdict.target}"
+        ref = verdict.entry_ref
+        if ref is not None and abs(ref - verdict.stop) > 0:
+            drift = (live - ref) * side / abs(ref - verdict.stop)
+            if drift > self.max_entry_drift_r:
+                return (f"price moved {drift:.2f}R against the entry since the risk check (max "
+                        f"{self.max_entry_drift_r}R): not chased")
         return None
 
     # ── the one write path ──────────────────────────────────────────────

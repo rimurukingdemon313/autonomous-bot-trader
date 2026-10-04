@@ -44,7 +44,7 @@ def live_ctx(**kw):
 
 BUY = json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 36,
                   "thesis": "H4 uptrend, pullback held", "invalidation": "H4 close below 1.0985",
-                  "memory_used": "last EURUSD loss: I entered late; this entry is at the pullback"})
+                  "memory_used": "last EURUSD loss: I entered late; this entry is at the pullback", "confidence": 0.6})
 
 
 def test_a_sound_proposal_becomes_a_decision_the_risk_engine_will_size():
@@ -61,9 +61,18 @@ def test_a_sound_proposal_becomes_a_decision_the_risk_engine_will_size():
 @pytest.mark.parametrize("reply,why", [
     ("not json at all", "rejected"),
     (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.1010, "target": 1.1040, "max_hold_hours": 10,
-                 "thesis": "x"}), "wrong side"),
+                 "thesis": "x", "confidence": 0.5, "invalidation": "x"}), "wrong side"),
     (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0850, "target": 1.1040, "max_hold_hours": 10,
-                 "thesis": "x"}), "beyond"),  # a 15-ATR stop is a typo, not a stop
+                 "thesis": "x", "confidence": 0.5, "invalidation": "x"}), "beyond"),  # a 15-ATR stop is a typo
+    # llm-trader 1.12.0: a trade must state a confidence in [0, 1] and an invalidation; never repaired
+    (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
+                 "thesis": "x", "invalidation": "x"}), "rejected"),
+    (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
+                 "thesis": "x", "invalidation": "x", "confidence": 1.5}), "rejected"),
+    (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
+                 "thesis": "x", "confidence": 0.7}), "rejected"),
+    (json.dumps({"action": "BUY", "timeframe": "H4", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
+                 "thesis": "x", "confidence": 0.7, "invalidation": "x", "reasons_against": "not a list"}), "rejected"),
     (json.dumps({"action": "BUY", "timeframe": "S30", "stop": 1.0985, "target": 1.1040, "max_hold_hours": 10,
                  "thesis": "x"}), "rejected"),
     (json.dumps({"action": "YOLO"}), "rejected"),
@@ -92,7 +101,7 @@ def test_the_quant_systems_view_of_the_market_is_information_not_a_veto():
 
 def test_it_chooses_its_own_stop_distance_and_the_risk_engine_judges_the_cost():
     tight = json.dumps({"action": "BUY", "timeframe": "M5", "stop": 1.0998, "target": 1.1005, "max_hold_hours": 1,
-                        "thesis": "M5 scalp"})
+                        "thesis": "M5 scalp", "confidence": 0.5, "invalidation": "below 1.0998"})
     d = trader(tight, []).think(live_ctx(), V).decision
     assert d.decision == "BUY" and d.timeframe == "M5" and d.stop_loss == 1.0998  # no ATR floor of its own
 

@@ -43,8 +43,9 @@ def setup(mids=None, db=None):
     return feed, clock, db
 
 
-def decision(did="d1", side="BUY"):
-    return SimpleNamespace(id=did, decision=side, instrument="EURUSD")
+def decision(did="d1", side="BUY", edge_status="EXPERIMENTAL"):
+    return SimpleNamespace(id=did, decision=side, instrument="EURUSD", timestamp=T0 + 3600 * 10,
+                           edge_status=edge_status)
 
 
 def verdict(did="d1", stop=1.098, target=1.104, qty=0.5):
@@ -53,7 +54,7 @@ def verdict(did="d1", stop=1.098, target=1.104, qty=0.5):
 
 def test_fill_then_duplicate_is_not_resent():
     feed, clock, db = setup()
-    ex = ExecutionEngine(db, PaperBroker(feed, clock, db), clock)
+    ex = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True)
     r1 = ex.execute(decision(), verdict())
     assert r1.status == "FILLED"
     r2 = ex.execute(decision(), verdict())
@@ -66,7 +67,7 @@ def test_unapproved_verdicts_never_reach_the_broker():
     broker = PaperBroker(feed, clock, db)
     v = verdict()
     v.approved = False
-    assert ExecutionEngine(db, broker, clock).execute(decision(), v).status == "SKIPPED"
+    assert ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), v).status == "SKIPPED"
     assert broker.positions() == []
 
 
@@ -80,7 +81,7 @@ def test_final_checks_block_submission(state, reason):
     for k, v in state.items():
         db.set_kv(k, v)
     broker = PaperBroker(feed, clock, db)
-    r = ExecutionEngine(db, broker, clock).execute(decision(), verdict())
+    r = ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict())
     assert r.status == "BLOCKED" and reason in r.detail and broker.positions() == []
 
 
@@ -88,12 +89,12 @@ def test_a_non_demo_broker_is_refused_unless_live_is_explicitly_allowed():
     feed, clock, db = setup()
     broker = PaperBroker(feed, clock, db)
     broker.is_demo = lambda: None  # could not be verified
-    assert ExecutionEngine(db, broker, clock).execute(decision(), verdict()).status == "BLOCKED"
+    assert ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict()).status == "BLOCKED"
 
 
 def test_price_through_the_stop_blocks():
     feed, clock, db = setup()
-    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock).execute(decision(), verdict(stop=1.2, target=1.3))
+    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True).execute(decision(), verdict(stop=1.2, target=1.3))
     assert r.status == "BLOCKED" and "stop" in r.detail
 
 
@@ -117,7 +118,7 @@ class LostBroker(PaperBroker):
 def test_ambiguous_write_is_resolved_by_query_not_by_resending():
     feed, clock, db = setup()
     broker = AmbiguousBroker(feed, clock, db)
-    r = ExecutionEngine(db, broker, clock).execute(decision(), verdict())
+    r = ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict())
     assert r.status == "FILLED" and "query" in r.detail
     assert len(broker.positions()) == 1
 
@@ -126,7 +127,7 @@ def test_ambiguous_write_with_no_order_stays_unknown_and_is_never_resent():
     feed, clock, db = setup()
     LostBroker.calls = 0
     broker = LostBroker(feed, clock, db)
-    ex = ExecutionEngine(db, broker, clock)
+    ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
     assert ex.execute(decision(), verdict()).status == "UNKNOWN"
     for _ in range(UNKNOWN_RECHECKS + 2):
         ex.reconcile()
@@ -139,7 +140,7 @@ def test_crash_between_intent_and_submit_is_recovered_on_restart(tmp_path):
     path = tmp_path / "s.db"
     feed, clock, db = setup(db=Database(path))
     broker = PaperBroker(feed, clock, db)
-    ex = ExecutionEngine(db, broker, clock)
+    ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
     # Simulate: intent written, order sent, process died before recording the fill.
     ex._final_checks = lambda d, v: None
     orig = ex._record_fill
@@ -150,7 +151,7 @@ def test_crash_between_intent_and_submit_is_recovered_on_restart(tmp_path):
     # Restart: new objects over the same database and broker state.
     db2 = Database(path)
     broker2 = PaperBroker(feed, clock, db2)
-    ex2 = ExecutionEngine(db2, broker2, clock)
+    ex2 = ExecutionEngine(db2, broker2, clock, allow_unvalidated=True)
     rep = ex2.reconcile()
     assert rep["resolved"] == [client_id_for("d1")]
     assert db2.one("SELECT status FROM intents")["status"] == "FILLED"
@@ -206,7 +207,7 @@ def test_missing_conversion_rate_means_no_spec_and_no_trade():
 def test_sync_closures_turns_broker_exits_into_closed_positions():
     feed, clock, db = setup()
     broker = PaperBroker(feed, clock, db)
-    ex = ExecutionEngine(db, broker, clock)
+    ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
     r = ex.execute(decision(), verdict(stop=1.0999 - 0.0005, target=1.1004))
     assert r.status == "FILLED"
     s = feed.series["EURUSD"]

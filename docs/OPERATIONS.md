@@ -4,14 +4,23 @@
 
 One process (`python -m aitrader`):
 
-- HTTP API + dashboard on `$PORT` (`/` dashboard, `/healthz` health, `/api/*`);
+- HTTP API + dashboard on `$PORT`:
+  - `/` the dashboard;
+  - `/healthz` liveness (the process and its database answer; Railway's health check);
+  - `/readyz` readiness: 200 only when decisions can be made safely (database, verified knowledge base,
+    startup reconciliation clean, kill switch readable, broker account readable). Paused is still
+    ready; the body lists every reason it is not;
+  - `/metrics` Prometheus text (counts, forward net/cost R, provider calls/tokens/cost, `live_trading 0`);
+  - `/api/*` read models, including `/api/evidence` (forward evidence) and `/api/lessons`;
 - the scheduler: 90 s after every H1 close it resolves outcomes, closures
   and time exits; every **4th** H1 close (UTC hours 0, 4, 8, …) it also
   decides. 4 is the cadence the knowledge base was built and tested with,
   read from its card: deciding more often would run a system whose trade
   frequency was never measured;
 - the position monitor: every 20 s, newly closed bars are applied to the
-  paper account's stops/targets and to the outcome tracker.
+  paper account's stops/targets and to the outcome tracker; every 5 min the
+  forward ledger resolves proposals whose outcome completed bars now reveal
+  (docs/FORWARD_VALIDATION.md).
 
 State lives in **one SQLite file under `DATA_DIR`** plus the live pattern
 memory (`memory_live.npz`). Mount a Railway **Volume** at `/data` so a
@@ -78,6 +87,8 @@ check fails, so the reason is on the URL and in the logs.
 also needs the `AI_*` variables (docs/AI_MODELS.md).
 `DECISION_MODE=trading_room` makes one model per provider discuss in turn
 as one team and write a joint decision (`AI_ROOM_*`, same document).
+`DECISION_MODE=experimental_ai` has the first provider propose and specialists
+on another provider challenge; a fixed rule decides (`AI_SPECIALISTS`, same document).
 In either model mode, `DECISION_INTERVAL_MIN` (every N minutes) and
 `SYMBOLS_PER_CYCLE` (pairs per cycle, in rotation) set how often it decides;
 see docs/AI_MODELS.md for what each setting costs in model calls. An unknown value stops
@@ -89,11 +100,46 @@ the service at startup with a visible 503; it is never silently replaced.
 |---|---|---|---|
 | `PAPER` | TradeLocker (live) | simulated in-process | virtual, `PAPER_START_BALANCE` (default $20,000) |
 | `DEMO` | TradeLocker (live) | TradeLocker **demo** account, after the two-signal demo check | the broker's demo balance |
-| `LIVE` | — | **refused at startup** | — |
+| `LIVE` | — | **refused at startup** (`MODE=LIVE`, `LIVE_TRADING=true`, or any unknown value) | — |
 
 Both PAPER and DEMO are **forward tests** of an unvalidated system while
 PR-001 has not passed (docs/SYSTEM_LIFECYCLE.md, "Forward testing"). They
 generate the only evidence no one could have seen in advance.
+
+### Where an approved trade goes (edge status)
+
+Every decision carries an **edge status** (docs/FORWARD_VALIDATION.md):
+VALIDATED, PROMISING, EXPERIMENTAL or NONE. Today no edge is validated, so
+every trade is **EXPERIMENTAL**.
+
+| | PAPER | DEMO, `EXPERIMENTAL_EXECUTE=false` (default) | DEMO, `EXPERIMENTAL_EXECUTE=true` |
+|---|---|---|---|
+| VALIDATED | executed (simulated) | sent to the demo account | sent to the demo account |
+| PROMISING / EXPERIMENTAL | executed (simulated) | **SHADOW**: risk-checked, recorded, followed forward, never sent | sent to the demo account |
+
+The execution engine checks the same rule again before any order, so no
+other code path can send an unvalidated trade. Shadow and executed trades
+are measured identically in the forward ledger, after costs.
+
+### Commands
+
+Paper (the default; nothing reaches a broker):
+
+    MODE=PAPER  LIVE_TRADING=false  DATA_DIR=/data  DASHBOARD_TOKEN=<long random>
+    DATA_SOURCE=yahoo            # or TradeLocker demo credentials for broker prices
+    DECISION_MODE=experimental_ai   AI_PROVIDERS=groq,gemini  AI_GROQ_API_KEY=...  AI_GROQ_MODEL=...
+    AI_GEMINI_API_KEY=...  AI_GEMINI_MODEL=...
+
+Demo, shadow only (orders are never sent for unvalidated trades):
+
+    MODE=DEMO  PAPER_MODE=false  LIVE_TRADING=false  TRADELOCKER_EMAIL/PASSWORD/SERVER/ACCOUNT_ID=<demo account>
+
+Demo, executing experimental trades on the **demo** account (explicit opt-in):
+
+    MODE=DEMO  PAPER_MODE=false  LIVE_TRADING=false  EXPERIMENTAL_EXECUTE=true
+
+Then open the dashboard and press **Resume** with the token. Locally:
+`python -m aitrader` with the same variables in the environment.
 
 ## Controls
 
@@ -115,9 +161,19 @@ Emergency stop and Pause never need it.
 
 On startup, before any decision: open the database, restore experience and
 lessons from the immutable episodes, load the knowledge base, and reconcile
-with the broker (intents with unknown outcomes are resolved by querying the
-broker, never by resending). If reconciliation fails or finds positions the
-system did not open, trading starts **paused** and the dashboard says why.
+with the broker:
+
+- order intents left SUBMITTING/UNKNOWN are resolved by querying the broker
+  by client id, never by resending;
+- broker positions the journal does not know are **orphans**;
+- journal positions the broker no longer holds are listed and closed from
+  the broker's history at the next cycle (never with an invented exit);
+- the account balance and equity are read.
+
+If reconciliation fails, the account cannot be read, or orphans exist,
+trading starts **paused** and the dashboard (and `/readyz`) says why.
+Forward proposals not yet resolved are resolved after the restart from the
+feed's completed bars: nothing about them lives only in memory.
 
 ## Logs
 

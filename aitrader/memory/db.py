@@ -32,12 +32,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
-SCHEMA_VERSION = 2  # 2: evaluations (shadow outcomes, for restart)
+SCHEMA_VERSION = 3  # 2: evaluations (shadow outcomes, for restart); 3: forward ledger and forward lessons
 
 IMMUTABLE = (
     "events", "decisions", "agent_reports", "risk_verdicts", "trades", "episodes",
     "postmortems", "reflections", "lessons", "knowledge_versions", "experiments",
     "experiment_verdicts", "performance_snapshots", "evaluations",
+    "forward_proposals", "forward_outcomes", "forward_lessons",
 )
 
 _SCHEMA = """
@@ -123,6 +124,21 @@ CREATE TABLE IF NOT EXISTS evaluations (
   seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL,
   decision_id TEXT NOT NULL, payload TEXT NOT NULL, prev_hash TEXT NOT NULL, hash TEXT NOT NULL);
 
+CREATE TABLE IF NOT EXISTS forward_proposals (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL,
+  decision_id TEXT UNIQUE NOT NULL, symbol TEXT NOT NULL, t INTEGER NOT NULL, partition TEXT NOT NULL,
+  payload TEXT NOT NULL, prev_hash TEXT NOT NULL, hash TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS forward_outcomes (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL,
+  decision_id TEXT UNIQUE NOT NULL, resolved_at INTEGER NOT NULL, partition TEXT NOT NULL,
+  payload TEXT NOT NULL, prev_hash TEXT NOT NULL, hash TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS forward_lessons (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL,
+  lesson_id TEXT NOT NULL, version INTEGER NOT NULL, status TEXT NOT NULL, payload TEXT NOT NULL,
+  prev_hash TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE (lesson_id, version));
+
 CREATE TABLE IF NOT EXISTS paper_account (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated REAL NOT NULL);
 """
 
@@ -170,7 +186,8 @@ class Database:
                     self._conn.execute(
                         f"CREATE TRIGGER IF NOT EXISTS immutable_{table}_{op.lower()} BEFORE {op} ON {table} "
                         f"BEGIN SELECT RAISE(ABORT, '{table} is immutable history'); END")
-            self._conn.execute("INSERT OR IGNORE INTO meta(key, value) VALUES ('schema_version', ?)",
+            self._conn.execute("INSERT INTO meta(key, value) VALUES ('schema_version', ?) ON CONFLICT(key) "
+                               "DO UPDATE SET value=excluded.value WHERE CAST(value AS INTEGER) < CAST(excluded.value AS INTEGER)",
                                (str(SCHEMA_VERSION),))
 
     # ── low level ───────────────────────────────────────────────────────

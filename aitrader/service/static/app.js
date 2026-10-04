@@ -87,9 +87,15 @@ function renderStatus(s) {
       c.regime_model !== "LOADED" ? "critical" : ((c.knowledge_base && c.knowledge_base.status) === "VALIDATED" ? "good" : "warning")),
     killed ? chip("STOP", "ACTIVE" + (ks && ks.reason ? ` (${ks.reason})` : ""), "critical") : chip("STOP", "off", "good"),
     s.paused ? chip("TRADING", "PAUSED", "warning") : chip("TRADING", "running", "good"),
-    chip("DECIDES", c.decision_mode === "llm_trader" || c.decision_mode === "trading_room"
-      ? `${c.decision_mode === "trading_room" ? `TRADING ROOM (${(c.trading_room?.members || []).length} AIs)` : "AI TRADER"}${c.decision_interval_min ? ` · every ${c.decision_interval_min} min, ${c.symbols_per_cycle} pairs/cycle` : " · every 4 h"} · ${aiRecord(c.ai_trader_record)}`
-      : "EVIDENCE SYNTHESIS", c.decision_mode === "evidence" ? "good" : "warning"),
+    chip("DECIDES", ["llm_trader", "trading_room", "experimental_ai"].includes(c.decision_mode)
+      ? `${c.decision_mode === "trading_room" ? `TRADING ROOM (${(c.trading_room?.members || []).length} AIs)` : c.decision_mode === "experimental_ai" ? "EXPERIMENTAL AI" : "AI TRADER"}${c.decision_interval_min ? ` · every ${c.decision_interval_min} min, ${c.symbols_per_cycle} pairs/cycle` : " · every 4 h"} · ${aiRecord(c.ai_trader_record)}`
+      : c.decision_mode === "edges" ? "PROMOTED EDGES" : "EVIDENCE SYNTHESIS", c.decision_mode === "evidence" ? "good" : "warning"),
+    // Where a trade goes. LIVE does not exist in this build; experimental trades are labelled as such.
+    chip("ORDERS", s.mode === "PAPER" ? "PAPER (simulated, no broker order)"
+      : (s.config?.experimental_execute ? "DEMO · experimental trades SENT to the demo account" : "DEMO · validated only; experimental = SHADOW (not sent)"),
+      s.mode === "PAPER" ? "good" : "warning"),
+    chip("EDGE", "none validated · results are EXPERIMENTAL", "warning"),
+    chip("LIVE", "impossible in this build", "good"),
     s.halted ? chip("HALT", "drawdown halt", "critical") : "",
     chip("LAST DATA", s.last_market_update ? ts(s.last_market_update) : "never", s.last_market_update ? "good" : "warning"),
     c.history_desk ? chip("HISTORY", c.history_desk.trades ? `${(c.history_desk.trades / 1e6).toFixed(2)}M past trades · ${c.history_desk.integrity}`
@@ -106,6 +112,7 @@ function renderStatus(s) {
     tile("DB latency", c.db_latency_ms !== null ? `${c.db_latency_ms} ms` : NA),
     tile("Decisions", num(s.counts.decisions, 0)), tile("No-trade", num(s.counts.no_trade, 0)),
     tile("Risk rejected", num(s.counts.risk_rejected, 0)), tile("Executed", num(s.counts.executed, 0)),
+    tile("Shadow", num(s.counts.shadow ?? 0, 0)),
     tile("Errors", num(s.counts.errors, 0)),
     tile("Last error", s.last_cycle_error ? `<span class="neg small">${esc(s.last_cycle_error)}</span>` : "none"),
     tile("Demo check", c.demo_verification ? (c.demo_verification.verified ? "PASS" : `<span class="neg">FAIL</span>`) : NA),
@@ -611,6 +618,43 @@ async function refreshAnalysis() { await safe(async () => renderAnalysis(await a
 
 async function refreshLive() { await safe(async () => renderLive(await api("/api/live"))); }
 
+/* ── forward evidence ───────────────────────────────────────────────── */
+const sampleTag = (x) => esc(x || "none");
+const statTd = (st) => `<td class="num">${st?.n ?? 0}</td><td class="num">${st?.n ? signed(st.expectancy_r) : NA}</td>`;
+function renderEvidence(ev, lessons) {
+  $("ev-statement").textContent = ev.statement || "";
+  const a = ev.all || {};
+  $("ev-tiles").innerHTML = [
+    tile("Proposals", num(a.proposals ?? 0, 0)), tile("Resolved", num(a.n ?? 0, 0)), tile("Pending", num(a.unresolved ?? 0, 0)),
+    tile("Gross R", a.n ? signed(a.gross_r_total, 2) : NA), tile("Costs R", a.n ? num(a.cost_r_total, 2) : NA),
+    tile("Net R", a.n ? signed(a.net_r_total, 2) : NA), tile("Expectancy", a.n ? `${signed(a.expectancy_r)} R` : NA),
+    tile("Median R", a.n ? signed(a.median_r) : NA), tile("Win rate", a.n ? pct(a.win_rate) : NA),
+    tile("Profit factor", a.profit_factor ?? NA), tile("Max DD", a.n ? `${num(a.max_drawdown_r, 2)} R` : NA),
+    tile("Loss streak", a.n ? a.max_consecutive_losses : NA), tile("t", a.t ?? NA),
+    tile("Net, costs ×2", a.n ? signed(a.net_avg_costs_x2) : NA), tile("Sample", sampleTag(a.sample)),
+    tile("Evaluation n", num(ev.evaluation?.n ?? 0, 0)),
+  ].join("");
+  const body = (id, html, cols, empty) => { $(id).querySelector("tbody").innerHTML = html || `<tr><td colspan="${cols}" class="muted">${empty}</td></tr>`; };
+  body("ev-class", Object.entries(ev.by_signal_class || {}).map(([k, v]) => `<tr><td><span class="tag exp">${esc(k)}</span></td>${statTd(v.all)}
+    <td class="num">${v.all?.n ? signed(v.all.net_r_total, 2) : NA}</td><td class="num">${v.all?.n ? num(v.all.cost_r_total, 2) : NA}</td>
+    <td class="num">${v.all?.t ?? NA}</td><td>${sampleTag(v.all?.sample)}</td><td>${esc(v.eligibility?.status || "—")}</td></tr>`).join(""), 8, "No proposals yet.");
+  body("ev-route", Object.entries(ev.by_route || {}).map(([k, v]) => `<tr><td><span class="tag ${k === "SHADOW" ? "shadow" : ""}">${esc(k)}</span></td>${statTd(v)}
+    <td class="num">${v.n ? pct(v.win_rate) : NA}</td><td>${sampleTag(v.sample)}</td></tr>`).join(""), 5, "No proposals yet.");
+  body("ev-model", Object.entries(ev.by_model || {}).map(([k, v]) => { const c = (ev.calibration_by_model || {})[k] || {};
+    return `<tr><td>${esc(k)}</td>${statTd(v)}<td class="num">${c.n ? pct(c.stated) : NA}</td><td class="num">${c.n ? pct(c.realised) : NA}</td><td>${sampleTag(v.sample)}</td></tr>`; }).join(""), 6, "No model proposals yet.");
+  const dims = [...Object.entries(ev.by_symbol || {}).map(([k, v]) => [k, v]), ...Object.entries(ev.by_regime || {}).map(([k, v]) => [`regime ${k}`, v])];
+  body("ev-dims", dims.map(([k, v]) => `<tr><td>${esc(k)}</td>${statTd(v)}<td class="num">${v.n ? pct(v.win_rate) : NA}</td>
+    <td class="num">${v.profit_factor ?? NA}</td><td>${sampleTag(v.sample)}</td></tr>`).join(""), 6, "No proposals yet.");
+  body("ev-recent", (ev.recent || []).map((r) => `<tr><td>${ts(r.t)}</td><td>${esc(r.symbol)}</td><td>${r.side > 0 ? "BUY" : "SELL"}</td>
+    <td>${esc(r.signal_class || "?")}</td><td><span class="tag ${r.edge_status === "VALIDATED" ? "val" : "exp"}">${esc(r.edge_status)}</span></td>
+    <td><span class="tag ${r.route === "SHADOW" ? "shadow" : ""}">${esc(r.route)}</span></td><td>${esc((r.partition || "").slice(0, 5))}</td>
+    <td>${esc(r.outcome)}</td><td class="num">${r.net_r === null || r.net_r === undefined ? NA : signed(r.net_r)}</td></tr>`).join(""), 9, "No proposals yet.");
+  body("fw-lessons", ((lessons && lessons.forward) || []).map((l) => { const e = l.evaluation_evidence || l.learning_evidence || {};
+    return `<tr><td title="${esc(l.statement)}">${esc(l.code)}</td><td>${esc(l.scope)}</td><td>${esc(l.status)}</td>
+    <td class="num">${e.n ?? NA}</td><td class="num">${e.share !== undefined ? pct(e.share) : NA}</td></tr>`; }).join(""), 5,
+    "None yet: a lesson needs at least 30 resolved outcomes in its scope.");
+}
+
 /* ── refresh loops ──────────────────────────────────────────────────── */
 async function safe(fn) { try { await fn(); } catch (e) { console.warn(e); } }
 async function refreshSelected() {
@@ -639,6 +683,7 @@ async function refreshSlow() {
   await safe(async () => renderPerformance(await api("/api/performance")));
   await safe(async () => renderMemory(await api("/api/memory")));
   await safe(async () => renderResearch(await api("/api/research")));
+  await safe(async () => renderEvidence(await api("/api/evidence"), await api("/api/lessons")));
 }
 refreshFast().then(refreshSlow);
 refreshLive();

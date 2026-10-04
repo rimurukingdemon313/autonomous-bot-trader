@@ -31,18 +31,21 @@ from typing import Callable
 
 import numpy as np
 
-from ..agents.brain import Brain
+from ..agents.brain import MODEL_MODES, Brain
 from ..agents.llm_trader import FAMILY as LLM_FAMILY, multi_timeframe
 from ..agents.trading_room import member_records
 from ..agents.types import AccountView, MarketContext
 from ..broker.base import BrokerError
 from ..broker.paper import pip_of
 from ..data.resample import bucket_start
+from ..decision.edge_status import SIGNAL_CLASS, classify, execution_route
 from ..decision.synthesis import Decision
 from ..execution.engine import ExecutionEngine
 from ..features.store import LOOKBACK, compute_at
 from ..learning.experience import Evaluation, ExperienceView, session_of
-from ..research.hypotheses import proposals_from_reflection
+from ..learning.forward import Costs as ForwardCosts, ForwardLedger, partition, proposal as forward_proposal
+from ..learning.taxonomy import LessonBook
+from ..learning.proposals import proposals_from_reflection
 from ..learning.review import postmortem, reflect
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
@@ -65,7 +68,12 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.8.0: a feature the data source declares it never provides is excluded, not "missing".
 #: 1.10.0: model modes read the market map (SMC/ICT structure) and intermarket context.
 #: 1.11.0: ... and the strategy desk (indicators, 16 classic strategies, their scoreboard on this pair).
-ORCHESTRATOR_VERSION = "orchestrator-1.11.0"
+#: 1.12.0: every decision carries its edge status, signal class, estimated cost and timeframes; an
+#:         approved trade whose edge status does not permit execution (DEMO, unvalidated, without
+#:         EXPERIMENTAL_EXECUTE) is SHADOW: recorded and followed forward, never sent; every BUY/SELL
+#:         proposal goes to the forward ledger (shadow outcome, gross/costs/net, partition); forward
+#:         lessons are mined from LEARNING outcomes and shown to the model traders; experimental_ai mode.
+ORCHESTRATOR_VERSION = "orchestrator-1.12.0"
 
 
 class NullKnowledge:
@@ -93,6 +101,9 @@ class OrchestratorConfig:
     costs: CostModel = field(default_factory=CostModel)
     #: False = the memory-only ablation: no lessons, no measured penalties.
     learning_enabled: bool = True
+    #: DEMO only: send unvalidated (EXPERIMENTAL / PROMISING) trades to the demo broker. Default: shadow.
+    experimental_execute: bool = False
+    forward_lessons_every_s: int = 3600
 
 
 class Orchestrator:
@@ -117,7 +128,12 @@ class Orchestrator:
         self.knowledge_version = (db.one("SELECT MAX(version) AS v FROM knowledge_versions") or {}).get("v") or 0
         self.versions["knowledge"] = self.knowledge_version
         self.counts = {"decisions": 0, "no_trade": 0, "trade_decisions": 0, "risk_rejected": 0,
-                       "executed": 0, "closed": 0, "errors": 0}
+                       "executed": 0, "shadow": 0, "closed": 0, "errors": 0}
+        # The forward evidence ledger (learning/forward.py) and the forward lessons it feeds. Only a
+        # fully journalled run records them: a backtest replays history, which is not forward evidence.
+        self.forward = ForwardLedger(db, clock)
+        self.lesson_book = LessonBook(db)
+        self._last_forward_lessons = 0
         self.status: dict = {"symbols": {}, "last_cycle": None, "errors": []}
         self.listeners: list[Callable[[str, dict], None]] = []
 
@@ -141,12 +157,36 @@ class Orchestrator:
 
     # ── the cycle ───────────────────────────────────────────────────────
 
+    @property
+    def decision_mode(self) -> str:
+        return getattr(getattr(self.brain, "config", None), "decision_mode", "evidence")
+
+    def forward_tick(self, t: int) -> dict:
+        """Resolve forward proposals whose outcome the completed bars now reveal, and, at most hourly,
+        update the forward lessons from LEARNING outcomes. Reads only; never trades."""
+        if self.cfg.journal != "full":
+            return {"resolved": 0}
+        out = {"resolved": 0, "lesson_changes": 0}
+        try:
+            out["resolved"] = len(self.forward.resolve(self.feed, t))
+            if t - self._last_forward_lessons >= self.cfg.forward_lessons_every_s:
+                self._last_forward_lessons = t
+                changes = self.lesson_book.update(self.forward.rows(as_of=t), t)
+                out["lesson_changes"] = len(changes)
+                for ch in changes:
+                    self._event("FORWARD_LESSON_" + ch["status"], {"lesson": ch["lesson_id"], "code": ch["code"],
+                                                                  "scope": ch["scope"]}, ref=ch["lesson_id"], key=True)
+        except Exception as exc:  # evidence bookkeeping must never stop trading decisions, and is visible
+            self.forward.stats["last_error"] = f"{type(exc).__name__}: {exc}"
+        return out
+
     def cycle(self, t: int, symbols: list[str] | None = None) -> dict:
         report = {"t": t, "decisions": []}
         self.experience.advance(t)
+        self.forward_tick(t)
         self._process_closures(t)
         self._time_exits(t)
-        if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") in ("llm_trader", "trading_room") \
+        if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") in MODEL_MODES \
                 and symbols != []:
             self._review_positions(t, symbols)
         for symbol in symbols if symbols is not None else self.cfg.symbols:
@@ -264,7 +304,7 @@ class Orchestrator:
         if mode == "edges":
             ctx.frames, ctx.exec_atr = self._frames(symbol, t, window)
             ctx.open_symbols = tuple(p["symbol"] for p in state.open_positions)
-        if mode in ("llm_trader", "trading_room"):
+        if mode in MODEL_MODES:
             # The model trader reads more than the quantitative agents: three timeframes of
             # COMPLETED bars, its own trade memory, and whether trading is allowed at all
             # (when it is not, the model is not consulted and nothing is spent).
@@ -280,6 +320,11 @@ class Orchestrator:
             if hasattr(self.feed, "intermarket"):
                 ctx.intermarket = self.feed.intermarket(t)
             ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
+            # Forward lessons confirmed out of sample (ACTIVE): information for the model, never a rule.
+            ctx.memory_brief["forward_lessons"] = [
+                {"code": l["code"], "scope": l["scope"], "statement": l["statement"],
+                 "evidence_n": (l.get("evaluation_evidence") or {}).get("n")}
+                for l in self.lesson_book.active()][:10]
             if mode == "trading_room":
                 ctx.memory_brief["room_track_records"] = member_records(self.db)
             if self.news is not None:
@@ -293,6 +338,7 @@ class Orchestrator:
         self._event("ANALYSIS_REQUESTED", {"symbol": symbol, "t": t})
         thought = self.brain.think(ctx, self.versions)
         d = thought.decision
+        self._annotate(d, ctx, quote, atr)
         self.counts["decisions"] += 1
         self._event("ANALYSIS_COMPLETED", {"symbol": symbol, "timings_ms": thought.timings_ms,
                                            "agents": {k: r.status for k, r in thought.reports.items()}})
@@ -319,12 +365,25 @@ class Orchestrator:
                         {"id": d.id, "reasons": verdict.reasons, "qty": verdict.qty}, ref=d.id, key=True)
             if verdict.halt:
                 self.db.set_kv("halted", True, reason=verdict.halt)
-            if verdict.approved:
+            route = execution_route(d.edge_status, self.cfg.mode, self.cfg.experimental_execute)
+            if verdict.approved and route == "EXECUTE":
                 res = self.execution.execute(d, verdict, meta={"swap_per_night": self.cfg.costs.swap_atr_per_night * (atr or 0)})
                 executed = res.status == "FILLED"
                 self.counts["executed"] += int(executed)
+            elif verdict.approved:
+                executed = False
+                self.counts["shadow"] += 1
+                self._event("SHADOW_TRADE", {"id": d.id, "symbol": symbol, "edge_status": d.edge_status,
+                                             "reason": f"{d.edge_status} in {self.cfg.mode}: shadow only "
+                                                       "(EXPERIMENTAL_EXECUTE is not set)"}, ref=d.id, key=True)
             else:
                 self.counts["risk_rejected"] += 1
+            if self.cfg.journal == "full":
+                pip = pip_of(symbol)
+                self.forward.record(forward_proposal(
+                    d, t=t, bid=ctx.bid, ask=ctx.ask, atr=atr if np.isfinite(atr) else None, pip=pip,
+                    costs=ForwardCosts(self.cfg.costs.slippage_pips, self.cfg.costs.commission_pips_rt),
+                    route=route if verdict.approved else "REJECTED", risk=verdict.as_dict(), executed=executed))
         else:
             self.counts["no_trade"] += 1
         room = getattr(self.brain, "room", None)
@@ -356,8 +415,33 @@ class Orchestrator:
             "vol": regime.vol_state, "familiar": regime.familiar, "confidence": d.confidence,
             "expected_R": d.expected_R, "lower_R": d.lower_R, "required": d.required_edge,
             "risk": (verdict.as_dict() if verdict else None), "bid": ctx.bid, "ask": ctx.ask,
-            "agents": d.agents, "decision_id": d.id}
+            "agents": d.agents, "decision_id": d.id, "edge_status": d.edge_status, "signal_class": d.signal_class,
+            "ai_verdict": d.ai_verdict, "executed": executed}
         return d
+
+    def _annotate(self, d: Decision, ctx: MarketContext, quote, atr: float) -> None:
+        """Edge status, signal class, estimated cost and timeframes, set once before the decision is
+        journalled. Record only: nothing here can turn a NO_TRADE into a trade or move a level."""
+        mode = self.decision_mode
+        d.signal_class = SIGNAL_CLASS.get(mode, mode.upper())
+        d.edge_status = classify(d, mode, getattr(self.brain, "edges", []))
+        d.timeframes = {"decision": d.timeframe, "cadence": self.cfg.timeframe,
+                        "context": sorted((ctx.mtf or {}).keys()) or sorted((ctx.frames or {}).keys()) or ["H1"],
+                        "partition": partition(ctx.t)}
+        if not d.is_trade or quote is None or d.stop_loss is None:
+            return
+        pip = pip_of(d.instrument)
+        side = 1 if d.decision == "BUY" else -1
+        entry = quote.ask if side > 0 else quote.bid
+        risk = abs(entry - d.stop_loss)
+        spread = quote.ask - quote.bid
+        slip, comm = 2 * self.cfg.costs.slippage_pips * pip, self.cfg.costs.commission_pips_rt * pip
+        total = spread + slip + comm
+        d.cost_estimate = {"spread": round(spread, 8), "slippage_round_trip": round(slip, 8),
+                           "commission_round_trip": round(comm, 8), "total": round(total, 8),
+                           "total_r": round(total / risk, 4) if risk > 0 else None,
+                           "spread_pips": round(spread / pip, 2),
+                           "basis": "spread from the decision quote; slippage and commission are declared approximations"}
 
     def _journal_decision(self, ctx: MarketContext, thought) -> None:
         d = thought.decision

@@ -84,8 +84,22 @@ trader, on paper or demo. The rules are MODEL_CONTRACT §10.
 - **its memory**: its record, its most relevant past trades (losses first)
   with its own review of each, and the validated lessons.
 
-**What it decides:** BUY, SELL or NO_TRADE, the timeframe, the stop, the
-target and a maximum holding time.
+**What it decides (llm-trader 1.12.0):** BUY, SELL, NO_TRADE or **UNCERTAIN**
+(mixed evidence: recorded separately, never traded), the timeframe, the stop,
+the target and a maximum holding time. A trade must also state:
+
+- a **confidence**, the probability of reaching the target before the stop, between 0 and 1;
+- an **invalidation**.
+
+It may add the expected R, the evidence, the reasons against, the regime and any analogues. Any
+malformed field makes the reply rejected, which means NO_TRADE; it is never repaired.
+
+The confidence is recorded and later calibrated against what happened (AI_OVERCONFIDENCE /
+AI_UNDERCONFIDENCE in docs/FORWARD_VALIDATION.md). It never changes a size.
+
+The prompt says explicitly that time without a trade costs nothing. It used to ask the model not to
+let the account "sit idle"; that request pushed trades and is removed (llm-trader 1.12.0,
+trading-room 2.9.0).
 
 **What it cannot do:** size a trade, touch a limit, trade while paused, or
 be backtested (a model may know what happened after any historical date).
@@ -107,6 +121,59 @@ decisions are NO_TRADE until the next UTC day.
 **Win rate.** The status bar shows the AI trader's live record: trades,
 win rate, average R, and whether the sample is still insufficient (under
 30 trades). That number is the only honest measure of it.
+
+## Experimental AI (`DECISION_MODE=experimental_ai`)
+
+The mode for finding out, forward, whether the models have any predictive
+ability at all. Every trade it makes is labelled **EXPERIMENTAL_AI** with
+edge status **EXPERIMENTAL** (docs/FORWARD_VALIDATION.md).
+
+1. **Proposer.** This is the first provider in `AI_PROVIDERS`. It uses the AI trader's prompt and
+   reply schema above.
+2. **Specialists.** These are set by `AI_SPECIALISTS`, by default `adversary`. The choices are
+   `structure` (market structure), `quant`, `price_action`, `macro` (news and intermarket) and
+   `adversary` (adversarial risk).
+   - Each specialist answers on the next provider, so a second opinion comes from a different model
+     when one is configured.
+   - Each reads the same market packet and the proposal.
+   - Each answers AGREE / DISAGREE / UNCERTAIN, with objections from the closed vocabulary.
+   - None can move a level, the size or the direction.
+3. **Synthesis.** A fixed rule decides; it is not a vote:
+   - a specialist that did not answer validly → NO_TRADE;
+   - any BLOCKING objection → NO_TRADE;
+   - two or more MAJOR objections → NO_TRADE;
+   - half or more of the non-adversarial specialists naming the opposite direction → NO_TRADE
+     (recorded as UNCERTAIN);
+   - otherwise the proposal goes, verbatim, to the risk engine.
+4. **Where it goes.** PAPER simulates the trade. In DEMO it is SHADOW unless
+   `EXPERIMENTAL_EXECUTE=true`.
+
+**What is recorded on every decision:**
+
+- the proposer's and each specialist's provider, model, status, latency and tokens;
+- every answer;
+- the disagreement rate.
+
+The disagreement rate is broken down by model in `/api/evidence`.
+
+**Cost.** Per proposal: one proposer call, plus one call per specialist. A NO_TRADE or UNCERTAIN
+from the proposer costs one call.
+
+## Primary, secondary, fallback; failures; cost
+
+- **Order.** In `AI_PROVIDERS` the first provider is primary, the second is secondary (the
+  challenger in experimental_ai), and the rest are fallbacks tried in order.
+- **Failures.** A timeout, an HTTP error, a rate limit (429, after one retry and then a cooldown),
+  malformed JSON or a schema violation is a failed call, never an answer.
+- **Deterministic fallback.** When no provider answers validly, the decision is **NO_TRADE**.
+- **Budget.** `AI_TIMEOUT_S` limits each call. `AI_DAILY_CALL_BUDGET` and `AI_<NAME>_DAILY_BUDGET`
+  cap spend.
+- **Cost tracking.** Prompt and completion tokens are counted per provider. With
+  `AI_<NAME>_COST_IN_PER_MTOK` and `AI_<NAME>_COST_OUT_PER_MTOK` set, an estimated cost is
+  computed. Without them the cost reads "not priced", never 0. Both appear on `/metrics` and in
+  `/api/agents`.
+- **Expensive providers.** No expensive provider is used unless you configure it: there is no
+  built-in default model.
 
 ## The trading room (`DECISION_MODE=trading_room`)
 

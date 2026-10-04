@@ -42,7 +42,9 @@ from statistics import NormalDist
 from ..agents.types import AgentReport, MarketContext, Objection, SetupCandidate
 
 #: 1.1.0: the Reviewer is a required agent (it carries lesson matching): its failure is NO_TRADE.
-DECISION_VERSION = "decision-1.1.0"
+#: 1.2.0: every decision records its edge status, signal class, the model's verdict and metadata, an
+#:        estimated cost and the timeframes it read. Record only: no trade/no-trade outcome changes.
+DECISION_VERSION = "decision-1.2.0"
 REQUIRED_AGENTS = ("market", "setup", "risk", "adversary", "reviewer")
 
 SOURCE_GROUPS = {
@@ -106,6 +108,18 @@ class Decision:
     created: float = field(default_factory=time.time)
     max_hold_hours: int | None = None  # a time exit for decisions not built from a template
     max_hold_minutes: int | None = None  # the same, in minutes (model traders: from one minute)
+    #: VALIDATED | PROMISING | EXPERIMENTAL | NONE (decision/edge_status.py). Set once, at decision time.
+    edge_status: str = "NONE"
+    #: Which decision path produced it: EVIDENCE | LLM_TRADER | TRADING_ROOM | EDGE | EXPERIMENTAL_AI
+    signal_class: str | None = None
+    #: The model's own classification: TRADE | NO_TRADE | UNCERTAIN (None: no model was asked)
+    ai_verdict: str | None = None
+    #: Provider, model, status, latency, tokens and what the model said beyond the levels
+    ai: dict = field(default_factory=dict)
+    #: Estimated round-trip cost at decision time: spread, commission, slippage; in price and in R
+    cost_estimate: dict = field(default_factory=dict)
+    #: The timeframes this decision read: the decision timeframe and its context frames
+    timeframes: dict = field(default_factory=dict)
 
     @property
     def is_trade(self) -> bool:

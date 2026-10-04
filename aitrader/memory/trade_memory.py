@@ -21,8 +21,13 @@ from __future__ import annotations
 
 import json
 
+from ..learning.forward import partition
+
 LLM_FAMILY = "LLM_TRADER"
+#: The model-proposed families whose trades the models read back (llm_trader / trading_room, experimental_ai).
+MODEL_FAMILIES = (LLM_FAMILY, "EXPERIMENTAL_AI")
 MAX_TRADES = 12
+MEMORY_VERSION_TRADES = "trade-memory-1.1.0"  # 1.1.0: LEARNING-partition trades only (learning/forward.py)
 
 
 def _trade_view(row: dict, reflections: dict[str, dict]) -> dict:
@@ -46,8 +51,19 @@ class TradeMemory:
         self.db, self.knowledge = db, knowledge
 
     def _rows(self) -> list[dict]:
+        """The model families' closed trades whose decision fell in a LEARNING week. Trades decided in an
+        EVALUATION week are kept out of the models' memory, so forward evaluation is not learned from."""
         rows = self.db.query("SELECT symbol, r, payload FROM trades ORDER BY seq")
-        return [r for r in rows if (json.loads(r["payload"]).get("decision") or {}).get("family") == LLM_FAMILY]
+        out = []
+        for r in rows:
+            p = json.loads(r["payload"])
+            if (p.get("decision") or {}).get("family") not in MODEL_FAMILIES:
+                continue
+            opened = (p.get("position") or {}).get("opened")
+            if opened is not None and partition(int(opened)) != "LEARNING":
+                continue
+            out.append(r)
+        return out
 
     def _reflections(self) -> dict[str, dict]:
         out = {}

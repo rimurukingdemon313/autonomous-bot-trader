@@ -9,6 +9,13 @@ is measured, never assumed.**
 > Over 2010-2016, after costs, the full system averaged **−0.07 R per trade
 > (t −2.9): it loses money.** It starts paused. `MODE=LIVE` is refused by
 > the software. Nothing here claims or implies profitability.
+>
+> **Since 2026-10 (docs/FINAL_ENGINEERING_AUDIT.md):** historical research closed with no
+> validated edge (54 rejected), so the running system now also measures itself **forward**.
+> Every decision carries an edge status (VALIDATED / PROMISING / EXPERIMENTAL / NONE; today every
+> trade is EXPERIMENTAL), and every proposal, executed or shadow, is followed to its outcome after
+> costs, with learning and evaluation data kept apart (docs/FORWARD_VALIDATION.md).
+> `LIVE_TRADING=true` is refused too.
 
 ---
 
@@ -69,9 +76,14 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 | The knowledge base loads only if it matches its card's SHA-256 | `service/runtime.py` | `test_service.py` |
 | Stop and pause need no token; resume, clear, scan and revert need `DASHBOARD_TOKEN` | `service/server.py` | `test_service.py` (real HTTP) |
 | History (decisions, trades, episodes, lessons) is immutable and hash-chained | `memory/db.py` | `test_db.py` |
+| `LIVE_TRADING=true`, `MODE=LIVE` and ambiguous switches are refused; there is no live argument anywhere | `service/config.py`, `execution/engine.py` | `test_experimental_ai.py` |
+| An unvalidated (EXPERIMENTAL) trade is never sent in DEMO unless `EXPERIMENTAL_EXECUTE=true`: it is SHADOW | `decision/edge_status.py`, `execution/engine.py` | `test_forward.py`, `test_forward_service.py` |
+| A model's confidence never makes anything VALIDATED; malformed or UNCERTAIN replies never trade | `decision/edge_status.py`, `agents/` | `test_forward.py`, `test_experimental_ai.py`, `test_llm_trader.py` |
+| Stale decisions and runaway prices are refused before submission | `execution/engine.py` | `test_experimental_ai.py` |
+| Forward lessons are created from LEARNING weeks and confirmed only on later EVALUATION weeks; the model never reads evaluation-week trades | `learning/`, `memory/trade_memory.py` | `test_forward.py`, `test_forward_service.py` |
 
 Every row was checked by **removing the guard and watching a test fail**:
-81 of 81 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
+135 of 135 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
 
 ## Evidence
 
@@ -215,6 +227,8 @@ python scripts/mutation_audit.py       # remove each guard, require a failing te
 | [RESEARCH_CONTRACT.md](RESEARCH_CONTRACT.md) · [VALIDATION_CONTRACT.md](VALIDATION_CONTRACT.md) | Registration, splits, walk-forward, holdout |
 | [DATA_CONTRACT.md](DATA_CONTRACT.md) · [MODEL_CONTRACT.md](MODEL_CONTRACT.md) | Data provenance; models and the language-model rules |
 | [RISK_CONTRACT.md](RISK_CONTRACT.md) · [EXECUTION_CONTRACT.md](EXECUTION_CONTRACT.md) · [SECURITY_CONTRACT.md](SECURITY_CONTRACT.md) | Capital protection, order safety, secrets |
+| [docs/FINAL_ENGINEERING_AUDIT.md](docs/FINAL_ENGINEERING_AUDIT.md) | The 2026-10 engineering audit: what was broken, fixed, preserved and added |
+| [docs/FORWARD_VALIDATION.md](docs/FORWARD_VALIDATION.md) | Edge status, shadow trading, the forward ledger, partitions, lessons, and the exact definition of a validated edge |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Deploying and operating on Railway |
 | [docs/AI_MODELS.md](docs/AI_MODELS.md) | The optional language-model layer and which free models to use |
 | [docs/RESEARCH_LOG.md](docs/RESEARCH_LOG.md) | Sources reviewed, adopted, rejected, and why |

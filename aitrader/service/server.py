@@ -88,10 +88,15 @@ def make_handler(rt: Runtime, token: str):
             q = {k: v[0] for k, v in parse_qs(url.query).items()}
             p = url.path.rstrip("/") or "/"
             try:
-                if p == "/healthz":
+                if p == "/healthz":  # liveness: the process and its database answer
                     st = rt.status()
                     ok = st["components"]["database"] == "HEALTHY"
                     return self._send(200 if ok else 503, {"ok": ok, "system": st["system"], "mode": st["mode"]})
+                if p == "/readyz":  # readiness: safe to make decisions (paused is still ready)
+                    rd = rt.readiness()
+                    return self._send(200 if rd["ready"] else 503, rd)
+                if p == "/metrics":  # Prometheus text format
+                    return self._send(200, rt.metrics_text().encode(), "text/plain; version=0.0.4")
                 routes = {
                     "/api/status": rt.status,
                     "/api/account": rt.account,
@@ -107,6 +112,9 @@ def make_handler(rt: Runtime, token: str):
                                               "SELECT decision_id, approved, payload FROM risk_verdicts ORDER BY seq DESC LIMIT 20")]},
                     "/api/agents": lambda: {"llm": rt.llm.health(), "last": {s: v.get("agents") for s, v in rt.orch.status["symbols"].items()}},
                     "/api/performance": lambda: _performance(rt),
+                    "/api/evidence": rt.evidence,
+                    "/api/lessons": rt.lessons,
+                    "/api/readyz": rt.readiness,
                 }
                 if p in routes:
                     return self._send(200, routes[p]())

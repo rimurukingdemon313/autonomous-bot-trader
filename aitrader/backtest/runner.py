@@ -124,7 +124,7 @@ def run(cfg: BacktestConfig, series: dict[str, BarSeries], progress: Callable[[s
     broker = PaperBroker(feed, clock, db, start_balance=cfg.start_balance,
                          slippage_pips=cfg.costs.slippage_pips, commission_per_lot_rt=cfg.costs.commission_pips_rt * 10.0)
     brain = Brain(llm=None, synthesizer=EvidenceSynthesizer(cfg.synthesis), config=BrainConfig(llm_agents=(), parallel=False))
-    execution = ExecutionEngine(db, broker, clock)
+    execution = ExecutionEngine(db, broker, clock, allow_unvalidated=True)  # a simulation, like PAPER
     experience = ExperienceView()
     versions = {**stamp(), "synthesis_mode": cfg.synthesis.mode, "learning_enabled": cfg.learning_enabled, "backtest": cfg.name}
     orch = Orchestrator(

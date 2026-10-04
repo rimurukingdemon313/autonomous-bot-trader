@@ -171,7 +171,7 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
             packets.append(user)
             ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
             reply = {"action": "BUY", "timeframe": "M5", "stop": ask - 1.0 * atr, "target": ask + 1.5 * atr,
-                     "max_hold_hours": 1, "thesis": "M5 scalp", "invalidation": "stop", "memory_used": "none"}
+                     "max_hold_hours": 1, "thesis": "M5 scalp", "invalidation": "stop", "memory_used": "none", "confidence": 0.5}
         return {"choices": [{"message": {"content": json.dumps(reply)}}]}
 
     monkeypatch.setattr(runtime_mod, "LLMClient",

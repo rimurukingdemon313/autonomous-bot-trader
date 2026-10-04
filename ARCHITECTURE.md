@@ -314,3 +314,29 @@ Its boundary with production is structural:
 
 Reflection may *propose* experiments (the `experiments` journal); it
 cannot run them.
+
+## Amendment 3 — forward evidence (engineering audit, 2026-10)
+
+Historical research closed with no validated edge (docs/FINAL_RESEARCH_REPORT.md). The running
+system is now also the instrument that measures, forward, whether anything it does has an edge
+(docs/FORWARD_VALIDATION.md, docs/FINAL_ENGINEERING_AUDIT.md):
+
+    decision ─► edge status + signal class + cost estimate + timeframes (decision/edge_status.py)
+             ─► risk engine (unchanged, final authority)
+             ─► route: EXECUTE (paper, validated, or DEMO with EXPERIMENTAL_EXECUTE) | SHADOW
+             ─► forward ledger (learning/forward.py): every proposal, executed or shadow or
+                rejected, followed on completed bars to gross / cost / net R, MFE/MAE, post-exit path
+             ─► forward lessons (learning/taxonomy.py): LEARNING weeks create, later EVALUATION
+                weeks confirm; information for the models, never a rule
+             ─► forward statistics and eligibility (learning/metrics.py) on EVALUATION weeks only
+
+- Nothing in this chain can create a trade, move a level, change a size or a limit.
+- `edge_status` comes only from the promoted-edge file. A model's confidence is never evidence.
+- The execution engine re-checks the route (`allow_unvalidated`). There is no `allow_live`
+  argument anywhere.
+- `DECISION_MODE=experimental_ai` (agents/experimental_ai.py) is a proposer model plus specialist
+  models with a deterministic synthesis. It joins the model modes; the same risk and execution path
+  applies.
+- Reflection's experiment proposals moved to `learning/proposals.py`, so that nothing that runs
+  imports the research lab, even indirectly. `test_architecture.py` now checks the orchestrator,
+  the service, learning, memory and the LLM layer too.

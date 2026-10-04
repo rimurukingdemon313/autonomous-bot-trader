@@ -49,10 +49,13 @@ from .types import MarketContext
 #: 1.8.0: the reply schema lists M1, which was always accepted but never offered.
 #: 1.9.0: the packet carries the market map and intermarket context; any method is invited and named.
 #: 1.11.0: the packet carries the strategy desk.
+#: 1.12.0: no trade-forcing language: the "account should not sit idle" request is removed (a trade must be
+#:         justified by the data, never by inactivity); the reply adds UNCERTAIN, confidence, expected_r,
+#:         reasons_against, evidence, regime and analogues. A trade needs an invalidation and a confidence.
 #: 1.10.0: fewer rows (H1 12, M1 15, H4 6, D1 5; levels are in the map), no history example list, a leaner
 #:         map, so the joint call fits
 #:         a free tier's per-minute token limit (Groq answered 413 "request too large").
-LLM_TRADER_VERSION = "llm-trader-1.11.0"
+LLM_TRADER_VERSION = "llm-trader-1.12.0"
 FAMILY = "LLM_TRADER"
 TIMEFRAMES = ("M1", "M5", "M15", "H1", "H4", "D1")
 MAX_STOP_ATR = 12.0  # in H1 ATR: wider than this is a typo, not a stop (too tight: the risk engine decides)
@@ -80,15 +83,20 @@ intermarket, news, or a combination; the map is information, not an instruction.
 Every choice is yours: whether to trade at all, the direction, the timeframe, your style, where the stop and
 the target go, how long to hold (from one minute to two weeks). No style, quota or setup is required of you, and
 you will be asked about your open trades as time passes: you may close them whenever you decide.
-The owner's objective is profit after costs; every loss is recorded against your record. The owner does not
-want the account to sit idle: when this pair has no open trade and the market offers anything reasonable,
-the owner prefers a small, short trade to waiting. No trade is still yours to choose when you judge it right. Use your memory as you see fit
-and say which part of it you used. You do NOT size positions: a risk engine does that and may refuse a trade.
+The owner's objective is profit after costs; every loss is recorded against your record. Time without a
+trade costs nothing: never trade because the account has been idle, to reach a count, or to recover a loss.
+Trade only when you can justify the setup from the data; otherwise answer NO_TRADE, or UNCERTAIN when the
+evidence is mixed. Use your memory as you see fit and say which part of it you used. You do NOT size positions: a risk engine does that and may refuse a trade.
+
+Your confidence is recorded and later compared with what actually happened; it never changes the size.
 
 Reply with ONE JSON object only:
-{{"action": "BUY|SELL|NO_TRADE", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>, "target": <price or null>,
-  "max_hold_minutes": <1-20160 or null>, "thesis": "why, in at most 4 sentences",
-  "invalidation": "what would prove you wrong", "memory_used": "which past trade or lesson you applied, or none",
+{{"action": "BUY|SELL|NO_TRADE|UNCERTAIN", "timeframe": "M1|M5|M15|H1|H4|D1", "stop": <price or null>,
+  "target": <price or null>, "max_hold_minutes": <1-20160 or null>, "thesis": "why, in at most 4 sentences",
+  "confidence": <0.0-1.0, required for BUY/SELL>, "expected_r": <the R you expect, or null>,
+  "evidence": ["the specific facts in the data that support it"], "reasons_against": ["the strongest reasons not to"],
+  "invalidation": "what would prove you wrong (required for BUY/SELL)", "regime": "the market regime as you read it",
+  "analogues": "similar past situations you relied on, or none", "memory_used": "which past trade or lesson you applied, or none",
   "method": "the method you used, in a few words"}}"""
 
 REFLECT = """You are reviewing one of YOUR OWN closed paper trades, to learn from it.
@@ -159,6 +167,47 @@ def validate_proposal(d: dict) -> str | None:
     if not isinstance(d.get("thesis"), str) or not d["thesis"].strip():
         return "a trade needs a thesis"
     return None
+
+
+def _texts(x, n: int = 6) -> list[str] | None:
+    """A list of short strings, or None when the field is not one (absent is an empty list)."""
+    if x is None:
+        return []
+    if not isinstance(x, list) or not all(isinstance(i, str) for i in x):
+        return None
+    return [i.strip()[:200] for i in x[:n] if i.strip()]
+
+
+def validate_trader_reply(d: dict) -> str | None:
+    """The language-model trader's full reply. Stricter than `validate_proposal` (which the trading
+    room's members share): UNCERTAIN is a recorded answer, and a trade must state its confidence and
+    what would invalidate it. A malformed field is a rejected reply (NO_TRADE), never repaired."""
+    if d.get("action") == "UNCERTAIN":
+        return None if isinstance(d.get("thesis", ""), str) else "thesis must be text"
+    problem = validate_proposal(d)
+    if problem or d["action"] == "NO_TRADE":
+        return problem
+    c = d.get("confidence")
+    if not isinstance(c, (int, float)) or isinstance(c, bool) or not np.isfinite(c) or not 0.0 <= c <= 1.0:
+        return "a trade needs a confidence between 0 and 1"
+    if not isinstance(d.get("invalidation"), str) or not d["invalidation"].strip():
+        return "a trade needs an invalidation condition"
+    e = d.get("expected_r")
+    if e is not None and (not isinstance(e, (int, float)) or isinstance(e, bool) or not np.isfinite(e) or abs(e) > 50):
+        return "expected_r must be a number (in R) or null"
+    for k in ("evidence", "reasons_against"):
+        if _texts(d.get(k)) is None:
+            return f"{k} must be a list of text"
+    return None
+
+
+def model_view(p: dict) -> dict:
+    """What the model said beyond the levels, as recorded on the decision. Never used to size or price."""
+    return {"action": p.get("action"), "confidence": p.get("confidence"), "expected_r": p.get("expected_r"),
+            "evidence": _texts(p.get("evidence")) or [], "reasons_against": _texts(p.get("reasons_against")) or [],
+            "regime": str(p.get("regime") or "")[:200] or None, "analogues": str(p.get("analogues") or "")[:300] or None,
+            "method": str(p.get("method") or "")[:120] or None, "memory_used": str(p.get("memory_used") or "")[:200] or None,
+            "invalidation": str(p.get("invalidation") or "")[:300] or None, "timeframe": p.get("timeframe")}
 
 
 def hold_minutes(d: dict) -> int | None:
@@ -350,6 +399,23 @@ def trade_decision(ctx: MarketContext, did: str, v: dict, agents: dict, reports:
         max_hold_minutes=hold_minutes(p))
 
 
+def call_record(res) -> dict:
+    """One model call as recorded on a decision: who answered, how, how fast, and its token count.
+    Never the key, never the prompt."""
+    provider = getattr(res, "provider", None)
+    model = res.model
+    if provider and model and provider != "default" and model.startswith(provider + ":"):
+        model = model[len(provider) + 1:]
+    return {"provider": provider, "model": model, "status": res.status, "ok": bool(res.ok),
+            "latency_ms": round(float(res.latency_ms or 0.0), 1), "tokens": res.tokens, "error": res.error,
+            "cached": bool(getattr(res, "cached", False))}
+
+
+def with_ai(d: Decision, ai: dict, verdict: str | None) -> Decision:
+    d.ai, d.ai_verdict = ai, verdict
+    return d
+
+
 class LLMTrader:
     def __init__(self, llm) -> None:
         self.llm = llm
@@ -372,22 +438,30 @@ class LLMTrader:
             return no_trade(blocked[0], contra=blocked[1])
         packet = market_packet(ctx, reports)
         res = self.llm.complete_json("trader", SYSTEM.format(time=packet["decision_time"]), packet,
-                                     validate_proposal, cache_key=f"{ctx.symbol}|{ctx.t}", shrink=compact_packet)
+                                     validate_trader_reply, cache_key=f"{ctx.symbol}|{ctx.t}", shrink=compact_packet)
+        ai = call_record(res)
         if not res.ok:
-            return no_trade(f"language model unavailable or reply rejected ({res.status}): failing closed")
+            return with_ai(no_trade(f"language model unavailable or reply rejected ({res.status}): failing closed"),
+                           ai, None)
         p = res.data
+        ai["view"] = model_view(p)
         memory_note = {"agent": "llm_trader", "claim": f"memory used: {str(p.get('memory_used') or 'none')[:200]}",
                        "model": res.model}
+        if p["action"] == "UNCERTAIN":
+            return with_ai(no_trade(f"model UNCERTAIN: {str(p.get('thesis') or 'mixed evidence')[:400]}",
+                                    support=[memory_note]), ai, "UNCERTAIN")
         if p["action"] == "NO_TRADE":
-            return no_trade(f"model: {str(p.get('thesis') or 'no trade')[:400]}", support=[memory_note])
+            return with_ai(no_trade(f"model: {str(p.get('thesis') or 'no trade')[:400]}", support=[memory_note]),
+                           ai, "NO_TRADE")
         problem = level_problem(ctx, p)
         if problem:
-            return no_trade(problem)
+            return with_ai(no_trade(problem), ai, "TRADE")
         hit = lesson_block(ctx, 1 if p["action"] == "BUY" else -1)
         if hit:
-            return no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
-                            contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}])
-        return trade_decision(ctx, did, v, agents, reports, p, [memory_note])
+            return with_ai(no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
+                                    contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}]),
+                           ai, "TRADE")
+        return with_ai(trade_decision(ctx, did, v, agents, reports, p, [memory_note]), ai, "TRADE")
 
     # ── manage an open trade ────────────────────────────────────────────
 

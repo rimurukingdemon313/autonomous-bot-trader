@@ -145,7 +145,7 @@ def test_end_to_end_a_model_trades_on_yahoo_prices_through_the_risk_engine(tmp_p
         ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
         return {"choices": [{"message": {"content": json.dumps(
             {"action": "BUY", "timeframe": "H1", "stop": ask - 1.5 * atr, "target": ask + 3 * atr,
-             "max_hold_minutes": 120, "thesis": "test", "invalidation": "stop"})}}]}
+             "max_hold_minutes": 120, "thesis": "test", "invalidation": "stop", "confidence": 0.5})}}]}
 
     monkeypatch.setenv("DECISION_MODE", "llm_trader")
     monkeypatch.setattr(runtime_mod, "LLMClient",

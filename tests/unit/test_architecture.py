@@ -61,7 +61,9 @@ def test_only_the_risk_engine_computes_a_position_size():
 
 
 def test_the_research_lab_is_not_imported_by_the_live_decision_path():
-    live = ("agents", "decision", "risk", "execution", "broker")
+    # Everything that runs: the orchestrator and the service too (the orchestrator once imported
+    # research.hypotheses, and with it the lab, to write experiment proposals).
+    live = ("agents", "decision", "risk", "execution", "broker", "orchestrator", "service", "learning", "memory", "llm")
     bad = [f"{p.relative_to(PKG)}" for p in modules(*live)
            if imports_of(p) & {"aitrader.research.lab", "aitrader.research.models", "aitrader.research.features_lab",
                                "aitrader.research.hypotheses"}]

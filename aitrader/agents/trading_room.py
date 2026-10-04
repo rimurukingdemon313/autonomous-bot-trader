@@ -43,7 +43,7 @@ from ..decision.synthesis import Decision, decision_id
 from .llm_trader import (
     FAMILY, LLM_TRADER_VERSION, agent_digest, compact_packet, hold_minutes, lesson_block, level_problem, market_packet,
     no_trade_decision,
-    pre_model_block, trade_decision, validate_proposal,
+    pre_model_block, trade_decision, validate_proposal, call_record, with_ai,
 )
 from .types import MarketContext
 
@@ -61,7 +61,9 @@ from .types import MarketContext
 #:        publishes its progress (who is thinking, who has spoken) for the dashboard.
 #: 2.7.0: the market map and intermarket context in the packet; any method invited, and named.
 #: 2.8.0: the strategy desk in the packet.
-ROOM_VERSION = "trading-room-2.8.0"
+#: 2.9.0: the "account should not sit idle" request is removed: a trade must be justified by the data,
+#:        never by inactivity, a count or a loss to recover.
+ROOM_VERSION = "trading-room-2.9.0"
 
 #: The desks of one trading firm, in speaking order: direction, then entry, then timing, then checks.
 ROLES = (
@@ -99,10 +101,9 @@ scoreboard of how each did on this pair's recent history after spread), and the 
 (losses first) with the reflections written on them. The decision time is {time}; treat it as the
 present and do not use any knowledge of prices or events after it."""
 
-_OWNER = """The owner wants an active team that finds trades, very short ones included, whenever the market offers a
-reasonable opportunity, and does not want the account to sit idle: when this pair has no open trade and the
-market offers anything reasonable, the owner prefers a small, short trade to waiting (no trade is still the
-team's to choose). The owner's objective is profit after costs; every loss is recorded against the team.
+_OWNER = """The owner wants a team that actively searches the market and finds trades, very short ones included,
+whenever the data justifies one. Time without a trade costs nothing: never trade because the account has been
+idle, to reach a count, or to recover a loss; no trade is the right answer when nothing is justified. The owner's objective is profit after costs; every loss is recorded against the team.
 Use whatever method the team judges strongest here and now: SMC/ICT, price action, momentum, mean reversion,
 intermarket, news, or a combination; the map is information, not an instruction. Name it in "method".
 Every trading choice is the team's own: direction, timeframe, style, stop, target, holding time (from one minute
@@ -150,7 +151,7 @@ STYLES = {
     "free": "",
     "scalp": """
 The owner has asked for one-minute trading on this pair: prefer timeframe M1 and a holding time of about 1 to 5
-minutes, one trade at a time, and a new trade each minute when the market offers anything reasonable. Keep the
+minutes, one trade at a time, and a new trade only when the M1 data justifies one. Keep the
 stop and target where the M1 price action justifies them; the spread is a real cost on trades this short.
 No trade is still the team's to choose.""",
 }
@@ -328,15 +329,22 @@ class TradingRoom:
             return no_trade(f"the team's joint decision could not be written ({res.status}): failing closed")
         p = res.data
         room["joint"] = _view(p, res.model)
+        ai = call_record(res)
+        ai["members"] = {m: room["final"][m]["action"] for m in present}
+        # Disagreement: the share of members who spoke for another action than the joint decision.
+        ai["disagreement"] = round(sum(room["final"][m]["action"] != p["action"] for m in present) / len(present), 3)
+        verdict = "NO_TRADE" if p["action"] == "NO_TRADE" else "TRADE"
         if p["action"] == "NO_TRADE":
-            return no_trade(f"team decision ({res.model}): no trade. {str(p.get('thesis') or '')[:400]}")
+            return with_ai(no_trade(f"team decision ({res.model}): no trade. {str(p.get('thesis') or '')[:400]}"),
+                           ai, verdict)
         problem = level_problem(ctx, p)
         if problem:
-            return no_trade(f"team decision rejected, never repaired: {problem}")
+            return with_ai(no_trade(f"team decision rejected, never repaired: {problem}"), ai, verdict)
         hit = lesson_block(ctx, 1 if p["action"] == "BUY" else -1)
         if hit:
-            return no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
-                            contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}])
+            return with_ai(no_trade(f"validated lesson {hit['lesson_id']}: {hit['statement']}",
+                                    contra=[{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}]),
+                           ai, verdict)
         backers = [m for m in present if room["final"][m]["action"] == p["action"]]
         room["outcome"] = (f"team {p['action']} on {p['timeframe']}, written by {head}"
                            + (f"; argued for by {', '.join(backers)}" if backers else ""))
@@ -348,7 +356,7 @@ class TradingRoom:
                     "model": room["final"][d["member"]]["model"]} for d in said]
         support.append({"agent": "room:joint", "claim": f"joint decision by {head}: {str(p['thesis'])[:300]}",
                         "model": res.model})
-        return trade_decision(ctx, did, v, agents, reports, p, support, evidence={"room": room})
+        return with_ai(trade_decision(ctx, did, v, agents, reports, p, support, evidence={"room": room}), ai, verdict)
 
 
 def member_records(db) -> dict:

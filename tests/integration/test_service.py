@@ -349,7 +349,8 @@ def test_the_llm_trader_trades_through_the_risk_engine_reviews_itself_and_rememb
         seen_memory.append(user["memory"])
         ask, atr = user["quote"]["ask"], user["timeframes"]["H1"]["atr14"]
         return json.dumps({"action": "BUY", "timeframe": "H1", "stop": ask - 1.5 * atr, "target": ask + 2.0 * atr,
-                           "max_hold_hours": 12, "thesis": "test trade", "invalidation": "stop", "memory_used": "none"})
+                           "max_hold_hours": 12, "thesis": "test trade", "invalidation": "stop", "memory_used": "none",
+                           "confidence": 0.55})
 
     def transport(url, headers, body, timeout):
         return {"choices": [{"message": {"content": reply(body)}}], "usage": {"total_tokens": 10}}
@@ -375,7 +376,11 @@ def test_the_llm_trader_trades_through_the_risk_engine_reviews_itself_and_rememb
     reviews = [r for r in reviews if r.get("kind") == "trade"]
     assert len(reviews) == len(trades) and all(r["lesson"] == "wait for a pullback" for r in reviews)
     brief = TradeMemory(rt.db, rt.experience).brief("EURUSD", "RANGING", clock.t)
-    assert brief["my_record"]["trades"] == len(trades)
+    # trade-memory-1.1.0: the model's memory holds LEARNING-week trades only; EVALUATION weeks are
+    # kept for judging it (learning/forward.py), so they are never learned from.
+    from aitrader.learning.forward import partition
+    learning = [tr for tr in trades if partition(int(json.loads(tr["payload"])["position"]["opened"])) == "LEARNING"]
+    assert 0 < len(learning) < len(trades) and brief["my_record"]["trades"] == len(learning)
     assert any(v["my_lesson"] == "wait for a pullback" for v in brief["relevant_past_trades"])
     assert any(m["relevant_past_trades"] for m in seen_memory)  # later decisions were shown earlier trades
     assert rt.status()["versions"].get("service")

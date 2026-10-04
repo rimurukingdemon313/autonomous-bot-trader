@@ -74,6 +74,16 @@ KNOWN_PROVIDERS = {
 }
 
 
+def _price(e, key: str) -> float | None:
+    raw = (e.get(key) or "").strip()
+    if not raw:
+        return None
+    v = float(raw)
+    if v < 0:
+        raise ValueError(f"{key} must be >= 0")
+    return v
+
+
 def provider_family(name: str) -> str:
     """The provider behind a seat name: "groq2" / "groq_b" -> "groq" when "groq" is a known provider.
     A second seat reuses the family's address, key and request limit unless it sets its own."""
@@ -92,6 +102,10 @@ class Endpoint:
     max_tokens: int | None = None  # AI_<NAME>_MAX_TOKENS: a smaller reply budget for a provider whose
                                    # per-minute limit counts the reply budget in the request (Groq)
     max_request_tokens: int | None = None  # AI_<NAME>_MAX_REQUEST_TOKENS (groq: 7000 by default)
+    #: AI_<NAME>_COST_IN_PER_MTOK / AI_<NAME>_COST_OUT_PER_MTOK: the operator's price per million prompt /
+    #: completion tokens, for cost tracking. Unset = not priced (reported as such, never as zero).
+    cost_in_per_mtok: float | None = None
+    cost_out_per_mtok: float | None = None
 
     @property
     def usable(self) -> bool:
@@ -163,7 +177,9 @@ class LLMConfig:
                 max_tokens=int(e[f"AI_{up}_MAX_TOKENS"]) if e.get(f"AI_{up}_MAX_TOKENS", "").strip() else None,
                 max_request_tokens=(int(e[f"AI_{up}_MAX_REQUEST_TOKENS"])
                                     if e.get(f"AI_{up}_MAX_REQUEST_TOKENS", "").strip()
-                                    else DEFAULT_MAX_REQUEST_TOKENS.get(fam))))
+                                    else DEFAULT_MAX_REQUEST_TOKENS.get(fam)),
+                cost_in_per_mtok=_price(e, f"AI_{up}_COST_IN_PER_MTOK"),
+                cost_out_per_mtok=_price(e, f"AI_{up}_COST_OUT_PER_MTOK")))
         return cls(
             providers=tuple(providers),
             provider=e.get("AI_PROVIDER", "none").strip().lower(),
@@ -189,9 +205,10 @@ class LLMResult:
     tokens: dict | None = None
     error: str | None = None
     cached: bool = False
+    provider: str | None = None  # the endpoint that answered (or last failed)
 
     def as_dict(self) -> dict:
-        return {"ok": self.ok, "agent": self.agent, "model": self.model, "status": self.status,
+        return {"ok": self.ok, "agent": self.agent, "model": self.model, "status": self.status, "provider": self.provider,
                 "data": self.data, "latency_ms": round(self.latency_ms, 1), "tokens": self.tokens,
                 "error": self.error, "cached": self.cached, "prompt_version": PROMPT_VERSION}
 
@@ -352,7 +369,8 @@ class LLMClient:
         if cache_key is not None and key in self._cache:
             self.stats["cache_hits"] += 1
             hit = self._cache[key]
-            return LLMResult(hit.ok, hit.agent, hit.model, hit.status, hit.data, 0.0, hit.tokens, hit.error, True)
+            return LLMResult(hit.ok, hit.agent, hit.model, hit.status, hit.data, 0.0, hit.tokens, hit.error, True,
+                             hit.provider)
 
         last = LLMResult(False, agent, None, "ERROR", error="no model attempted")
         for ep in endpoints:
@@ -375,6 +393,7 @@ class LLMClient:
                                                "tokens even shortened: not sent")
                         break
                     last = self._try_model(agent, ep, model, system, ep_user, validate)
+                    last.provider = ep.name
                     size = re.search(r"Limit (\d+), Requested (\d+)", last.error or "") if not last.ok else None
                     if size and (last.error or "").startswith("HTTP 413"):
                         self._calibrate(ep, system, ep_user, int(size.group(1)), int(size.group(2)))
@@ -460,7 +479,18 @@ class LLMClient:
         failing is visible on the dashboard instead of silently shrinking the team."""
         with self._lock:
             s = self._ep_stats.setdefault(name, {"ok": 0, "failed": 0, "last_error": None, "last_error_model": None,
-                                                 "errors": {}})
+                                                 "errors": {}, "prompt_tokens": 0, "completion_tokens": 0,
+                                                 "latency_ms_total": 0.0, "est_cost_usd": None})
+            s["latency_ms_total"] = round(s.get("latency_ms_total", 0.0) + float(res.latency_ms or 0.0), 1)
+            tok = res.tokens if isinstance(res.tokens, dict) else {}
+            pt, ct = tok.get("prompt_tokens"), tok.get("completion_tokens")
+            if isinstance(pt, int) and isinstance(ct, int):
+                s["prompt_tokens"] = s.get("prompt_tokens", 0) + pt
+                s["completion_tokens"] = s.get("completion_tokens", 0) + ct
+                ep = next((e for e in self.config.endpoints() if e.name == name), None)
+                if ep is not None and ep.cost_in_per_mtok is not None and ep.cost_out_per_mtok is not None:
+                    s["est_cost_usd"] = round((s["est_cost_usd"] or 0.0) + (pt * ep.cost_in_per_mtok
+                                                                           + ct * ep.cost_out_per_mtok) / 1e6, 6)
             if res.ok:
                 s["ok"] += 1
                 s["errors"].pop(res.model, None)

@@ -31,6 +31,7 @@ from .analysts import (
 from .llm_trader import LLMTrader
 from ..decision.edge_engine import load_promoted
 from .edge_trader import edge_decision
+from .experimental_ai import ExperimentalAI, ExperimentalConfig
 from .trading_room import RoomConfig, TradingRoom
 from .types import AGENT_VERSION, AgentReport, MarketContext, Objection
 
@@ -59,7 +60,9 @@ SYSTEM_RULES = (
 )
 
 
-DECISION_MODES = ("evidence", "llm_trader", "trading_room", "edges")
+DECISION_MODES = ("evidence", "llm_trader", "trading_room", "edges", "experimental_ai")
+#: The modes in which a language model proposes the trade (never backtestable; PAPER/DEMO only).
+MODEL_MODES = ("llm_trader", "trading_room", "experimental_ai")
 
 
 @dataclass
@@ -75,6 +78,9 @@ class BrainConfig:
     #: "trading_room": several models, one per provider, hunt, debate, and a head trader
     #: picks one member's trade verbatim (agents/trading_room.py). PAPER/DEMO only.
     room: RoomConfig = field(default_factory=RoomConfig)
+    #: "experimental_ai": a proposer model, independent specialists, deterministic synthesis
+    #: (agents/experimental_ai.py). Every trade it makes is EXPERIMENTAL. PAPER/DEMO only.
+    experimental: ExperimentalConfig = field(default_factory=ExperimentalConfig)
 
     def __post_init__(self) -> None:
         if self.decision_mode not in DECISION_MODES:
@@ -86,7 +92,7 @@ class BrainConfig:
         agents = tuple(a.strip() for a in os.environ.get("AI_AGENTS", "adversary,reviewer").split(",") if a.strip())
         return cls(llm_agents=agents, llm_required=os.environ.get("AI_REQUIRED", "false").lower() == "true",
                    decision_mode=os.environ.get("DECISION_MODE", "evidence").strip().lower(),
-                   room=RoomConfig.from_env())
+                   room=RoomConfig.from_env(), experimental=ExperimentalConfig.from_env())
 
 
 @dataclass
@@ -109,6 +115,7 @@ class Brain:
         self.llm_trader = LLMTrader(llm)
         self.config = config or BrainConfig()
         self.room = TradingRoom(llm, self.config.room)
+        self.experimental = ExperimentalAI(llm, self.config.experimental)
         self.synth = synthesizer or EvidenceSynthesizer()
         self.edges = load_promoted()[0] if self.config.decision_mode == "edges" else []
         self.llm = llm
@@ -214,9 +221,10 @@ class Brain:
             opinions = []  # promoted, measured edges decide; no model opinion is consulted
             decision = edge_decision(ctx, versions, self.edges)
             t2 = time.perf_counter()
-        elif self.config.decision_mode in ("llm_trader", "trading_room"):
+        elif self.config.decision_mode in MODEL_MODES:
             opinions = []  # the models ARE the traders here: no separate review calls
-            trader = self.room if self.config.decision_mode == "trading_room" else self.llm_trader
+            trader = {"trading_room": self.room, "experimental_ai": self.experimental}.get(
+                self.config.decision_mode, self.llm_trader)
             decision = trader.decide(ctx, reports, versions)
             t2 = time.perf_counter()
         else:

@@ -19,6 +19,18 @@ class ServiceConfigError(ValueError):
     pass
 
 
+def _flag(e, key: str, default: bool) -> bool:
+    """A true/false variable. Anything else is refused: an ambiguous switch fails closed."""
+    raw = (e.get(key) or "").strip().lower()
+    if raw == "":
+        return default
+    if raw in ("true", "1", "yes"):
+        return True
+    if raw in ("false", "0", "no"):
+        return False
+    raise ServiceConfigError(f"{key} must be true or false, got {raw!r}")
+
+
 def _f(e, key, default):
     raw = e.get(key)
     if raw in (None, ""):
@@ -53,11 +65,29 @@ class ServiceConfig:
     data_source: str = "auto"
     spreads_pips: dict = field(default_factory=dict)  # PAPER_SPREAD_PIPS_<PAIR> overrides (yahoo)
     risk: RiskLimits = field(default_factory=RiskLimits)
+    #: EXPERIMENTAL_EXECUTE (DEMO only): send unvalidated trades (every trade today: no edge is
+    #: validated) to the demo broker. Default false: they are SHADOW, recorded and followed forward.
+    experimental_execute: bool = False
+    #: EXEC_MAX_DECISION_AGE_S: a decision older than this is not executed (stale).
+    max_decision_age_s: int = 900
 
     @classmethod
     def from_env(cls, env: dict | None = None) -> "ServiceConfig":
         e = os.environ if env is None else env
-        mode = e.get("MODE", "PAPER").strip().upper()
+        # LIVE_TRADING exists only to be refused: the default is false and true is not available.
+        if _flag(e, "LIVE_TRADING", False):
+            raise ServiceConfigError("LIVE_TRADING=true is not available: this build has no live path. Nothing "
+                                     "reaches LIVE without every evidence gate and explicit approval "
+                                     "(docs/SYSTEM_LIFECYCLE.md)")
+        mode = e.get("MODE", "PAPER").strip().upper() or "PAPER"
+        # PAPER_MODE, when set, must agree with MODE: a contradiction is ambiguous and refused.
+        paper_mode = (e.get("PAPER_MODE") or "").strip()
+        if paper_mode:
+            pm = _flag(e, "PAPER_MODE", True)
+            if pm and mode != "PAPER":
+                raise ServiceConfigError(f"PAPER_MODE=true contradicts MODE={mode}: set one consistently")
+            if not pm and mode == "PAPER":
+                raise ServiceConfigError("PAPER_MODE=false needs MODE=DEMO stated explicitly (there is no live mode)")
         if mode == "LIVE":
             raise ServiceConfigError("MODE=LIVE is not available: nothing reaches LIVE without every evidence gate "
                                      "and explicit approval (docs/SYSTEM_LIFECYCLE.md)")
@@ -102,14 +132,24 @@ class ServiceConfig:
         per_cycle = int(_f(e, "SYMBOLS_PER_CYCLE", 0))
         if not 0 <= per_cycle <= len(symbols):
             raise ServiceConfigError(f"SYMBOLS_PER_CYCLE must be 0 (all) or 1..{len(symbols)}, got {per_cycle}")
+        experimental_execute = _flag(e, "EXPERIMENTAL_EXECUTE", False)
+        if experimental_execute and mode != "DEMO":
+            raise ServiceConfigError("EXPERIMENTAL_EXECUTE applies to MODE=DEMO only (PAPER always simulates): "
+                                     "unset it, or set MODE=DEMO")
+        max_age = int(_f(e, "EXEC_MAX_DECISION_AGE_S", 900))
+        if not 30 <= max_age <= 3600:
+            raise ServiceConfigError(f"EXEC_MAX_DECISION_AGE_S must be 30..3600, got {max_age}")
         return cls(mode=mode, data_dir=e.get("DATA_DIR", "./runtime"), port=int(e.get("PORT", "8080")),
+                   experimental_execute=experimental_execute, max_decision_age_s=max_age,
                    symbols=symbols, start_balance=_f(e, "PAPER_START_BALANCE", 20_000.0),
                    dashboard_token=e.get("DASHBOARD_TOKEN", ""), risk=risk,
                    decision_interval_min=interval, symbols_per_cycle=per_cycle, scan_timeframe=scan,
                    data_source=source, spreads_pips=spreads)
 
     def public(self) -> dict:
-        return {"mode": self.mode, "symbols": list(self.symbols), "start_balance": self.start_balance,
+        return {"mode": self.mode, "live_trading": False, "paper_mode": self.mode == "PAPER",
+                "experimental_execute": self.experimental_execute, "max_decision_age_s": self.max_decision_age_s,
+                "symbols": list(self.symbols), "start_balance": self.start_balance,
                 "decision_interval_min": self.decision_interval_min, "symbols_per_cycle": self.symbols_per_cycle,
                 "scan_timeframe": self.scan_timeframe,
                 "data_source": self.data_source,

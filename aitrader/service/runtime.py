@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ..agents.brain import Brain, BrainConfig
+from ..agents.brain import MODEL_MODES, Brain, BrainConfig
 from ..agents.trading_room import member_records
 from ..data.calendar import EconomicCalendar
 from ..memory.history import HistoryDesk
@@ -38,6 +38,8 @@ from ..decision.synthesis import EvidenceSynthesizer
 from ..execution.engine import ExecutionEngine
 from ..features.store import LOOKBACK
 from ..learning.experience import ExperienceView
+from ..learning import metrics as fwd_metrics
+from ..learning.forward import partition as fwd_partition
 from ..llm.provider import LLMClient, LLMConfig
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
@@ -88,12 +90,15 @@ def storage_state(data_dir: str, env=None) -> dict:
 #: reason); a pair with no data shows NO_DATA and why.
 #: 1.6.0: SCAN_TIMEFRAME=M15 (the opportunity scanner: every M15 close, H1/H4 as context) and
 #: DECISION_MODE=edges (promoted edges only); the evidence system keeps its tested H1 cadence.
-SERVICE_VERSION = "service-1.6.0"
-MODEL_MODES = ("llm_trader", "trading_room")
+#: 1.7.0: LIVE_TRADING / PAPER_MODE / EXPERIMENTAL_EXECUTE; startup reconciliation also reads the account
+#: and lists journal positions the broker no longer holds; the forward ledger resolves every 5 minutes;
+#: /readyz, /metrics, /api/evidence, /api/lessons.
+SERVICE_VERSION = "service-1.7.0"
 #: modes that may decide more often than the evidence system's tested H1 cadence
 FLEX_MODES = MODEL_MODES + ("edges",)
 FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
 MEMORY_SAVE_EVERY_S = 900
+FORWARD_EVERY_S = 300  # forward-ledger resolution cadence (reads only)
 
 
 class OfflineFeed:
@@ -216,10 +221,13 @@ class Runtime:
         self.history, self.history_meta = self._load_history()
         self.experience = ExperienceView()
         self._replay_experience()
-        self.execution = ExecutionEngine(self.db, self.broker, self.clock)
+        # PAPER simulates every trade; DEMO sends an unvalidated trade only with EXPERIMENTAL_EXECUTE=true.
+        self.execution = ExecutionEngine(self.db, self.broker, self.clock,
+                                         allow_unvalidated=cfg.mode == "PAPER" or cfg.experimental_execute,
+                                         max_decision_age_s=cfg.max_decision_age_s)
         self.orch = Orchestrator(
             OrchestratorConfig(list(cfg.symbols), mode=cfg.mode, journal="full", events="all",
-                               start_balance=cfg.start_balance),
+                               start_balance=cfg.start_balance, experimental_execute=cfg.experimental_execute),
             db=self.db, feed=self.feed, broker=self.broker,
             brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=BrainConfig.from_env()),
             risk=RiskEngine(cfg.risk), execution=self.execution, experience=self.experience,
@@ -240,6 +248,7 @@ class Runtime:
         self._threads: list[threading.Thread] = []
         self._last_bar_seen: dict[str, int] = {}
         self._last_fast_seen: dict[str, int] = {}
+        self._forward_at = 0
         self._rotation = 0
         self._memory_saved_at = 0.0
         if cfg.decision_interval_min and self.orch.brain.config.decision_mode not in FLEX_MODES:
@@ -395,8 +404,21 @@ class Runtime:
                              f"{len(self.experience.lessons)} lessons")
 
     def _reconcile_at_start(self) -> None:
+        """Before anything can trade: order intents left SUBMITTING/UNKNOWN are resolved by querying the
+        broker (never resent), broker positions this journal does not know are orphans, journal positions
+        the broker no longer holds are listed, and the account balance is read. Any error, orphan or
+        unreadable account pauses trading until an operator looks."""
         try:
             rep = self.execution.reconcile()
+            try:
+                known_open = {r["id"] for r in self.db.query("SELECT id FROM positions WHERE status='OPEN'")}
+                at_broker = {p.id for p in self.broker.positions()}
+                rep["missing_at_broker"] = sorted(known_open - at_broker)  # closed while we were down: synced next cycle
+                snap = self.broker.account()
+                rep["account"] = {"equity": snap.equity, "balance": snap.balance, "currency": snap.currency}
+            except Exception as exc:
+                rep["account"] = None
+                rep.setdefault("error", f"account/positions unreadable: {type(exc).__name__}: {exc}")
             self.health["reconcile"] = {"t": self.clock(), **rep}
             if rep.get("error") or rep.get("orphans"):
                 self.db.set_kv("paused", True, reason=f"startup reconciliation: {rep.get('error') or 'orphan positions'}")
@@ -466,6 +488,9 @@ class Runtime:
         now = self.clock()
         self._monitor_fast(now)
         self.orch.time_exits(now)  # a holding time of minutes is honoured between cycles
+        if now - self._forward_at >= FORWARD_EVERY_S:  # forward outcomes resolve as bars complete
+            self._forward_at = now
+            self.health["forward"] = {"t": now, **self.orch.forward_tick(now)}
         for s in self.cfg.symbols:
             bars = self.feed.bars(s, now, 3)
             if bars is None or len(bars) == 0:
@@ -607,7 +632,7 @@ class Runtime:
                 "news_calendar": (self.orch.news.state(refresh=False) if self.orch.news is not None else {"status": "NOT_CONFIGURED"}),
                 "symbols_per_cycle": self.cfg.symbols_per_cycle or len(self.cfg.symbols),
                 "ai_trader_record": (TradeMemory(self.db).record()
-                                     if self.orch.brain.config.decision_mode in ("llm_trader", "trading_room") else None),
+                                     if self.orch.brain.config.decision_mode in MODEL_MODES else None),
                 "trading_room": ({"members": self.orch.brain.room.members(),
                                   "head": self.orch.brain.config.room.head or None,
                                   "records": member_records(self.db)}
@@ -624,6 +649,130 @@ class Runtime:
             "counts": self.orch.counts, "versions": self.orch.versions, "config": self.cfg.public(),
             "reconcile": self.health.get("reconcile"),
         }
+
+    # ── forward evidence, lessons, readiness, metrics ───────────────────
+
+    def _baseline(self) -> float | None:
+        """The unconditional baseline: the mean shadow R of the declared template entries (both directions,
+        every decision point) over EVALUATION weeks. None until such outcomes exist."""
+        xs = []
+        for r in self.db.query("SELECT payload FROM evaluations"):
+            for e in json.loads(r["payload"]).get("evaluations", []):
+                if fwd_partition(e["decision_time"]) == "EVALUATION" and e.get("outcome_r") is not None:
+                    xs.append(float(e["outcome_r"]))
+        return round(float(np.mean(xs)), 4) if xs else None
+
+    def evidence(self) -> dict:
+        """Everything the forward ledger knows, by every dimension that could hide a concentration.
+        Labels: nothing here is VALIDATED unless research and an operator promoted it."""
+        rows = self.orch.forward.rows(as_of=self.clock())
+        learn = [r for r in rows if r["partition"] == "LEARNING"]
+        ev = [r for r in rows if r["partition"] == "EVALUATION"]
+        baseline = self._baseline()
+        by_class = {}
+        for sc in sorted({r.get("signal_class") or "?" for r in rows}):
+            sub = [r for r in rows if (r.get("signal_class") or "?") == sc]
+            by_class[sc] = {"all": fwd_metrics.stats(sub), "learning": fwd_metrics.stats([r for r in sub if r["partition"] == "LEARNING"]),
+                            "eligibility": fwd_metrics.eligibility(sub, baseline)}
+        return {
+            "version": fwd_metrics.METRICS_VERSION,
+            "statement": ("Forward evidence, after costs. No edge is VALIDATED: every trade here is EXPERIMENTAL "
+                          "unless it came from a promoted, validated edge. ELIGIBLE_FOR_REVIEW is the most forward "
+                          "data can say."),
+            "partition_rule": "every third ISO week is EVALUATION; lessons and model memory read LEARNING only",
+            "ledger": dict(self.orch.forward.stats),
+            "all": fwd_metrics.stats(rows), "learning": fwd_metrics.stats(learn), "evaluation": fwd_metrics.stats(ev),
+            "baseline_evaluation_mean_r": baseline,
+            "by_signal_class": by_class,
+            "by_route": fwd_metrics.breakdown(rows, lambda r: r.get("route")),
+            "by_edge_status": fwd_metrics.breakdown(rows, lambda r: r.get("edge_status")),
+            "by_symbol": fwd_metrics.breakdown(rows, lambda r: r["symbol"]),
+            "by_model": fwd_metrics.breakdown(rows, lambda r: r.get("model") or "none"),
+            "by_regime": fwd_metrics.breakdown(rows, lambda r: r.get("regime") or "?"),
+            "by_timeframe": fwd_metrics.breakdown(rows, lambda r: r.get("timeframe") or "?"),
+            "by_session": fwd_metrics.breakdown(rows, lambda r: r.get("session") or "?"),
+            "calibration_by_model": {m: fwd_metrics.calibration([r for r in rows if (r.get("model") or "none") == m])
+                                     for m in sorted({r.get("model") or "none" for r in rows})},
+            "daily": fwd_metrics.periods(rows, "%Y-%m-%d"), "weekly": fwd_metrics.periods(rows, "%G-W%V"),
+            "monthly": fwd_metrics.periods(rows, "%Y-%m"),
+            "recent": [{k: r.get(k) for k in ("decision_id", "symbol", "t", "side", "signal_class", "edge_status", "route",
+                                              "model", "confidence", "partition", "timeframe")}
+                       | {"outcome": (r["outcome"] or {}).get("reason") if r.get("outcome") else "PENDING",
+                          "net_r": (r.get("outcome") or {}).get("net_r"), "cost_r": (r.get("outcome") or {}).get("cost_r")}
+                       for r in rows[-30:][::-1]],
+        }
+
+    def lessons(self) -> dict:
+        latest = self.orch.lesson_book.latest()
+        return {"forward": sorted(latest.values(), key=lambda v: (v["status"] != "ACTIVE", v["code"], v["scope"])),
+                "counts": {s: sum(1 for v in latest.values() if v["status"] == s) for s in ("CANDIDATE", "ACTIVE", "REJECTED")},
+                "rule": ("CANDIDATE from LEARNING outcomes; ACTIVE only after confirmation on EVALUATION outcomes that "
+                         "resolved later; an ACTIVE lesson is information for the models, never a rule or a size"),
+                "experience": self.experience.summary() if hasattr(self.experience, "summary") else None}
+
+    def readiness(self) -> dict:
+        """Ready = may make decisions safely now. Paused is a valid state (ready, not trading)."""
+        reasons = []
+        try:
+            self.db.ping()
+        except Exception:
+            reasons.append("database unavailable")
+        if self.regime is None:
+            reasons.append(f"knowledge base {self.knowledge_meta.get('integrity', 'MISSING')}: no regime model")
+        rec = self.health.get("reconcile")
+        if rec is None:
+            reasons.append("startup reconciliation has not run")
+        elif rec.get("error"):
+            reasons.append(f"startup reconciliation: {rec['error']}")
+        ks = self.db.get_kv("kill_switch", None)
+        if not isinstance(ks, dict) or "active" not in ks:
+            reasons.append("kill switch unreadable (treated as active)")
+        try:
+            self.broker.account()
+        except Exception as exc:
+            reasons.append(f"broker account unreadable: {type(exc).__name__}")
+        return {"ready": not reasons, "reasons": reasons, "mode": self.cfg.mode, "live_trading": False,
+                "paused": bool(self.db.get_kv("paused", False)), "halted": bool(self.db.get_kv("halted", False)),
+                "kill_switch": ks}
+
+    def metrics_text(self) -> str:
+        """Prometheus text format. Counters and gauges only; no secret and no free text."""
+        st = self.status()
+        rows = self.orch.forward.rows(as_of=self.clock())
+        s = fwd_metrics.stats(rows)
+        lines = []
+
+        def g(name, value, help_, labels=""):
+            lines.append(f"# HELP aitrader_{name} {help_}")
+            lines.append(f"# TYPE aitrader_{name} gauge")
+            v = "NaN" if value is None else (1 if value is True else 0 if value is False else value)
+            lines.append(f"aitrader_{name}{labels} {v}")
+
+        g("up", 1, "the service is running")
+        g("ready", self.readiness()["ready"], "ready to make decisions safely")
+        g("paused", bool(st["paused"]), "trading paused")
+        g("halted", bool(st["halted"]), "halted by the risk engine")
+        g("kill_switch", (st["kill_switch"] or {}).get("active", True) if isinstance(st["kill_switch"], dict) else True,
+          "kill switch active (unreadable counts as active)")
+        g("live_trading", 0, "live trading: always 0, there is no live path")
+        for k, v in self.orch.counts.items():
+            g(f"decisions_{k}", v, f"orchestrator count: {k}")
+        g("forward_proposals", len(rows), "forward proposals recorded")
+        g("forward_resolved", s["n"], "forward outcomes resolved with an R")
+        g("forward_net_r_total", s.get("net_r_total"), "sum of net R over resolved forward outcomes")
+        g("forward_cost_r_total", s.get("cost_r_total"), "sum of cost R over resolved forward outcomes")
+        g("forward_expectancy_r", s.get("expectancy_r"), "mean net R per resolved forward outcome")
+        llm = self.llm.health()
+        g("llm_calls_today", llm.get("calls_today", 0), "language-model calls today")
+        g("llm_failed_total", llm.get("failed", 0), "language-model calls failed")
+        for name, p in (llm.get("by_provider") or {}).items():
+            lab = '{provider="%s"}' % "".join(ch for ch in name if ch.isalnum() or ch in "_-")
+            g("llm_provider_ok", p.get("ok", 0), "calls answered by provider", lab)
+            g("llm_provider_failed", p.get("failed", 0), "calls failed by provider", lab)
+            g("llm_provider_tokens", (p.get("prompt_tokens") or 0) + (p.get("completion_tokens") or 0),
+              "tokens used by provider", lab)
+            g("llm_provider_cost_usd", p.get("est_cost_usd"), "estimated cost (NaN = not priced)", lab)
+        return "\n".join(lines) + "\n"
 
     def account(self) -> dict:
         try:
@@ -734,7 +883,15 @@ class Runtime:
                         "required_edge": p.get("required_edge"), "regime": (p.get("regime") or {}).get("label"),
                         "family": p.get("family"), "entry": p.get("entry"), "stop": p.get("stop_loss"),
                         "target": p.get("take_profit"), "agents": p.get("agents"),
-                        "independent_evidence": p.get("independent_evidence")})
+                        "independent_evidence": p.get("independent_evidence"),
+                        "edge_status": p.get("edge_status") or ("NONE" if r["decision"] == "NO_TRADE" else "UNLABELLED"),
+                        "signal_class": p.get("signal_class"), "ai_verdict": p.get("ai_verdict"),
+                        "ai_model": (p.get("ai") or {}).get("model"), "ai_provider": (p.get("ai") or {}).get("provider"),
+                        "ai_latency_ms": (p.get("ai") or {}).get("latency_ms"),
+                        "confidence_stated": ((p.get("ai") or {}).get("view") or {}).get("confidence"),
+                        "reasons_against": ((p.get("ai") or {}).get("view") or {}).get("reasons_against"),
+                        "cost_r": (p.get("cost_estimate") or {}).get("total_r"),
+                        "timeframes": p.get("timeframes")})
         return out
 
     def decision_detail(self, did: str) -> dict | None:
