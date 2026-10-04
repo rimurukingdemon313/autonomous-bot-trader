@@ -1,0 +1,116 @@
+{
+ "code_sha256": "899011a34463eeaaf2fa7554362b4139fbfb4b0462a786eb1c1437e40a045a4c",
+ "sha256": "cb440fbd470e6747e22cb4bdb33624116e59ca5745495eee4ec85eaa4eaf9249",
+ "spec": {
+  "assets": {
+   "ASX": "equity",
+   "AUD": "currencies",
+   "BRENT": "commodities",
+   "CAC": "equity",
+   "CAD": "currencies",
+   "CHF": "currencies",
+   "DAX": "equity",
+   "EUR": "currencies",
+   "FTSE": "equity",
+   "GBP": "currencies",
+   "GOLD": "commodities",
+   "HSI": "equity",
+   "JPY": "currencies",
+   "NASDAQ": "equity",
+   "NATGAS": "commodities",
+   "NIKKEI": "equity",
+   "NZD": "currencies",
+   "SMI": "equity",
+   "SPX": "equity",
+   "TSX": "equity",
+   "US10Y": "bonds",
+   "US5Y": "bonds",
+   "WTI": "commodities"
+  },
+  "cfd_markup_reported": 0.025,
+  "costs": {
+   "borrow_pa": 0.0,
+   "financing_pa": 0.0,
+   "trade_bps": 2.0
+  },
+  "costs_x2": {
+   "borrow_pa": 0.0,
+   "financing_pa": 0.0,
+   "trade_bps": 4.0
+  },
+  "datahub": {
+   "BRENT": "https://raw.githubusercontent.com/datasets/oil-prices/main/data/brent-daily.csv",
+   "NATGAS": "https://raw.githubusercontent.com/datasets/natural-gas/main/data/daily.csv",
+   "WTI": "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
+  },
+  "excess_construction": {
+   "div_yield": 0.02,
+   "duration": {
+    "US10Y": 8.0,
+    "US5Y": 4.5
+   },
+   "funding": "USD BIS policy rate in force at the previous close",
+   "max_carry_days": 5
+  },
+  "fx": [
+   "AUD",
+   "CAD",
+   "CHF",
+   "GBP",
+   "JPY",
+   "NZD",
+   "EUR"
+  ],
+  "gates": {
+   "costs_x2": "mean net > 0 with trading costs doubled (4 bps per unit traded)",
+   "development": "mean net > 0 in 1990-1998",
+   "leave_one_class_out": "mean net > 0 leaving out any one asset class's contribution",
+   "t": "t of the mean monthly net return over 1990-2007 >= 3.0",
+   "top_year": "no single year supplies more than 50% of the total net",
+   "validation": "mean net > 0 in 1999-2007"
+  },
+  "holdout_rule": "2021-01 onward, opened once for the passers: mean net > 0 and mean net with costs x2 > 0",
+  "hypotheses": {
+   "DIV2-H1-TSMOM12": "tsmom12",
+   "DIV2-H2-BLEND": "blend"
+  },
+  "periods": {
+   "development": [
+    "1990-01-01",
+    "1999-01-01"
+   ],
+   "holdout_start": "2021-01-01",
+   "seen_replication_descriptive": [
+    "2008-01-01",
+    "2021-01-01"
+   ],
+   "validation": [
+    "1999-01-01",
+    "2008-01-01"
+   ]
+  },
+  "program": "DIV-2",
+  "registry_threshold_for_reference": 2.2414,
+  "t_required": 3.0,
+  "universe": "multi-asset-long",
+  "versions": {
+   "excess": "excess-1.0.0",
+   "trend": "trend-1.0.0"
+  },
+  "yahoo": {
+   "ASX": "^AXJO",
+   "CAC": "^FCHI",
+   "DAX": "^GDAXI",
+   "FTSE": "^FTSE",
+   "GOLD": "GC=F",
+   "HSI": "^HSI",
+   "NASDAQ": "^IXIC",
+   "NIKKEI": "^N225",
+   "SMI": "^SSMI",
+   "SPX": "^GSPC",
+   "TSX": "^GSPTSE",
+   "US10Y": "^TNX",
+   "US5Y": "^FVX"
+  }
+ }
+}

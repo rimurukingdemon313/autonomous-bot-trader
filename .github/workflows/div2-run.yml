@@ -1,0 +1,50 @@
+# One-time execution of the preregistered DIV-2 study (research/preregistrations/DIV-2.md) on GitHub's
+# runner. Runs `fetch` and `judge` exactly as frozen; never `holdout`; refuses if DIV-2 has a verdict.
+name: DIV-2 fetch + judge (once)
+on:
+  push:
+    branches: [div2-run]
+permissions:
+  contents: write
+jobs:
+  div2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to judge twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("DIV-2", "DIV-2-H"):
+                  sys.exit(f"DIV-2 already has a verdict ({r['status']})")
+          PY
+      - name: Fetch (retries on transient errors)
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          for i in 1 2 3 4; do
+            python scripts/div2.py fetch 2>&1 | tee -a div2-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a div2-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/div2/fetch_manifest.json
+      - name: Judge (1990-2007; 2021+ stays sealed)
+        run: |
+          set -o pipefail
+          python scripts/div2.py judge 2>&1 | tee div2-judge.log
+      - name: Commit the artifacts and logs
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in div2-fetch.log div2-judge.log; do [ -f "$f" ] && mv "$f" research/results/; done
+          git add -f research/results/div2-*.log data/div2/fetch_manifest.json research/knowledge/DIV-2.json research/registry.jsonl 2>/dev/null || true
+          git commit -m "DIV-2 judged on the GitHub runner (holdout sealed) [skip ci]" || true
+          git push origin HEAD:div2-run
