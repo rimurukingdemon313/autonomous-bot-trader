@@ -36,7 +36,7 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.5.0"  # 1.5.0: scheduled-flow programs (FLOW-1), expectancies in bps
+EDGES_VERSION = "edges-1.6.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*)
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -229,6 +229,32 @@ def from_flow(stages: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+def from_trend(stages: list[dict]) -> list[EdgeRecord]:
+    """Records of a portfolio trend program. Expectancies are MONTHLY NET PORTFOLIO RETURNS (a fraction
+    of capital), not R; t is the t of the mean monthly net return over the judged period."""
+    judged = stages[0]
+    status = {k: ("TESTING" if v == "HOLDOUT_ELIGIBLE" else v) for k, v in judged.get("classification", {}).items()}
+    hold = next((a for a in stages if a.get("holdout_of")), None)
+    for k, v in (hold or {}).get("classification", {}).items():
+        status[k] = v
+    assets = tuple(sorted((judged.get("data_manifest") or {}).get("assets", {})))
+    out = []
+    for hid, r in sorted(judged["results"].items()):
+        h = (hold or {}).get("results", {}).get(hid)
+        out.append(EdgeRecord(
+            edge_id=hid, program=judged["program"], direction="BOTH", instrument=assets, timeframe="MN",
+            market_regime=None, entry_conditions="time-series momentum sign, volatility-targeted",
+            exit_conditions="monthly rebalance", sample_size=r["net"]["n"],
+            gross_expectancy=_r(r["gross"].get("mean_monthly")), net_expectancy=_r(r["net"].get("mean_monthly")),
+            t_stat=_r(r["net"].get("t"), 3), t_required=3.0, profit_factor=None, drawdown=_r(r["net"].get("max_drawdown")),
+            out_of_sample_expectancy=_r(h["net"]["mean_monthly"]) if h else _r(r["validation"].get("mean_monthly")),
+            walk_forward_expectancy=None, cost_sensitivity=_r(r["costs_x2"].get("mean_monthly")), complexity=1,
+            stability={"by_year": r.get("by_year")}, status=status[hid],
+            failed_checks=tuple(r.get("failed_gates", ())), source=f"research/knowledge/{judged['program']}.json",
+            note="portfolio trend: expectancies are monthly net portfolio returns, not R"))
+    return out
+
+
 def build(root: Path | str) -> dict:
     """The registry from what is committed under research/. Deterministic: sorted by edge id."""
     root = Path(root)
@@ -297,16 +323,16 @@ def build(root: Path | str) -> dict:
             art = json.loads(p.read_text())
         except ValueError:
             continue
-        if isinstance(art, dict) and art.get("kind") == "flow":
+        if isinstance(art, dict) and art.get("kind") in ("flow", "trend"):
             flows.setdefault(art.get("holdout_of") or art["program"], []).append(art)
     for pid, arts in sorted(flows.items()):
         arts.sort(key=lambda a: bool(a.get("holdout_of")))
         if arts[0].get("holdout_of"):
             continue
-        edges += from_flow(arts)
+        edges += from_flow(arts) if arts[0]["kind"] == "flow" else from_trend(arts)
         programs[pid] = {"verdict": arts[-1].get("verdict"), "judged": len(arts[0]["results"]),
                          "validated": [k for k, v in arts[-1].get("classification", {}).items() if v == "VALIDATED"],
-                         "threshold_t": arts[0].get("threshold")}
+                         "threshold_t": arts[0].get("threshold") or (3.0 if arts[0]["kind"] == "trend" else None)}
     spec_p = root / "specs" / "R3.json"
     if spec_p.exists() and not (root / "knowledge" / "R3.json").exists():
         spec = json.loads(spec_p.read_text())["spec"]
