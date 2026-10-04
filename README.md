@@ -16,6 +16,12 @@ is measured, never assumed.**
 > trade is EXPERIMENTAL), and every proposal, executed or shadow, is followed to its outcome after
 > costs, with learning and evaluation data kept apart (docs/FORWARD_VALIDATION.md).
 > `LIVE_TRADING=true` is refused too.
+>
+> **Edge mission (docs/EDGE_MISSION_REPORT.md):** 58 hypotheses rejected, 0 validated. With free trading the best gross t
+> anywhere is 2.27 against a required ~3.4: the FX data here has no provable directional information. The risk engine
+> now caps the whole round-trip cost at 25% of the stop. The best-supported candidate, diversified multi-asset trend
+> following (DIV-1), is preregistered and runs with `python scripts/div1.py fetch && python scripts/div1.py judge`
+> wherever market data is reachable.
 
 ---
 
@@ -83,7 +89,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 | Forward lessons are created from LEARNING weeks and confirmed only on later EVALUATION weeks; the model never reads evaluation-week trades | `learning/`, `memory/trade_memory.py` | `test_forward.py`, `test_forward_service.py` |
 
 Every row was checked by **removing the guard and watching a test fail**:
-135 of 135 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
+142 of 142 mutants were killed ([docs/MUTATION_AUDIT.md](docs/MUTATION_AUDIT.md)).
 
 ## Evidence
 

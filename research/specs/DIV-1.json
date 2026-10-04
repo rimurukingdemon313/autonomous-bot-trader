@@ -1,0 +1,75 @@
+{
+ "code_sha256": "154bf791575b29940f0aed0e6112db3ec89fe897e02085a95d38569aa45ded44",
+ "sha256": "fa14c08919c8c514546aabe999f659bbfe0ed6cf2b393636bfe309dd1ae19254",
+ "spec": {
+  "assets": {
+   "DBA": "commodities",
+   "DBC": "commodities",
+   "EEM": "equity",
+   "EFA": "equity",
+   "EWJ": "equity",
+   "FXE": "currencies",
+   "FXY": "currencies",
+   "GLD": "commodities",
+   "IEF": "bonds",
+   "IWM": "equity",
+   "LQD": "bonds",
+   "QQQ": "equity",
+   "SLV": "commodities",
+   "SPY": "equity",
+   "TIP": "bonds",
+   "TLT": "bonds",
+   "USO": "commodities",
+   "UUP": "currencies",
+   "VNQ": "real_estate"
+  },
+  "costs": {
+   "borrow_pa": 0.005,
+   "financing_pa": 0.03,
+   "trade_bps": 5.0
+  },
+  "costs_x2": {
+   "borrow_pa": 0.01,
+   "financing_pa": 0.06,
+   "trade_bps": 10.0
+  },
+  "gates": {
+   "costs_x2": "mean net > 0 with trading, financing and borrow costs doubled",
+   "development": "mean net > 0 in 2008-2014",
+   "leave_one_class_out": "mean net > 0 leaving out any one asset class's contribution",
+   "t": "t of the mean monthly net return over 2008-2020 >= 3.0 (fixed; stricter than the registry's ~2.24 for 2 tests on a fresh universe, for the project's earlier search)",
+   "top_year": "no single year supplies more than 50% of the total net",
+   "validation": "mean net > 0 in 2015-2020"
+  },
+  "holdout_rule": "2021-01 onward, opened once for the passers: mean net > 0 and mean net with costs x2 > 0. About 68 months: a sign check, not a significance test (stated in advance)",
+  "hypotheses": {
+   "DIV1-H1-TSMOM12": "tsmom12",
+   "DIV1-H2-BLEND": "blend"
+  },
+  "periods": {
+   "development": [
+    "2008-01-01",
+    "2015-01-01"
+   ],
+   "holdout_start": "2021-01-01",
+   "validation": [
+    "2015-01-01",
+    "2021-01-01"
+   ]
+  },
+  "program": "DIV-1",
+  "registry_threshold_for_reference": 2.2414,
+  "rules": {
+   "com_days": 60,
+   "lookbacks": [
+    1,
+    3,
+    12
+   ],
+   "vol_target": 0.4
+  },
+  "t_required": 3.0,
+  "universe": "multi-asset-etf",
+  "version": "trend-1.0.0"
+ }
+}

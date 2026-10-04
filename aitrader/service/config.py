@@ -109,6 +109,8 @@ class ServiceConfig:
             daily_loss_limit_pct=_f(e, "RISK_DAILY_LOSS_PCT", 2.0),
             max_drawdown_pct=_f(e, "RISK_MAX_DRAWDOWN_PCT", 8.0),
             max_open_positions=int(_f(e, "RISK_MAX_OPEN_POSITIONS", 3)),
+            # A ceiling may be lowered (stricter), never raised above the evidence-based 25%.
+            max_cost_to_risk=min(_f(e, "RISK_MAX_COST_TO_RISK", 0.25), 0.25),
             # A public feed timestamps its price itself and may lag a broker's by up to a minute.
             max_quote_age_s=int(_f(e, "RISK_MAX_QUOTE_AGE_S",
                                    90 if e.get("DATA_SOURCE", "").strip().lower() == "yahoo" else 30)),

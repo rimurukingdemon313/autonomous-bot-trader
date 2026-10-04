@@ -20,7 +20,12 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from math import floor
 
-RISK_VERSION = "risk-1.0.0"
+#: 1.1.0: the cost ceiling counts the WHOLE round trip (spread + commission + slippage on both fills)
+#: against the stop, not the spread alone: a 5-pip stop paid ~0.9 pip of commission and slippage
+#: that the old check never saw. Evidence: every gross edge measured in this project is below 0.31R
+#: and H1 gross edges are within +/-0.03R, so a trade whose costs exceed a quarter of its risk
+#: cannot be profitable on anything this system has found (docs/FINAL_ENGINEERING_AUDIT.md).
+RISK_VERSION = "risk-1.1.0"
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -48,6 +53,10 @@ class RiskLimits:
     max_positions_per_currency: int = 2
     max_leverage: float = 10.0
     max_spread_to_stop: float = 0.25
+    #: round-trip cost (spread + commission + 2 x slippage) as a share of the stop distance
+    max_cost_to_risk: float = 0.25
+    commission_pips_rt: float = 0.7
+    slippage_pips: float = 0.1
     min_reward_risk: float = 1.2
     min_stop_spreads: float = 3.0
     max_quote_age_s: int = 30
@@ -125,6 +134,10 @@ class RiskVerdict:
         d = asdict(self)
         d["reasons"] = self.reasons
         return d
+
+
+def pip_size(symbol: str) -> float:
+    return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
 
 
 def streak_multiplier(closed_r: list[float], step: int, floor_: float) -> float:
@@ -269,6 +282,10 @@ class RiskEngine:
                     f"stop {stop_dist:.6g} vs {L.min_stop_spreads} x spread {spread:.6g}")
         ok &= check("spread", spread / stop_dist <= L.max_spread_to_stop,
                     f"spread is {spread / stop_dist:.1%} of the stop (max {L.max_spread_to_stop:.0%})")
+        cost = spread + (L.commission_pips_rt + 2 * L.slippage_pips) * pip_size(decision.instrument)
+        ok &= check("cost_to_risk", cost / stop_dist <= L.max_cost_to_risk,
+                    f"round-trip cost is {cost / stop_dist:.1%} of the stop (max {L.max_cost_to_risk:.0%}): "
+                    f"spread {spread:.6g} + commission and slippage")
 
         # ── account limits ──────────────────────────────────────────────
         ok &= add(self._c_daily(account))

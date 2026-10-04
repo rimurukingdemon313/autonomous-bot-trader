@@ -214,3 +214,20 @@ This system can now collect, separate and judge forward evidence without fooling
 not found an edge. It does not guarantee any profit and none should be expected from it until the
 evidence above exists. If no edge exists in the information available to it, the correct output
 of this system is a growing, honest record that says so.
+
+## Addendum: edge mission (after 693ea9b)
+
+See docs/EDGE_MISSION_REPORT.md for the full report. Two engineering findings belong here.
+
+- **Data defect.** The Dukascopy tick mirror this repository ingests (FX-Data on GitHub) has no
+  `00h` hourly files: 00:00–01:00 UTC is missing every day for 12 of 13 instruments. EURUSD is
+  complete. The gap was confirmed at the source by listing a branch's files.
+  - H1/H4/D1 bars are still built, but without that hour. A stop or target touched only inside it
+    is seen one bar late.
+  - It is 4.2% of hours and cannot explain the absence of an edge.
+  - It is the Tokyo fix hour, which shaped FLOW-1's design.
+  - Re-ingesting from Dukascopy directly would close it; that host is blocked from the research
+    container.
+- **Cost under-count in the risk engine.** Fixed in risk-1.1.0: the full round trip (spread,
+  commission and slippage on both fills) must now be ≤ 25% of the stop distance; before, only the
+  spread counted. `RISK_MAX_COST_TO_RISK` can only lower it.

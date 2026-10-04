@@ -117,7 +117,8 @@ def test_configured_risk_cannot_exceed_the_hard_ceiling():
 
 def test_leverage_limit():
     e = RiskEngine(RiskLimits(max_leverage=1.0))
-    v = e.evaluate(decision(stop=1.09995 - 0.0003, target=1.1010), account(), SPEC, Q, NOW)
+    # an 8-pip stop from the ask: within the cost ceiling (24%), and a size that needs ~7x leverage
+    v = e.evaluate(decision(stop=1.1001 - 0.0008, target=1.1030), account(), SPEC, Q, NOW)
     assert not v.approved and any(r.startswith("leverage") for r in v.reasons)
 
 
@@ -185,3 +186,20 @@ def test_the_account_gates_are_the_same_checks_evaluate_applies(state):
             assert by_name[name] == c  # identical verdict and detail
     failed = [c for c in gates.values() if not c.passed]
     assert bool(failed) == (not v.approved)  # this proposal is otherwise clean
+
+
+def test_the_whole_round_trip_cost_counts_against_the_stop_not_the_spread_alone():
+    """risk-1.1.0: a 4-pip stop with a 1-pip spread passes the spread check (25%) but pays
+    1.0 + 0.7 + 0.2 = 1.9 pips round trip, 47.5% of the risk: refused, never sized."""
+    tight = decision(stop=1.0997, target=1.1011)  # 4 pips below the ask
+    v = RiskEngine().evaluate(tight, account(), SPEC, Q, NOW)
+    by = {c.name: c for c in v.checks}
+    assert by["spread"].passed and not by["cost_to_risk"].passed and not v.approved
+    ok = RiskEngine().evaluate(decision(), account(), SPEC, Q, NOW)  # a 21-pip stop: ~4.8%
+    assert {c.name: c for c in ok.checks}["cost_to_risk"].passed and ok.approved
+
+
+def test_the_cost_ceiling_can_only_be_tightened_by_configuration():
+    from aitrader.service.config import ServiceConfig
+    assert ServiceConfig.from_env({"RISK_MAX_COST_TO_RISK": "0.9"}).risk.max_cost_to_risk == 0.25
+    assert ServiceConfig.from_env({"RISK_MAX_COST_TO_RISK": "0.1"}).risk.max_cost_to_risk == 0.1

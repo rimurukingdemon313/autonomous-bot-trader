@@ -128,3 +128,19 @@ def test_the_flow_study_never_reaches_risk_execution_or_the_broker():
         src = p.read_text()
         for forbidden in ("aitrader.risk", "aitrader.broker", "aitrader.execution", "tradelocker"):
             assert forbidden not in src
+
+
+def test_the_preregistered_designs_are_frozen():
+    """FLOW-1 and DIV-1 were registered with a spec hash and a code hash: editing either study after
+    registration would make every later result a claim about code that was never preregistered."""
+    import json
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(root / "scripts"))
+    import div1
+    import flow1
+    for mod in (flow1, div1):
+        frozen = json.loads(mod.SPEC.read_text())
+        assert mod.spec_sha(frozen["spec"]) == frozen["sha256"], mod.PID
+        assert mod.code_hash() == frozen["code_sha256"], f"{mod.PID}: study code changed after registration"
