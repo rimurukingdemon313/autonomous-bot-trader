@@ -1,0 +1,41 @@
+# TOM-D diagnostics (research/preregistrations/TOM-D.md): fetch universes A and B, run the frozen plan once.
+name: TOM-D diagnostics
+on:
+  push:
+    branches: [tom-diag]
+permissions:
+  contents: write
+jobs:
+  tomd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to run twice
+        run: test ! -f research/results/TOM-D.json
+      - name: Fetch universes A and B (retries on transient errors)
+        timeout-minutes: 20
+        run: |
+          set -o pipefail
+          for i in 1 2 3 4; do
+            python scripts/tom_diag.py fetch 2>&1 | tee -a tomd-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a tomd-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/rc/fetch_manifest_B2.json
+      - name: Run the frozen diagnostic plan
+        run: |
+          set -o pipefail
+          python scripts/tom_diag.py run 2>&1 | tee tomd-run.log
+      - name: Commit the results
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          for f in tomd-fetch.log tomd-run.log; do [ -f "$f" ] && mv "$f" research/results/; done
+          git add -f research/results/tomd-*.log research/results/TOM-D.json research/results/TOM-D-trades-A.csv research/results/TOM-D-trades-B.csv data/rc/fetch_manifest_A3.json data/rc/fetch_manifest_B2.json 2>/dev/null || true
+          git commit -m "TOM-D diagnostics run on the GitHub runner [skip ci]" || true
+          git push origin HEAD:tom-diag
