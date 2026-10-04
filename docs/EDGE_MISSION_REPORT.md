@@ -4,6 +4,15 @@ The mission: find out why the system is not profitable, and find a real, defensi
 the data available to this repository, or prove with numbers that the data cannot support
 one. No historical result was edited. The FX holdout (2017+) is still sealed.
 
+## 00. Update: the retail-CFD program (supersedes §0 where they differ)
+
+`docs/RETAIL_RESEARCH_REPORT.md`: RC-EQ, RC-FX and RC-EQ2, ten preregistered families judged after
+full retail costs.
+
+- **Final decision: PROMISING BUT NOT YET PROVEN.** The turn-of-the-month rule on index CFDs is
+  the only candidate to survive an independent replication on 16 never-loaded indices.
+- **No validated, retail-compatible edge exists**, and none is promoted.
+
 ## 0. Update: DIV-1 and DIV-2 executed on GitHub runners (supersedes §1, §4, §7 and §10 where they differ)
 
 The research container cannot reach market data, so both trend studies ran on GitHub Actions

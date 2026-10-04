@@ -24,6 +24,13 @@ is measured, never assumed.**
 > excess returns) PASSED 1990–2007 at t 4.3, but earned a Sharpe of about 0.1 since 2008, holdout included
 > (2021+, t 0.26), and **loses money at retail CFD financing**. Nothing is promoted
 > (research/results/DIV-2-summary.md).
+>
+> **Retail-CFD program (docs/RETAIL_RESEARCH_REPORT.md): PROMISING BUT NOT YET PROVEN.** Ten families
+> were preregistered and judged after spread, slippage, overnight markup and dividends. Only the
+> turn-of-the-month rule on index CFDs survived, replicated on 16 never-loaded indices. That is
+> +1.9–2.6% a year at 1×, Sharpe ≈ 0.36–0.40, t 2.2 on each universe, and not significant since
+> 2009. Every other premium found (t 2.3–3.7 before the broker) is consumed by the retail markup
+> and spread. Nothing is promoted to live trading; the fx-majors 2017+ holdout is still sealed.
 
 ---
 

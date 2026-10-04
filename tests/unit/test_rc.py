@@ -372,3 +372,21 @@ def test_the_rc_eq2_design_is_frozen_once_registered():
     frozen = json.loads(spec.read_text())
     assert frozen["code_sha256"] == rc_eq2.code_hash(), "RC-EQ2 (or RC-EQ) code changed after its spec was frozen"
     assert frozen["sha256"] == rc_eq2.spec_sha(frozen["spec"])
+
+
+def test_a_retail_replication_decides_the_record_and_never_makes_a_promising_edge_validated():
+    from aitrader.research.discovery.edges import from_retail
+    st = {"n": 372, "mean_monthly": 0.002, "t": 2.2, "max_drawdown": 0.2, "profit_factor": 1.3}
+    res = lambda: {"net": st, "before_broker": st, "costs_x2": st, "failed_gates": ["t"], "per_instrument": {"X": {}},  # noqa: E731
+                   "sub": {"validation": st}}
+    judged = {"program": "RC-T", "t_required": 3.0, "results": {"P-TOM": res(), "Q-ENS": res(), "R-DIP": res()},
+              "classification": {"P-TOM": "PROMISING", "Q-ENS": "PROMISING", "R-DIP": "REJECTED"}}
+    rep = {"program": "RC-T2-H", "holdout_of": "RC-T2",
+           "results": {"P-TOM": {"net": {"n": 441, "mean_monthly": 0.0015, "t": 2.18}, "failed_gates": []},
+                       "Q-ENS": {"net": {"n": 441, "mean_monthly": 0.0009, "t": 1.4}, "failed_gates": ["t", "costs_x2"]}},
+           "classification": {"P-TOM": "PROMISING_REPLICATED", "Q-ENS": "REJECTED"}}
+    got = {e.edge_id: e for e in from_retail(judged, [rep])}
+    assert got["P-TOM"].status == "PROMISING" and got["P-TOM"].out_of_sample_expectancy == 0.0015
+    assert got["Q-ENS"].status == "REJECTED" and got["Q-ENS"].failed_checks == ("t", "holdout:t", "holdout:costs_x2")
+    assert got["R-DIP"].status == "REJECTED" and got["P-TOM"].direction == "BUY"
+    assert "PROMISING_REPLICATED" in got["P-TOM"].note

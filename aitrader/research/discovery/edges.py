@@ -36,8 +36,9 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.6.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
-#                                1.6.1: a trend holdout failure is named, and the holdout t is in the note
+EDGES_VERSION = "edges-1.7.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+#                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
+#                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -258,6 +259,44 @@ def from_trend(stages: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+_RETAIL_LONG_ONLY = ("TOM", "DIP", "REGIME", "VOLMAN", "BREAKOUT", "HALLOWEEN")
+_RETAIL_STATUS = {"HOLDOUT_ELIGIBLE": "TESTING", "PROMISING": "PROMISING", "REJECTED": "REJECTED",
+                  "VALIDATED": "VALIDATED", "PROMISING_REPLICATED": "PROMISING"}
+
+
+def from_retail(judged: dict, holdouts: list[dict]) -> list[EdgeRecord]:
+    """Records of a retail-CFD program (RC-*). Expectancies are MONTHLY NET RETURNS of the account (a
+    fraction of equity) after spread, slippage, financing and dividends; gross is before the broker
+    (no spread, slippage or markup; the benchmark rate still charged). A later holdout or replication
+    of a hypothesis, on another universe, decides its final status."""
+    out = []
+    for hid, r in sorted(judged["results"].items()):
+        status = _RETAIL_STATUS[judged["classification"][hid]]
+        h = next((a["results"][hid] for a in holdouts if hid in a.get("results", {})), None)
+        hv = next((a["classification"][hid] for a in holdouts if hid in a.get("classification", {})), None)
+        failed = tuple(r.get("failed_gates", ()))
+        note = "retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R"
+        if hv is not None:
+            status = _RETAIL_STATUS[hv]
+            failed += tuple(f"holdout:{g}" for g in h.get("failed_gates", ()))
+            note += f"; replication/holdout {hv}: {h['net']['n']} months, net t {h['net'].get('t')}"
+        sub = r.get("sub", {})
+        out.append(EdgeRecord(
+            edge_id=hid, program=judged["program"],
+            direction="BUY" if any(k in hid for k in _RETAIL_LONG_ONLY) else "BOTH",
+            instrument=tuple(sorted(r.get("per_instrument") or r.get("per_currency") or {})), timeframe="D1",
+            market_regime=None, entry_conditions=f"see research/preregistrations/{judged['program']}.md",
+            exit_conditions="rule exit (calendar, signal or monthly rebalance)", sample_size=r["net"].get("n"),
+            gross_expectancy=_r(r["before_broker"].get("mean_monthly")), net_expectancy=_r(r["net"].get("mean_monthly")),
+            t_stat=_r(r["net"].get("t"), 3), t_required=judged.get("t_required"), profit_factor=r["net"].get("profit_factor"),
+            drawdown=_r(r["net"].get("max_drawdown")),
+            out_of_sample_expectancy=_r(h["net"]["mean_monthly"]) if h else _r(sub.get("validation", {}).get("mean_monthly")),
+            walk_forward_expectancy=None, cost_sensitivity=_r(r["costs_x2"].get("mean_monthly")), complexity=1,
+            stability={"by_year": r.get("by_year")}, status=status, failed_checks=failed,
+            source=f"research/knowledge/{judged['program']}.json", note=note))
+    return out
+
+
 def build(root: Path | str) -> dict:
     """The registry from what is committed under research/. Deterministic: sorted by edge id."""
     root = Path(root)
@@ -336,6 +375,21 @@ def build(root: Path | str) -> dict:
         programs[pid] = {"verdict": arts[-1].get("verdict"), "judged": len(arts[0]["results"]),
                          "validated": [k for k, v in arts[-1].get("classification", {}).items() if v == "VALIDATED"],
                          "threshold_t": arts[0].get("threshold") or (3.0 if arts[0]["kind"] == "trend" else None)}
+    retail: list[dict] = []
+    for p in sorted((root / "knowledge").glob("*.json")):
+        try:
+            art = json.loads(p.read_text())
+        except ValueError:
+            continue
+        if isinstance(art, dict) and art.get("kind") == "retail":
+            retail.append(art)
+    holds = [a for a in retail if a.get("holdout_of")]
+    for art in (a for a in retail if not a.get("holdout_of")):
+        edges += from_retail(art, holds)
+        mine = [a for a in holds if a["holdout_of"] == art["program"]]
+        programs[art["program"]] = {"verdict": art.get("verdict"), "judged": len(art["results"]),
+                                    "validated": [], "threshold_t": art.get("t_required"),
+                                    **({"holdout": {a["program"]: a.get("classification") for a in mine}} if mine else {})}
     spec_p = root / "specs" / "R3.json"
     if spec_p.exists() and not (root / "knowledge" / "R3.json").exists():
         spec = json.loads(spec_p.read_text())["spec"]

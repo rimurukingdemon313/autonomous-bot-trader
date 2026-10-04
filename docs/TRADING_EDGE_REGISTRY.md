@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 61 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 69 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -38,6 +38,9 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R2D | FAILED | — | 2 | 0 | 3.312 |
 | R3 | FAILED | — | 8 | 0 | 3.351 |
 | R4 | FAILED | — | 5 | 0 | 3.372 |
+| RC-EQ | FAILED | — | 7 | 0 | 3.000 |
+| RC-EQ2 | FAILED | — | 1 | 0 | 3.000 |
+| RC-FX | FAILED | — | 2 | 0 | 3.455 |
 | RV-1 | FAILED | — | 6 | 0 | 2.807 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
@@ -103,6 +106,26 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | R4-XA-GOLD-B | SELL | D1 | `gold_pull=low&own5=high` | D3 | 84 | -0.163 | -1.98 (3.37) | -0.193 | — | 2 | **REJECTED** | min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R4-XA-VIX-A | SELL | D1 | `vix_jump=high&own5=high` | D3 | 361 | -0.056 | -1.34 (3.37) | -0.083 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, leave_one_out, regimes, outliers |
 | ↳ correction | | | judged by confirm-1.0.0 on all 11 of the program's instruments (361 trades) instead of its 5 registered safe-haven pairs; fixed in confirm-1.1.0 (tests/unit/test_discovery_confirm.py::test_each_hypothesis_is_judged_on_its_own_registered_instruments_only) -> on the registered population: {"verdict": "REJECTED", "n": 156, "net_R": -0.1336, "t": -2.067, "note": "descriptive re-run of the same battery after the fix; not a registry verdict"} | | | | | | | | | |
+| RCEQ-E1-TOM | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +2.24 (3.00) | +0.001 | — | 1 | **PROMISING** | t |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout PROMISING_REPLICATED: 441 months, net t 2.175 | | | | | | | | | |
+| RCEQ-E2-DIP | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +1.44 (3.00) | +0.001 | — | 1 | **REJECTED** | t, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCEQ-E3-XSMOM | BOTH | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | -0.001 | -1.03 (3.00) | -0.003 | — | 1 | **REJECTED** | t, development, validation, modern, costs_x2, delay, leave_one_out, drawdown, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCEQ-E4-REGIME | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +1.66 (3.00) | +0.001 | — | 1 | **REJECTED** | t, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCEQ-E5-VOLMAN | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.001 | +0.72 (3.00) | -0.001 | — | 1 | **REJECTED** | t, costs_x2, drawdown, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCEQ-E6-BREAKOUT | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.001 | +1.29 (3.00) | +0.000 | — | 1 | **REJECTED** | t, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCEQ-E7-ENSEMBLE | BOTH | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +2.02 (3.00) | +0.001 | — | 1 | **REJECTED** | t, holdout:t, holdout:costs_x2 |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout REJECTED: 441 months, net t 1.438 | | | | | | | | | |
+| RCEQ2-E8-HALLOWEEN | BUY | D1 | `see research/preregistrations/RC-EQ2.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.003 | +2.27 (3.00) | +0.002 | — | 1 | **PROMISING** | t, drawdown, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCFX-X1-COMPOSITE | BOTH | D1 | `see research/preregistrations/RC-FX.md` | rule exit (calendar, signal or monthly rebalance) | 324 | +0.001 | +1.72 (3.46) | +0.000 | — | 1 | **REJECTED** | t, region |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
+| RCFX-X2-COT-FILTER | BOTH | D1 | `see research/preregistrations/RC-FX.md` | rule exit (calendar, signal or monthly rebalance) | 117 | -0.001 | -0.91 (3.46) | -0.002 | — | 1 | **REJECTED** | t, development, validation, modern, costs_x2, delay, leave_one_out, top_year, region, value_added |
+| ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
 | RV1-H1-CARRY | BOTH | W1 | `cross-sectional rank: RV1-H1-CARRY` | weekly rebalance of a currency-neutral book | 376 | -0.000 | +3.10 (2.81) | -0.000 | — | 1 | **REJECTED** | — |
 | ↳ correction | | | cross-sectional book: t is the Stage-1 information-coefficient t; expectancies are weekly returns of notional, not R | | | | | | | | | |
 | RV1-H2-MOMENTUM | BOTH | W1 | `cross-sectional rank: RV1-H2-MOMENTUM` | weekly rebalance of a currency-neutral book | 375 | — | +1.18 (2.81) | — | — | 1 | **REJECTED** | t |
