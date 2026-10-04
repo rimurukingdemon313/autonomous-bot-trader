@@ -189,7 +189,8 @@ class RateStore:
         self.manifest = json.loads(mf.read_text()) if mf.exists() else {}
         self.holdout = holdout
 
-    def load(self) -> dict[tuple[str, str], RateSeries]:
+    def load(self, key=None) -> dict[tuple[str, str], RateSeries]:
+        """`key`: the data store's HoldoutKey, for a pre-registered final test only."""
         out: dict[tuple[str, str], RateSeries] = {}
         for fname, meta in sorted(self.manifest.items()):
             raw = (self.root / fname).read_bytes()
@@ -202,7 +203,7 @@ class RateStore:
                 parsed = PARSERS[fmt](raw)
                 got = parsed if isinstance(parsed, dict) else {parsed.currency: parsed}
             for c, s in got.items():
-                if self.holdout is not None:
+                if self.holdout is not None and key is None:
                     h = self.holdout.start
                     s = s.truncated(int(datetime(h.year, h.month, h.day, tzinfo=timezone.utc).timestamp()) - 1)
                 out[(c, s.rate_type)] = s

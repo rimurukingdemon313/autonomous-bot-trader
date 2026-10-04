@@ -1,0 +1,156 @@
+{
+ "code_sha256": "a1661c2f1163d07a0680ff4e61da23d11e17947b1558c42b58ff6c3b4e6c8367",
+ "pit_check": {
+  "decisions_checked": 40,
+  "differences": 0
+ },
+ "sha256": "3bcf1b1bb496613d8502f61a448cf5a6ad315e353f3e55fb7f63caafe0210517",
+ "spec": {
+  "aud": "the repository's Dukascopy AUDUSD is defective in 2008-01..09 and 2009-04..09 (H.10 audit); RV-1 never reads it: Stage 1 uses H.10, Stage 2 and the holdout use AUDJPY/USDJPY",
+  "book": "weights = centred cross-sectional ranks scaled to sum 0 with gross 2 (one unit long, one short), over the currencies with a score; fewer than 6: no position",
+  "classification": {
+   "PROMISING": "Stage 1 gate and Stage 2 net t >= 2 with R1..R8, short of validation",
+   "REJECTED": "anything else",
+   "VALIDATED": "Stage 1 gate, Stage 2 at its threshold with R1..R8, and the holdout"
+  },
+  "data": {
+   "execution": "Dukascopy M15 bid/ask (data/manifest.json); AUDUSD synthesised from AUDJPY/USDJPY",
+   "h10": {
+    "files": {
+     "daily_2017-12-08_4eb22d3.csv": "7d421ce778bf364f9e10154215147a9dd0bdcf1c2ebcad4427f5f1d69d9514c9",
+     "daily_2018-10-17_8a6dec2.csv": "0791b898faf23541d0dea5038bd5634f7df42f52e0dd776a1be26672bfa9fb77",
+     "daily_2026-09-29_0947c23.csv": "944c4937703177bdc5e82ced55b6e50ffcd1f89fef4bbca29785ac7cce8bd6c4"
+    },
+    "primary_vintage": "2018-10-17"
+   },
+   "policy_rates": "BIS WS_CBPOL via aitrader/data/rates.py (point in time, staleness rule)"
+  },
+  "holdout": {
+   "pass": "net mean > 0 with t >= 1.645, and net mean > 0 with costs x2",
+   "period": [
+    "2017-01-01",
+    "2018-01-01"
+   ],
+   "policy": "RESEARCH_PROTOCOL.md section 2: one candidate that passed everything else, once"
+  },
+  "hypotheses": {
+   "RV1-H1-CARRY": {
+    "kind": "signal",
+    "price_based": false,
+    "signal": "carry",
+    "text": "Currencies with higher policy rates outperform lower-rate ones over the next week (cross-sectional carry)."
+   },
+   "RV1-H2-MOMENTUM": {
+    "kind": "signal",
+    "price_based": true,
+    "signal": "momentum",
+    "text": "Currencies with higher 3- and 12-month relative returns (skipping the last week) outperform over the next week (relative momentum)."
+   },
+   "RV1-H3-REVERSAL": {
+    "kind": "signal",
+    "price_based": true,
+    "signal": "reversal",
+    "text": "Last week's relative losers outperform last week's winners over the next week."
+   },
+   "RV1-H4-VALUE": {
+    "kind": "signal",
+    "price_based": true,
+    "signal": "value",
+    "text": "Currencies that fell most against the others over five years outperform over the next week (five-year reversal as a value proxy)."
+   },
+   "RV1-H5-CARRY-VOL": {
+    "kind": "regime",
+    "price_based": false,
+    "signal": "carry",
+    "text": "Carry's information differs between low and high global FX volatility."
+   },
+   "RV1-H6-MOMENTUM-VOL": {
+    "kind": "regime",
+    "price_based": true,
+    "signal": "momentum",
+    "text": "Momentum's information differs between low and high global FX volatility."
+   }
+  },
+  "id": "RV-1",
+  "no_sizing": "weights are fractions of a notional; sizing, limits and execution remain the Risk Engine's",
+  "question": "Does a cross-sectional ranking of eight currencies (carry, relative momentum, one-week reversal, five-year reversal, and carry/momentum by global FX volatility) predict the next week's RELATIVE returns -- and, if so, does a currency-neutral book survive realistic costs, robustness and the sealed holdout?",
+  "regime": "global FX volatility = mean |daily log change| of the seven currencies against USD over the last 20 changes usable at the decision; HIGH if above the median of the previous (up to 156, at least 52) weekly values, else LOW",
+  "signals": {
+   "carry": "policy rate (percent); a currency without one is excluded that week, never filled",
+   "momentum": "mean of the cross-sectional ranks of the log change over 91 and 364 days ending at the last fixing >= 7 days before the last usable fixing (skip one week)",
+   "reversal": "minus the log change over the last 7 days to the last usable fixing",
+   "value": "minus the log change over the last 1820 days (five years) to the last usable fixing"
+  },
+  "stage1": {
+   "candidate": "signal hypothesis: its signal in the direction of its mean IC; regime hypothesis: its signal traded only in the regime with the higher mean IC (in that IC's direction), no position in the other",
+   "gate_regime": "|t| >= 2.807, >= 50 weeks in each regime, the LOW-minus-HIGH difference has the same sign in both halves",
+   "gate_signal": "|t| >= 2.807, >= 100 weeks, the mean IC has the same sign in both halves of the period, leaving out any one currency never flips the sign, and the currency-neutral book's gross mean has the same sign",
+   "multiple_testing": "Bonferroni at 5% two-sided over the registry's 4 earlier tests on 2000-01..2007-03 plus these 6",
+   "period": [
+    "2000-01-01",
+    "2007-03-30"
+   ],
+   "reported": "weeks, mean/sd IC, t, IC by year and half, leave-one-currency-out, without the most favourable week, 1%-trimmed mean, book gross mean/t/Sharpe, contribution by currency, book without its 5 best weeks",
+   "sampling": "weekly, Fridays",
+   "statistic": "weekly Spearman IC between the score (literature sign: + = expected to outperform) and the next week's relative returns, >= 6 currencies; t = mean IC / (sd / sqrt(weeks)); H5/H6: Welch t of mean IC in LOW minus HIGH",
+   "threshold": 2.807,
+   "threshold_registry": 2.807
+  },
+  "stage2": {
+   "controls": {
+    "abstention": "hold the book only when the signal's raw cross-sectional dispersion is >= the median of its previous (up to 156, >= 52) weekly values; else flat",
+    "always_trade": "the candidate rebalanced every week (primary)",
+    "null_for_price_signals": "1000 random rank books (weekly permutations, seed 20261004): candidate gross mean > their 95th percentile",
+    "price_only_for_carry": "the momentum book (H2 definition) under the same regime gating: OLS alpha of the candidate's gross weekly return on it, t >= 2.0"
+   },
+   "costs": {
+    "commission_pips_rt": 0.7,
+    "financing": "position x (its policy rate - USD policy rate) x days/360, minus the markup on gross exposure",
+    "financing_markup": 0.005,
+    "slippage_pips": 0.1,
+    "spread": "measured at the execution bar, half paid on every change of position",
+    "spread_multiple": 1.0
+   },
+   "execution": "rebalance at the H.10 entry fixing time (noon New York, first business day after the Friday) on Dukascopy M15 bid/ask (the bar closing then, else the nearest within 60 minutes; any missing pair -> no rebalance that week); AUDUSD = AUDJPY/USDJPY (bid = AUDJPY bid / USDJPY ask, ask = AUDJPY ask / USDJPY bid)",
+   "halves": [
+    "2008-07-01",
+    "2012-07-01",
+    "2017-01-01"
+   ],
+   "pass": "net mean > 0 with t >= the Stage-2 threshold and R1..R8 -> holdout eligible (the best by t only); net mean > 0, t >= 2.0 and R1..R8 -> PROMISING; else REJECTED",
+   "period": [
+    "2008-07-01",
+    "2017-01-01"
+   ],
+   "robustness": {
+    "R1_halves": "net mean > 0 in both halves",
+    "R2_years": ">= 60% of years with >= 26 weeks net positive",
+    "R3_concentration": "no currency carries > 50% of the gross P&L, and leaving out any one currency keeps the net mean > 0",
+    "R4_outliers": "net mean > 0 without the 5 best weeks",
+    "R5_costs": "net mean > 0 with spread, slippage and commission x2",
+    "R6_execution": "net mean > 0 when every rebalance is one business day later",
+    "R7_regimes": "net mean not significantly negative (t > -2) in either volatility regime",
+    "R8_incremental": "the control test above"
+   },
+   "threshold": "bonferroni over the registry's tests on 2008-07..2017-01 plus the number of candidates, computed when RV-1-S2 is registered",
+   "universe_rule": "a currency without a policy rate at the decision is excluded from every Stage-2 book that week (its financing cannot be priced; never filled)"
+  },
+  "timing": {
+   "decision": "Friday 17:00 New York",
+   "forward": "from the first H.10 fixing after the Friday to the first fixing >= 7 days later (<= 10 days, else the week is skipped)",
+   "information": "H.10 rates with available_at <= decision (the next business day 17:00 New York after their date); policy rates public at the decision"
+  },
+  "transformations": "value of each currency in USD (USD = 1); log; relative return = return minus the mean of the eight; only dates on which all seven H.10 rates exist",
+  "universe": [
+   "USD",
+   "EUR",
+   "JPY",
+   "GBP",
+   "CHF",
+   "CAD",
+   "AUD",
+   "NZD"
+  ],
+  "version": "rv-1.0.0"
+ }
+}

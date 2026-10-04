@@ -34,7 +34,9 @@ from pathlib import Path
 #: 1.3.0: a check marked as a preregistered GATE that failed blocks PROMISING (COT-1: development,
 #: validation, incremental-over-control...); a holdout artifact (`holdout_of`) supersedes the record
 #: of the hypothesis it judged
-EDGES_VERSION = "edges-1.3.0"
+#: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
+#: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
+EDGES_VERSION = "edges-1.4.0"
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -161,6 +163,42 @@ def from_walk_forward(res: dict) -> EdgeRecord:
         source=f"research/results/{res['trial']}.json")
 
 
+RV_PAIRS = ("AUDUSD", "EURUSD", "GBPUSD", "NZDUSD", "USDCAD", "USDCHF", "USDJPY")
+_RV_STATUS = {"STAGE2": "TESTING", "HOLDOUT_ELIGIBLE": "TESTING", "REJECTED": "REJECTED", "PROMISING": "PROMISING",
+              "VALIDATED": "VALIDATED"}
+
+
+def from_cross_sectional(stages: list[dict]) -> list[EdgeRecord]:
+    """Records of a cross-sectional program from its stage artifacts (ordered Stage 1, Stage 2, holdout).
+    t is the Stage-1 IC t; expectancy fields are the Stage-2 weekly NET return of the currency-neutral book
+    (a fraction of notional, NOT R), None when Stage 2 was not reached."""
+    s1 = stages[0]
+    status = dict(s1.get("classification", {}))
+    s2 = next((a for a in stages if a.get("stage") == 2), None)
+    for a in stages[1:]:
+        status.update(a.get("classification", {}))
+    out = []
+    for hid, r in sorted(s1["results"].items()):
+        two = (s2 or {}).get("results", {}).get(hid)
+        out.append(EdgeRecord(
+            edge_id=hid, program=s1["program"], direction="BOTH", instrument=RV_PAIRS, timeframe="W1",
+            market_regime=None, entry_conditions=f"cross-sectional rank: {hid}",
+            exit_conditions="weekly rebalance of a currency-neutral book",
+            sample_size=r.get("weeks", (r.get("weeks_low") or 0) + (r.get("weeks_high") or 0)),
+            gross_expectancy=_r(two["gross"]["mean"]) if two else None,
+            net_expectancy=_r(two["net"]["mean"]) if two else None, t_stat=_r(r.get("t"), 3),
+            t_required=_r(s1.get("threshold"), 3), profit_factor=None, drawdown=None,
+            out_of_sample_expectancy=_r(two["net"]["mean"]) if two else None, walk_forward_expectancy=None,
+            cost_sensitivity=_r(two["robustness"]["R5_costs"]["net_mean_costs_x2"]) if two else None, complexity=1,
+            stability={"ic_by_year": r["ic_by_year"]} if r.get("ic_by_year") else None,
+            status=_RV_STATUS[status[hid]],
+            failed_checks=tuple(k for k, v in r.get("gates", {}).items() if not v),
+            source=f"research/knowledge/{s1['program']}.json",
+            note="cross-sectional book: t is the Stage-1 information-coefficient t; expectancies are weekly returns "
+                 "of notional, not R"))
+    return out
+
+
 def build(root: Path | str) -> dict:
     """The registry from what is committed under research/. Deterministic: sorted by edge id."""
     root = Path(root)
@@ -177,6 +215,8 @@ def build(root: Path | str) -> dict:
             art = json.loads(p.read_text())
         except ValueError:
             continue
+        if isinstance(art, dict) and art.get("kind") == "cross_sectional":
+            continue  # read below, all stages of a program together
         if isinstance(art, dict) and "screen" in art and "program" in art and "judged" not in art:
             # a discovery program whose screen found nothing never produced an edge to record;
             # its size is still recorded, because every cell it tested was charged
@@ -203,6 +243,24 @@ def build(root: Path | str) -> dict:
         res = json.loads(p.read_text())
         edges.append(from_walk_forward(res))
         programs[res["trial"]] = {"verdict": res["verdict"], "judged": 1, "threshold_t": res.get("threshold_t")}
+    xs: dict[str, list[dict]] = {}
+    for p in sorted((root / "knowledge").glob("*.json")):
+        try:
+            art = json.loads(p.read_text())
+        except ValueError:
+            continue
+        if isinstance(art, dict) and art.get("kind") == "cross_sectional":
+            root_id = art["program"].split("-S2")[0].split("-H")[0]
+            xs.setdefault(root_id, []).append(art)
+    for pid, arts in sorted(xs.items()):
+        arts.sort(key=lambda a: (a.get("stage", 3)))
+        if arts[0].get("stage") != 1:
+            continue
+        edges += from_cross_sectional(arts)
+        final = arts[-1]
+        programs[pid] = {"verdict": final.get("verdict"), "judged": len(arts[0]["results"]),
+                         "validated": [k for k, v in final.get("classification", {}).items() if v == "VALIDATED"],
+                         "threshold_t": arts[0].get("threshold")}
     spec_p = root / "specs" / "R3.json"
     if spec_p.exists() and not (root / "knowledge" / "R3.json").exists():
         spec = json.loads(spec_p.read_text())["spec"]
