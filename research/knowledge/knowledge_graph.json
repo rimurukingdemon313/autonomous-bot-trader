@@ -377,6 +377,16 @@
   },
   {
    "from": "method:SL-CARRY",
+   "rel": "claims",
+   "to": "claim:SL-CARRY:7"
+  },
+  {
+   "from": "method:SL-CARRY",
+   "rel": "claims",
+   "to": "claim:SL-CARRY:8"
+  },
+  {
+   "from": "method:SL-CARRY",
    "rel": "tested_as",
    "to": "hypothesis:SL-CARRY:vix_state=low:BUY"
   },
@@ -394,6 +404,11 @@
    "from": "method:SL-CARRY",
    "rel": "judged_by",
    "to": "result:R3:SL-CARRY"
+  },
+  {
+   "from": "method:SL-CARRY",
+   "rel": "judged_by",
+   "to": "result:RV-1:SL-CARRY"
   },
   {
    "from": "source:Menkhoff, Sarno, Schmeling & Schrimpf, Currency momentum strategies, J. Financial Economics 106 (2012)",
@@ -426,6 +441,11 @@
    "to": "result:XS-001:SL-XS-MOMENTUM"
   },
   {
+   "from": "method:SL-XS-MOMENTUM",
+   "rel": "judged_by",
+   "to": "result:RV-1:SL-XS-MOMENTUM"
+  },
+  {
    "from": "source:Asness, Moskowitz & Pedersen, Value and momentum everywhere, J. Finance 68 (2013)",
    "rel": "documents",
    "to": "method:SL-PPP-VALUE"
@@ -434,6 +454,16 @@
    "from": "method:SL-PPP-VALUE",
    "rel": "rests_on",
    "to": "principle:VALUE_PPP"
+  },
+  {
+   "from": "method:SL-PPP-VALUE",
+   "rel": "claims",
+   "to": "claim:SL-PPP-VALUE:0"
+  },
+  {
+   "from": "method:SL-PPP-VALUE",
+   "rel": "judged_by",
+   "to": "result:RV-1:SL-PPP-VALUE"
   },
   {
    "from": "method:SL-PPP-VALUE",
@@ -684,6 +714,11 @@
    "from": "method:SL-MOMENTUM-CRASH",
    "rel": "judged_by",
    "to": "result:R2D:SL-MOMENTUM-CRASH"
+  },
+  {
+   "from": "method:SL-MOMENTUM-CRASH",
+   "rel": "judged_by",
+   "to": "result:RV-1:SL-MOMENTUM-CRASH"
   },
   {
    "from": "source:Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004)",
@@ -1476,6 +1511,18 @@
    "text": "carry on the JPY pairs: untestable under the frozen rule (no BoJ policy rate 2013-04 -> 2016-09)"
   },
   {
+   "id": "claim:SL-CARRY:7",
+   "kind": "claim",
+   "knowledge_class": "DOCUMENTED FACT",
+   "text": "ranking eight currencies by policy rate predicted next-week relative returns in 2000-01..2007-03 (RV-1 Stage 1, IC t 3.09)"
+  },
+  {
+   "id": "claim:SL-CARRY:8",
+   "kind": "claim",
+   "knowledge_class": "REJECTED",
+   "text": "the cross-sectional carry book earns a net premium after costs, 2008-07..2016 (RV-1 Stage 2): its interest income was offset by the spot losses"
+  },
+  {
    "condition": "vix_state=low",
    "exit": "D4",
    "id": "hypothesis:SL-CARRY:vix_state=low:BUY",
@@ -1507,6 +1554,14 @@
    "kind": "result",
    "summary": "BIS policy rates, 8 pairs, 2008-07 -> 2017-01, carry income included as a RATE-DIFFERENTIAL CARRY PROXY: carry long -0.083R net (n 341; carry +0.045R, spot -0.101R gross, P(direction) 41%); while VIX < 20 -0.117R; without a recent policy move -0.044R",
    "trial": "R3",
+   "verdict": "REJECTED"
+  },
+  {
+   "hypothesis": "RV1-H1-CARRY / RV1-H5-CARRY-VOL",
+   "id": "result:RV-1:SL-CARRY",
+   "kind": "result",
+   "summary": "cross-sectional, currency-neutral (8 currencies, H.10 + BIS): Stage 1 2000-01..2007-03 PASSED (mean IC +0.081, t 3.09 >= 2.807, every year positive); Stage 2 2008-07..2016 on bid/ask with costs and financing FAILED: net -0.001%/week (t -0.01; financing +0.036%, spot -0.036%). Low vs high volatility: no significant difference (t 0.27)",
+   "trial": "RV-1",
    "verdict": "REJECTED"
   },
   {
@@ -1560,6 +1615,14 @@
    "verdict": "REJECTED"
   },
   {
+   "hypothesis": "RV1-H2-MOMENTUM",
+   "id": "result:RV-1:SL-XS-MOMENTUM",
+   "kind": "result",
+   "summary": "full eight-currency cross-section, currency-neutral book, 3- and 12-month ranks skipping a week, 2000-01..2007-03 on H.10: mean IC +0.029, t 1.18 (required 2.807)",
+   "trial": "RV-1",
+   "verdict": "REJECTED"
+  },
+  {
    "evidence_quality": "A",
    "id": "method:SL-PPP-VALUE",
    "kind": "method",
@@ -1578,6 +1641,20 @@
    "kind": "principle",
    "knowledge_class": "INFERRED_PRINCIPLE",
    "text": "exchange rates revert slowly toward purchasing-power parity"
+  },
+  {
+   "id": "claim:SL-PPP-VALUE:0",
+   "kind": "claim",
+   "knowledge_class": "REJECTED",
+   "text": "the five-year relative-return reversal (a value PROXY) predicts next-week relative returns (RV-1 H4); this does not test PPP value"
+  },
+  {
+   "hypothesis": "RV1-H4-VALUE",
+   "id": "result:RV-1:SL-PPP-VALUE",
+   "kind": "result",
+   "summary": "a PRICE-ONLY proxy, not PPP: five-year cross-sectional reversal, 2004..2007-03, mean IC -0.035, t -0.98 (required 2.807). PPP value itself stays untested",
+   "trial": "RV-1",
+   "verdict": "REJECTED"
   },
   {
    "id": "gap:SL-PPP-VALUE",
@@ -1901,6 +1978,14 @@
    "kind": "result",
    "summary": "12 pairs, 2008-07 -> 2017-01: BUY uptrends while calm -0.040R (n 593); SELL downtrends while calm +0.077R (n 581, t 0.85, passes cost/delay stress; fails significance, random, years, instruments, outliers: EURCHF 2015 dominates)",
    "trial": "R2D",
+   "verdict": "REJECTED"
+  },
+  {
+   "hypothesis": "RV1-H6-MOMENTUM-VOL",
+   "id": "result:RV-1:SL-MOMENTUM-CRASH",
+   "kind": "result",
+   "summary": "cross-sectional momentum IC in low minus high global FX volatility, 2000-01..2007-03: +0.103 (low +0.076, high -0.028), Welch t 2.10, required 2.807: not significant",
+   "trial": "RV-1",
    "verdict": "REJECTED"
   },
   {
@@ -2294,5 +2379,5 @@
    "verdict": "REJECTED"
   }
  ],
- "version": "library-1.3.0"
+ "version": "library-1.4.0"
 }

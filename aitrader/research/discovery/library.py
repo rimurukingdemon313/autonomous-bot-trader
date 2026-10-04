@@ -35,7 +35,8 @@ from dataclasses import asdict, dataclass, field
 #: labelled claims per method
 #: 1.2.0: Round 4 methods (positioning, news surprises, safe havens, gold/AUD, Taylor-rule inflation)
 #: 1.3.0: positioning is no longer data-blocked: tested in COT-1 (CFTC TFF files supplied by the user), rejected
-LIBRARY_VERSION = "library-1.3.0"
+#: 1.4.0: RV-1 (cross-sectional, currency-neutral books on eight currencies) recorded on carry, momentum, value
+LIBRARY_VERSION = "library-1.4.0"
 STATUSES = ("RESEARCHED", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED", "DEGRADED", "RETIRED")
 #: every claim a method record makes is labelled with how much we actually know
 CLAIM_LABELS = ("DOCUMENTED FACT", "INFERRED PRINCIPLE", "HYPOTHESIS", "TESTING", "VALIDATED", "REJECTED",
@@ -278,7 +279,12 @@ LIBRARY: tuple[Method, ...] = (
                      "summary": "BIS policy rates, 8 pairs, 2008-07 -> 2017-01, carry income included as a "
                                 "RATE-DIFFERENTIAL CARRY PROXY: carry long -0.083R net (n 341; carry +0.045R, spot "
                                 "-0.101R gross, P(direction) 41%); while VIX < 20 -0.117R; without a recent policy "
-                                "move -0.044R"}),
+                                "move -0.044R"},
+                    {"trial": "RV-1", "hypothesis": "RV1-H1-CARRY / RV1-H5-CARRY-VOL", "verdict": "REJECTED",
+                     "summary": "cross-sectional, currency-neutral (8 currencies, H.10 + BIS): Stage 1 2000-01..2007-03 "
+                                "PASSED (mean IC +0.081, t 3.09 >= 2.807, every year positive); Stage 2 2008-07..2016 "
+                                "on bid/ask with costs and financing FAILED: net -0.001%/week (t -0.01; financing "
+                                "+0.036%, spot -0.036%). Low vs high volatility: no significant difference (t 0.27)"}),
            claims=(("DOCUMENTED FACT", "carry portfolios across many currencies earned a premium, with crashes in "
                                        "global risk-off (Lustig & Verdelhan 2007; Menkhoff et al. 2012)"),
                    ("DOCUMENTED FACT", "AUD and NZD out-yielded USD and JPY at every date from 2008-07 to 2016-12 "
@@ -291,7 +297,11 @@ LIBRARY: tuple[Method, ...] = (
                                 "positive net expectancy on 8 majors, 2008-2016 (R3-A/G/H): the income is smaller "
                                 "than the spot loss"),
                    ("UNCERTAIN", "carry on the JPY pairs: untestable under the frozen rule (no BoJ policy rate "
-                                 "2013-04 -> 2016-09)"))),
+                                 "2013-04 -> 2016-09)"),
+                   ("DOCUMENTED FACT", "ranking eight currencies by policy rate predicted next-week relative returns "
+                                       "in 2000-01..2007-03 (RV-1 Stage 1, IC t 3.09)"),
+                   ("REJECTED", "the cross-sectional carry book earns a net premium after costs, 2008-07..2016 "
+                                "(RV-1 Stage 2): its interest income was offset by the spot losses"))),
     Method("SL-XS-MOMENTUM", "Cross-sectional currency momentum", "systematic",
            (Source("Menkhoff, Sarno, Schmeling & Schrimpf, Currency momentum strategies, J. Financial Economics 106 "
                    "(2012)", "academic", "A"),),
@@ -309,12 +319,20 @@ LIBRARY: tuple[Method, ...] = (
            results=({"trial": "XS-001", "hypothesis": "XS-001-L/S", "verdict": "REJECTED",
                      "summary": "the dollar legs of the seven majors (24-day rank, ~1-month hold): strongest BUY "
                                 "-0.13R (n 203, t -2.1), weakest SELL -0.11R (n 188, t -1.7); every battery check "
-                                "failed. The paper's effect lives mostly in minor currencies, absent here"},)),
+                                "failed. The paper's effect lives mostly in minor currencies, absent here"},
+                    {"trial": "RV-1", "hypothesis": "RV1-H2-MOMENTUM", "verdict": "REJECTED",
+                     "summary": "full eight-currency cross-section, currency-neutral book, 3- and 12-month ranks "
+                                "skipping a week, 2000-01..2007-03 on H.10: mean IC +0.029, t 1.18 (required 2.807)"})),
     Method("SL-PPP-VALUE", "FX value (purchasing-power parity)", "macro / systematic",
            (Source("Asness, Moskowitz & Pedersen, Value and momentum everywhere, J. Finance 68 (2013)", "academic", "A"),),
            ("VALUE_PPP",), _dp(assumptions="exchange rates revert slowly to PPP", prefers="long horizons"),
            "any", "long undervalued currencies", "years", "portfolio", "monthly", "G10 FX", (),
-           untestable_because="needs price-level (CPI) data; not available here"),
+           untestable_because="needs price-level (CPI) data; not available here",
+           results=({"trial": "RV-1", "hypothesis": "RV1-H4-VALUE", "verdict": "REJECTED",
+                     "summary": "a PRICE-ONLY proxy, not PPP: five-year cross-sectional reversal, 2004..2007-03, mean "
+                                "IC -0.035, t -0.98 (required 2.807). PPP value itself stays untested"},),
+           claims=(("REJECTED", "the five-year relative-return reversal (a value PROXY) predicts next-week relative "
+                                "returns (RV-1 H4); this does not test PPP value"),)),
     Method("SL-MARKET-MAKING", "Market making / spread capture", "high-frequency",
            (Source("Avellaneda & Stoikov, High-frequency trading in a limit order book, Quantitative Finance 8 (2008)",
                    "academic", "B"),),
@@ -414,7 +432,10 @@ LIBRARY: tuple[Method, ...] = (
            results=({"trial": "R2D", "hypothesis": "R2D-1/R2D-2", "verdict": "REJECTED",
                      "summary": "12 pairs, 2008-07 -> 2017-01: BUY uptrends while calm -0.040R (n 593); SELL "
                                 "downtrends while calm +0.077R (n 581, t 0.85, passes cost/delay stress; fails "
-                                "significance, random, years, instruments, outliers: EURCHF 2015 dominates)"},),
+                                "significance, random, years, instruments, outliers: EURCHF 2015 dominates)"},
+                    {"trial": "RV-1", "hypothesis": "RV1-H6-MOMENTUM-VOL", "verdict": "REJECTED",
+                     "summary": "cross-sectional momentum IC in low minus high global FX volatility, 2000-01..2007-03: "
+                                "+0.103 (low +0.076, high -0.028), Welch t 2.10, required 2.807: not significant"}),
            claims=(("DOCUMENTED FACT", "equity momentum's worst losses occur in panic states and rebounds (Daniel & "
                                        "Moskowitz 2016)"),
                    ("INFERRED PRINCIPLE", "the same crash mechanism applies to FX time-series momentum"),

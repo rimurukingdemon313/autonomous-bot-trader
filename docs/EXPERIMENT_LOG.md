@@ -211,3 +211,14 @@ Each program was preregistered and pushed before it ran; the commits are in the 
 | Checks | The official values are recovered exactly (0 of 4,524 off the decimal grid per currency). 0 revisions across three vintages (1999–2016). All 171 no-rate days are explained; the 3 carried copies in 2007 are dropped. Best-matching time is 12:00 New York every year |
 | Cross-source | Against Dukascopy 2008–2016: noon level median 0.6–1.7 bp; daily return correlation 0.996–0.998; weekly ≥ 0.9977. AUD triangulation shows the **repository's Dukascopy AUDUSD** is faulty in 2008-01..09 and 2009-04..09 |
 | Verdict | **SUFFICIENT FOR RV-1**, on conditions (point in time: next business day 17:00 New York; JPY has no policy rate for 2,577 of 4,695 weekdays). See [H10_DATA_AUDIT.md](H10_DATA_AUDIT.md). No RV-1 test run |
+
+## RV-1: cross-sectional currency information (eight currencies, currency-neutral)
+
+| Field | Value |
+|---|---|
+| Hypotheses | 6, frozen in `research/specs/RV-1.json` (preregistration `57f6449`): carry, relative momentum, one-week reversal, five-year reversal (value proxy), carry and momentum by global FX volatility |
+| Data | H.10 (signals; Stage-1 returns), BIS policy rates, Dukascopy bid/ask for Stage-2 execution (AUDUSD from AUDJPY/USDJPY) |
+| Stage 1 | 2000-01 → 2007-03, \|t\| ≥ 2.807. **Carry PASSED** (IC +0.081, t 3.09, every year positive). The other five failed (best H6 at t 2.10) |
+| Stage 2 | Carry, 2008-07 → 2016, t ≥ 3.417, with costs and financing: **net −0.001%/week, t −0.01**. The income was offset by the spot loss; 6 of 8 robustness checks failed |
+| Holdout | **Not opened**: no candidate earned it |
+| Result | **FAILED.** All 6 REJECTED. Edge registry: 54 REJECTED, 0 PROMISING, 0 VALIDATED. See [FINAL_RESEARCH_REPORT.md](FINAL_RESEARCH_REPORT.md) |
