@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 60 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 61 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -28,6 +28,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | COT-1 | FAILED | — | 11 | 0 | 3.414 |
 | CP-001 | FAILED | — | 4 | 0 | 3.180 |
 | DIV-1 | FAILED | — | 2 | 0 | 3.000 |
+| DIV-2 | PASSED | — | 2 | 1 | 3.000 |
 | DP-001 | FAILED | 1734 | 0 | 0 | 3.078 |
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
 | FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
@@ -68,6 +69,10 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 0 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
 | DIV1-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | +0.001 | +0.15 (3.00) | -0.007 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
+| DIV2-H1-TSMOM12 | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.017 | +4.34 (3.00) | +0.016 | — | 1 | **VALIDATED** | — |
+| ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t 0.263 | | | | | | | | | |
+| DIV2-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.015 | +4.38 (3.00) | +0.015 | — | 1 | **REJECTED** | holdout |
+| ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t -0.636 | | | | | | | | | |
 | FLOW1-H1-GOTOBI-PRE | BUY | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | -1.328 | -1.68 (3.43) | -3.370 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, specificity |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | FLOW1-H2-GOTOBI-POST | SELL | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | +0.646 | +0.60 (3.43) | -1.163 | — | 1 | **REJECTED** | t, costs_x2, specificity |

@@ -82,9 +82,19 @@ def test_the_committed_registry_matches_the_committed_evidence():
         assert e["status"] in STATUSES
         for k in ("size", "lots", "risk_pct", "risk_amount"):
             assert k not in e
-    # nothing in the evidence has passed, so nothing in the registry may say it did
-    assert reg["counts"]["VALIDATED"] == 0
-    assert all(p["verdict"] in ("FAILED", "FAIL") or p["verdict"].startswith("BLOCKED") for p in reg["programs"].values())
+    # VALIDATED only where a committed, opened holdout says so; a program verdict alone never suffices
+    holdouts = {}
+    for f in (ROOT / "research" / "knowledge").glob("*.json"):
+        art = json.loads(f.read_text())
+        if isinstance(art, dict) and art.get("holdout_of"):
+            holdouts.update({h: v for h, v in art.get("classification", {}).items() if v == "VALIDATED"})
+    validated = {e["edge_id"] for e in reg["edges"] if e["status"] == "VALIDATED"}
+    assert validated == set(holdouts) and reg["counts"]["VALIDATED"] == len(validated)
+    assert validated <= {"DIV2-H1-TSMOM12"}  # a new VALIDATED edge must be reviewed here, not slip in
+    passed = {k for k, p in reg["programs"].items() if p["verdict"] == "PASSED"}
+    assert passed <= {"DIV-2"}
+    assert all(p["verdict"] in ("FAILED", "FAIL", "PASSED") or p["verdict"].startswith("BLOCKED")
+               for p in reg["programs"].values())
     vix = next((e for e in reg["edges"] if e["edge_id"] == "R4-XA-VIX-A"), None)
     if vix is not None:  # a recorded correction is carried into the registry, never silently applied
         assert vix["note"] and "registered population" in vix["note"] and vix["status"] == "REJECTED"

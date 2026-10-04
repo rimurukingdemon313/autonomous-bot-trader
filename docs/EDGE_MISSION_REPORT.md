@@ -4,6 +4,29 @@ The mission: find out why the system is not profitable, and find a real, defensi
 the data available to this repository, or prove with numbers that the data cannot support
 one. No historical result was edited. The FX holdout (2017+) is still sealed.
 
+## 0. Update: DIV-1 and DIV-2 executed on GitHub runners (supersedes §1, §4, §7 and §10 where they differ)
+
+The research container cannot reach market data, so both trend studies ran on GitHub Actions
+runners. Each workflow refuses to run twice and commits its own logs.
+
+| Study | Judged | Verdict | Net (annual, t) | Holdout 2021+ |
+|---|---|---|---|---|
+| DIV-1, 19 ETFs | 2008–2020 | **FAILED** (t, validation, costs ×2, leave-one-class-out) | H1 −1.07% (−0.22); H2 +0.72% (0.15) | **sealed** |
+| DIV-2, 23 series, futures-style excess returns | 1990–2007 | **PASSED** every gate | H1 +19.9% (4.34); H2 +18.5% (4.38) | opened once: H1 +2.3% (t 0.26), VALIDATED by the sign rule; H2 −4.6%, REJECTED |
+
+- **Why DIV-1 failed** (`research/results/DIV-1-summary.md`). A 40% volatility target on
+  low-volatility ETFs means 3.5× gross exposure. Financing it cost 7.6% a year, 86% of all costs;
+  the gross premium (Sharpe 0.45–0.61) was the literature's size and could not pay for that.
+- **What DIV-2 shows** (`research/results/DIV-2-summary.md`). The same frozen rules earned Sharpe
+  ≈ 1.0 in 1990–2007 and Sharpe ≈ 0.1 over the 226 months since (2008–2026, holdout included). The
+  holdout rule asked only for a positive sign, so H1's "VALIDATED" rests on t 0.26. That is recorded
+  as the rule says and is not treated as evidence of a tradeable edge.
+- **At retail CFD financing it is negative in every period since 2008:** −7.3% a year (2008–20) and
+  −5.7% (2021+).
+
+**So the answer to §1 is still NO for this account.** No edge is promoted, and the live system is
+unchanged.
+
 ## 1. Did we find a profitable edge?
 
 **NO.** No candidate passed the preregistered gates, so no holdout was earned. The data in this
@@ -172,6 +195,7 @@ which the fix effects are reliably positive.
 
 ## 12. Tests and commit
 
-- Full suite: **678 passed, 0 failed** (`bash scripts/check.sh`; 661 before this mission).
-- Mutation audit: **142 of 142 killed** (7 new mutants for the cost ceiling, the fix-flow study and the trend study).
+- Full suite: **687 passed, 0 failed** (`bash scripts/check.sh`; 661 before this mission, 678 before DIV-2).
+- Mutation audit: **143 of 143 killed** (8 new mutants for the cost ceiling, the fix-flow study, the trend study
+  and the trend-holdout record).
 - Commit: see the repository log. This report is part of the final commit of the mission.

@@ -97,3 +97,22 @@ def test_the_div1_loader_keeps_the_holdout_sealed_without_a_key(tmp_path, monkey
     sealed = div1.load_panel()
     assert max(sealed.dates) < div1.HOLD_START <= max(days)
     assert max(div1.load_panel(key=object()).dates) == max(days)  # only a key from open_final_test opens it
+
+
+def test_a_trend_holdout_decides_the_record_and_a_failure_is_named():
+    from aitrader.research.discovery.edges import from_trend
+    st = {"n": 216, "mean_monthly": 0.01, "t": 4.0, "max_drawdown": 0.2}
+    judged = {"program": "DIV-X", "data_manifest": {"assets": {"A": "equity"}},
+              "classification": {"H1": "HOLDOUT_ELIGIBLE", "H2": "HOLDOUT_ELIGIBLE", "H3": "REJECTED"},
+              "results": {h: {"net": st, "gross": st, "validation": st, "costs_x2": st, "failed_gates": g}
+                          for h, g in (("H1", []), ("H2", []), ("H3", ["t"]))}}
+    hold = {"holdout_of": "DIV-X", "classification": {"H1": "VALIDATED", "H2": "REJECTED"},
+            "results": {"H1": {"net": {"n": 70, "mean_monthly": 0.002, "t": 0.26}},
+                        "H2": {"net": {"n": 70, "mean_monthly": -0.004, "t": -0.64}}}}
+    sealed = {r.edge_id: r for r in from_trend([judged])}
+    assert [sealed[h].status for h in ("H1", "H2", "H3")] == ["TESTING", "TESTING", "REJECTED"]
+    opened = {r.edge_id: r for r in from_trend([judged, hold])}
+    assert (opened["H1"].status, opened["H1"].failed_checks) == ("VALIDATED", ())
+    assert (opened["H2"].status, opened["H2"].failed_checks) == ("REJECTED", ("holdout",))
+    assert opened["H3"].failed_checks == ("t",)  # never judged on the holdout: no holdout check to name
+    assert opened["H1"].out_of_sample_expectancy == 0.002 and "net t 0.26" in opened["H1"].note

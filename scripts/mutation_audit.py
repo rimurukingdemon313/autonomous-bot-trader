@@ -436,6 +436,9 @@ MUTANTS = [
     ("div1-seal", "the DIV-1 loader truncates at the holdout without a key",
      "scripts/div1.py", "        days = [d for d in days if d < HOLD_START]", "        days = list(days)",
      ["tests/unit/test_trend.py"]),
+    ("trend-holdout-named", "a trend edge rejected on its holdout says so",
+     "aitrader/research/discovery/edges.py", '(("holdout",) if status[hid] == "REJECTED" and h else ())', "()",
+     ["tests/unit/test_trend.py"]),
 ]
 
 

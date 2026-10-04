@@ -36,7 +36,8 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.6.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*)
+EDGES_VERSION = "edges-1.6.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+#                                1.6.1: a trend holdout failure is named, and the holdout t is in the note
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -250,8 +251,10 @@ def from_trend(stages: list[dict]) -> list[EdgeRecord]:
             out_of_sample_expectancy=_r(h["net"]["mean_monthly"]) if h else _r(r["validation"].get("mean_monthly")),
             walk_forward_expectancy=None, cost_sensitivity=_r(r["costs_x2"].get("mean_monthly")), complexity=1,
             stability={"by_year": r.get("by_year")}, status=status[hid],
-            failed_checks=tuple(r.get("failed_gates", ())), source=f"research/knowledge/{judged['program']}.json",
-            note="portfolio trend: expectancies are monthly net portfolio returns, not R"))
+            failed_checks=tuple(r.get("failed_gates", ())) + (("holdout",) if status[hid] == "REJECTED" and h else ()),
+            source=f"research/knowledge/{judged['program']}.json",
+            note="portfolio trend: expectancies are monthly net portfolio returns, not R"
+                 + (f"; holdout {h['net']['n']} months, net t {h['net'].get('t')}" if h else "")))
     return out
 
 

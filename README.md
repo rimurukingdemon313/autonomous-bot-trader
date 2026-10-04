@@ -19,9 +19,11 @@ is measured, never assumed.**
 >
 > **Edge mission (docs/EDGE_MISSION_REPORT.md):** 58 hypotheses rejected, 0 validated. With free trading the best gross t
 > anywhere is 2.27 against a required ~3.4: the FX data here has no provable directional information. The risk engine
-> now caps the whole round-trip cost at 25% of the stop. The best-supported candidate, diversified multi-asset trend
-> following (DIV-1), is preregistered and runs with `python scripts/div1.py fetch && python scripts/div1.py judge`
-> wherever market data is reachable.
+> now caps the whole round-trip cost at 25% of the stop. Diversified multi-asset trend following was then run on
+> GitHub's runners: **DIV-1** (ETFs, 2008–2020) FAILED, killed by leverage financing; **DIV-2** (futures-style
+> excess returns) PASSED 1990–2007 at t 4.3, but earned a Sharpe of about 0.1 since 2008, holdout included
+> (2021+, t 0.26), and **loses money at retail CFD financing**. Nothing is promoted
+> (research/results/DIV-2-summary.md).
 
 ---
 
