@@ -1,5 +1,5 @@
 {
- "code_commit": "2766cc2605dba4f15d2d5f8bab611a9431de0502",
+ "code_commit": "5f7bbdc6e4b86e294e4827fb4d075cdbbd074b47",
  "cost_model_version": {
   "intraday": "intraday.Costs (id-1.0.0): measured bid/ask, 0.1 pip slippage, 0.7 pip commission, BIS financing per 21:00 UTC rollover (Wednesday x3) with 1.5% markup",
   "paper_broker": "paper-1.1.0: live bid/ask + 0.1 pip slippage, $7/lot commission, swap per 21:00 UTC rollover",
@@ -8,7 +8,7 @@
   "retail_cfd": "retail.py / rc.py: spread, slippage, overnight markup, dividends (RC programs)",
   "risk_engine": "risk-1.2.0"
  },
- "data_version": "bars-692d100ec03f0a86",
+ "data_version": "bars-3308b103630d754e",
  "edge_counts": {
   "DEGRADED": 0,
   "ELIGIBLE_FOR_REVIEW": 0,
@@ -23,11 +23,11 @@
  "experiment_counts": {
   "DEGRADED": 0,
   "ELIGIBLE_FOR_REVIEW": 0,
-  "FAILED": 36,
+  "FAILED": 37,
   "FORWARD_TESTING": 0,
   "PROMISING": 1,
   "PROPOSED": 0,
-  "REGISTERED": 2,
+  "REGISTERED": 3,
   "RETIRED": 0,
   "VALIDATED": 0
  },
@@ -3302,6 +3302,63 @@
      "universe": "fx-majors"
     }
    ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 4,
+   "design": {
+    "code_sha256": "89fbdfbbf920e7fefc23f41cc4a37b66af05ba23b0153b5155f03b3b4bccf28c",
+    "kind": "exploration"
+   },
+   "experiment_id": "EX-2",
+   "hypothesis": "Does the rest-of-day return predict the last 30 minutes into the futures settlement for FX and gold, net of costs? Exploration: every look counted.",
+   "preregistration": "scripts/ex2_close_momentum.py (exploration record; counted, not judged as unseen)",
+   "registered": "2026-10-05T15:25:04.371757+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 4,
+   "title": "EX-2: exploratory look at intraday momentum into the futures settlement (FX, gold; development only)",
+   "uses": [
+    {
+     "end": "2013-01-01",
+     "role": "select",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 2,
+   "design": {
+    "code_sha256": "5dca90de3ff7e8c2bf6b0b3c32f47d9de4f3ac0ba402fc63fef641bf6b8729fd",
+    "spec_sha256": "089e4b7353d5bc1d52f5eafe0e7ab3761c893fea5f6aaaa2797fb6444c8c8bfc",
+    "threshold_t": 3.6422
+   },
+   "experiment_id": "IX-1",
+   "hypothesis": "The return from the previous close to 30 minutes before today's close predicts the last 30 minutes, after real bid/ask costs (gamma-hedging and rebalancing flow).",
+   "preregistration": "research/preregistrations/IX-1.md",
+   "registered": "2026-10-05T15:25:45.676013+00:00",
+   "registry_verdict": "PENDING",
+   "status": "REGISTERED",
+   "status_reasons": [
+    "no verdict"
+   ],
+   "tests": 2,
+   "title": "IX-1: intraday momentum into the close",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-01-01",
+     "universe": "fx-majors"
+    }
+   ]
   }
  ],
  "failed_edges": [
@@ -4127,7 +4184,7 @@
  ],
  "final_statement": "NO EDGE \u2014 DO NOT TRADE",
  "final_status": "NO EDGE",
- "generated_at_utc": "2026-10-05T14:03:08+00:00",
+ "generated_at_utc": "2026-10-05T15:25:46+00:00",
  "known_data_defects": [
   {
    "defect": "00:00-00:59 UTC missing",
@@ -4320,7 +4377,7 @@
   }
  ],
  "tests": {
-  "collected": 809,
+  "collected": 819,
   "command": "python -m pytest tests"
  },
  "validated_edges": []

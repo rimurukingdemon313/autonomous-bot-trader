@@ -1,0 +1,84 @@
+{
+ "spec": {
+  "program": "IX-1",
+  "version": "ix-1.0.0",
+  "groups": {
+   "EQ": {
+    "symbols": [],
+    "universe": "index-cfd-intraday",
+    "bars": "M5 (Dukascopy minute candles, data/ix)",
+    "validation": null,
+    "holdout": null
+   },
+   "MET": {
+    "symbols": [
+     "XAUUSD",
+     "XAGUSD"
+    ],
+    "universe": "fx-majors",
+    "bars": "M5 (FX-Data mirror, data/m5)",
+    "validation": [
+     "2013-01-01",
+     "2017-01-01"
+    ],
+    "holdout": [
+     "2017-01-01",
+     "2018-07-01"
+    ]
+   }
+  },
+  "variants": {
+   "ALL": 0.0,
+   "STRONG": 1.0
+  },
+  "offset_min": 30,
+  "vol_days": 60,
+  "stop_sd": 2.5,
+  "closes": {
+   "XAUUSD": [
+    "America/New_York",
+    "13:30:00"
+   ],
+   "XAGUSD": [
+    "America/New_York",
+    "13:25:00"
+   ]
+  },
+  "metal_costs": {
+   "XAUUSD": {
+    "slip": 0.01,
+    "commission": 0.07
+   },
+   "XAGUSD": {
+    "slip": 0.0001,
+    "commission": 0.0007
+   }
+  },
+  "index_slip_spread_fraction": 0.25,
+  "cost_grid": [
+   1.5,
+   2.0
+  ],
+  "delay_bars": 1,
+  "gates": {
+   "min_trades": 200,
+   "net_bps": "> 0 at base costs",
+   "t_day": "t on the daily book >= the registry threshold (Bonferroni over every test ever registered)",
+   "costs_x1.5": "net > 0",
+   "costs_x2": "net > 0 (otherwise FRAGILE, which fails)",
+   "delay": "net > 0 with entry one bar later",
+   "halves": "both chronological halves of validation net > 0",
+   "instruments": ">= 60% of instruments with >= 50 trades net > 0 (and at least 2 instruments)",
+   "profit_factor": ">= 1.05 on R",
+   "top_year_share": "no calendar year contributes more than 50% of the total net"
+  },
+  "holdout_rule": "validation passers only, once: net > 0, t_day >= z(1 - 0.05 / k) for k passers, costs x1.5 > 0, delay > 0",
+  "tests": [
+   "MET-ALL",
+   "MET-STRONG"
+  ],
+  "t_required_validation": 3.6422,
+  "code_sha256": "5dca90de3ff7e8c2bf6b0b3c32f47d9de4f3ac0ba402fc63fef641bf6b8729fd"
+ },
+ "sha256": "089e4b7353d5bc1d52f5eafe0e7ab3761c893fea5f6aaaa2797fb6444c8c8bfc"
+}

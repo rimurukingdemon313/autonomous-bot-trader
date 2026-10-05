@@ -42,6 +42,7 @@ UNIVERSE: dict[str, Instrument] = {
     )
 }
 UNIVERSE["XAUUSD"] = Instrument("XAUUSD", "metal", 0.1, (200.0, 5000.0), "USD")
+UNIVERSE["XAGUSD"] = Instrument("XAGUSD", "metal", 0.001, (8.0, 60.0), "USD")
 
 #: The name used in the experiment registry for data drawn from this
 #: universe. Contamination is a property of MARKET PERIODS, not of files:
