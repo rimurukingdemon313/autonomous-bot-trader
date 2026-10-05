@@ -1,0 +1,407 @@
+{
+ "code_sha256": "3c1ef70a26ef7e8de4be43174a58d2baa5b29b825909547b190e0389439b3049",
+ "sha256": "4b3aa7ef0fac23b362dc10aac0f669d99d6e8ace489cdbaeec22dcc7fe32fc64",
+ "spec": {
+  "controls": [
+   "RANDOM"
+  ],
+  "cost_grid": [
+   1.25,
+   1.5,
+   2.0
+  ],
+  "costs": {
+   "commission_pips_rt": 0.7,
+   "markup_pa": 1.5,
+   "max_cost_to_risk": 0.25,
+   "max_spread_to_stop": 0.25,
+   "min_reward_risk": 1.2,
+   "min_stop_spreads": 3.0,
+   "slippage_pips": 0.1,
+   "spread_mult": 1.0
+  },
+  "development": [
+   "2009-01-01",
+   "2014-01-01"
+  ],
+  "development_judged": [
+   "2011-01-01",
+   "2014-01-01"
+  ],
+  "embargo_s": 86400,
+  "families": {
+   "ridge": {
+    "alpha": 10.0
+   },
+   "trees": {
+    "bins": 32,
+    "depth": 3,
+    "min_leaf": 1000,
+    "rounds": 150,
+    "shrink": 0.1
+   }
+  },
+  "features": {
+   "atr_rank": [
+    "volatility",
+    "plain"
+   ],
+   "atr_ratio": [
+    "volatility",
+    "plain"
+   ],
+   "bbw_rank": [
+    "volatility",
+    "plain"
+   ],
+   "body1": [
+    "volatility",
+    "signed"
+   ],
+   "bos6": [
+    "structure",
+    "signed"
+   ],
+   "bosfvg6": [
+    "liquidity",
+    "signed"
+   ],
+   "brk20": [
+    "breakout",
+    "signed"
+   ],
+   "choch6": [
+    "structure",
+    "signed"
+   ],
+   "corr288": [
+    "cross",
+    "plain"
+   ],
+   "cost_r": [
+    "cost",
+    "plain"
+   ],
+   "d1ret": [
+    "mtf",
+    "signed"
+   ],
+   "d_pdh": [
+    "liquidity",
+    "pair:d_pdl"
+   ],
+   "d_pdl": [
+    "liquidity",
+    "pair:d_pdh"
+   ],
+   "d_sh": [
+    "structure",
+    "pair:d_sl"
+   ],
+   "d_sl": [
+    "structure",
+    "pair:d_sh"
+   ],
+   "dev100": [
+    "reversion",
+    "signed"
+   ],
+   "dev20": [
+    "reversion",
+    "signed"
+   ],
+   "dow": [
+    "session",
+    "plain"
+   ],
+   "dpos": [
+    "mtf",
+    "signed"
+   ],
+   "fb6": [
+    "breakout",
+    "signed"
+   ],
+   "h1tr": [
+    "mtf",
+    "signed"
+   ],
+   "h4tr": [
+    "mtf",
+    "signed"
+   ],
+   "hcos": [
+    "session",
+    "plain"
+   ],
+   "hsin": [
+    "session",
+    "plain"
+   ],
+   "mem_hour": [
+    "memory",
+    "plain"
+   ],
+   "mem_other": [
+    "memory",
+    "plain"
+   ],
+   "mem_own": [
+    "memory",
+    "plain"
+   ],
+   "mom1": [
+    "momentum",
+    "signed"
+   ],
+   "mom12": [
+    "momentum",
+    "signed"
+   ],
+   "mom3": [
+    "momentum",
+    "signed"
+   ],
+   "mom48": [
+    "momentum",
+    "signed"
+   ],
+   "ob6": [
+    "liquidity",
+    "signed"
+   ],
+   "open30": [
+    "session",
+    "plain"
+   ],
+   "pos48": [
+    "breakout",
+    "signed"
+   ],
+   "rel12": [
+    "cross",
+    "signed"
+   ],
+   "riskz": [
+    "cross",
+    "signed"
+   ],
+   "rng1": [
+    "volatility",
+    "plain"
+   ],
+   "room_dn": [
+    "breakout",
+    "pair:room_up"
+   ],
+   "room_up": [
+    "breakout",
+    "pair:room_dn"
+   ],
+   "s60mom": [
+    "mtf",
+    "signed"
+   ],
+   "s60mom4": [
+    "mtf",
+    "signed"
+   ],
+   "side": [
+    "identity",
+    "plain"
+   ],
+   "sw_asia6": [
+    "liquidity",
+    "signed"
+   ],
+   "sw_eq6": [
+    "liquidity",
+    "signed"
+   ],
+   "sw_pd6": [
+    "liquidity",
+    "signed"
+   ],
+   "tick_mom": [
+    "volume",
+    "signed"
+   ],
+   "tick_rel": [
+    "volume",
+    "plain"
+   ],
+   "trend_sw": [
+    "structure",
+    "signed"
+   ],
+   "usdz": [
+    "cross",
+    "signed"
+   ],
+   "z12": [
+    "momentum",
+    "signed"
+   ]
+  },
+  "folds_development": [
+   2011,
+   2012,
+   2013
+  ],
+  "folds_validation": [
+   2014,
+   2015,
+   2016
+  ],
+  "holdout": [
+   "2017-01-01",
+   "2022-07-09"
+  ],
+  "holdout_rule": "validation passers only, fx-majors 2017-01 -> 2022-07 (M5 built only then), models refitted each January on every trade resolved before it: t_day >= z(1-0.05/k), net R > 0, PF >= 1.1, costs x1.5 > 0, >= 55% of 3-month windows profitable",
+  "intraday_version": "id-1.0.0",
+  "judge": {
+   "beats_matched_random_welch_t": 2.0,
+   "costs_x1.5_net_r": "> 0",
+   "neighbours_net_r": "both > 0",
+   "net_r": "> 0",
+   "profit_factor": 1.2,
+   "slippage_0.3_net_r": "> 0",
+   "symbols_positive_share": 0.6,
+   "t_day": "max(3.0, registry Bonferroni)",
+   "three_month_windows_profitable": 0.6
+  },
+  "limits": {
+   "daily_stop_r": 4.0,
+   "max_open": 3,
+   "max_per_currency": 2
+  },
+  "memory": {
+   "grid_bars": 3,
+   "n_hour": 60,
+   "n_own": 50
+  },
+  "program": "ID-2",
+  "promote": {
+   "beats_matched_random_welch_t": 2.0,
+   "costs_x1.25_net_r": "> 0",
+   "min_trades": 300,
+   "net_r": "> 0",
+   "profit_factor": 1.1,
+   "symbols_positive_share": 0.6,
+   "t_day": 2.0
+  },
+  "risk_pct": 0.5,
+  "rules": {
+   "BRK": {
+    "neighbours": [
+     {
+      "n": 15
+     },
+     {
+      "n": 25
+     }
+    ],
+    "primary": {
+     "n": 20
+    },
+    "rule": "first close beyond the previous n bars' high/low: trade the break"
+   },
+   "MOM": {
+    "neighbours": [
+     {
+      "z": 1.75
+     },
+     {
+      "z": 2.25
+     }
+    ],
+    "primary": {
+     "z": 2.0
+    },
+    "rule": "12-bar move z >= z0: trade with it"
+   },
+   "MR": {
+    "neighbours": [
+     {
+      "d": 2.25
+     },
+     {
+      "d": 2.75
+     }
+    ],
+    "primary": {
+     "d": 2.5
+    },
+    "rule": "close >= d ATR from EMA(20): fade it"
+   },
+   "SWEEP": {
+    "neighbours": [
+     {
+      "pen": 0.05
+     },
+     {
+      "pen": 0.15
+     }
+    ],
+    "primary": {
+     "pen": 0.1
+    },
+    "rule": "A1/A2/A3 liquidity sweep event: fade it"
+   }
+  },
+  "slippage_stress_pips": 0.3,
+  "symbols": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "XAUUSD"
+  ],
+  "t_required_validation": 3.5524,
+  "tau_neighbour_step": 0.05,
+  "taus": [
+   0.0,
+   0.05,
+   0.1
+  ],
+  "template": {
+   "entry_hours_utc": [
+    7,
+    20
+   ],
+   "exit_by_utc": "20:55",
+   "reward_risk": 2.0,
+   "scales": {
+    "S15": [
+     15,
+     96
+    ],
+    "S5": [
+     5,
+     48
+    ],
+    "S60": [
+     60,
+     144
+    ]
+   },
+   "stop_atr": 1.5
+  },
+  "tests": 30,
+  "validation": [
+   "2014-01-01",
+   "2017-01-01"
+  ],
+  "verdicts": {
+   "INVALID / DATA PROBLEM": "the data or the pipeline cannot support a judgement",
+   "NO EDGE": "not promoted, or validation net R <= 0",
+   "PRODUCTION CANDIDATE": "passed the holdout and the executability checks (paper/demo first, never live)",
+   "PROMISING BUT NEEDS MORE DATA": "promoted, validation net R > 0 with t >= 2.0 but below the threshold",
+   "STRONG RESEARCH CANDIDATE": "passed validation; holdout not yet run or failed narrowly"
+  },
+  "version": "opp-1.0.0"
+ }
+}
