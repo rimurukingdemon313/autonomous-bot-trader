@@ -1,0 +1,330 @@
+{
+ "code_sha256": "169118ce0f2c4ddcb8b4c40390202b449d4132205555822b5842f694719a3703",
+ "sha256": "429a0b48cbbd5e9101dc23d0ab140a42d8dabb20cbbbbbd3e0241f64c94c83c8",
+ "spec": {
+  "controls": [
+   "E1-RANDOM",
+   "E2-RANDOM-LONG",
+   "E3-RANDOM-SHORT"
+  ],
+  "cost_grid": [
+   1.25,
+   1.5,
+   2.0
+  ],
+  "costs": {
+   "commission_pips_rt": 0.7,
+   "markup_pa": 1.5,
+   "max_cost_to_risk": 0.25,
+   "max_spread_to_stop": 0.25,
+   "min_reward_risk": 1.2,
+   "min_stop_spreads": 3.0,
+   "slippage_pips": 0.1,
+   "spread_mult": 1.0
+  },
+  "holdout_rule": "passers only, fx-majors 2017-01 -> 2022-07 (M5 built only then): t_day >= z(1-0.05/k) one-sided, net_r > 0, profit factor >= 1.1, costs x1.5 net_r > 0, three-month windows profitable >= 0.55",
+  "hypotheses": {
+   "A1-SWEEP-PDHL": [
+    "liquidity",
+    "sweep_pd",
+    {},
+    {
+     "pen": [
+      0.05,
+      0.1,
+      0.15,
+      0.2
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "A2-SWEEP-ASIA": [
+    "liquidity",
+    "sweep_asia",
+    {},
+    {
+     "pen": [
+      0.05,
+      0.1,
+      0.15,
+      0.2
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "A3-SWEEP-EQUAL": [
+    "liquidity",
+    "sweep_equal",
+    {},
+    {
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ],
+     "tol": [
+      0.05,
+      0.1,
+      0.15
+     ]
+    }
+   ],
+   "A4-BOS-FVG": [
+    "liquidity",
+    "bos_fvg",
+    {},
+    {
+     "body": [
+      1.0,
+      1.2,
+      1.4
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "A5-CHOCH": [
+    "liquidity",
+    "choch",
+    {},
+    {
+     "k": [
+      2,
+      3,
+      4
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "A6-ORDER-BLOCK": [
+    "liquidity",
+    "order_block",
+    {},
+    {
+     "body": [
+      1.0,
+      1.2,
+      1.4
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "B1-OPENING-RANGE": [
+    "price",
+    "opening_range",
+    {},
+    {
+     "max_atr": [
+      3.0,
+      4.0,
+      5.0
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "B2-SQUEEZE": [
+    "price",
+    "squeeze",
+    {},
+    {
+     "n": [
+      15,
+      20,
+      25
+     ],
+     "pct": [
+      0.05,
+      0.1,
+      0.15
+     ]
+    }
+   ],
+   "B3-MOMENTUM": [
+    "price",
+    "momentum",
+    {},
+    {
+     "n": [
+      9,
+      12,
+      15
+     ],
+     "z": [
+      1.75,
+      2.0,
+      2.25
+     ]
+    }
+   ],
+   "B4-MEAN-REVERSION": [
+    "price",
+    "mean_reversion",
+    {},
+    {
+     "d": [
+      2.0,
+      2.5,
+      3.0
+     ],
+     "stop_atr": [
+      1.25,
+      1.5,
+      1.75
+     ]
+    }
+   ],
+   "B5-FAILED-BREAKOUT": [
+    "price",
+    "failed_breakout",
+    {},
+    {
+     "look": [
+      36,
+      42,
+      48,
+      54,
+      60
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "B6-SESSION-OPEN": [
+    "price",
+    "session_open",
+    {},
+    {
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ],
+     "stop_atr": [
+      1.25,
+      1.5,
+      1.75
+     ]
+    }
+   ],
+   "C1-USD-LAG": [
+    "cross",
+    "usd_lag",
+    {},
+    {
+     "lag": [
+      0.25,
+      0.5,
+      0.75
+     ],
+     "z": [
+      1.75,
+      2.0,
+      2.25
+     ]
+    }
+   ],
+   "D1-BEST-SWEEP+HIGH-VOL": [
+    "hybrid",
+    "best_liquidity+atr_rank>=0.5",
+    {},
+    {}
+   ],
+   "D2-MOMENTUM+OVERLAP": [
+    "hybrid",
+    "momentum, entries 12:00-16:00 UTC only",
+    {},
+    {}
+   ],
+   "D3-SQUEEZE+H1-TREND": [
+    "hybrid",
+    "squeeze, only in the direction of the H1 EMA50 slope",
+    {},
+    {}
+   ]
+  },
+  "judge": {
+   "beats_matched_random_welch_t": 2.0,
+   "costs_x1.5_net_r": "> 0",
+   "grid_positive_share": 0.75,
+   "hybrid_beats_component": "validation net_r above its component's",
+   "net_r": "> 0",
+   "profit_factor": 1.2,
+   "symbols_positive_share": 0.6,
+   "t_day": "max(3.0, registry Bonferroni)",
+   "three_month_windows_profitable": 0.6
+  },
+  "periods": {
+   "development": [
+    "2009-01-01",
+    "2014-01-01"
+   ],
+   "holdout": [
+    "2017-01-01",
+    "2022-07-09"
+   ],
+   "validation": [
+    "2014-01-01",
+    "2017-01-01"
+   ]
+  },
+  "program": "ID-1",
+  "promote": {
+   "beats_matched_random_welch_t": 2.0,
+   "min_trades": 300,
+   "net_r": "> 0",
+   "profit_factor": 1.1,
+   "symbols_positive_share": 0.6,
+   "t_day": 2.0
+  },
+  "random_seeds": [
+   11,
+   12,
+   13
+  ],
+  "risk_levels": [
+   0.25,
+   0.5,
+   1.0
+  ],
+  "risk_pct": 0.5,
+  "slippage_stress_pips": 0.3,
+  "symbols": [
+   "EURUSD",
+   "GBPUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD",
+   "USDCHF",
+   "NZDUSD",
+   "XAUUSD"
+  ],
+  "t_required_validation": 3.4834,
+  "version": "id-1.0.0"
+ }
+}
