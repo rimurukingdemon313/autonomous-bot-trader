@@ -1,0 +1,83 @@
+{
+ "spec": {
+  "program": "IX-2",
+  "version": "ix-1.0.0",
+  "universe": "index-cfd-intraday",
+  "symbols": [
+   "USA500IDXUSD",
+   "USATECHIDXUSD",
+   "USA30IDXUSD",
+   "JPNIDXJPY",
+   "HKGIDXHKD",
+   "AUSIDXAUD"
+  ],
+  "closes": {
+   "USA500IDXUSD": [
+    "America/New_York",
+    "16:00:00"
+   ],
+   "USATECHIDXUSD": [
+    "America/New_York",
+    "16:00:00"
+   ],
+   "USA30IDXUSD": [
+    "America/New_York",
+    "16:00:00"
+   ],
+   "JPNIDXJPY": [
+    "Asia/Tokyo",
+    "15:00:00"
+   ],
+   "HKGIDXHKD": [
+    "Asia/Hong_Kong",
+    "16:00:00"
+   ],
+   "AUSIDXAUD": [
+    "Australia/Sydney",
+    "16:00:00"
+   ]
+  },
+  "bars": "H1 bid/ask, Dukascopy hour candles (scripts/ingest_dukascopy_candles.py --hourly)",
+  "judge": [
+   "2012-01-01",
+   "2021-01-01"
+  ],
+  "holdout": [
+   "2021-01-01",
+   "2025-01-01"
+  ],
+  "variants": {
+   "ALL": 0.0,
+   "STRONG": 1.0
+  },
+  "offset_min": 60,
+  "vol_days": 60,
+  "stop_sd": 2.5,
+  "slip_spread_fraction": 0.25,
+  "commission": 0.0,
+  "cost_grid": [
+   1.5,
+   2.0
+  ],
+  "gates": {
+   "min_trades": 300,
+   "net_bps": "> 0 at base costs",
+   "t_day": "t on the daily equal-weight book >= Bonferroni over every test ever registered",
+   "costs_x1.5": "net > 0",
+   "costs_x2": "net > 0 (otherwise FRAGILE, which fails)",
+   "late_entry": "net > 0 when entering at the typical price (O+H+L+C)/4 of the entry hour, adverse side",
+   "halves": "both chronological halves net > 0",
+   "instruments": ">= 60% of instruments with >= 50 trades net > 0",
+   "profit_factor": ">= 1.05 on R",
+   "top_year_share": "no calendar year contributes more than 50% of the total net"
+  },
+  "holdout_rule": "passers only, once, 2021-2024: net > 0, t_day >= z(1 - 0.05 / k), costs x1.5 > 0, late entry > 0",
+  "tests": [
+   "EQ-ALL",
+   "EQ-STRONG"
+  ],
+  "t_required": 3.645,
+  "code_sha256": "73fe7a4a2b51f0bd6f1cc8f70cc4149e78ce96656f9703290ac3718d2278ba01"
+ },
+ "sha256": "d171adb10e3e65f70d76014af521e0b26dbc8ea5ded7529a5fb8725aef4b4fc5"
+}
