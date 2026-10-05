@@ -45,6 +45,13 @@ is measured, never assumed.**
 > The best gross edge is +0.106R against about 0.17R of spread, commission and slippage. The sweeps
 > carry no information over matched random entries. Nothing reached validation; the 2017+ holdout
 > is still sealed.
+>
+> **Active intraday opportunity engine (docs/ACTIVE_INTRADAY_REPORT.md): NO EDGE.** Every M5 bar is scanned
+> on both sides, and a walk-forward model of each candidate's net R decides what to trade under the
+> risk engine's limits. It selects real information: it beats matched random by t 3–7 and grosses
+> +0.10 to +0.19R. That is the size of the costs, and much of it is cost avoidance. The best of 30
+> tests nets +0.04 to +0.09R at t ≤ 1.6, below the t ≥ 2 bar. Liquidity/SMC and memory added no
+> information. Nothing was promoted; 2014–2016 and 2017+ are unspent.
 
 ---
 

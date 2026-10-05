@@ -4,6 +4,17 @@ The mission: find out why the system is not profitable, and find a real, defensi
 the data available to this repository, or prove with numbers that the data cannot support
 one. No historical result was edited. The FX holdout (2017+) is still sealed.
 
+## 0000. Update: the active intraday opportunity engine
+
+`docs/ACTIVE_INTRADAY_REPORT.md` (ID-2): a scanner over every M5 bar and both sides, 58 causal inputs,
+ridge and boosted trees refitted yearly, three exit scales, the production account limits.
+
+- **Verdict: NO EDGE.** 0 of 30 tests promoted.
+- The engine beats random by t 3–7, but its gross information (+0.10 to +0.19R) matches the costs.
+  The best configurations net +0.04 to +0.09R at t ≤ 1.6.
+- Cost avoidance is the strongest input. Liquidity/SMC, structure and memory added nothing.
+- Validation (2014–2016) and the holdout (2017+) remain unspent.
+
 ## 000. Update: the intraday M5 program
 
 `docs/INTRADAY_M5_REPORT.md` (ID-1): 16 preregistered M5 rules (liquidity/SMC, price/volatility,

@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 85 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 115 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -33,6 +33,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
 | FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
+| ID-2 | FAILED | — | 30 | 0 | 3.552 |
 | R2A | FAILED | — | 2 | 0 | 3.279 |
 | R2B | FAILED | — | 2 | 0 | 3.291 |
 | R2C | FAILED | — | 2 | 0 | 3.301 |
@@ -54,31 +55,31 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0
 
 | Edge | Side | TF | Entry | Exit | n | Net R | t (required) | Cost ×1.5 | Walk-fwd R | Complexity | Status | Failed checks |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| A1-SWEEP-PDHL | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3512 | -0.144 | -6.53 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| A1-SWEEP-PDHL | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3512 | -0.144 | -6.53 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.916 | | | | | | | | | |
-| A2-SWEEP-ASIA | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3058 | -0.163 | -6.62 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| A2-SWEEP-ASIA | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3058 | -0.163 | -6.62 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.0 | | | | | | | | | |
-| A3-SWEEP-EQUAL | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 8911 | -0.153 | -10.92 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| A3-SWEEP-EQUAL | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 8911 | -0.153 | -10.92 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 1.49 | | | | | | | | | |
-| A4-BOS-FVG | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 1514 | -0.103 | -2.81 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:t_day |
+| A4-BOS-FVG | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 1514 | -0.103 | -2.81 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.051 | | | | | | | | | |
-| A5-CHOCH | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 17015 | -0.126 | -13.74 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| A5-CHOCH | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 17015 | -0.126 | -13.74 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 1.021 | | | | | | | | | |
-| A6-ORDER-BLOCK | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 4483 | -0.187 | -9.04 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| A6-ORDER-BLOCK | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 4483 | -0.187 | -9.04 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.016 | | | | | | | | | |
-| B1-OPENING-RANGE | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 6930 | -0.101 | -5.51 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| B1-OPENING-RANGE | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 6930 | -0.101 | -5.51 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.411 | | | | | | | | | |
-| B2-SQUEEZE | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 1172 | -0.111 | -2.82 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:t_day |
+| B2-SQUEEZE | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 1172 | -0.111 | -2.82 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.371 | | | | | | | | | |
-| B3-MOMENTUM | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 17394 | -0.162 | -14.35 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| B3-MOMENTUM | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 17394 | -0.162 | -14.35 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.195 | | | | | | | | | |
-| B4-MEAN-REVERSION | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 14799 | -0.143 | -12.66 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:t_day |
+| B4-MEAN-REVERSION | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 14799 | -0.143 | -12.66 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.632 | | | | | | | | | |
-| B5-FAILED-BREAKOUT | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 17787 | -0.186 | -16.61 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| B5-FAILED-BREAKOUT | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 17787 | -0.186 | -16.61 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.153 | | | | | | | | | |
-| B6-SESSION-OPEN | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 4565 | -0.165 | -6.49 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| B6-SESSION-OPEN | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 4565 | -0.165 | -6.49 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.495 | | | | | | | | | |
-| C1-USD-LAG | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3029 | -0.123 | -5.45 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:t_day |
+| C1-USD-LAG | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3029 | -0.123 | -5.45 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.867 | | | | | | | | | |
 | COT1-C-CONT | BOTH | D1 | `rule:c_cont` | D3 | 409 | +0.017 | +0.37 (3.41) | -0.005 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, years, instruments, leave_one_out, outliers, development, top5_removed |
 | COT1-C-REV | BOTH | D1 | `rule:c_rev` | D3 | 410 | -0.081 | -1.59 (3.41) | -0.102 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
@@ -95,11 +96,11 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0
 | CP-001-T2 | SELL | D1 | `r120=low` | D4 | 251 | +0.186 | +1.03 (3.18) | +0.134 | — | 1 | **REJECTED** | significance, beats_random, years, outliers |
 | CP-001-T3 | BUY | D1 | `ma_slope=high` | D4 | 249 | -0.003 | -0.04 (3.18) | -0.051 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
 | CP-001-T4 | SELL | D1 | `ma_slope=low` | D4 | 226 | +0.207 | +1.00 (3.18) | +0.157 | — | 1 | **REJECTED** | significance, beats_random, years, instruments, outliers |
-| D1-BEST-SWEEP+HIGH-VOL | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 1319 | -0.106 | -2.73 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:t_day |
+| D1-BEST-SWEEP+HIGH-VOL | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 1319 | -0.106 | -2.73 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 1.731 | | | | | | | | | |
-| D2-MOMENTUM+OVERLAP | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 8512 | -0.132 | -8.11 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:t_day |
+| D2-MOMENTUM+OVERLAP | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 8512 | -0.132 | -8.11 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.422 | | | | | | | | | |
-| D3-SQUEEZE+H1-TREND | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 627 | -0.095 | -1.79 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:t_day |
+| D3-SQUEEZE+H1-TREND | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 627 | -0.095 | -1.79 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.194 | | | | | | | | | |
 | DIV1-H1-TSMOM12 | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | -0.001 | -0.22 (3.00) | -0.008 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
@@ -117,6 +118,66 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | FLOW1-H4-FIX-DAILY | BOTH | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 2419 | -2.200 | -11.59 (3.43) | -4.458 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, leave_one_pair_out |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
+| M-ridge-S15-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4534 | -0.015 | -0.70 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 5.401 | | | | | | | | | |
+| M-ridge-S15-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1475 | +0.054 | +1.56 (3.55) | — | — | 1 | **REJECTED** | development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 5.373 | | | | | | | | | |
+| M-ridge-S15-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 476 | +0.077 | +1.13 (3.55) | — | — | 1 | **REJECTED** | development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 3.085 | | | | | | | | | |
+| M-ridge-S5-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 3776 | -0.029 | -1.22 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 6.074 | | | | | | | | | |
+| M-ridge-S5-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1326 | +0.003 | +0.08 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 3.621 | | | | | | | | | |
+| M-ridge-S5-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 614 | +0.040 | +0.66 (3.55) | — | — | 1 | **REJECTED** | development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.638 | | | | | | | | | |
+| M-ridge-S60-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4089 | -0.023 | -1.21 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 4.223 | | | | | | | | | |
+| M-ridge-S60-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1558 | -0.005 | -0.15 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.735 | | | | | | | | | |
+| M-ridge-S60-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 253 | +0.029 | +0.37 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:min_trades, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 1.548 | | | | | | | | | |
+| M-trees-S15-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 5688 | -0.028 | -1.53 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 5.206 | | | | | | | | | |
+| M-trees-S15-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 2910 | +0.001 | +0.05 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 4.703 | | | | | | | | | |
+| M-trees-S15-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1007 | -0.020 | -0.46 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 3.376 | | | | | | | | | |
+| M-trees-S5-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4478 | -0.003 | -0.12 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 6.98 | | | | | | | | | |
+| M-trees-S5-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1690 | +0.044 | +1.32 (3.55) | — | — | 1 | **REJECTED** | development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 5.737 | | | | | | | | | |
+| M-trees-S5-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 550 | +0.087 | +1.39 (3.55) | — | — | 1 | **REJECTED** | development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 4.226 | | | | | | | | | |
+| M-trees-S60-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4415 | -0.038 | -2.05 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 1.778 | | | | | | | | | |
+| M-trees-S60-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 2700 | -0.001 | -0.04 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.673 | | | | | | | | | |
+| M-trees-S60-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1115 | -0.003 | -0.08 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.86 | | | | | | | | | |
+| R-BRK-S15 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 7552 | -0.166 | -11.19 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -1.455 | | | | | | | | | |
+| R-BRK-S5 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 9574 | -0.235 | -22.22 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -3.423 | | | | | | | | | |
+| R-BRK-S60 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4758 | -0.075 | -4.15 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 1.51 | | | | | | | | | |
+| R-MOM-S15 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 5838 | -0.121 | -6.83 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.776 | | | | | | | | | |
+| R-MOM-S5 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 7216 | -0.144 | -9.47 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.309 | | | | | | | | | |
+| R-MOM-S60 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4251 | -0.092 | -4.61 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.041 | | | | | | | | | |
+| R-MR-S15 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 6884 | -0.135 | -8.55 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.13 | | | | | | | | | |
+| R-MR-S5 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 8043 | -0.172 | -11.85 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.162 | | | | | | | | | |
+| R-MR-S60 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4480 | -0.089 | -4.82 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.003 | | | | | | | | | |
+| R-SWEEP-S15 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 6988 | -0.134 | -9.00 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.038 | | | | | | | | | |
+| R-SWEEP-S5 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 7456 | -0.171 | -12.05 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.432 | | | | | | | | | |
+| R-SWEEP-S60 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4529 | -0.101 | -5.72 (3.55) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -1.305 | | | | | | | | | |
 | R2A-1 | BUY | D1 | `vix_state=low` | D4 | 263 | -0.119 | -1.78 (3.28) | -0.130 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2A-2 | SELL | D1 | `vix_trend=high` | D3 | 475 | -0.056 | -1.12 (3.28) | -0.068 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R2B-1 | BUY | D1 | `usd_rate=high` | D4 | 396 | -0.108 | -1.81 (3.29) | -0.150 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |

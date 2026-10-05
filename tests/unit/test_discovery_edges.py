@@ -100,3 +100,18 @@ def test_the_committed_registry_matches_the_committed_evidence():
         assert vix["note"] and "registered population" in vix["note"] and vix["status"] == "REJECTED"
     committed = ROOT / "research" / "knowledge" / "edge_registry.json"
     assert json.loads(committed.read_text())["counts"] == reg["counts"]
+
+
+def test_an_intraday_gate_stored_as_the_string_false_is_a_failed_check():
+    """numpy booleans reach the artifact JSON as "True"/"False"; "False" is truthy and must still fail."""
+    from aitrader.research.discovery import edges as E
+    art = {"program": "ID-X", "t_required_validation": 3.5,
+           "development": {"M-x": {"summary": {"trades": 400, "net_r": 0.05, "gross_r": 0.15, "t_day": 1.5,
+                                               "profit_factor": 1.1, "max_drawdown_pct": 10.0},
+                                   "detail": {"by_symbol": {"EURUSD": {}}, "by_year": {}},
+                                   "gates": {"net_r": True, "symbols_positive": "False", "t_day": False,
+                                             "min_trades": "True"},
+                                   "vs_matched_random_welch_t": 5.0}}}
+    rec = E.from_intraday(art)[0]
+    assert rec.status == "REJECTED"
+    assert set(rec.failed_checks) == {"development:symbols_positive", "development:t_day"}

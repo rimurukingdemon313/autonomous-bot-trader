@@ -36,10 +36,11 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.8.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.8.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
+#                                1.8.1: a gate stored as the string "False" (numpy bool via JSON) counts as failed
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -298,6 +299,12 @@ def from_retail(judged: dict, holdouts: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+def _passed(x) -> bool:
+    """A gate value from an artifact. numpy booleans reach JSON as the strings "True"/"False", and the
+    string "False" is truthy: only a real True or "True" is a pass."""
+    return x is True or x == "True"
+
+
 def from_intraday(art: dict) -> list[EdgeRecord]:
     """Records of an intraday program (ID-*). Expectancies are NET R PER TRADE after measured spread,
     commission, slippage and financing; gross is mid-to-mid. A hypothesis not promoted on development
@@ -308,9 +315,9 @@ def from_intraday(art: dict) -> list[EdgeRecord]:
         v = art.get("validation", {}).get(hid)
         stage = v["summary"] if v else s
         status = "TESTING" if v and v["passed"] else "REJECTED"
-        failed = tuple(f"development:{k}" for k, x in d["gates"].items() if not x)
+        failed = tuple(f"development:{k}" for k, x in d["gates"].items() if not _passed(x))
         if v:
-            failed += tuple(f"validation:{k}" for k, x in v["gates"].items() if not x)
+            failed += tuple(f"validation:{k}" for k, x in v["gates"].items() if not _passed(x))
         out.append(EdgeRecord(
             edge_id=hid, program=art["program"], direction="BOTH", instrument=tuple(sorted(d["detail"].get("by_symbol", {}))),
             timeframe="M5", market_regime=None, entry_conditions=f"see research/preregistrations/{art['program']}.md",
