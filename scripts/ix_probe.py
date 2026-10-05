@@ -23,7 +23,7 @@ SYMS = ["USA500IDXUSD", "USATECHIDXUSD", "USA30IDXUSD", "USSC2000IDXUSD", "DEUID
 PACE_S = 2.0
 
 
-def get(sym: str, d: date, side: str = "BID", tries: int = 6) -> dict:
+def get(sym: str, d: date, side: str = "BID", tries: int = 4) -> dict:
     url = URL.format(sym=sym, y=d.year, m=d.month - 1, d=d.day, side=side)
     t0 = time.time()
     last = ""
@@ -46,7 +46,7 @@ def get(sym: str, d: date, side: str = "BID", tries: int = 6) -> dict:
                 return {"error": last, "secs": round(time.time() - t0, 2), "attempts": k + 1}
         except Exception as exc:  # noqa: BLE001
             last = f"{type(exc).__name__}"
-        time.sleep(min(60, 5 * 2 ** k))
+        time.sleep(min(40, 5 * 2 ** k))
     return {"error": last, "secs": round(time.time() - t0, 2), "attempts": tries}
 
 
@@ -54,14 +54,15 @@ def main() -> int:
     res: dict = {}
     for s in SYMS:
         res[s] = {}
-        for y in range(2008, 2025):
+        for y in range(2008, 2025, 2):
             d = date(y, 6, 11)
             while d.weekday() != 1:  # a Tuesday
                 d += timedelta(days=1)
             res[s][str(d)] = get(s, d)
             time.sleep(PACE_S)
         print(s, {k: ("ok" if "records" in v else v.get("error", "empty")) for k, v in res[s].items()}, flush=True)
-    days = [date(2015, 1, 5) + timedelta(days=i) for i in range(60)]
+        (ROOT / "research" / "results" / "ix-probe.json").write_text(json.dumps(res, indent=1) + "\n")
+    days = [date(2015, 1, 5) + timedelta(days=i) for i in range(30)]
     t0 = time.time()
     out = []
     for d in days:
