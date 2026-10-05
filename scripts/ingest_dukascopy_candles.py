@@ -36,14 +36,17 @@ sys.path.insert(0, str(ROOT))
 from aitrader.data.bars import PERIOD_SECONDS, BarSeries  # noqa: E402
 
 URL = "https://datafeed.dukascopy.com/datafeed/{sym}/{y}/{m:02d}/{d:02d}/{side}_candles_min_1.bi5"
+URL_HOUR = "https://datafeed.dukascopy.com/datafeed/{sym}/{y}/{m:02d}/{side}_candles_hour_1.bi5"
 UA = {"User-Agent": "Mozilla/5.0 (research; aitrader candle ingest)"}
 SOURCE = "dukascopy-datafeed-candles"
 
 
-def fetch(sym: str, d: date, side: str, tries: int = 7, pace: float = 1.0) -> np.ndarray | None:
-    """Decoded minute records (offset_s, open, close, low, high, volume) or None if the day failed.
-    An empty file (no quotes that day) is an empty array, not a failure."""
-    url = URL.format(sym=sym, y=d.year, m=d.month - 1, d=d.day, side=side)
+def fetch(sym: str, d: date, side: str, tries: int = 7, pace: float = 1.0, hourly: bool = False) -> np.ndarray | None:
+    """Decoded records (offset_s, open, close, low, high, volume) of one day's minute candles, or of one
+    MONTH's hour candles (`hourly`, offsets from the month start), or None if the fetch failed. An empty
+    file (no quotes) is an empty array, not a failure."""
+    url = (URL_HOUR.format(sym=sym, y=d.year, m=d.month - 1, side=side) if hourly
+           else URL.format(sym=sym, y=d.year, m=d.month - 1, d=d.day, side=side))
     for k in range(tries):
         time.sleep(pace)
         try:
@@ -72,6 +75,22 @@ def day_minutes(sym: str, d: date, pace: float) -> tuple[np.ndarray | None, str]
     if not len(bid) or not len(ask):
         return np.zeros((0, 9)), "empty"
     base = int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp())
+    b = {int(r[0]): r for r in bid if r[5] > 0}
+    a = {int(r[0]): r for r in ask if r[5] > 0}
+    keys = sorted(set(b) & set(a))
+    rows = [(base + k, b[k][1], b[k][4], b[k][3], b[k][2], a[k][1], a[k][4], a[k][3], a[k][2]) for k in keys]
+    return np.array(rows, dtype=float).reshape(-1, 9), "ok"
+
+
+def month_hours(sym: str, d: date, pace: float) -> tuple[np.ndarray | None, str]:
+    """Rows (epoch, bid o,h,l,c, ask o,h,l,c) for the hours of d's month quoted on both sides."""
+    bid = fetch(sym, d, "BID", pace=pace, hourly=True)
+    ask = fetch(sym, d, "ASK", pace=pace, hourly=True)
+    if bid is None or ask is None:
+        return None, "failed"
+    if not len(bid) or not len(ask):
+        return np.zeros((0, 9)), "empty"
+    base = int(datetime(d.year, d.month, 1, tzinfo=timezone.utc).timestamp())
     b = {int(r[0]): r for r in bid if r[5] > 0}
     a = {int(r[0]): r for r in ask if r[5] > 0}
     keys = sorted(set(b) & set(a))
@@ -113,16 +132,30 @@ def main() -> int:
     p.add_argument("--timeframe", default="M5", choices=sorted(PERIOD_SECONDS))
     p.add_argument("--out", required=True)
     p.add_argument("--pace", type=float, default=1.0)
+    p.add_argument("--hourly", action="store_true", help="monthly hour-candle files (timeframe becomes H1)")
     args = p.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     first, last = (int(x) for x in args.years.split("-"))
     band = tuple(float(x) for x in args.band.split(","))
+    if args.hourly:
+        args.timeframe = "H1"
     period = PERIOD_SECONDS[args.timeframe]
     t0 = time.time()
     chunks, failed, empty, ok = [], [], 0, 0
     d = date(first, 1, 1)
-    while d <= date(last, 12, 31):
+    while args.hourly and d <= date(last, 12, 31):
+        rows, status = month_hours(args.symbol, d, args.pace)
+        if status == "failed":
+            failed.append(str(d))
+        elif status == "empty":
+            empty += 1
+        else:
+            ok += 1
+            chunks.append(rows)
+        print(f"{args.symbol} {d}: {status}, {time.time() - t0:.0f}s", flush=True)
+        d = date(d.year + (d.month == 12), d.month % 12 + 1, 1)
+    while not args.hourly and d <= date(last, 12, 31):
         if d.weekday() != 5:  # Saturday has no quotes
             rows, status = day_minutes(args.symbol, d, args.pace)
             if status == "failed":
@@ -156,7 +189,7 @@ def main() -> int:
         "content_sha256": digest, "bars": len(series), "minutes": int(len(m)), "price_scale": scale,
         "first": datetime.fromtimestamp(int(series.open_time[0]), timezone.utc).isoformat(),
         "last": datetime.fromtimestamp(int(series.open_time[-1]), timezone.utc).isoformat(),
-        "days_ok": ok, "days_empty": empty, "failed_days": failed, "crossed_bars": crossed,
+        "units": "months" if args.hourly else "days", "days_ok": ok, "days_empty": empty, "failed_days": failed, "crossed_bars": crossed,
         "duplicate_minutes_dropped": int((~keep).sum()), "seconds": round(time.time() - t0, 1),
     }
     (out / f"manifest_{args.symbol}_{first}_{last}.json").write_text(json.dumps(manifest, indent=1))
