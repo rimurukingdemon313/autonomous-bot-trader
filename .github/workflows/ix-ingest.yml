@@ -1,0 +1,57 @@
+# Build H1 bid/ask bars for index CFDs from Dukascopy monthly hour candles (IX-2). Only the years named in
+# the matrix are materialised: holdout years are fetched only after a candidate earns them.
+# The bars are committed to the orphan branch ix-data (data/ix/), never to main.
+name: IX H1 ingest
+on:
+  push:
+    branches: [ix-ingest]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include: [{"sym": "USA500IDXUSD", "band": "900,8000", "years": "2012-2020"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2012-2020"}, {"sym": "USA30IDXUSD", "band": "9000,80000", "years": "2012-2020"}, {"sym": "JPNIDXJPY", "band": "6000,50000", "years": "2012-2020"}, {"sym": "HKGIDXHKD", "band": "10000,60000", "years": "2012-2020"}, {"sym": "AUSIDXAUD", "band": "3000,15000", "years": "2012-2020"}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - name: Ingest
+        timeout-minutes: 330
+        continue-on-error: true
+        run: |
+          mkdir -p out
+          python scripts/ingest_dukascopy_candles.py --symbol ${{ matrix.sym }} --band ${{ matrix.band }} \
+            --years ${{ matrix.years }} --hourly --out out --pace 1.0 2>&1 | tee out/ingest_${{ matrix.sym }}_${{ matrix.years }}.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ix-${{ matrix.sym }}-${{ matrix.years }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Commit to the ix-data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git fetch -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ix-data && git checkout -q FETCH_HEAD -b ix-data || git checkout -q --orphan ix-data
+          mkdir -p data/ix
+          cp ../arts/*/* data/ix/ 2>/dev/null || true
+          ls -la data/ix
+          git add data/ix
+          git commit -q -m "IX H1 bid/ask bars 2012-2020 (Dukascopy hour candles)" || true
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ix-data
