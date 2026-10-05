@@ -39,6 +39,7 @@ def test_a_market_long_to_target_decomposes_into_gross_spread_slippage_and_commi
     tr, sk = ID.simulate(b, [s])
     t = tr[0]
     assert t.reason == "target" and t.exit == pytest.approx(1.1020)
+    assert t.entry_i == 20  # decided at bar 19's close, filled at the NEXT bar's open
     assert t.entry == pytest.approx(1.1000 + 0.00005 + 0.00001)  # ask open + slippage
     assert t.risk == pytest.approx(t.entry - 1.0990)
     assert t.slippage == pytest.approx(0.00001)  # one market fill; the target is a limit

@@ -38,6 +38,13 @@ is measured, never assumed.**
 > - Since 2009 it is gone on developed indices (0.6 bps, t 0.36). The +1.1% a year net since then
 >   is equity drift (major CFDs: +0.81%, t 0.41).
 > - It is not implemented.
+>
+> **Intraday M5 program (docs/INTRADAY_M5_REPORT.md): NO EDGE.** 16 preregistered rules on 8 FX/gold
+> instruments, 2009–2013: liquidity sweeps, BOS/FVG, CHoCH, order blocks, opening range, squeeze,
+> momentum, mean reversion, session and USD-lag. All 16 lose after costs (−0.095 to −0.187R a trade).
+> The best gross edge is +0.106R against about 0.17R of spread, commission and slippage. The sweeps
+> carry no information over matched random entries. Nothing reached validation; the 2017+ holdout
+> is still sealed.
 
 ---
 

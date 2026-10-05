@@ -36,9 +36,10 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.7.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.8.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
-#                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe
+#                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
+#                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -297,6 +298,32 @@ def from_retail(judged: dict, holdouts: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+def from_intraday(art: dict) -> list[EdgeRecord]:
+    """Records of an intraday program (ID-*). Expectancies are NET R PER TRADE after measured spread,
+    commission, slippage and financing; gross is mid-to-mid. A hypothesis not promoted on development
+    is REJECTED there; a promoted one is decided by its validation gates."""
+    out = []
+    for hid, d in sorted(art["development"].items()):
+        s = d["summary"]
+        v = art.get("validation", {}).get(hid)
+        stage = v["summary"] if v else s
+        status = "TESTING" if v and v["passed"] else "REJECTED"
+        failed = tuple(f"development:{k}" for k, x in d["gates"].items() if not x)
+        if v:
+            failed += tuple(f"validation:{k}" for k, x in v["gates"].items() if not x)
+        out.append(EdgeRecord(
+            edge_id=hid, program=art["program"], direction="BOTH", instrument=tuple(sorted(d["detail"].get("by_symbol", {}))),
+            timeframe="M5", market_regime=None, entry_conditions=f"see research/preregistrations/{art['program']}.md",
+            exit_conditions="stop / target / time (bid/ask)", sample_size=stage.get("trades"),
+            gross_expectancy=_r(stage.get("gross_r")), net_expectancy=_r(stage.get("net_r")), t_stat=_r(stage.get("t_day"), 3),
+            t_required=art.get("t_required_validation"), profit_factor=stage.get("profit_factor"),
+            drawdown=_r(stage.get("max_drawdown_pct")), out_of_sample_expectancy=_r(v["summary"].get("net_r")) if v else None,
+            walk_forward_expectancy=None, cost_sensitivity=None, complexity=1, stability={"by_year": d["detail"].get("by_year")},
+            status=status, failed_checks=failed, source=f"research/knowledge/{art['program']}.json",
+            note=f"intraday: net R per trade after costs; beats matched random by Welch t {d.get('vs_matched_random_welch_t')}"))
+    return out
+
+
 def build(root: Path | str) -> dict:
     """The registry from what is committed under research/. Deterministic: sorted by edge id."""
     root = Path(root)
@@ -383,6 +410,12 @@ def build(root: Path | str) -> dict:
             continue
         if isinstance(art, dict) and art.get("kind") == "retail":
             retail.append(art)
+    for p in sorted((root / "knowledge").glob("ID-*.json")):
+        art = json.loads(p.read_text())
+        if isinstance(art, dict) and "development" in art and "promoted" in art:
+            edges += from_intraday(art)
+            programs[art["program"]] = {"verdict": art.get("verdict"), "judged": len(art["development"]),
+                                        "validated": [], "threshold_t": art.get("t_required_validation")}
     holds = [a for a in retail if a.get("holdout_of")]
     for art in (a for a in retail if not a.get("holdout_of")):
         edges += from_retail(art, holds)

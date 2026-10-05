@@ -4,6 +4,17 @@ The mission: find out why the system is not profitable, and find a real, defensi
 the data available to this repository, or prove with numbers that the data cannot support
 one. No historical result was edited. The FX holdout (2017+) is still sealed.
 
+## 000. Update: the intraday M5 program
+
+`docs/INTRADAY_M5_REPORT.md` (ID-1): 16 preregistered M5 rules (liquidity/SMC, price/volatility,
+cross-market, hybrids) on 8 FX/gold instruments, 2009–2013.
+
+- **Verdict: NO EDGE.** Every rule is net negative (−0.095 to −0.187R a trade); random entries
+  lose almost exactly their cost.
+- Costs are about 0.17R a trade; the best gross is +0.106R.
+- Nothing was promoted, so validation was never computed; the fx-majors 2017+ holdout is still
+  sealed.
+
 ## 00. Update: the retail-CFD program (supersedes §0 where they differ)
 
 `docs/RETAIL_RESEARCH_REPORT.md`: RC-EQ, RC-FX and RC-EQ2, ten preregistered families judged after
