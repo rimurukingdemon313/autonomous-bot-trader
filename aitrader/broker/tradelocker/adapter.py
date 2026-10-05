@@ -32,7 +32,7 @@ from ...data.bars import BarSeries
 from ...observability import log_event
 from ...risk.engine import InstrumentSpec, Quote
 from ..base import (
-    AccountSnapshot, AmbiguousExecution, BrokerError, BrokerPosition, BrokerRejected, ClosedTrade, Fill,
+    AccountSnapshot, AmbiguousExecution, BrokerError, BrokerPosition, ClosedTrade, Fill,
 )
 from ._compat import TradingConfig
 from .client import TradeLockerBroker
@@ -40,6 +40,11 @@ from .demo_guard import verify_demo
 from .history import TIMEFRAME_MINUTES
 
 ADAPTER_VERSION = "tradelocker-adapter-1.0.0"
+
+
+#: tickValue and the account-currency conversion rate must agree within this (takeover audit): the broker
+#: does not state which currency tickValue is in, and a quote-currency value would mis-size every order.
+TICK_VALUE_TOLERANCE = 0.05
 
 
 class TradeLockerAdapter:
@@ -113,11 +118,20 @@ class TradeLockerAdapter:
             s = self.client.instrument(symbol)
         except BrokerError:
             return None
+        quote_ccy = s.quote_currency or symbol[3:6]
+        rate = self._rate(quote_ccy, s.account_currency or "USD")
         if s.tick_value and s.tick_size and s.contract_size:
             value = s.tick_value / (s.tick_size * s.contract_size)
+            # The broker does not state the currency of tickValue. If it were the QUOTE currency (EURGBP:
+            # GBP), sizing would be off by the GBP rate: about 27% too large. When a conversion rate is
+            # available the two must agree within 5%; a disagreement refuses the instrument (no size).
+            if rate is not None and abs(value / rate - 1) > TICK_VALUE_TOLERANCE:
+                log_event("BROKER", f"{symbol}: tickValue implies {value:.6g} per price unit per unit, the "
+                          f"{quote_ccy}->{s.account_currency or 'USD'} rate implies {rate:.6g}: refused",
+                          severity="critical", symbol=symbol)
+                return None
         else:
-            quote_ccy = s.quote_currency or symbol[3:6]
-            value = self._rate(quote_ccy, s.account_currency or "USD")
+            value = rate
             if value is None:
                 return None  # cannot value a move: no size, no trade
         return InstrumentSpec(symbol, float(s.contract_size), float(s.min_lot), float(s.lot_step),

@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from ..risk.engine import HARD_MAX_RISK_PCT, FundedRules, RiskLimits
+from ..risk.engine import HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits
 
 DEFAULT_SYMBOLS = ("EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
                    "EURGBP", "EURJPY", "GBPJPY", "EURCHF", "AUDJPY")
@@ -104,11 +104,24 @@ class ServiceConfig:
                 max_risk_per_trade_pct=_f(e, "FUNDED_MAX_RISK_PCT", None),
                 no_weekend_holding=e.get("FUNDED_NO_WEEKEND", "false").lower() == "true",
                 max_lots=_f(e, "FUNDED_MAX_LOTS", None))
+        # Every limit may be lowered (stricter) by its variable, never raised above the build's value:
+        # a variable that could loosen a limit is a way around the risk engine (takeover audit).
+        base = RiskLimits()
+
+        def tighter(key, ceiling):
+            v = _f(e, key, ceiling)
+            if not v > 0:
+                raise ServiceConfigError(f"{key} must be a positive number, got {v}")
+            return min(v, ceiling)
+
         risk = RiskLimits(
-            risk_per_trade_pct=min(_f(e, "RISK_PER_TRADE_PCT", 0.5), HARD_MAX_RISK_PCT),
-            daily_loss_limit_pct=_f(e, "RISK_DAILY_LOSS_PCT", 2.0),
-            max_drawdown_pct=_f(e, "RISK_MAX_DRAWDOWN_PCT", 8.0),
-            max_open_positions=int(_f(e, "RISK_MAX_OPEN_POSITIONS", 3)),
+            risk_per_trade_pct=min(tighter("RISK_PER_TRADE_PCT", base.risk_per_trade_pct), HARD_MAX_RISK_PCT,
+                                   UNVALIDATED_MAX_RISK_PCT),
+            daily_loss_limit_pct=tighter("RISK_DAILY_LOSS_PCT", base.daily_loss_limit_pct),
+            weekly_loss_limit_pct=tighter("RISK_WEEKLY_LOSS_PCT", base.weekly_loss_limit_pct),
+            max_open_risk_pct=tighter("RISK_MAX_OPEN_RISK_PCT", base.max_open_risk_pct),
+            max_drawdown_pct=tighter("RISK_MAX_DRAWDOWN_PCT", base.max_drawdown_pct),
+            max_open_positions=int(tighter("RISK_MAX_OPEN_POSITIONS", base.max_open_positions)),
             # A ceiling may be lowered (stricter), never raised above the evidence-based 25%.
             max_cost_to_risk=min(_f(e, "RISK_MAX_COST_TO_RISK", 0.25), 0.25),
             # A public feed timestamps its price itself and may lag a broker's by up to a minute.
@@ -135,9 +148,13 @@ class ServiceConfig:
         if not 0 <= per_cycle <= len(symbols):
             raise ServiceConfigError(f"SYMBOLS_PER_CYCLE must be 0 (all) or 1..{len(symbols)}, got {per_cycle}")
         experimental_execute = _flag(e, "EXPERIMENTAL_EXECUTE", False)
-        if experimental_execute and mode != "DEMO":
-            raise ServiceConfigError("EXPERIMENTAL_EXECUTE applies to MODE=DEMO only (PAPER always simulates): "
-                                     "unset it, or set MODE=DEMO")
+        if experimental_execute:
+            # Takeover audit: no edge is VALIDATED (research_status.json), so nothing unvalidated may reach a
+            # broker, demo included. DEMO runs as a shadow: every proposal is priced by the risk engine and
+            # followed forward, and no order is sent.
+            raise ServiceConfigError("EXPERIMENTAL_EXECUTE=true is not available: no edge is VALIDATED "
+                                     "(research_status.json), so DEMO sends no unvalidated order; it records "
+                                     "and follows every proposal as SHADOW")
         max_age = int(_f(e, "EXEC_MAX_DECISION_AGE_S", 900))
         if not 30 <= max_age <= 3600:
             raise ServiceConfigError(f"EXEC_MAX_DECISION_AGE_S must be 30..3600, got {max_age}")

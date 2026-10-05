@@ -12,7 +12,7 @@ from aitrader.research.discovery.screen import Grid, screen
 from aitrader.research.discovery.stats import bh, cluster_t, deflated_sharpe, p_one_sided, week_of
 from aitrader.research.discovery.study import (PURGE_BARS, Binning, Condition, Segment, Study, epoch, fit_binning,
                                                greedy, segment_rows)
-from aitrader.research.labels import BUY, SELL, CostModel
+from aitrader.research.labels import BUY, CostModel
 from tests.unit.discovery_market import planted
 
 FREE = CostModel(0.0, 0.0, 0.0)

@@ -23,7 +23,7 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Mapping
 
 from ._compat import from_epoch, utc_now
 from ._compat import BrokerError, BrokerRejected

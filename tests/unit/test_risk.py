@@ -26,7 +26,7 @@ def decision(side="BUY", stop=1.0980, target=1.1040, conf=0.6, edge=0.1, did="d1
 
 def account(**kw):
     base = dict(equity=20_000.0, balance=20_000.0, day_start_equity=20_000.0, peak_equity=20_000.0,
-                start_balance=20_000.0)
+                start_balance=20_000.0, week_start_equity=20_000.0)
     base.update(kw)
     return AccountState(**base)
 
@@ -34,9 +34,9 @@ def account(**kw):
 def test_a_clean_proposal_is_sized_from_equity_and_stop_only():
     v = RiskEngine().evaluate(decision(), account(), SPEC, Q, NOW)
     assert v.approved, v.reasons
-    # 0.5% of 20,000 = 100; stop distance 0.0021 -> 210 per lot -> 0.47 lots
-    assert v.qty == pytest.approx(0.47)
-    assert v.risk_amount <= 100.0 + 1e-9
+    # 0.25% of 20,000 = 50 (the cap while no edge is validated); stop distance 0.0021 -> 210 per lot -> 0.23 lots
+    assert v.qty == pytest.approx(0.23)
+    assert v.risk_amount <= 50.0 + 1e-9
 
 
 def test_ai_confidence_and_claimed_edge_cannot_change_the_size():
@@ -105,7 +105,8 @@ def test_duplicates_same_symbol_and_exposure_limits():
 
 
 def test_a_position_too_small_to_respect_risk_is_rejected_not_rounded_up():
-    v = RiskEngine().evaluate(decision(), account(equity=100.0, day_start_equity=100.0, peak_equity=100.0), SPEC, Q, NOW)
+    v = RiskEngine().evaluate(decision(), account(equity=100.0, day_start_equity=100.0, peak_equity=100.0,
+                                                     week_start_equity=100.0), SPEC, Q, NOW)
     assert not v.approved and any(r.startswith("min_lot") for r in v.reasons)
 
 
@@ -203,3 +204,51 @@ def test_the_cost_ceiling_can_only_be_tightened_by_configuration():
     from aitrader.service.config import ServiceConfig
     assert ServiceConfig.from_env({"RISK_MAX_COST_TO_RISK": "0.9"}).risk.max_cost_to_risk == 0.25
     assert ServiceConfig.from_env({"RISK_MAX_COST_TO_RISK": "0.1"}).risk.max_cost_to_risk == 0.1
+
+
+# ── takeover audit (risk-1.2.0): each rule below was absent or failed open before ─────────────────
+
+def test_risk_per_trade_is_capped_at_a_quarter_percent_while_nothing_is_validated():
+    from aitrader.risk.engine import UNVALIDATED_MAX_RISK_PCT
+    v = RiskEngine(RiskLimits(risk_per_trade_pct=1.0)).evaluate(decision(), account(), SPEC, Q, NOW)
+    assert UNVALIDATED_MAX_RISK_PCT == 0.25
+    assert v.approved and v.risk_pct <= 0.25 + 1e-9
+
+
+@pytest.mark.parametrize("missing,check", [("day_start_equity", "daily_loss"), ("week_start_equity", "weekly_loss"),
+                                           ("peak_equity", "drawdown")])
+def test_unknown_reference_equity_fails_instead_of_being_replaced_by_the_current_one(missing, check):
+    v = RiskEngine().evaluate(decision(), account(**{missing: None}), SPEC, Q, NOW)
+    assert not v.approved and any(r.startswith(check) for r in v.reasons)
+
+
+def test_the_weekly_loss_limit_stops_new_trades():
+    v = RiskEngine().evaluate(decision(), account(equity=19_100.0, day_start_equity=19_100.0, peak_equity=19_100.0),
+                              SPEC, Q, NOW)  # -4.5% this week, the day itself flat
+    assert not v.approved and any(r.startswith("weekly_loss") for r in v.reasons)
+
+
+def test_total_open_risk_is_capped_and_an_open_position_of_unknown_risk_blocks():
+    full = account(open_positions=[{"symbol": "AUDJPY", "side": 1, "qty": 0.1, "risk_amount": 140.0, "notional": 0.0}])
+    v = RiskEngine().evaluate(decision(), full, SPEC, Q, NOW)  # 140 + 50 > 0.75% of 20,000 = 150
+    assert not v.approved and any(r.startswith("open_risk") for r in v.reasons)
+    unknown = account(open_positions=[{"symbol": "AUDJPY", "side": 1, "qty": 0.1, "risk_amount": None, "notional": 0.0}])
+    v2 = RiskEngine().evaluate(decision(), unknown, SPEC, Q, NOW)
+    assert not v2.approved and any(r.startswith("open_risk") for r in v2.reasons)
+
+
+def test_flagged_market_data_is_rejected_in_the_risk_engine_whatever_the_decision_mode():
+    v = RiskEngine().evaluate(decision(), account(), SPEC, Q, NOW, data_flags=["latest bar closed 180 minutes ago"])
+    assert not v.approved and any(r.startswith("data_quality") for r in v.reasons)
+
+
+def test_a_time_exit_trade_needs_no_target_but_always_a_protective_stop():
+    d = decision(target=None)
+    d.exit_kind = "TIME"
+    v = RiskEngine().evaluate(d, account(), SPEC, Q, NOW)
+    assert v.approved, v.reasons
+    no_stop = decision(stop=None, target=None)
+    no_stop.exit_kind = "TIME"
+    assert not RiskEngine().evaluate(no_stop, account(), SPEC, Q, NOW).approved
+    plain = decision(target=None)  # a stop-and-target trade without a target is still refused
+    assert not RiskEngine().evaluate(plain, account(), SPEC, Q, NOW).approved

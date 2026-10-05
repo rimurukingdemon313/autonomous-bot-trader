@@ -65,10 +65,10 @@ def test_experimental_trades_run_end_to_end_on_paper_and_are_labelled_and_measur
     assert props, "the experimental AI should have proposed trades"
     assert {p["signal_class"] for p in props} == {"EXPERIMENTAL_AI"}
     assert {p["edge_status"] for p in props} == {"EXPERIMENTAL"}  # never VALIDATED, whatever it says
-    assert all(p["route"] in ("EXECUTE", "REJECTED") for p in props)  # PAPER simulates
+    # A model's own trade is SHADOW even on paper (takeover audit): followed forward, never executed.
+    assert {p["route"] for p in props} <= {"SHADOW", "REJECTED"} and any(p["route"] == "SHADOW" for p in props)
     assert all(p["confidence"] == 0.55 and p["partition"] in ("LEARNING", "EVALUATION") for p in props)
-    trades = rt.db.query("SELECT payload FROM trades")
-    assert trades and all(json.loads(t["payload"])["decision"]["family"] == "EXPERIMENTAL_AI" for t in trades)
+    assert rt.db.query("SELECT 1 FROM trades") == [] and rt.db.query("SELECT 1 FROM intents") == []
     outs = rt.db.query("SELECT payload FROM forward_outcomes")
     assert outs, "forward outcomes resolve as bars complete"
     for o in map(lambda r: json.loads(r["payload"]), outs):
@@ -126,16 +126,24 @@ def test_unresolved_proposals_survive_a_restart_and_resolve_after_it(tmp_path, m
     assert resolved & {r["decision_id"] for r in before}
 
 
-def test_the_model_never_reads_an_evaluation_week_trade(tmp_path, monkeypatch):
+def test_the_model_never_reads_an_evaluation_week_trade(tmp_path):
+    """Model trades are SHADOW now (takeover audit), so the runtime can no longer produce model trades for
+    this filter to see: the filter is tested directly on recorded trades from both partitions."""
+    from aitrader.agents.llm_trader import FAMILY
     from aitrader.learning.forward import partition
-    seen = []
-    rt, clock = runtime(tmp_path, monkeypatch, mode="llm_trader", seen=seen)
-    rt.resume()
-    run(rt, clock, 24 * 30)
-    shown = [t for u in seen for t in (u.get("memory") or {}).get("relevant_past_trades", [])]
-    assert all(partition(int(t["opened"])) == "LEARNING" for t in shown)
-    closed = [json.loads(r["payload"])["position"]["opened"] for r in rt.db.query("SELECT payload FROM trades")]
-    assert shown and any(partition(int(o)) == "EVALUATION" for o in closed)  # the filter had work to do
+    from aitrader.memory.db import Database
+    from aitrader.memory.trade_memory import TradeMemory
+    db = Database(tmp_path / "m.db")
+    t0 = 1_700_000_000
+    weeks = [t0 + k * 7 * 86400 for k in range(6)]
+    for k, opened in enumerate(weeks):
+        db.append("trades", {"position_id": f"p{k}", "decision_id": f"d{k}", "symbol": "EURUSD", "r": 1.0,
+                             "pnl": 1.0, "payload": {"decision": {"id": f"d{k}", "family": FAMILY},
+                                                     "position": {"opened": opened, "side": "BUY"}}})
+    kept = [json.loads(r["payload"])["position"]["opened"] for r in TradeMemory(db)._rows()]
+    assert {partition(o) for o in weeks} == {"LEARNING", "EVALUATION"}  # the filter has work to do
+    assert kept and all(partition(int(o)) == "LEARNING" for o in kept)
+    assert len(kept) == sum(partition(o) == "LEARNING" for o in weeks)
 
 
 @pytest.fixture()

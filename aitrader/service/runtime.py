@@ -22,7 +22,6 @@ import os
 import threading
 import time
 import traceback
-from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -33,10 +32,8 @@ from ..data.calendar import EconomicCalendar
 from ..memory.history import HistoryDesk
 from ..backtest.metrics import summarise
 from ..broker.paper import PaperBroker
-from ..data.bars import BarSeries
 from ..decision.synthesis import EvidenceSynthesizer
 from ..execution.engine import ExecutionEngine
-from ..features.store import LOOKBACK
 from ..learning.experience import ExperienceView
 from ..learning import metrics as fwd_metrics
 from ..learning.forward import partition as fwd_partition
@@ -420,8 +417,10 @@ class Runtime:
                 rep["account"] = None
                 rep.setdefault("error", f"account/positions unreadable: {type(exc).__name__}: {exc}")
             self.health["reconcile"] = {"t": self.clock(), **rep}
-            if rep.get("error") or rep.get("orphans"):
-                self.db.set_kv("paused", True, reason=f"startup reconciliation: {rep.get('error') or 'orphan positions'}")
+            if rep.get("error") or rep.get("orphans") or rep.get("still_unknown"):
+                why = rep.get("error") or ("orphan positions" if rep.get("orphans") else
+                                           f"{len(rep['still_unknown'])} order(s) of unknown outcome")
+                self.db.set_kv("paused", True, reason=f"startup reconciliation: {why}")
         except Exception as exc:
             self.health["reconcile"] = {"t": self.clock(), "error": f"{type(exc).__name__}: {exc}"}
             self.db.set_kv("paused", True, reason="startup reconciliation failed")
@@ -570,8 +569,8 @@ class Runtime:
             th.join(timeout=10)
         try:
             self.memory.save(Path(self.cfg.data_dir) / "memory_live.npz")
-        except Exception:
-            pass
+        except Exception as exc:  # said, not swallowed: patterns grown since the last save are lost
+            log_event("SHUTDOWN", f"live memory not saved: {type(exc).__name__}: {exc}", severity="critical")
 
     # ── controls (the dashboard can make it safer; resuming needs the token) ──
 
@@ -684,6 +683,8 @@ class Runtime:
             "all": fwd_metrics.stats(rows), "learning": fwd_metrics.stats(learn), "evaluation": fwd_metrics.stats(ev),
             "baseline_evaluation_mean_r": baseline,
             "by_signal_class": by_class,
+            # Track A (deterministic) vs Track B (the same minus the advisory model's would-be vetoes)
+            "ai_veto_ab": fwd_metrics.ai_veto_ab(rows),
             "by_route": fwd_metrics.breakdown(rows, lambda r: r.get("route")),
             "by_edge_status": fwd_metrics.breakdown(rows, lambda r: r.get("edge_status")),
             "by_symbol": fwd_metrics.breakdown(rows, lambda r: r["symbol"]),

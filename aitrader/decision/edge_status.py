@@ -21,7 +21,7 @@ by the risk engine, followed forward, and never sent.
 
 from __future__ import annotations
 
-EDGE_STATUS_VERSION = "edge-status-1.0.0"
+EDGE_STATUS_VERSION = "edge-status-1.1.0"  # 1.1.0: model-originated trades are SHADOW
 EDGE_STATUSES = ("VALIDATED", "PROMISING", "EXPERIMENTAL", "NONE")
 
 SIGNAL_CLASS = {"evidence": "EVIDENCE", "llm_trader": "LLM_TRADER", "trading_room": "TRADING_ROOM",
@@ -46,11 +46,17 @@ def classify(decision, decision_mode: str, promoted: list | None = None) -> str:
     return "EXPERIMENTAL"
 
 
-def execution_route(edge_status: str, mode: str, experimental_execute: bool) -> str:
+def execution_route(edge_status: str, mode: str, experimental_execute: bool, ai_originated: bool = False) -> str:
     """EXECUTE | SHADOW | NONE for one decision. LIVE does not exist here: config refuses it, and any
-    mode this function does not know is SHADOW (fail closed). BACKTEST is a simulation, like PAPER."""
+    mode this function does not know is SHADOW (fail closed). BACKTEST is a simulation, like PAPER.
+
+    `ai_originated`: the trade was proposed by a language model (llm_trader, trading_room,
+    experimental_ai). Such a trade is SHADOW in every mode, paper included: a model may not create a
+    trade until forward evidence shows it adds value (takeover audit, docs/TAKEOVER_AUDIT.md)."""
     if edge_status == "NONE":
         return "NONE"
+    if ai_originated:
+        return "SHADOW"
     if mode not in ("PAPER", "BACKTEST", "DEMO"):
         return "SHADOW"
     if edge_status == "VALIDATED":

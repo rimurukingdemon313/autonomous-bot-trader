@@ -277,3 +277,21 @@ def test_only_a_promoted_healthy_validated_edge_is_validated():
 ])
 def test_routing(status, mode, flag, route):
     assert execution_route(status, mode, flag) == route
+
+
+def test_the_ai_veto_ab_comparison_uses_identical_proposals_and_needs_a_real_difference():
+    """Takeover audit, step 9: Track B is Track A minus the would-vetoed proposals; nothing else differs."""
+    rows = []
+    for i in range(240):
+        vetoed = i % 2 == 0
+        net = (-0.4 if vetoed else 0.1) + (0.05 if i % 7 == 0 else 0.0)
+        rows.append(row(net, i=i, ai_would_veto=vetoed))
+    rep = metrics.ai_veto_ab(rows)
+    assert rep["track_a"]["n"] == 240 and rep["track_b"]["n"] == 120 and rep["vetoed"]["n"] == 120
+    assert rep["vetoed"]["avoided_losers"] == 120 and rep["t_kept_minus_vetoed"] > 2
+    assert rep["verdict"].startswith("VETO_HELPS")
+    useless = [row(0.05 if i % 2 else -0.05, i=i, ai_would_veto=bool(i % 3 == 0)) for i in range(240)]
+    assert not metrics.ai_veto_ab(useless)["verdict"].startswith("VETO_HELPS")
+    assert metrics.ai_veto_ab(rows[:20])["verdict"] == "INSUFFICIENT"
+    unrecorded = [row(0.1, i=i) for i in range(50)]  # no model opinion recorded: outside the experiment
+    assert metrics.ai_veto_ab(unrecorded)["track_a"]["n"] == 0

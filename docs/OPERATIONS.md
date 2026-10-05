@@ -112,10 +112,15 @@ Every decision carries an **edge status** (docs/FORWARD_VALIDATION.md):
 VALIDATED, PROMISING, EXPERIMENTAL or NONE. Today no edge is validated, so
 every trade is **EXPERIMENTAL**.
 
-| | PAPER | DEMO, `EXPERIMENTAL_EXECUTE=false` (default) | DEMO, `EXPERIMENTAL_EXECUTE=true` |
-|---|---|---|---|
-| VALIDATED | executed (simulated) | sent to the demo account | sent to the demo account |
-| PROMISING / EXPERIMENTAL | executed (simulated) | **SHADOW**: risk-checked, recorded, followed forward, never sent | sent to the demo account |
+| | PAPER | DEMO |
+|---|---|---|
+| VALIDATED | executed (simulated) | sent to the demo account |
+| PROMISING / EXPERIMENTAL | executed (simulated) | **SHADOW**: risk-checked, recorded, followed forward, never sent |
+| proposed by a language model (any status) | **SHADOW** | **SHADOW** |
+
+`EXPERIMENTAL_EXECUTE=true` is refused at startup since the takeover audit
+(docs/TAKEOVER_AUDIT.md): nothing is validated, so nothing unvalidated may
+reach even a demo account.
 
 The execution engine checks the same rule again before any order, so no
 other code path can send an unvalidated trade. Shadow and executed trades
@@ -133,10 +138,6 @@ Paper (the default; nothing reaches a broker):
 Demo, shadow only (orders are never sent for unvalidated trades):
 
     MODE=DEMO  PAPER_MODE=false  LIVE_TRADING=false  TRADELOCKER_EMAIL/PASSWORD/SERVER/ACCOUNT_ID=<demo account>
-
-Demo, executing experimental trades on the **demo** account (explicit opt-in):
-
-    MODE=DEMO  PAPER_MODE=false  LIVE_TRADING=false  EXPERIMENTAL_EXECUTE=true
 
 Then open the dashboard and press **Resume** with the token. Locally:
 `python -m aitrader` with the same variables in the environment.

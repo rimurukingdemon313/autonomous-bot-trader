@@ -145,8 +145,11 @@ class Orchestrator:
         for fn in self.listeners:
             try:
                 fn(type_, payload)
-            except Exception:
-                pass
+            except Exception as exc:  # a listener (the dashboard) never stops a cycle, but its failure is said
+                self.status.setdefault("listener_errors", 0)
+                self.status["listener_errors"] += 1
+                if self.status["listener_errors"] <= 3:
+                    self.db.event("LISTENER_ERROR", {"type": type_, "error": f"{type(exc).__name__}: {exc}"[:200]})
 
     # ── bars: the market moves ──────────────────────────────────────────
 
@@ -212,9 +215,7 @@ class Orchestrator:
         except BrokerError:
             equity = balance = None
         try:
-            positions = [{"symbol": p.symbol, "side": p.side, "qty": p.qty,
-                          "notional": p.qty * (100 if p.symbol.startswith("XAU") else 100_000) * p.entry}
-                         for p in self.broker.positions()]
+            positions = [self._position_exposure(p) for p in self.broker.positions()]
         except BrokerError:
             positions = None
         day = int(bucket_start(np.array([t]), "D1")[0])
@@ -222,6 +223,11 @@ class Orchestrator:
         if equity is not None and (not ds or ds.get("day") != day):
             ds = {"day": day, "equity": equity}
             self.db.set_kv("day_start", ds, reason="new trading day")
+        week = int((t // 86400 - 4) // 7)  # ISO weeks: day 4 of the epoch is a Monday
+        ws = self.db.get_kv("week_start", None)
+        if equity is not None and (not ws or ws.get("week") != week):
+            ws = {"week": week, "equity": equity}
+            self.db.set_kv("week_start", ws, reason="new trading week")
         peak = self.db.get_kv("peak_equity", None)
         if equity is not None and (peak is None or equity > peak):
             peak = equity
@@ -235,6 +241,7 @@ class Orchestrator:
         kill = None if not isinstance(ks, dict) or "active" not in ks else bool(ks["active"])
         state = AccountState(
             equity=equity, balance=balance, day_start_equity=(ds or {}).get("equity"), peak_equity=peak,
+            week_start_equity=(ws or {}).get("equity"),
             start_balance=self.cfg.start_balance, open_positions=positions if positions is not None else [],
             closed_r=list(self._closed_r[-30:]), kill_switch=kill if positions is not None else None,
             paused=bool(self.db.get_kv("paused", False)), halted=bool(self.db.get_kv("halted", False)))
@@ -242,6 +249,21 @@ class Orchestrator:
         view = AccountView(equity, balance, dd, [{"symbol": p["symbol"], "side": p["side"]} for p in (positions or [])],
                            ((equity - ds["equity"]) / ds["equity"] * 100) if equity and ds else None)
         return state, view
+
+    def _position_exposure(self, p) -> dict:
+        """An open position's notional and risk at its stop, in the ACCOUNT currency, from the broker's own
+        instrument spec. (Before the takeover audit the notional was qty x 100,000 x price in the QUOTE
+        currency, so one USDJPY lot counted as ~15,000,000 and blocked every other trade on leverage.)
+        Unknown spec or stop -> None, which the risk engine treats as unknown, never as zero."""
+        try:
+            spec = self.broker.spec(p.symbol)
+        except BrokerError:
+            spec = None
+        if spec is None:
+            return {"symbol": p.symbol, "side": p.side, "qty": p.qty, "notional": float("inf"), "risk_amount": None}
+        unit = p.qty * spec.contract_size * spec.value_per_price_unit
+        risk = abs(p.entry - p.stop) * unit if getattr(p, "stop", None) else None
+        return {"symbol": p.symbol, "side": p.side, "qty": p.qty, "notional": unit * p.entry, "risk_amount": risk}
 
     def _frames(self, symbol: str, t: int, h1) -> tuple[dict, float | None]:
         """Feature values at the last COMPLETED bar of M15 (execution), H1 and H4 (context), and the
@@ -357,7 +379,7 @@ class Orchestrator:
                 spec = self.broker.spec(symbol)
             except BrokerError:
                 spec = None
-            verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids())
+            verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags)
             if not self.db.one("SELECT 1 AS x FROM risk_verdicts WHERE decision_id=?", (d.id,)):
                 self.db.append("risk_verdicts", {"decision_id": d.id, "approved": int(verdict.approved),
                                                  "payload": verdict.as_dict()})
@@ -365,7 +387,10 @@ class Orchestrator:
                         {"id": d.id, "reasons": verdict.reasons, "qty": verdict.qty}, ref=d.id, key=True)
             if verdict.halt:
                 self.db.set_kv("halted", True, reason=verdict.halt)
-            route = execution_route(d.edge_status, self.cfg.mode, self.cfg.experimental_execute)
+            # A language model's own trade is research only: recorded and followed forward, never sent
+            # (takeover audit: no forward evidence that it adds value; it may not create trades).
+            route = execution_route(d.edge_status, self.cfg.mode, self.cfg.experimental_execute,
+                                    ai_originated=mode in MODEL_MODES)
             if verdict.approved and route == "EXECUTE":
                 res = self.execution.execute(d, verdict, meta={"swap_per_night": self.cfg.costs.swap_atr_per_night * (atr or 0)})
                 executed = res.status == "FILLED"

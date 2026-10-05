@@ -199,12 +199,14 @@ class Brain:
                 opinions.append({"agent": f"{agent}_llm", "ok": False, "status": res.status})
                 continue
             data = res.data or {}
-            for o in data.get("objections", []):
-                host = reports.get(agent) or reports["adversary"]
-                host.objections.append(Objection(o["code"], o["severity"], f"{agent}+llm",
-                                                 str(o.get("reason", ""))[:300]))
+            # Takeover audit: the model's objections are RECORDED, not applied. No forward evidence shows that
+            # its veto improves outcomes (Track B vs Track A, docs/TAKEOVER_AUDIT.md), so it stays out of the
+            # decision path; the forward ledger keeps what it would have vetoed, for that comparison.
             opinions.append({"agent": f"{agent}_llm", "ok": True, "stance": data.get("stance"),
                              "direction": data.get("direction", "NONE"), "summary": data.get("summary", ""),
+                             "objections": [{"code": o["code"], "severity": o["severity"],
+                                             "reason": str(o.get("reason", ""))[:300]}
+                                            for o in data.get("objections", [])],
                              "model": res.model, "latency_ms": res.latency_ms})
         return opinions
 
@@ -230,7 +232,14 @@ class Brain:
         else:
             opinions = self._llm_reviews(ctx, reports)
             t2 = time.perf_counter()
-            decision = self.synth.synthesize(ctx, reports, versions, opinions)
+            # The model's opinions are advisory: synthesis sees none of them (see _llm_reviews).
+            decision = self.synth.synthesize(ctx, reports, versions, [])
+            if opinions:
+                would = [o for op in opinions if op.get("ok") for o in op.get("objections", [])
+                         if o["severity"] in ("BLOCKING", "MAJOR")]
+                decision.ai = {**(decision.ai or {}), "advisory_only": True, "opinions": opinions,
+                               "would_veto": bool(would) and decision.is_trade, "would_veto_codes":
+                               sorted({o["code"] for o in would})}
         return Thought(decision, reports, opinions,
                        {"agents": round((t1 - t0) * 1000, 2), "llm": round((t2 - t1) * 1000, 2),
                         "total": round((time.perf_counter() - t0) * 1000, 2)})

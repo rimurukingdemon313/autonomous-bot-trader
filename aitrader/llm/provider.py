@@ -58,7 +58,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Callable
 
 PROMPT_VERSION = "prompt-1.0.0"
 

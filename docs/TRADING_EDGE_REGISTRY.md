@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 115 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 117 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -106,9 +106,9 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
 | DIV1-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | +0.001 | +0.15 (3.00) | -0.007 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
-| DIV2-H1-TSMOM12 | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.017 | +4.34 (3.00) | +0.016 | — | 1 | **VALIDATED** | — |
+| DIV2-H1-TSMOM12 | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.017 | +4.34 (3.00) | +0.016 | — | 1 | **REJECTED** | holdout (t 0.263 < 2.5) |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t 0.263 | | | | | | | | | |
-| DIV2-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.015 | +4.38 (3.00) | +0.015 | — | 1 | **REJECTED** | holdout |
+| DIV2-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.015 | +4.38 (3.00) | +0.015 | — | 1 | **REJECTED** | holdout (t -0.636 < 2.5) |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t -0.636 | | | | | | | | | |
 | FLOW1-H1-GOTOBI-PRE | BUY | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | -1.328 | -1.68 (3.43) | -3.370 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, specificity |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
@@ -214,7 +214,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 2 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
 | RCEQ-E7-ENSEMBLE | BOTH | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +2.02 (3.00) | +0.001 | — | 1 | **REJECTED** | t, holdout:t, holdout:costs_x2 |
 | ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout REJECTED: 441 months, net t 1.438 | | | | | | | | | |
-| RCEQ2-E8-HALLOWEEN | BUY | D1 | `see research/preregistrations/RC-EQ2.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.003 | +2.27 (3.00) | +0.002 | — | 1 | **PROMISING** | t, drawdown, region |
+| RCEQ2-E8-HALLOWEEN | BUY | D1 | `see research/preregistrations/RC-EQ2.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.003 | +2.27 (3.00) | +0.002 | — | 1 | **REJECTED** | t, drawdown, region |
 | ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |
 | RCFX-X1-COMPOSITE | BOTH | D1 | `see research/preregistrations/RC-FX.md` | rule exit (calendar, signal or monthly rebalance) | 324 | +0.001 | +1.72 (3.46) | +0.000 | — | 1 | **REJECTED** | t, region |
 | ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R | | | | | | | | | |

@@ -4,7 +4,6 @@ random walk is not."""
 
 from __future__ import annotations
 
-import math
 from datetime import datetime, timezone
 
 import numpy as np
@@ -186,7 +185,6 @@ def test_previous_day_levels_come_only_from_a_finished_day():
     pdh, pdl = ID.prev_day_levels(b)
     for i in range(len(b)):
         if np.isfinite(pdh[i]):
-            prev = (b.day == b.day[i] - 1) | ((b.day < b.day[i]) & (b.day >= b.day[i] - 3))
             last_prev = b.day[b.day < b.day[i]].max()
             assert pdh[i] == b.h[b.day == last_prev].max() and pdl[i] == b.l[b.day == last_prev].min()
 

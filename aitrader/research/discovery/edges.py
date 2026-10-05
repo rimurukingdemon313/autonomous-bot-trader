@@ -36,11 +36,14 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.8.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.9.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
-#                                1.8.1: a gate stored as the string "False" (numpy bool via JSON) counts as failed
+#                                1.8.1: a gate stored as the string "False" (numpy bool via JSON) counts as failed;
+#                                1.9.0 (takeover audit): VALIDATED needs a holdout t >= 2.5 (promotion.py); a trend
+#                                edge "validated" by the holdout's sign alone is REJECTED; a retail edge that failed
+#                                a preregistered robustness gate (anything but t) is REJECTED, not PROMISING
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -233,6 +236,14 @@ def from_flow(stages: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+#: The strict promotion gate on significance (aitrader/research/promotion.py: t >= 2.5).
+STRICT_HOLDOUT_T = 2.5
+
+
+def _holdout_t(hold: dict | None, hid: str):
+    return (((hold or {}).get("results", {}).get(hid) or {}).get("net") or {}).get("t")
+
+
 def from_trend(stages: list[dict]) -> list[EdgeRecord]:
     """Records of a portfolio trend program. Expectancies are MONTHLY NET PORTFOLIO RETURNS (a fraction
     of capital), not R; t is the t of the mean monthly net return over the judged period."""
@@ -241,6 +252,10 @@ def from_trend(stages: list[dict]) -> list[EdgeRecord]:
     hold = next((a for a in stages if a.get("holdout_of")), None)
     for k, v in (hold or {}).get("classification", {}).items():
         status[k] = v
+    for k, v in list(status.items()):  # strict: a holdout passed on its sign alone is not a validation
+        ht = _holdout_t(hold, k)
+        if v == "VALIDATED" and (ht is None or ht < STRICT_HOLDOUT_T):
+            status[k] = "REJECTED"
     assets = tuple(sorted((judged.get("data_manifest") or {}).get("assets", {})))
     out = []
     for hid, r in sorted(judged["results"].items()):
@@ -254,7 +269,8 @@ def from_trend(stages: list[dict]) -> list[EdgeRecord]:
             out_of_sample_expectancy=_r(h["net"]["mean_monthly"]) if h else _r(r["validation"].get("mean_monthly")),
             walk_forward_expectancy=None, cost_sensitivity=_r(r["costs_x2"].get("mean_monthly")), complexity=1,
             stability={"by_year": r.get("by_year")}, status=status[hid],
-            failed_checks=tuple(r.get("failed_gates", ())) + (("holdout",) if status[hid] == "REJECTED" and h else ()),
+            failed_checks=tuple(r.get("failed_gates", ())) + ((f"holdout (t {_holdout_t(hold, hid)} < {STRICT_HOLDOUT_T})",)
+                                                              if status[hid] == "REJECTED" and h else ()),
             source=f"research/knowledge/{judged['program']}.json",
             note="portfolio trend: expectancies are monthly net portfolio returns, not R"
                  + (f"; holdout {h['net']['n']} months, net t {h['net'].get('t')}" if h else "")))
@@ -282,6 +298,8 @@ def from_retail(judged: dict, holdouts: list[dict]) -> list[EdgeRecord]:
             status = _RETAIL_STATUS[hv]
             failed += tuple(f"holdout:{g}" for g in h.get("failed_gates", ()))
             note += f"; replication/holdout {hv}: {h['net']['n']} months, net t {h['net'].get('t')}"
+        elif status == "PROMISING" and any(g != "t" for g in failed):
+            status = "REJECTED"  # a failed preregistered robustness gate is a failure, not a near-miss
         sub = r.get("sub", {})
         out.append(EdgeRecord(
             edge_id=hid, program=judged["program"],

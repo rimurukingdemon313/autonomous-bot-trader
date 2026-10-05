@@ -180,3 +180,48 @@ def eligibility(rows: list[dict], baseline_mean: float | None) -> dict:
         status = "COLLECTING"
     return {"status": status, "criteria": crit, "evaluation": s, "version": METRICS_VERSION,
             "note": "ELIGIBLE_FOR_REVIEW is the most forward data can say: promotion to VALIDATED is a reviewed act"}
+
+
+#: Track A vs Track B (takeover audit, step 9). Track A: every proposal the deterministic path made. Track B:
+#: the same proposals minus those the advisory language model would have vetoed. Identical by construction
+#: (one ledger, one set of decisions); the model's veto is applied only if B beats A here.
+AI_VETO_RULE = {"min_n_each": 100, "min_t_difference": 2.0, "must_also_hold": ["costs_x2", "both_halves"]}
+
+
+def ai_veto_ab(rows: list[dict]) -> dict:
+    """Compare Track A (all EVALUATION proposals with a recorded model opinion) with Track B (A minus the
+    would-vetoed ones). Rows without a recorded opinion (ai_would_veto None) are outside the experiment."""
+    rows = [r for r in rows if r.get("partition") == "EVALUATION" and r.get("ai_would_veto") is not None
+            and r.get("outcome") and r["outcome"].get("net_r") is not None]
+    a = rows
+    b = [r for r in rows if not r["ai_would_veto"]]
+    vetoed = [r for r in rows if r["ai_would_veto"]]
+    sa, sb, sv = stats(a), stats(b), stats(vetoed)
+    nets_v = [r["outcome"]["net_r"] for r in vetoed]
+    diff = None
+    if len(vetoed) > 1 and len(b) > 1:
+        # B - A per proposal equals removing the vetoed trades: test whether the vetoed mean is below the kept mean
+        kept = [r["outcome"]["net_r"] for r in b]
+        se = math.sqrt(st.variance(nets_v) / len(nets_v) + st.variance(kept) / len(kept))
+        diff = _r((st.mean(kept) - st.mean(nets_v)) / se, 3) if se > 0 else None
+
+    def by(key):
+        return {k: {"A": stats([r for r in a if str(key(r)) == k]).get("avg_r"),
+                    "B": stats([r for r in b if str(key(r)) == k]).get("avg_r")}
+                for k in sorted({str(key(r)) for r in a})}
+    out = {
+        "rule": AI_VETO_RULE,
+        "track_a": sa, "track_b": sb, "vetoed": {"n": len(vetoed), "avg_r": sv.get("avg_r"),
+                                                  "missed_winners": sum(1 for x in nets_v if x > 0),
+                                                  "avoided_losers": sum(1 for x in nets_v if x <= 0)},
+        "t_kept_minus_vetoed": diff,
+        "by_regime": by(lambda r: r.get("regime") or "?"), "by_symbol": by(lambda r: r["symbol"]),
+        "costs_x2": {"A": sa.get("net_avg_costs_x2"), "B": sb.get("net_avg_costs_x2")},
+    }
+    enough = len(b) >= AI_VETO_RULE["min_n_each"] and len(vetoed) >= AI_VETO_RULE["min_n_each"]
+    better = (diff is not None and diff >= AI_VETO_RULE["min_t_difference"]
+              and (sb.get("net_avg_costs_x2") or -9) > (sa.get("net_avg_costs_x2") or -9))
+    out["verdict"] = ("INSUFFICIENT" if not enough else
+                      "VETO_HELPS: eligible for a reviewed decision to apply it" if better else
+                      "VETO_DOES_NOT_HELP: keep it advisory")
+    return out

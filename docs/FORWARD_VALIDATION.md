@@ -27,10 +27,13 @@ EXPERIMENTAL_AI. Results are always broken down by it; two classes are never ave
 
 ## 2. Routing: EXECUTE or SHADOW
 
-| | PAPER | DEMO (default) | DEMO + `EXPERIMENTAL_EXECUTE=true` |
-|---|---|---|---|
-| VALIDATED | execute (simulated) | execute on the demo account | execute on the demo account |
-| PROMISING / EXPERIMENTAL | execute (simulated) | **SHADOW** | execute on the demo account |
+| | PAPER | DEMO |
+|---|---|---|
+| VALIDATED | execute (simulated) | execute on the demo account |
+| PROMISING / EXPERIMENTAL | execute (simulated) | **SHADOW** |
+| proposed by a language model | **SHADOW** | **SHADOW** |
+
+`EXPERIMENTAL_EXECUTE=true` is refused at startup (takeover audit, docs/TAKEOVER_AUDIT.md).
 
 **SHADOW** means the following:
 

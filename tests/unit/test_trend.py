@@ -106,13 +106,18 @@ def test_a_trend_holdout_decides_the_record_and_a_failure_is_named():
               "classification": {"H1": "HOLDOUT_ELIGIBLE", "H2": "HOLDOUT_ELIGIBLE", "H3": "REJECTED"},
               "results": {h: {"net": st, "gross": st, "validation": st, "costs_x2": st, "failed_gates": g}
                           for h, g in (("H1", []), ("H2", []), ("H3", ["t"]))}}
-    hold = {"holdout_of": "DIV-X", "classification": {"H1": "VALIDATED", "H2": "REJECTED"},
+    judged["classification"]["H4"] = "HOLDOUT_ELIGIBLE"
+    judged["results"]["H4"] = {"net": st, "gross": st, "validation": st, "costs_x2": st, "failed_gates": []}
+    hold = {"holdout_of": "DIV-X", "classification": {"H1": "VALIDATED", "H2": "REJECTED", "H4": "VALIDATED"},
             "results": {"H1": {"net": {"n": 70, "mean_monthly": 0.002, "t": 0.26}},
-                        "H2": {"net": {"n": 70, "mean_monthly": -0.004, "t": -0.64}}}}
+                        "H2": {"net": {"n": 70, "mean_monthly": -0.004, "t": -0.64}},
+                        "H4": {"net": {"n": 70, "mean_monthly": 0.01, "t": 2.7}}}}
     sealed = {r.edge_id: r for r in from_trend([judged])}
     assert [sealed[h].status for h in ("H1", "H2", "H3")] == ["TESTING", "TESTING", "REJECTED"]
     opened = {r.edge_id: r for r in from_trend([judged, hold])}
-    assert (opened["H1"].status, opened["H1"].failed_checks) == ("VALIDATED", ())
-    assert (opened["H2"].status, opened["H2"].failed_checks) == ("REJECTED", ("holdout",))
+    # edges-1.9.0 (takeover audit): a holdout "validated" by its sign at t 0.26 is a rejection; t >= 2.5 validates
+    assert (opened["H1"].status, opened["H1"].failed_checks) == ("REJECTED", ("holdout (t 0.26 < 2.5)",))
+    assert (opened["H4"].status, opened["H4"].failed_checks) == ("VALIDATED", ())
+    assert (opened["H2"].status, opened["H2"].failed_checks) == ("REJECTED", ("holdout (t -0.64 < 2.5)",))
     assert opened["H3"].failed_checks == ("t",)  # never judged on the holdout: no holdout check to name
     assert opened["H1"].out_of_sample_expectancy == 0.002 and "net t 0.26" in opened["H1"].note

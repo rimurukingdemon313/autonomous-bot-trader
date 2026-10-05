@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import urllib.error
 
-import numpy as np
 import pytest
 
 from aitrader.agents.analysts import AdversarialAnalyst, ReviewerAnalyst, SetupAnalyst, validate_llm_review
@@ -224,12 +223,17 @@ def test_optional_llm_failure_costs_reasoning_not_safety_or_the_decision():
     assert th.reports["adversary"].llm["ok"] is False
 
 
-def test_llm_objections_are_subtractive():
+def test_llm_objections_are_recorded_as_a_would_be_veto_and_never_change_the_decision():
+    """Takeover audit: a model veto has no forward evidence of value, so it is advisory. The deterministic
+    decision (Track A) is unchanged; what the model would have vetoed (Track B) is recorded for comparison."""
     client = LLMClient(CFG, transport_returning(json.dumps(
         {**GOOD, "objections": [{"code": "DATA_QUALITY", "severity": "BLOCKING", "reason": "gap"}]}), []))
     b = Brain(llm=client, config=BrainConfig(llm_agents=("adversary",), parallel=False))
     th = b.think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}), V)
-    assert th.decision.decision == "NO_TRADE"
+    plain = brain().think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)}), V)
+    assert th.decision.decision == plain.decision.decision == "BUY"
+    assert th.decision.ai["would_veto"] is True and th.decision.ai["would_veto_codes"] == ["DATA_QUALITY"]
+    assert not any("+llm" in o.agent for r in th.reports.values() for o in r.objections)
 
 
 def test_objection_vocabulary_is_closed():
@@ -298,3 +302,21 @@ def test_the_adversary_argues_from_the_market_and_the_reviewer_from_the_evidence
     adv = {o.code for o in AdversarialAnalyst().analyze(weak, cands).objections}
     rev = {o.code for o in ReviewerAnalyst().analyze(weak, cands).objections}
     assert "WEAK_ANALOG_EVIDENCE" in rev and "WEAK_ANALOG_EVIDENCE" not in adv
+
+
+def test_an_opposing_model_with_full_measured_reliability_still_cannot_change_the_decision():
+    """Takeover audit: the model's opinion is advisory even where the knowledge base would weight it fully.
+    (Before the audit an opposing model with reliability 1.0 raised the required edge.)"""
+    class KV:
+        def objection_effect(self, code, t): return None
+        def agent_reliability(self, agent, t): return 1.0
+        def lessons_matching(self, *a): return []
+        def family_regime_stats(self, *a): return None
+    reply = {"stance": "OPPOSE", "direction": "SELL", "objections": [], "summary": "sell"}
+    client = LLMClient(CFG, transport_returning(json.dumps(reply), []))
+    b = Brain(llm=client, config=BrainConfig(llm_agents=("reviewer",), parallel=False))
+    c = ctx(analogs={"T1:BUY": analog("T1:BUY", 0.01 + 1.28 * 0.02, 0.02)}, knowledge=KV())
+    with_model = b.think(c, V).decision
+    without = brain().think(ctx(analogs={"T1:BUY": analog("T1:BUY", 0.01 + 1.28 * 0.02, 0.02)}, knowledge=KV()), V).decision
+    assert (with_model.decision, with_model.required_edge) == (without.decision, without.required_edge)
+    assert with_model.ai["opinions"][0]["direction"] == "SELL"  # recorded, not applied

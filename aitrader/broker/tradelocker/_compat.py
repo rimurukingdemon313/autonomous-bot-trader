@@ -52,7 +52,14 @@ class CircuitOpen(BrokerError):
 
 
 class SymbolUnavailable(BrokerError):
-    pass
+    """The account does not carry the symbol. Carries the symbol and the nearest names the account does
+    carry. (Before the takeover audit this class took no keyword arguments, so raising it with them was a
+    TypeError: callers that catch BrokerError never saw it, and the diagnosis was lost.)"""
+
+    def __init__(self, message: str, *, symbol: str | None = None, suggestions: tuple = ()) -> None:
+        super().__init__(message)
+        self.symbol = symbol
+        self.suggestions = tuple(suggestions)
 
 
 def utc_now() -> datetime:

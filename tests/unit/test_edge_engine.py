@@ -101,7 +101,7 @@ class Ctx:
 def test_an_edge_decision_is_sized_and_approved_only_by_the_risk_engine():
     d = edge_decision(Ctx, {"x": 1}, [edge()])
     assert d.decision == "BUY" and d.entry == ASK and d.max_hold_minutes == 16 * 15
-    acct = AccountState(20_000, 20_000, 20_000, 20_000, 20_000)
+    acct = AccountState(20_000, 20_000, 20_000, 20_000, 20_000, week_start_equity=20_000)
     v = RiskEngine().evaluate(d, acct, SPEC, Quote("EURUSD", BID, ASK, T), T)
     assert v.approved and v.qty > 0 and v.risk_pct <= 1.0  # the size is the engine's, from equity and the stop
     assert not RiskEngine().evaluate(d, AccountState(20_000, 20_000, 20_000, 20_000, 20_000, kill_switch=True),

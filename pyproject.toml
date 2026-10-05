@@ -21,3 +21,26 @@ include = ["aitrader*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Correctness only: syntax errors and pyflakes (undefined names, unused imports and variables).
+# Style rules are deliberately not enforced; a project-level config keeps a user-global one from applying.
+select = ["E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# Registered study code is frozen by hash (its spec records code_sha256 and a test checks it):
+# a lint edit would silently invalidate the registration, so these files are never auto-fixed.
+"aitrader/research/discovery/carry.py" = ["F401"]
+"aitrader/research/discovery/flow.py" = ["F401"]
+"aitrader/research/discovery/library.py" = ["F401"]
+"aitrader/research/discovery/program.py" = ["F401"]
+"scripts/cot1.py" = ["F401"]
+"scripts/flow1.py" = ["F401"]
+"scripts/id2.py" = ["F401"]
+"scripts/r3_report.py" = ["F401"]
+"scripts/rc_eq2.py" = ["F401"]
+"scripts/rv1.py" = ["F401"]

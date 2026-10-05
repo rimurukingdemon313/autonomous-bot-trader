@@ -366,23 +366,19 @@ def test_the_llm_trader_trades_through_the_risk_engine_reviews_itself_and_rememb
         rt.monitor_once()
         rt.run_cycle(decide=rt.is_decision_hour(clock.t))
 
-    trades = rt.db.query("SELECT decision_id, r, payload FROM trades")
-    assert trades, "the model trader should have traded on the replay"
-    for tr in trades:
-        assert json.loads(tr["payload"])["decision"]["family"] == "LLM_TRADER"
-        verdict = rt.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (tr["decision_id"],))
+    # Takeover audit: the model trader's own trades are SHADOW, on paper too. Each proposal still goes
+    # through the risk engine (sized there, never by the model) and is followed forward; none executes.
+    assert rt.db.query("SELECT 1 FROM trades") == [] and rt.db.query("SELECT 1 FROM intents") == []
+    props = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    assert props and {p["route"] for p in props} <= {"SHADOW", "REJECTED"}
+    assert {p["signal_class"] for p in props} == {"LLM_TRADER"}
+    shadow = [p for p in props if p["route"] == "SHADOW"]
+    assert shadow
+    for p in shadow:
+        verdict = rt.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (p["decision_id"],))
         assert verdict["approved"] == 1 and json.loads(verdict["payload"])["qty"] > 0  # sized by the risk engine
-    reviews = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM reflections")]
-    reviews = [r for r in reviews if r.get("kind") == "trade"]
-    assert len(reviews) == len(trades) and all(r["lesson"] == "wait for a pullback" for r in reviews)
     brief = TradeMemory(rt.db, rt.experience).brief("EURUSD", "RANGING", clock.t)
-    # trade-memory-1.1.0: the model's memory holds LEARNING-week trades only; EVALUATION weeks are
-    # kept for judging it (learning/forward.py), so they are never learned from.
-    from aitrader.learning.forward import partition
-    learning = [tr for tr in trades if partition(int(json.loads(tr["payload"])["position"]["opened"])) == "LEARNING"]
-    assert 0 < len(learning) < len(trades) and brief["my_record"]["trades"] == len(learning)
-    assert any(v["my_lesson"] == "wait for a pullback" for v in brief["relevant_past_trades"])
-    assert any(m["relevant_past_trades"] for m in seen_memory)  # later decisions were shown earlier trades
+    assert brief["my_record"]["trades"] == 0  # nothing executed, so nothing to remember as a trade
     assert rt.status()["versions"].get("service")
 
 
@@ -425,19 +421,21 @@ def test_the_trading_room_discusses_in_turn_and_trades_through_the_risk_engine(t
         rt.monitor_once()
         rt.run_cycle(decide=rt.is_decision_hour(clock.t))
 
-    trades = rt.db.query("SELECT decision_id FROM trades")
-    assert trades, "the team should have traded on the replay"
-    for tr in trades:
-        dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (tr["decision_id"],))["payload"])
+    # Takeover audit: the room's trade is SHADOW; its discussion, the risk engine's sizing and the forward
+    # record are unchanged, and nothing executes.
+    assert rt.db.query("SELECT 1 FROM trades") == [] and rt.db.query("SELECT 1 FROM intents") == []
+    props = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    shadow = [p for p in props if p["route"] == "SHADOW"]
+    assert shadow and {p["route"] for p in props} <= {"SHADOW", "REJECTED"}
+    for p in shadow:
+        dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (p["decision_id"],))["payload"])
         room = dec["independent_evidence"]["room"]
         assert room["joint"]["action"] == "BUY" and room["final"]["bytez"]["action"] == "NO_TRADE"
         assert len(room["discussion"]) == 3
-        verdict = rt.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (tr["decision_id"],))
+        verdict = rt.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (p["decision_id"],))
         assert verdict["approved"] == 1 and json.loads(verdict["payload"])["qty"] > 0  # sized by the risk engine
     st = rt.status()["components"]
     assert st["decision_mode"] == "trading_room" and st["trading_room"]["members"] == ["groq", "gemini", "bytez"]
-    recs = st["trading_room"]["records"]
-    assert recs["gemini"]["supported"]["trades"] == len(trades) and recs["bytez"]["supported"] == {"trades": 0}
     assert all(len(j["discussion"]) == 3 for j in joints)  # the joint decision read the whole discussion
 
 
@@ -554,3 +552,48 @@ def test_the_room_progress_endpoint_answers_even_outside_the_room_mode(server):
     rt, base, _ = server
     code, body = call(base, "/api/room")
     assert code == 200 and isinstance(body, dict)
+
+
+@pytest.mark.parametrize("key,raised", [("RISK_PER_TRADE_PCT", "5"), ("RISK_DAILY_LOSS_PCT", "50"),
+                                        ("RISK_WEEKLY_LOSS_PCT", "40"), ("RISK_MAX_DRAWDOWN_PCT", "80"),
+                                        ("RISK_MAX_OPEN_POSITIONS", "30"), ("RISK_MAX_OPEN_RISK_PCT", "9")])
+def test_an_environment_variable_can_tighten_a_risk_limit_but_never_loosen_it(key, raised):
+    """Takeover audit: the variables used to set these limits to any value, including far looser ones."""
+    from aitrader.risk.engine import RiskLimits
+    base = RiskLimits()
+    field = {"RISK_PER_TRADE_PCT": "risk_per_trade_pct", "RISK_DAILY_LOSS_PCT": "daily_loss_limit_pct",
+             "RISK_WEEKLY_LOSS_PCT": "weekly_loss_limit_pct", "RISK_MAX_DRAWDOWN_PCT": "max_drawdown_pct",
+             "RISK_MAX_OPEN_POSITIONS": "max_open_positions", "RISK_MAX_OPEN_RISK_PCT": "max_open_risk_pct"}[key]
+    assert getattr(ServiceConfig.from_env({key: raised}).risk, field) == getattr(base, field)
+    tighter = getattr(base, field) / 2 if field != "max_open_positions" else 1
+    assert getattr(ServiceConfig.from_env({key: str(tighter)}).risk, field) == pytest.approx(tighter)
+    with pytest.raises(ServiceConfigError):
+        ServiceConfig.from_env({key: "0"})
+
+
+def test_an_order_of_unknown_outcome_pauses_trading_at_startup(tmp_path):
+    """Takeover audit: startup reconciliation paused on errors and orphans but not on an order whose outcome
+    is still unknown; trading resumed while the broker might hold a position the journal does not know."""
+    rt, clock = build(tmp_path)
+    rt.resume()
+    with rt.db.tx() as c:
+        c.execute("INSERT INTO intents(id, decision_id, ts, symbol, side, status, payload, updated) "
+                  "VALUES ('ai-x', 'x', 0, 'EURUSD', 'BUY', 'UNKNOWN', '{\"qty\": 0.1, \"history\": []}', 0)")
+    rt2, _ = build(tmp_path)  # a restart on the same volume: the broker has no such order yet
+    assert rt2.db.get_kv("paused", False) is True
+    assert rt2.health["reconcile"]["still_unknown"] == ["ai-x"]
+
+
+def test_open_exposure_is_valued_in_the_account_currency_from_the_brokers_spec():
+    """Takeover audit: one USDJPY lot used to count as 100,000 x 150 = 15,000,000 (quote currency) and
+    blocked every other trade on leverage. From the spec it is ~100,000 USD, with its risk at the stop."""
+    from types import SimpleNamespace
+    from aitrader.orchestrator.core import Orchestrator
+    from aitrader.risk.engine import InstrumentSpec
+    spec = InstrumentSpec("USDJPY", 100_000, 0.01, 0.01, 50, 1 / 150.0)
+    me = SimpleNamespace(broker=SimpleNamespace(spec=lambda s: spec))
+    p = SimpleNamespace(symbol="USDJPY", side=1, qty=1.0, entry=150.0, stop=149.5)
+    x = Orchestrator._position_exposure(me, p)
+    assert x["notional"] == pytest.approx(100_000) and x["risk_amount"] == pytest.approx(0.5 * 100_000 / 150)
+    unknown = Orchestrator._position_exposure(SimpleNamespace(broker=SimpleNamespace(spec=lambda s: None)), p)
+    assert unknown["risk_amount"] is None and unknown["notional"] == float("inf")  # unknown is never zero

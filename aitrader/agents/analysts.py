@@ -118,7 +118,7 @@ class SetupAnalyst:
         """(family, direction, why) for every family whose conditions hold now."""
         rg = ctx.regime
         out: list[tuple[str, int, str]] = []
-        dist, er120, slope = _v(ctx, "dist_ma48"), _v(ctx, "er120"), _v(ctx, "ma_slope")
+        dist = _v(ctx, "dist_ma48")
         if rg.trend_direction and _fin(dist) and -1.5 <= dist * rg.trend_direction <= 0.0:
             out.append(("TREND_PULLBACK", rg.trend_direction,
                         f"pullback of {abs(dist):.2f} ATR against a {'rising' if rg.trend_direction > 0 else 'falling'} trend"))

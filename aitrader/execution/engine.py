@@ -38,7 +38,12 @@ from ..memory.db import Database
 #:        price and the moment of the close are unchanged, so P/L replays exactly as before.
 #: 1.3.0: no `allow_live` argument (there is no live path); unvalidated decisions need
 #:        `allow_unvalidated`; stale decisions and adverse entry drift are refused before submission.
-EXECUTION_VERSION = "exec-1.3.0"
+#: 1.4.0 (takeover audit): a language-model trade (signal class LLM_TRADER / TRADING_ROOM / EXPERIMENTAL_AI)
+#:        is refused here too; an order whose outcome is unknown, or a fill whose entry slippage exceeds
+#:        `max_entry_slippage_r` of the stop distance, PAUSES trading until an operator has looked.
+EXECUTION_VERSION = "exec-1.4.0"
+#: Signal classes a language model originates. They are SHADOW by route; refused here as a second check.
+MODEL_SIGNAL_CLASSES = frozenset({"LLM_TRADER", "TRADING_ROOM", "EXPERIMENTAL_AI"})
 UNKNOWN_RECHECKS = 5
 
 
@@ -57,13 +62,20 @@ def client_id_for(decision_id: str) -> str:
 
 class ExecutionEngine:
     def __init__(self, db: Database, broker, clock: Callable[[], int], *, allow_unvalidated: bool = False,
-                 max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25) -> None:
+                 max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25,
+                 max_entry_slippage_r: float = 0.2) -> None:
         self.db = db
         self.broker = broker
         self.clock = clock
         self.allow_unvalidated = allow_unvalidated
         self.max_decision_age_s = max_decision_age_s
         self.max_entry_drift_r = max_entry_drift_r
+        self.max_entry_slippage_r = max_entry_slippage_r
+
+    def _pause(self, reason: str) -> None:
+        """Execution uncertainty stops new trading until an operator looks: a pause can only make it safer."""
+        self.db.set_kv("paused", True, reason=reason)
+        self.db.event("TRADING_PAUSED", {"reason": reason})
 
     # ── helpers ─────────────────────────────────────────────────────────
 
@@ -100,6 +112,9 @@ class ExecutionEngine:
         demo = self.broker.is_demo()
         if demo is not True:
             return f"account is not verified demo/paper (is_demo={demo}): there is no live path"
+        if getattr(decision, "signal_class", None) in MODEL_SIGNAL_CLASSES:
+            return (f"signal class {decision.signal_class}: a language model's own trade is research only "
+                    "(shadow), never sent")
         status = getattr(decision, "edge_status", None)
         if status != "VALIDATED" and not self.allow_unvalidated:
             return (f"edge status {status or 'not stated'} is not VALIDATED and unvalidated execution is not enabled "
@@ -167,11 +182,18 @@ class ExecutionEngine:
             if found is not None:
                 return ExecutionResult(decision.id, "FILLED", "confirmed by broker query after ambiguous response",
                                        found.id, found.entry)
+            self._pause(f"order {cid} outcome unknown after an ambiguous broker response: paused until reconciled")
             return ExecutionResult(decision.id, "UNKNOWN", f"outcome unknown ({exc}); will reconcile, never resend")
         except BrokerError as exc:  # anything else during a write is ambiguous too
             self._set_status(cid, "UNKNOWN", {"reason": f"{type(exc).__name__}: {exc}"})
+            self._pause(f"order {cid} outcome unknown ({type(exc).__name__}): paused until reconciled")
             return ExecutionResult(decision.id, "UNKNOWN", str(exc))
         self._record_fill(cid, decision, verdict, fill.position_id, fill.price, fill.time, fill.order_id)
+        ref = verdict.entry_ref
+        if ref is not None and verdict.stop is not None and abs(ref - verdict.stop) > 0:
+            slip_r = (fill.price - ref) * side / abs(ref - verdict.stop)  # positive = paid more than the reference
+            if slip_r > self.max_entry_slippage_r:
+                self._pause(f"entry slippage {slip_r:.2f}R on {cid} exceeds {self.max_entry_slippage_r}R: paused")
         return ExecutionResult(decision.id, "FILLED", "filled", fill.position_id, fill.price)
 
     def _record_fill(self, cid, decision, verdict, position_id, price, t, order_id) -> None:

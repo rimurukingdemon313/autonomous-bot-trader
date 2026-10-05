@@ -160,10 +160,13 @@ def test_end_to_end_a_model_trades_on_yahoo_prices_through_the_risk_engine(tmp_p
     rt.run_cycle(decide=True)
     st = rt.status()["components"]
     assert st["data"] == "CONNECTED" and st["data_source"] == "yahoo"
-    pos = rt.broker.positions()
-    assert len(pos) == 1 and pos[0].symbol == "EURUSD"  # the model's trade, sized by the risk engine
+    # The model's trade is sized and approved by the risk engine, then SHADOW: a language model may not
+    # create a trade, on paper either (takeover audit).
+    assert rt.broker.positions() == []
     v = rt.db.one("SELECT approved FROM risk_verdicts")
     assert v["approved"] == 1
+    prop = json.loads(rt.db.one("SELECT payload FROM forward_proposals")["payload"])
+    assert prop["route"] == "SHADOW" and prop["symbol"] == "EURUSD"
     ctx = json.loads(rt.db.one("SELECT payload FROM decisions")["payload"])["context"]
     assert ctx["features"]["metadata"]["not_provided_by_source"] == ["tick_activity"]  # excluded, and said so
 

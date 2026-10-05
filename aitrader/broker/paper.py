@@ -19,12 +19,31 @@ import threading
 import time
 from typing import Callable
 
-from ..data.resample import bucket_start
 from ..memory.db import Database
 from ..risk.engine import InstrumentSpec, Quote
 from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, ClosedTrade, Fill
 
-PAPER_VERSION = "paper-1.0.0"
+#: 1.1.0 (takeover audit): swap is charged per 21:00 UTC rollover crossed, Wednesday's three times, weekend
+#: nights not at all (the convention of the research simulators, intraday.financing). 1.0.0 counted UTC
+#: midnights, so Friday->Monday was charged three nights and Wednesday's triple charge never appeared.
+PAPER_VERSION = "paper-1.1.0"
+ROLLOVER_HOUR_UTC = 21
+
+
+def rollovers(t0: int, t1: int) -> int:
+    """Swap nights charged for a position held from t0 to t1: each weekday 21:00 UTC rollover crossed,
+    Wednesday's counted three times (it carries the weekend), Saturday and Sunday none."""
+    n = 0
+    first = (t0 - ROLLOVER_HOUR_UTC * 3600) // 86400 + 1
+    last = (t1 - ROLLOVER_HOUR_UTC * 3600) // 86400
+    for d in range(int(first), int(last) + 1):
+        roll = d * 86400 + ROLLOVER_HOUR_UTC * 3600
+        if not (t0 < roll <= t1):
+            continue
+        wd = (d + 3) % 7  # 0 = Monday
+        if wd < 5:
+            n += 3 if wd == 2 else 1
+    return n
 
 
 def contract_size(symbol: str) -> float:
@@ -172,7 +191,7 @@ class PaperBroker:
         p = self.state["positions"].pop(pid)
         rate = self._rate(p["symbol"][3:])
         cs = contract_size(p["symbol"])
-        nights = max(0, int((bucket_start([when], "D1")[0] - bucket_start([p["opened"]], "D1")[0]) // 86400))
+        nights = rollovers(int(p["opened"]), int(when))
         gross = (exit_px - p["entry"]) * p["side"] * p["qty"] * cs
         swap = p["swap_per_night"] * nights * p["qty"] * cs
         pnl = None if rate is None else (gross - swap) * rate - self.commission * p["qty"]

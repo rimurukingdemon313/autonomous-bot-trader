@@ -143,7 +143,6 @@ def test_crash_between_intent_and_submit_is_recovered_on_restart(tmp_path):
     ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
     # Simulate: intent written, order sent, process died before recording the fill.
     ex._final_checks = lambda d, v: None
-    orig = ex._record_fill
     ex._record_fill = lambda *a: (_ for _ in ()).throw(SystemExit("crash"))
     with pytest.raises(SystemExit):
         ex.execute(decision(), verdict())
@@ -218,3 +217,35 @@ def test_sync_closures_turns_broker_exits_into_closed_positions():
     done = ex.sync_closures()
     assert len(done) == 1 and done[0][1].reason == "TARGET"
     assert db.one("SELECT status FROM positions")["status"] == "CLOSED"
+
+
+# ── takeover audit (exec-1.4.0) ─────────────────────────────────────────────────────────────────────
+
+def test_a_language_model_trade_is_refused_by_the_execution_engine_even_if_routed_to_it():
+    feed, clock, db = setup()
+    d = decision()
+    d.signal_class = "LLM_TRADER"
+    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True).execute(d, verdict())
+    assert r.status == "BLOCKED" and "language model" in r.detail
+
+
+def test_an_order_of_unknown_outcome_pauses_trading():
+    feed, clock, db = setup()
+    db.set_kv("paused", False)
+    ex = ExecutionEngine(db, LostBroker(feed, clock, db), clock, allow_unvalidated=True)
+    assert ex.execute(decision(), verdict()).status == "UNKNOWN"
+    assert db.get_kv("paused", False) is True
+
+
+def test_entry_slippage_beyond_the_limit_pauses_trading_and_normal_fills_do_not():
+    feed, clock, db = setup()
+    db.set_kv("paused", False)
+    ok = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True)
+    assert ok.execute(decision(), verdict()).status == "FILLED" and db.get_kv("paused", False) is False
+    feed2, clock2, db2 = setup()
+    db2.set_kv("paused", False)
+    v = verdict(did="d2", stop=1.0999)
+    v.entry_ref = 1.1000  # the risk check priced 1.1000 with a 1-pip stop; the fill at ~1.10006 pays ~0.6R
+    ex = ExecutionEngine(db2, PaperBroker(feed2, clock2, db2), clock2, allow_unvalidated=True, max_entry_drift_r=10)
+    assert ex.execute(decision(did="d2"), v).status == "FILLED"
+    assert db2.get_kv("paused", False) is True

@@ -25,10 +25,22 @@ from math import floor
 #: that the old check never saw. Evidence: every gross edge measured in this project is below 0.31R
 #: and H1 gross edges are within +/-0.03R, so a trade whose costs exceed a quarter of its risk
 #: cannot be profitable on anything this system has found (docs/FINAL_ENGINEERING_AUDIT.md).
-RISK_VERSION = "risk-1.1.0"
+#: 1.2.0 (takeover audit, docs/TAKEOVER_AUDIT.md):
+#:   - per-trade risk is capped at UNVALIDATED_MAX_RISK_PCT (0.25%) while no edge is VALIDATED;
+#:     the default is 0.25%;
+#:   - a weekly loss limit and a ceiling on the total open risk;
+#:   - an unknown start-of-day, start-of-week or peak equity FAILS the check (it used to be replaced by
+#:     the current equity, which made the daily-loss and drawdown checks pass);
+#:   - flagged market data (stale bars) is a rejection in every decision mode;
+#:   - a time-exit trade (exit_kind == "TIME") needs no target, but still needs a protective stop:
+#:     without one its loss is unbounded and no size can be computed.
+RISK_VERSION = "risk-1.2.0"
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
+#: While no edge is VALIDATED (research_status.json: none is), no configuration can take per-trade risk
+#: above this. Raising it requires a validated edge and a reviewed code change, never an environment variable.
+UNVALIDATED_MAX_RISK_PCT = 0.25
 
 
 @dataclass(frozen=True)
@@ -46,8 +58,10 @@ class FundedRules:
 
 @dataclass(frozen=True)
 class RiskLimits:
-    risk_per_trade_pct: float = 0.5
+    risk_per_trade_pct: float = 0.25
     daily_loss_limit_pct: float = 2.0
+    weekly_loss_limit_pct: float = 4.0  # from the equity at the start of the ISO week (Monday 00:00 UTC)
+    max_open_risk_pct: float = 0.75  # the sum of every open position's risk at its stop, plus the new one
     max_drawdown_pct: float = 8.0
     max_open_positions: int = 3
     max_positions_per_currency: int = 2
@@ -65,7 +79,7 @@ class RiskLimits:
     funded: FundedRules | None = None
 
     def effective_risk_pct(self) -> float:
-        pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT)
+        pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
         if self.funded and self.funded.max_risk_per_trade_pct is not None:
             pct = min(pct, self.funded.max_risk_per_trade_pct)
         return max(0.0, pct)
@@ -99,6 +113,8 @@ class AccountState:
     peak_equity: float | None
     start_balance: float | None
     open_positions: list[dict] = field(default_factory=list)  # symbol, side, qty, risk_amount, notional
+    #: equity at the start of the ISO week; None = unknown, which fails the weekly check
+    week_start_equity: float | None = None
     closed_r: list[float] = field(default_factory=list)  # closed-trade R, oldest first
     kill_switch: bool | None = False  # None = could not be read
     paused: bool = False
@@ -178,17 +194,29 @@ class RiskEngine:
 
     def _c_daily(self, a: AccountState) -> Check:
         L, eq = self.limits, a.equity
-        dse = a.day_start_equity or eq
-        day = (eq - dse) / dse * 100 if dse else 0.0
+        dse = a.day_start_equity
+        if not dse or eq is None:  # unknown is not "no loss today": it fails
+            return Check("daily_loss", False, f"start-of-day equity unknown ({dse}): cannot verify the daily loss")
+        day = (eq - dse) / dse * 100
         daily_limit = L.daily_loss_limit_pct
         if L.funded and L.funded.daily_loss_pct is not None:
             daily_limit = min(daily_limit, L.funded.daily_loss_pct)
         return Check("daily_loss", day > -daily_limit, f"today {day:+.2f}% vs limit -{daily_limit}%")
 
+    def _c_weekly(self, a: AccountState) -> Check:
+        L, eq, wse = self.limits, a.equity, a.week_start_equity
+        if not wse or eq is None:
+            return Check("weekly_loss", False, f"start-of-week equity unknown ({wse}): cannot verify the weekly loss")
+        week = (eq - wse) / wse * 100
+        return Check("weekly_loss", week > -L.weekly_loss_limit_pct,
+                     f"this week {week:+.2f}% vs limit -{L.weekly_loss_limit_pct}%")
+
     def _c_drawdown(self, a: AccountState) -> tuple[Check, float]:
         L, eq = self.limits, a.equity
-        peak = a.peak_equity or eq
-        dd = (eq - peak) / peak * 100 if peak else 0.0
+        peak = a.peak_equity
+        if not peak or eq is None:
+            return Check("drawdown", False, f"peak equity unknown ({peak}): cannot verify the drawdown"), 0.0
+        dd = (eq - peak) / peak * 100
         max_dd = L.max_drawdown_pct
         if L.funded and L.funded.trailing_drawdown_pct is not None:
             max_dd = min(max_dd, L.funded.trailing_drawdown_pct)
@@ -227,13 +255,14 @@ class RiskEngine:
         out = [self._c_kill(account), self._c_paused(account), self._c_halted(account), self._c_equity(account)]
         if not out[-1].passed:
             return out
-        out += [self._c_daily(account), self._c_drawdown(account)[0]]
+        out += [self._c_daily(account), self._c_weekly(account), self._c_drawdown(account)[0]]
         out += [c for c in (self._c_funded_total(account), self._c_weekend(now)) if c is not None]
         out += self._c_positions(account, instrument)
         return out
 
     def evaluate(self, decision, account: AccountState, spec: InstrumentSpec | None, quote: Quote | None,
-                 now: int, executed_ids: set[str] | frozenset = frozenset()) -> RiskVerdict:
+                 now: int, executed_ids: set[str] | frozenset = frozenset(),
+                 data_flags: tuple[str, ...] | list[str] = ()) -> RiskVerdict:
         L = self.limits
         v = RiskVerdict(decision.id, False)
         checks = v.checks
@@ -253,6 +282,8 @@ class RiskEngine:
         ok &= add(self._c_paused(account))
         ok &= add(self._c_halted(account))
         ok &= check("decision", decision.decision in ("BUY", "SELL"), f"decision is {decision.decision}")
+        ok &= check("data_quality", not data_flags,
+                    "flagged market data: " + "; ".join(data_flags) if data_flags else "no flags")
         ok &= check("duplicate", decision.id not in executed_ids, "decision already executed" if decision.id in executed_ids else "new")
         eq = account.equity
         ok &= add(self._c_equity(account))
@@ -267,17 +298,24 @@ class RiskEngine:
         stop, target = decision.stop_loss, decision.take_profit
         spread = quote.ask - quote.bid
         v.entry_ref, v.stop, v.target = entry, stop, target
+        time_exit = getattr(decision, "exit_kind", "STOP_TARGET") == "TIME"
 
         # ── the trade itself ────────────────────────────────────────────
+        # Every trade needs a protective stop: it is what bounds the loss and what the size is computed
+        # from. A time-exit trade (exit_kind TIME) may have no target; if it has one, it must be valid.
         ok &= check("stop_side", stop is not None and (entry - stop) * side > 0,
                     f"stop {stop} vs live entry {entry}")
-        ok &= check("target_side", target is not None and (target - entry) * side > 0,
-                    f"target {target} vs live entry {entry}")
+        if not (time_exit and target is None):
+            ok &= check("target_side", target is not None and (target - entry) * side > 0,
+                        f"target {target} vs live entry {entry}")
         if not ok:
             return v
         stop_dist = abs(entry - stop)
-        rr = abs(target - entry) / stop_dist
-        ok &= check("reward_risk", rr >= L.min_reward_risk, f"{rr:.2f} vs minimum {L.min_reward_risk}")
+        if target is not None:
+            rr = abs(target - entry) / stop_dist
+            ok &= check("reward_risk", rr >= L.min_reward_risk, f"{rr:.2f} vs minimum {L.min_reward_risk}")
+        else:
+            checks.append(Check("reward_risk", True, "time exit: no target; the stop bounds the loss"))
         ok &= check("stop_distance", stop_dist >= L.min_stop_spreads * spread,
                     f"stop {stop_dist:.6g} vs {L.min_stop_spreads} x spread {spread:.6g}")
         ok &= check("spread", spread / stop_dist <= L.max_spread_to_stop,
@@ -289,6 +327,7 @@ class RiskEngine:
 
         # ── account limits ──────────────────────────────────────────────
         ok &= add(self._c_daily(account))
+        ok &= add(self._c_weekly(account))
         dd_check, dd = self._c_drawdown(account)
         if not add(dd_check):
             v.halt = f"max drawdown {dd:.2f}% breached"
@@ -316,8 +355,13 @@ class RiskEngine:
         notional = lots * spec.contract_size * entry * spec.value_per_price_unit
         exposure = sum(p.get("notional", 0.0) for p in account.open_positions) + notional
         ok &= check("leverage", exposure / eq <= L.max_leverage, f"{exposure / eq:.2f}x vs max {L.max_leverage}x")
-        ok &= check("risk_ceiling", actual <= eq * HARD_MAX_RISK_PCT / 100 + 1e-9,
-                    f"risk {actual:.2f} vs ceiling {eq * HARD_MAX_RISK_PCT / 100:.2f}")
+        ok &= check("risk_ceiling", actual <= eq * min(HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT) / 100 + 1e-9,
+                    f"risk {actual:.2f} vs ceiling {eq * min(HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT) / 100:.2f}")
+        open_risk = sum(float(p.get("risk_amount") or 0.0) for p in account.open_positions)
+        unknown = [p.get("symbol") for p in account.open_positions if p.get("risk_amount") is None]
+        ok &= check("open_risk", not unknown and open_risk + actual <= eq * L.max_open_risk_pct / 100 + 1e-9,
+                    (f"open positions without a known risk at their stop: {unknown}" if unknown else
+                     f"open risk {open_risk:.2f} + {actual:.2f} vs ceiling {eq * L.max_open_risk_pct / 100:.2f}"))
         if not ok:
             return v
         checks.append(Check("streak", True, f"risk multiplier {mult:.2f} after recent losses (never above 1)"))

@@ -7,13 +7,14 @@ An optional LLM layer adds reasoning on top of the same point-in-time
 evidence packet, for the agents listed in `AI_AGENTS` (default:
 `adversary,reviewer`, to keep calls and latency low).
 
-- It **can** raise objections from a closed vocabulary (it can block a trade:
-  AI can only subtract).
-- It **can** state a directional opinion. That opinion enters the decision
-  with a weight equal to its **measured forward reliability**, which starts at
-  **zero** and rises only after its oppositions have been shown to predict
-  worse outcomes on at least 50 resolved cases each side. Agreement never
-  lowers the bar.
+- Since the takeover audit (docs/TAKEOVER_AUDIT.md) it is **advisory only**.
+  Its objections (closed vocabulary) and directional opinion are recorded on
+  the decision as `ai.would_veto` / `ai.opinions` and change nothing: the
+  deterministic pipeline decides. Track A (deterministic) and Track B (what
+  the AI veto would have kept) are compared on forward outcomes by
+  `learning/metrics.ai_veto_ab`; the veto may be applied only if B beats A by
+  t >= 2.0 with at least 100 outcomes each side, under 2x costs and in both
+  chronological halves. Until then it is out of the decision path.
 - It **cannot** size, place, modify or close anything; it never sees
   credentials; its failure costs reasoning text, never safety (unless
   `AI_REQUIRED=true`, in which case failure blocks trading).
@@ -145,8 +146,9 @@ edge status **EXPERIMENTAL** (docs/FORWARD_VALIDATION.md).
    - half or more of the non-adversarial specialists naming the opposite direction → NO_TRADE
      (recorded as UNCERTAIN);
    - otherwise the proposal goes, verbatim, to the risk engine.
-4. **Where it goes.** PAPER simulates the trade. In DEMO it is SHADOW unless
-   `EXPERIMENTAL_EXECUTE=true`.
+4. **Where it goes.** Nowhere: since the takeover audit a model-proposed trade is SHADOW in every
+   mode, PAPER included, and `EXPERIMENTAL_EXECUTE=true` is refused. A language model cannot be
+   backtested, so it may not create a trade until forward evidence shows it adds value.
 
 **What is recorded on every decision:**
 

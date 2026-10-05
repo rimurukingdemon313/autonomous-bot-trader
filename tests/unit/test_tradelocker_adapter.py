@@ -149,3 +149,21 @@ def test_a_read_that_hits_a_server_error_is_retried(monkeypatch):
     with pytest.raises(BrokerError):
         t.request("GET", "https://demo.tradelocker.com/x")
     assert len(calls) == 3
+
+
+# ── takeover audit ───────────────────────────────────────────────────────────────────────────────────
+
+def test_a_tick_value_that_disagrees_with_the_conversion_rate_refuses_the_instrument():
+    """EURGBP: a tickValue quoted in GBP read as USD would size ~10% too large here (27% at real rates)."""
+    gbp = SimpleNamespace(tick_value=1.0, tick_size=0.00001, contract_size=100000, min_lot=0.01, lot_step=0.01,
+                          max_lot=50, quote_currency="GBP", account_currency="USD")
+    assert adapter(FakeClient(spec=gbp)).spec("EURGBP") is None  # GBPUSD quote here: 1.10005
+    usd = SimpleNamespace(**{**gbp.__dict__, "tick_value": 1.10005})
+    s = adapter(FakeClient(spec=usd)).spec("EURGBP")
+    assert s is not None and s.value_per_price_unit == pytest.approx(1.10005)
+
+
+def test_symbol_unavailable_carries_its_diagnosis_instead_of_raising_type_error():
+    from aitrader.broker.tradelocker._compat import SymbolUnavailable
+    e = SymbolUnavailable("not on this account", symbol="XAGUSD", suggestions=("XAUUSD",))
+    assert isinstance(e, BrokerError) and e.symbol == "XAGUSD" and e.suggestions == ("XAUUSD",)

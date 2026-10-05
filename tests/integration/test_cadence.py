@@ -199,11 +199,12 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
         rt.run_cycle(decide=True)
     decided = [r["symbol"] for r in rt.db.query("SELECT symbol FROM decisions ORDER BY rowid")]
     assert decided == list(SYMS)  # one pair per cycle, in rotation
-    # EURUSD and GBPUSD are now open: two USD positions, the per-currency limit. The risk engine
-    # would refuse any USDJPY trade, so the model is not asked for one, and the record says why.
-    assert [p["instrument"] for p in packets] == list(SYMS[:2])
-    last = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='USDJPY'")["payload"])
-    assert "currency_exposure" in last["no_trade_reason"]
+    # Takeover audit: a model's own trade is SHADOW in every mode, paper included. Nothing opens, so no
+    # currency limit is reached and every pair in the rotation is asked.
+    assert [p["instrument"] for p in packets] == list(SYMS)
+    assert rt.broker.positions() == [] and rt.db.query("SELECT 1 FROM intents") == []
+    routes = {json.loads(r["payload"])["route"] for r in rt.db.query("SELECT payload FROM forward_proposals")}
+    assert routes and routes <= {"SHADOW", "REJECTED"}
     assert all("M5" in p["timeframes"] and len(p["timeframes"]["M5"]["bars"]) == 18 for p in packets)
     assert all("history" in p and "calendar" in p for p in packets)  # every decision carries both desks
     assert all(p["market_map"].get("structure") and p["market_map"]["levels"].get("round_numbers") for p in packets)

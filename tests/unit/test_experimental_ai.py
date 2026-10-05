@@ -13,12 +13,11 @@ from aitrader.agents.experimental_ai import FAMILY, ExperimentalConfig, synthesi
 from aitrader.broker.paper import PaperBroker
 from aitrader.execution.engine import ExecutionEngine
 from aitrader.llm.provider import Endpoint, LLMClient, LLMConfig
-from aitrader.memory.db import Database
 from aitrader.risk.engine import RiskVerdict
 from aitrader.service.config import ServiceConfig, ServiceConfigError
 
 from .test_agents import V
-from .test_execution import Clock, decision, setup, verdict
+from .test_execution import decision, setup, verdict
 from .test_llm_trader import live_ctx
 
 PROPOSAL = {"action": "BUY", "timeframe": "H4", "stop": 1.0985, "target": 1.1040, "max_hold_minutes": 600,
@@ -145,10 +144,10 @@ def test_ambiguous_or_live_configuration_is_refused(env):
         ServiceConfig.from_env(env)
 
 
-def test_demo_with_experimental_execute_is_explicit():
-    c = ServiceConfig.from_env({"MODE": "DEMO", "PAPER_MODE": "false", "EXPERIMENTAL_EXECUTE": "true",
-                                "LIVE_TRADING": "false"})
-    assert c.mode == "DEMO" and c.experimental_execute is True
+def test_experimental_execute_is_refused_while_nothing_is_validated():
+    """Takeover audit: no edge is VALIDATED, so DEMO sends no unvalidated order. The switch is refused."""
+    with pytest.raises(ServiceConfigError, match="EXPERIMENTAL_EXECUTE"):
+        ServiceConfig.from_env({"MODE": "DEMO", "PAPER_MODE": "false", "EXPERIMENTAL_EXECUTE": "true"})
 
 
 # ── execution: no live path, shadow by default, stale and drifted refused ──

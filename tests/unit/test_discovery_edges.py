@@ -83,14 +83,18 @@ def test_the_committed_registry_matches_the_committed_evidence():
         for k in ("size", "lots", "risk_pct", "risk_amount"):
             assert k not in e
     # VALIDATED only where a committed, opened holdout says so; a program verdict alone never suffices
+    # ...and (edges-1.9.0, takeover audit) only with a holdout t >= 2.5: a sign alone validates nothing
     holdouts = {}
     for f in (ROOT / "research" / "knowledge").glob("*.json"):
         art = json.loads(f.read_text())
         if isinstance(art, dict) and art.get("holdout_of"):
-            holdouts.update({h: v for h, v in art.get("classification", {}).items() if v == "VALIDATED"})
+            holdouts.update({h: ((art.get("results") or {}).get(h) or {}).get("net", {}).get("t")
+                             for h, v in art.get("classification", {}).items() if v == "VALIDATED"})
     validated = {e["edge_id"] for e in reg["edges"] if e["status"] == "VALIDATED"}
-    assert validated == set(holdouts) and reg["counts"]["VALIDATED"] == len(validated)
-    assert validated <= {"DIV2-H1-TSMOM12"}  # a new VALIDATED edge must be reviewed here, not slip in
+    assert validated == {h for h, t in holdouts.items() if t is not None and t >= 2.5}
+    assert reg["counts"]["VALIDATED"] == len(validated) == 0  # DIV2-H1-TSMOM12: holdout t 0.263 -> REJECTED
+    div = next(e for e in reg["edges"] if e["edge_id"] == "DIV2-H1-TSMOM12")
+    assert div["status"] == "REJECTED" and any("holdout" in c for c in div["failed_checks"])
     passed = {k for k, p in reg["programs"].items() if p["verdict"] == "PASSED"}
     assert passed <= {"DIV-2"}
     assert all(p["verdict"] in ("FAILED", "FAIL", "PASSED") or p["verdict"].startswith("BLOCKED")

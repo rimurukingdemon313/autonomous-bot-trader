@@ -1,0 +1,4299 @@
+{
+ "code_commit": "361f5b64da33b3b023bf721b48d4cdf98fa61da8",
+ "cost_model_version": {
+  "intraday": "intraday.Costs (id-1.0.0): measured bid/ask, 0.1 pip slippage, 0.7 pip commission, BIS financing per 21:00 UTC rollover (Wednesday x3) with 1.5% markup",
+  "paper_broker": "paper-1.1.0: live bid/ask + 0.1 pip slippage, $7/lot commission, swap per 21:00 UTC rollover",
+  "provisional": "TradeLocker's real spreads are unmeasured (the spread recorder has no history): every research cost is provisional against them",
+  "research_h1": "labels.CostModel: measured bid/ask, 0.1 pip slippage per fill, 0.7 pip commission, swap 0.05 x ATR24(H1) per night either side",
+  "retail_cfd": "retail.py / rc.py: spread, slippage, overnight markup, dividends (RC programs)",
+  "risk_engine": "risk-1.2.0"
+ },
+ "data_version": "bars-692d100ec03f0a86",
+ "edge_counts": {
+  "DEGRADED": 0,
+  "ELIGIBLE_FOR_REVIEW": 0,
+  "FAILED": 117,
+  "FORWARD_TESTING": 0,
+  "PROMISING": 1,
+  "PROPOSED": 0,
+  "REGISTERED": 0,
+  "RETIRED": 0,
+  "VALIDATED": 0
+ },
+ "experiment_counts": {
+  "DEGRADED": 0,
+  "ELIGIBLE_FOR_REVIEW": 0,
+  "FAILED": 35,
+  "FORWARD_TESTING": 0,
+  "PROMISING": 1,
+  "PROPOSED": 0,
+  "REGISTERED": 2,
+  "RETIRED": 0,
+  "VALIDATED": 0
+ },
+ "experiments": [
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 1,
+   "design": {},
+   "experiment_id": "archive-smc-h1",
+   "hypothesis": "SMC grade-A trades have positive held-out expectancy",
+   "preregistration": "archive: rimurukingdemon313/claude-bot-trade-backoff-symbolfix docs/EXPERIMENT_HISTORICAL_EDGE.md",
+   "registered": "2026-09-23T12:28:27+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "SMC grade A (archive)",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "select",
+     "start": "2012-11-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2022-04-01",
+     "role": "judge",
+     "start": "2017-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 2,
+   "design": {},
+   "experiment_id": "archive-smc-h2",
+   "hypothesis": "Inverted grades; projected targets",
+   "preregistration": "archive: rimurukingdemon313/claude-bot-trade-backoff-symbolfix docs/EXPERIMENT_HISTORICAL_EDGE.md",
+   "registered": "2026-09-23T13:34:49+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "SMC H2a/H2b (archive)",
+   "uses": [
+    {
+     "end": "2022-04-01",
+     "role": "judge",
+     "start": "2017-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 6,
+   "design": {},
+   "experiment_id": "archive-trend-3",
+   "hypothesis": "Donchian, TSMOM, SMA",
+   "preregistration": "archive: rimurukingdemon313/claude-bot-trade-backoff-symbolfix docs/EXPERIMENT_TREND_FOLLOWING.md",
+   "registered": "2026-09-23T14:58:27+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 3,
+   "title": "Trend following x3 (archive)",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "select",
+     "start": "2012-11-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2022-04-01",
+     "role": "judge",
+     "start": "2017-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 2,
+   "design": {},
+   "experiment_id": "archive-reversion",
+   "hypothesis": "Reversion mode and its raw signal",
+   "preregistration": "archive: rimurukingdemon313/claude-bot-trade-backoff-symbolfix docs/EXPERIMENT_REVERSION.md",
+   "registered": "2026-09-23T15:08:13+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "Reversion mode (archive)",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "select",
+     "start": "2012-11-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2022-04-01",
+     "role": "judge",
+     "start": "2017-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 1,
+   "design": {},
+   "experiment_id": "archive-smc-utc-rerun",
+   "hypothesis": "no new verdict",
+   "preregistration": null,
+   "registered": "2026-09-23T18:34:18+00:00",
+   "registry_verdict": "ABANDONED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict ABANDONED"
+   ],
+   "tests": 0,
+   "title": "SMC re-measure after UTC fix (archive)",
+   "uses": [
+    {
+     "end": "2022-04-01",
+     "role": "select",
+     "start": "2012-11-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 80,
+   "design": {},
+   "experiment_id": "archive-edge-program-8",
+   "hypothesis": "Any of 8 families passes 6 gates",
+   "preregistration": "archive: rimurukingdemon313/claude-bot-trade-backoff-symbolfix docs/EXPERIMENT_EDGE_PROGRAM.md",
+   "registered": "2026-09-23T18:35:51+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 8,
+   "title": "Eight-family program (archive)",
+   "uses": [
+    {
+     "end": "2016-01-01",
+     "role": "judge",
+     "start": "2012-11-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2019-01-01",
+     "role": "judge",
+     "start": "2016-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2022-04-01",
+     "role": "judge",
+     "start": "2019-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 4,
+   "design": {
+    "threshold_t": 3.023,
+    "variants": [
+     "A",
+     "B",
+     "C",
+     "R"
+    ],
+    "walk_forward": "expanding annual regime refit, 5-day embargo, point-in-time memory"
+   },
+   "experiment_id": "PR-001-multi-agent-ablation",
+   "hypothesis": "The full system (C) has positive out-of-sample expectancy after costs; learning, memory and agents each add value",
+   "preregistration": "research/preregistrations/PR-001-multi-agent-ablation.md",
+   "registered": "2026-09-26T21:01:56+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 4,
+   "title": "Multi-agent system edge and ablation",
+   "uses": [
+    {
+     "end": "2010-01-01",
+     "role": "fit",
+     "start": "2007-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2010-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 4,
+   "design": {
+    "differs_from_primary": "risk.max_drawdown_pct = 100 (halt disabled); everything else identical",
+    "verdict": "none; any hypothesis it suggests must be pre-registered and judged on unseen data"
+   },
+   "experiment_id": "PR-001x-nohalt-exploratory",
+   "hypothesis": "None (exploratory, no verdict). Measures per-trade expectancy of A, B, C, R over the whole judged period",
+   "preregistration": "research/preregistrations/PR-001-multi-agent-ablation.md#amendment-1",
+   "registered": "2026-09-26T21:32:31+00:00",
+   "registry_verdict": "INCONCLUSIVE",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict INCONCLUSIVE"
+   ],
+   "tests": 0,
+   "title": "PR-001 exploratory arm: the four variants without the drawdown halt",
+   "uses": [
+    {
+     "end": "2010-01-01",
+     "role": "fit",
+     "start": "2007-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "select",
+     "start": "2010-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/DP-001.json",
+   "artifact_sha256": "fd9c62f22824ac5d5ee05c425f9765ef294abc810f15ec3fa8e2835bccd29734",
+   "configurations": 1948,
+   "design": {
+    "code_sha256": "0dbca65d79053dcffbddc40a0bb0554460d8b2d7a7eeb5990fa09cc9a6c16e47",
+    "design_sha256": "2761915fe8f4183d0cbd90f324d949555b040c5cb549850e776a73d2317b7340",
+    "discovery_program": {
+     "configurations": 1948,
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.05
+     },
+     "exits": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8"
+     ],
+     "feature_budget": 40,
+     "finalists": 5,
+     "grid_tests": 1734,
+     "groups": {
+      "session": [
+       [
+        0.0
+       ],
+       [
+        1.0,
+        2.0
+       ],
+       [
+        3.0,
+        4.0
+       ]
+      ],
+      "smc_structure": [
+       [
+        -2.0,
+        -1.0
+       ],
+       [
+        0.0
+       ],
+       [
+        1.0,
+        2.0
+       ]
+      ],
+      "smc_sweep": [
+       [
+        -1.0
+       ],
+       [
+        0.0
+       ],
+       [
+        1.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "id": "DP-001",
+     "instruments": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURJPY",
+      "GBPJPY",
+      "EURCHF",
+      "AUDJPY"
+     ],
+     "judged_tests": 6,
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "model": {
+      "family": "stumps",
+      "features": [
+       "r1",
+       "r6",
+       "r24",
+       "r120",
+       "er24",
+       "er120",
+       "dist_ma48",
+       "ma_slope",
+       "vol_ratio",
+       "rv_ratio",
+       "range_pos24",
+       "range_pos120",
+       "brk_hi120",
+       "brk_lo120",
+       "spread_rel",
+       "tick_activity",
+       "hour_sin",
+       "hour_cos",
+       "bar_body",
+       "smc_hi_dist",
+       "smc_lo_dist",
+       "smc_structure",
+       "smc_sweep",
+       "session",
+       "weekday",
+       "h4_trend",
+       "d1_trend",
+       "usd_basket",
+       "usd_corr",
+       "lag_r24",
+       "range_contraction",
+       "bar_range",
+       "vol_shift",
+       "up_persistence",
+       "atr_pctile"
+      ],
+      "quantiles": [
+       0.8,
+       0.9,
+       0.95
+      ],
+      "stride": 4,
+      "target_exit": "E1"
+     },
+     "question": "Does any cell of a declared state x trigger grid (19 features in terciles, both sides), or a boosted-stumps model of 35 features, have positive net expectancy that survives a validation period it never saw and then a frozen battery on a confirmation period \u2014 across instruments, years, regimes, costs, delays and bin perturbations?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.0780880728421613,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "screen_exit": "E1",
+     "screen_keep": 20,
+     "screen_min_n": 100,
+     "screen_q": 0.1,
+     "segments": [
+      {
+       "end": "2011-01-01",
+       "name": "discovery",
+       "role": "fit",
+       "start": "2007-06-01"
+      },
+      {
+       "end": "2013-07-01",
+       "name": "validation",
+       "role": "select",
+       "start": "2011-01-11"
+      },
+      {
+       "end": "2017-01-01",
+       "name": "confirmation",
+       "role": "judge",
+       "start": "2013-07-11"
+      }
+     ],
+     "states": [
+      "er120",
+      "vol_ratio",
+      "ma_slope",
+      "range_pos120",
+      "d1_trend",
+      "usd_basket",
+      "atr_pctile",
+      "usd_corr",
+      "session"
+     ],
+     "title": "Bounded state x trigger discovery on H1 FX with a three-way chronological split",
+     "triggers": [
+      "r1",
+      "r6",
+      "r24",
+      "bar_body",
+      "range_pos24",
+      "smc_sweep",
+      "bar_range",
+      "range_contraction",
+      "up_persistence",
+      "smc_structure"
+     ],
+     "universe": "fx-majors",
+     "validation_min_n": 100,
+     "validation_min_t": 2.0,
+     "versions": {
+      "battery": "battery-1.0.0",
+      "board": "board-1.0.0",
+      "catalog": "catalog-1.0.0",
+      "exits": "exits-1.0.0",
+      "hypothesis": "hypothesis-1.0.0",
+      "program": "program-1.0.0",
+      "screen": "screen-1.0.0",
+      "study": "study-1.0.0"
+     }
+    },
+    "document_sha256": "0fe8fb30c8f9b79a2fc9e1f2748d7d35b51ba549d1ccf35e4a7095beaa57c75e"
+   },
+   "experiment_id": "DP-001",
+   "hypothesis": "Does any cell of a declared state x trigger grid (19 features in terciles, both sides), or a boosted-stumps model of 35 features, have positive net expectancy that survives a validation period it never saw and then a frozen battery on a confirmation period \u2014 across instruments, years, regimes, costs, delays and bin perturbations?",
+   "preregistration": "research/preregistrations/DP-001-discovery.md",
+   "registered": "2026-09-29T10:08:57.095671+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 6,
+   "title": "Bounded state x trigger discovery on H1 FX with a three-way chronological split",
+   "uses": [
+    {
+     "end": "2011-01-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2013-07-01",
+     "role": "select",
+     "start": "2011-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/DP-002.json",
+   "artifact_sha256": "a36530f62751c8d188413eb352d299b3e8dc5364d76fe103e77a7f0a6f9b3d0a",
+   "configurations": 1102,
+   "design": {
+    "code_sha256": "8f28050353eb38ed2c318269237557b767a5bd1edb04a2c9299d44e054a4716e",
+    "design_sha256": "4674fdfe97e0f074982be822a493b839d809fd67254507034beef4eb86c660df",
+    "discovery_program": {
+     "configurations": 1102,
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "exits": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5"
+     ],
+     "feature_budget": 35,
+     "finalists": 5,
+     "grid_tests": 966,
+     "groups": {},
+     "holdout_start": "2017-01-01",
+     "id": "DP-002",
+     "instruments": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURJPY",
+      "GBPJPY",
+      "EURCHF",
+      "AUDJPY"
+     ],
+     "judged_tests": 6,
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "model": {
+      "family": "stumps",
+      "features": [
+       "r1",
+       "r6",
+       "r24",
+       "r120",
+       "er24",
+       "er120",
+       "dist_ma48",
+       "ma_slope",
+       "vol_ratio",
+       "rv_ratio",
+       "range_pos24",
+       "range_pos120",
+       "brk_hi120",
+       "brk_lo120",
+       "spread_rel",
+       "tick_activity",
+       "bar_body",
+       "smc_hi_dist",
+       "smc_lo_dist",
+       "smc_structure",
+       "smc_sweep",
+       "usd_basket",
+       "usd_corr",
+       "lag_r24",
+       "range_contraction",
+       "bar_range",
+       "vol_shift",
+       "up_persistence",
+       "atr_pctile"
+      ],
+      "quantiles": [
+       0.8,
+       0.9,
+       0.95
+      ],
+      "stride": 1,
+      "target_exit": "D1"
+     },
+     "question": "With one decision per day at the New York close, does any cell of a declared daily grid (14 features in terciles, both sides), or a boosted-stumps model of 29 daily features, have positive net expectancy that survives a validation period it never saw and then a frozen battery on a confirmation period \u2014 across instruments, years, regimes, costs, delays and bin perturbations?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.143980287069073,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "screen_exit": "D1",
+     "screen_keep": 20,
+     "screen_min_n": 100,
+     "screen_q": 0.1,
+     "segments": [
+      {
+       "end": "2011-01-01",
+       "name": "discovery",
+       "role": "fit",
+       "start": "2007-06-01"
+      },
+      {
+       "end": "2013-07-01",
+       "name": "validation",
+       "role": "select",
+       "start": "2011-01-11"
+      },
+      {
+       "end": "2017-01-01",
+       "name": "confirmation",
+       "role": "judge",
+       "start": "2013-07-11"
+      }
+     ],
+     "states": [
+      "er120",
+      "vol_ratio",
+      "ma_slope",
+      "range_pos120",
+      "usd_basket",
+      "atr_pctile",
+      "usd_corr"
+     ],
+     "timeframe": "D1",
+     "title": "Daily-horizon state x trigger discovery on FX, where costs are a smaller fraction of risk",
+     "triggers": [
+      "r1",
+      "r6",
+      "r24",
+      "bar_body",
+      "range_pos24",
+      "up_persistence",
+      "range_contraction"
+     ],
+     "universe": "fx-majors",
+     "validation_min_n": 80,
+     "validation_min_t": 2.0,
+     "versions": {
+      "battery": "battery-1.0.0",
+      "board": "board-1.0.0",
+      "catalog": "catalog-1.0.0",
+      "exits": "exits-1.1.0",
+      "hypothesis": "hypothesis-1.0.0",
+      "program": "program-1.0.0",
+      "screen": "screen-1.0.0",
+      "study": "study-1.0.0"
+     }
+    },
+    "document_sha256": "8f19f7ab530ea16610fd74f6bcbdbfd65ebff8111c52fa37f1a36246cdd1026a"
+   },
+   "experiment_id": "DP-002",
+   "hypothesis": "With one decision per day at the New York close, does any cell of a declared daily grid (14 features in terciles, both sides), or a boosted-stumps model of 29 daily features, have positive net expectancy that survives a validation period it never saw and then a frozen battery on a confirmation period \u2014 across instruments, years, regimes, costs, delays and bin perturbations?",
+   "preregistration": "research/preregistrations/DP-002-daily-discovery.md",
+   "registered": "2026-09-29T11:19:33.435701+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 6,
+   "title": "Daily-horizon state x trigger discovery on FX, where costs are a smaller fraction of risk",
+   "uses": [
+    {
+     "end": "2011-01-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2013-07-01",
+     "role": "select",
+     "start": "2011-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/CP-001.json",
+   "artifact_sha256": "c4550082d6452fe13c41abe755c5039bac34fc121e17911a88f1a0a8526151f9",
+   "configurations": 4,
+   "design": {
+    "code_sha256": "8f28050353eb38ed2c318269237557b767a5bd1edb04a2c9299d44e054a4716e",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2013-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-06-01"
+     },
+     "groups": {},
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "CP-001-T1",
+      "CP-001-T2",
+      "CP-001-T3",
+      "CP-001-T4"
+     ],
+     "id": "CP-001",
+     "instruments": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURJPY",
+      "GBPJPY",
+      "EURCHF",
+      "AUDJPY"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2013-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Do the published time-series momentum and moving-average trend rules have positive net expectancy on 12 FX pairs from 2013-07 to 2017-01, one month holds, all costs charged?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.1804257426567073,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Published FX trend following, judged after its publication",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "bed58d9cc7bcb7d5d1f18989692437fd36e40f6cf82cf2be8c025c53a92fbf14"
+   },
+   "experiment_id": "CP-001",
+   "hypothesis": "Do the published time-series momentum and moving-average trend rules have positive net expectancy on 12 FX pairs from 2013-07 to 2017-01, one month holds, all costs charged?",
+   "preregistration": "research/preregistrations/CP-001-trend-following.md",
+   "registered": "2026-09-29T11:44:32.436170+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 4,
+   "title": "Published FX trend following, judged after its publication",
+   "uses": [
+    {
+     "end": "2013-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 1,
+   "design": {
+    "lab": "lab-1.0.0",
+    "models": "models-1.1.0",
+    "spec": {
+     "compare_features": null,
+     "every": 4,
+     "features": [
+      "r6",
+      "r24",
+      "r120",
+      "er24",
+      "er120",
+      "dist_ma48",
+      "ma_slope",
+      "vol_ratio",
+      "rv_ratio",
+      "range_pos24",
+      "range_pos120",
+      "brk_hi120",
+      "brk_lo120",
+      "smc_hi_dist",
+      "smc_lo_dist",
+      "smc_structure",
+      "hour_sin",
+      "hour_cos"
+     ],
+     "fit_start": "2007-04-01",
+     "fold_days": 365,
+     "id": "WF-001",
+     "judge_end": "2017-01-01",
+     "judge_start": "2011-01-01",
+     "llm_cutoff": null,
+     "model": "knn",
+     "rules": {
+      "beat_random_t": 2.0,
+      "min_positive_fold_share": 0.6,
+      "min_trades": 200,
+      "robustness_mean_positive": true
+     },
+     "seed": 7,
+     "sides": [
+      1,
+      -1
+     ],
+     "source": "human",
+     "statement": "The production analog estimator (k-NN on its 18 features) predicts net R of template T2 (1.5/3.0 ATR, 48 bars): trading only where its walk-forward prediction is positive after costs has positive net expectancy. Lead: in PR-001 the analog family beat random entries by about 0.1R/trade but costs of T1-heavy trading left it negative; T2 carries a lower cost share.",
+     "symbols": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURJPY",
+      "GBPJPY",
+      "EURCHF",
+      "AUDJPY"
+     ],
+     "template": "T2",
+     "threshold_r": 0.0,
+     "timeframe": "H1",
+     "universe": "fx-majors"
+    },
+    "substance": "bf7a7a1b52429ad1",
+    "threshold_t": 3.1888
+   },
+   "experiment_id": "WF-001",
+   "hypothesis": "The production analog estimator (k-NN on its 18 features) predicts net R of template T2 (1.5/3.0 ATR, 48 bars): trading only where its walk-forward prediction is positive after costs has positive net expectancy. Lead: in PR-001 the analog family beat random entries by about 0.1R/trade but costs of T1-heavy trading left it negative; T2 carries a lower cost share.",
+   "preregistration": "lab:bf7a7a1b52429ad1",
+   "registered": "2026-09-29T11:59:53+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "The production analog estimator (k-NN on its 18 features) predicts net R of template T2 (1.5/3.0 ATR, 48 bars): trading ",
+   "uses": [
+    {
+     "end": "2011-01-01",
+     "role": "fit",
+     "start": "2007-04-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2011-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 1,
+   "design": {
+    "lab": "lab-1.0.0",
+    "models": "models-1.1.0",
+    "spec": {
+     "compare_features": null,
+     "every": 4,
+     "features": [
+      "r1",
+      "r6",
+      "r24",
+      "r120",
+      "er24",
+      "er120",
+      "dist_ma48",
+      "ma_slope",
+      "vol_ratio",
+      "rv_ratio",
+      "range_pos24",
+      "range_pos120",
+      "brk_hi120",
+      "brk_lo120",
+      "spread_rel",
+      "tick_activity",
+      "hour_sin",
+      "hour_cos",
+      "bar_body",
+      "smc_hi_dist",
+      "smc_lo_dist",
+      "smc_structure",
+      "smc_sweep"
+     ],
+     "fit_start": "2007-04-01",
+     "fold_days": 365,
+     "id": "WF-002",
+     "judge_end": "2017-01-01",
+     "judge_start": "2011-01-01",
+     "llm_cutoff": null,
+     "model": "stumps",
+     "rules": {
+      "beat_random_t": 2.0,
+      "min_positive_fold_share": 0.6,
+      "min_trades": 200,
+      "robustness_mean_positive": true
+     },
+     "seed": 7,
+     "sides": [
+      1,
+      -1
+     ],
+     "source": "human",
+     "statement": "Boosted stumps on the 23 production features predict net R of template T2: trading only where the walk-forward prediction is positive after costs has positive net expectancy.",
+     "symbols": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURJPY",
+      "GBPJPY",
+      "EURCHF",
+      "AUDJPY"
+     ],
+     "template": "T2",
+     "threshold_r": 0.0,
+     "timeframe": "H1",
+     "universe": "fx-majors"
+    },
+    "substance": "4c6bcabc99750d36",
+    "threshold_t": 3.197
+   },
+   "experiment_id": "WF-002",
+   "hypothesis": "Boosted stumps on the 23 production features predict net R of template T2: trading only where the walk-forward prediction is positive after costs has positive net expectancy.",
+   "preregistration": "lab:4c6bcabc99750d36",
+   "registered": "2026-09-29T11:59:53+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "Boosted stumps on the 23 production features predict net R of template T2: trading only where the walk-forward predictio",
+   "uses": [
+    {
+     "end": "2011-01-01",
+     "role": "fit",
+     "start": "2007-04-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2011-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 1,
+   "design": {
+    "lab": "lab-1.1.0",
+    "models": "models-1.1.0",
+    "spec": {
+     "compare_features": null,
+     "every": 1,
+     "features": [
+      "r1",
+      "r6",
+      "r24",
+      "r120",
+      "er24",
+      "er120",
+      "dist_ma48",
+      "ma_slope",
+      "vol_ratio",
+      "rv_ratio",
+      "range_pos24",
+      "range_pos120",
+      "brk_hi120",
+      "brk_lo120",
+      "spread_rel",
+      "tick_activity",
+      "hour_sin",
+      "hour_cos",
+      "bar_body",
+      "smc_hi_dist",
+      "smc_lo_dist",
+      "smc_structure",
+      "smc_sweep",
+      "H1:r24",
+      "H1:er120",
+      "H1:ma_slope",
+      "H1:vol_ratio",
+      "H1:range_pos120",
+      "H4:r24",
+      "H4:er120",
+      "H4:ma_slope",
+      "H4:vol_ratio",
+      "H4:range_pos120"
+     ],
+     "fit_start": "2007-04-01",
+     "fold_days": 365,
+     "id": "WF-003",
+     "judge_end": "2017-01-01",
+     "judge_start": "2011-01-01",
+     "knn_baseline": false,
+     "llm_cutoff": null,
+     "model": "stumps",
+     "rules": {
+      "beat_random_t": 2.0,
+      "min_positive_fold_share": 0.6,
+      "min_trades": 200,
+      "robustness_mean_positive": true
+     },
+     "seed": 7,
+     "sides": [
+      1,
+      -1
+     ],
+     "source": "human",
+     "statement": "The M15 opportunity-scanner architecture: boosted stumps on the 23 production features computed on M15 bars plus H1 and H4 context (r24, er120, ma_slope, vol_ratio, range_pos120 on the last closed bar), deciding at every M15 close, trading only where the walk-forward prediction of T2 net R is positive. Identical to WF-002 (the current H1, every-4-bars architecture) in model, exit definition, cost model, data, folds and judgement; it is better only if its out-of-sample evidence is.",
+     "symbols": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURJPY",
+      "GBPJPY",
+      "EURCHF",
+      "AUDJPY"
+     ],
+     "template": "T2",
+     "threshold_r": 0.0,
+     "timeframe": "M15",
+     "universe": "fx-majors"
+    },
+    "substance": "d1dedccee2d45ae1",
+    "threshold_t": 3.2048
+   },
+   "experiment_id": "WF-003",
+   "hypothesis": "The M15 opportunity-scanner architecture: boosted stumps on the 23 production features computed on M15 bars plus H1 and H4 context (r24, er120, ma_slope, vol_ratio, range_pos120 on the last closed bar), deciding at every M15 close, trading only where the walk-forward prediction of T2 net R is positive. Identical to WF-002 (the current H1, every-4-bars architecture) in model, exit definition, cost model, data, folds and judgement; it is better only if its out-of-sample evidence is.",
+   "preregistration": "lab:d1dedccee2d45ae1",
+   "registered": "2026-09-29T13:34:46+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "The M15 opportunity-scanner architecture: boosted stumps on the 23 production features computed on M15 bars plus H1 and ",
+   "uses": [
+    {
+     "end": "2011-01-01",
+     "role": "fit",
+     "start": "2007-04-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2011-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/SL-001.json",
+   "artifact_sha256": "2b3ebd11b471c5272290486a7cd24a98985f98b5f71500969ac9236333445fa1",
+   "configurations": 6,
+   "design": {
+    "code_sha256": "c0494f9161b07e1a04525a6a85e5c26207fd3dd7ee4be28edab189aaed0852c6",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2013-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-06-01"
+     },
+     "groups": {},
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "SL-001-01",
+      "SL-001-02",
+      "SL-001-03",
+      "SL-001-04",
+      "SL-001-05",
+      "SL-001-06"
+     ],
+     "id": "SL-001",
+     "instruments": [
+      "AUDJPY",
+      "AUDUSD",
+      "EURCHF",
+      "EURGBP",
+      "EURJPY",
+      "EURUSD",
+      "GBPJPY",
+      "GBPUSD",
+      "NZDUSD",
+      "USDCAD",
+      "USDCHF",
+      "USDJPY"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2013-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Do documented trading principles, in their testable D1 forms, have positive net expectancy on our FX data after costs?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.2478536316402082,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Strategy library, D1 forms",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "549fb70aa47675f77a9a766bd8c15400f2813290cdc8c61dce7f29478fca25e6"
+   },
+   "experiment_id": "SL-001",
+   "hypothesis": "Do documented trading principles, in their testable D1 forms, have positive net expectancy on our FX data after costs?",
+   "preregistration": "research/preregistrations/SL-001-library-daily.md",
+   "registered": "2026-09-29T13:37:59.700727+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 6,
+   "title": "Strategy library, D1 forms",
+   "uses": [
+    {
+     "end": "2013-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/SL-002.json",
+   "artifact_sha256": "7aa3e7492a5dd33d50fa1ef0e429cc6a87b5b275ce5a01d4d7418824b7e5fc12",
+   "configurations": 1,
+   "design": {
+    "code_sha256": "c0494f9161b07e1a04525a6a85e5c26207fd3dd7ee4be28edab189aaed0852c6",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.05
+     },
+     "fit": {
+      "end": "2013-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-06-01"
+     },
+     "groups": {
+      "session": [
+       [
+        0.0
+       ],
+       [
+        1.0,
+        2.0
+       ],
+       [
+        3.0,
+        4.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "SL-002-01"
+     ],
+     "id": "SL-002",
+     "instruments": [
+      "EURUSD",
+      "GBPUSD"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2013-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Do documented trading principles, in their testable H1 forms, have positive net expectancy on our FX data after costs?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.2543894872943353,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Strategy library, H1 forms",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "ceb2ab7a3f303d748918163b1bd1204d8f0a7f6ef28b68ad8e3bf78f7b3ee610"
+   },
+   "experiment_id": "SL-002",
+   "hypothesis": "Do documented trading principles, in their testable H1 forms, have positive net expectancy on our FX data after costs?",
+   "preregistration": "research/preregistrations/SL-002-library-hourly.md",
+   "registered": "2026-09-29T13:37:59.709628+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "Strategy library, H1 forms",
+   "uses": [
+    {
+     "end": "2013-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/XS-001.json",
+   "artifact_sha256": "8a996866216e9a0e821658ec38891d50e37e723cb5bb72f96d3feb38fb48e462",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "6da0e48627ff237cc8c169419d0735bb41525e43e541b7d8f3d997d1bf597651",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2013-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-06-01"
+     },
+     "groups": {},
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "XS-001-L",
+      "XS-001-S"
+     ],
+     "id": "XS-001",
+     "instruments": [
+      "AUDUSD",
+      "EURUSD",
+      "GBPUSD",
+      "NZDUSD",
+      "USDCAD",
+      "USDCHF",
+      "USDJPY"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2013-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Does buying the currencies that were strongest against the dollar over the last 24 days, and selling the weakest, held about a month, have positive net expectancy on the seven USD pairs from 2013-07 to 2017-01, all costs charged?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.266994864325671,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Published cross-sectional currency momentum, judged after its publication",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "b77be7b743f2be05a532939f48be12d3dab33f9d1eb669313f682dea3c87b8fe"
+   },
+   "experiment_id": "XS-001",
+   "hypothesis": "Does buying the currencies that were strongest against the dollar over the last 24 days, and selling the weakest, held about a month, have positive net expectancy on the seven USD pairs from 2013-07 to 2017-01, all costs charged?",
+   "preregistration": "research/preregistrations/XS-001-currency-momentum.md",
+   "registered": "2026-09-29T16:06:59.825412+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "Published cross-sectional currency momentum, judged after its publication",
+   "uses": [
+    {
+     "end": "2013-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2013-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/R2A.json",
+   "artifact_sha256": "96d28fcadc9b6926a3a378e84ecb33198003a3316d6fbf09a0a243e69b3e7e74",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "540e1ebad7ddecc13841998be1a87b7c2d871cfeb1e85aed6a3b98a0eb8db0ad",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.0
+     },
+     "fit": {
+      "end": "2008-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-04-02"
+     },
+     "groups": {
+      "vix_state": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "vix_trend": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "R2A-1",
+      "R2A-2"
+     ],
+     "id": "R2A",
+     "instruments": [
+      "AUDJPY",
+      "AUDUSD",
+      "NZDUSD"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2008-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Do the positive-carry legs (long AUDJPY, AUDUSD, NZDUSD) earn a positive spot return net of costs while the risk regime is calm, and lose while risk is rising?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.2790242977180215,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Carry, conditional on the risk regime",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "3ccad0432ed9a936bbedc8ea4f893def0eb40fc4dda27a1a207fde5999f81da5"
+   },
+   "experiment_id": "R2A",
+   "hypothesis": "Do the positive-carry legs (long AUDJPY, AUDUSD, NZDUSD) earn a positive spot return net of costs while the risk regime is calm, and lose while risk is rising?",
+   "preregistration": "research/preregistrations/R2A-round2.md",
+   "registered": "2026-09-29T18:28:27.255133+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "Carry, conditional on the risk regime",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/R2B.json",
+   "artifact_sha256": "26097cdbf225188e7c8dde38a783a9cf4bc473f268831340462840c29bbd2a53",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "540e1ebad7ddecc13841998be1a87b7c2d871cfeb1e85aed6a3b98a0eb8db0ad",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2008-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-04-02"
+     },
+     "groups": {
+      "usd_rate": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "R2B-1",
+      "R2B-2"
+     ],
+     "id": "R2B",
+     "instruments": [
+      "AUDUSD",
+      "EURUSD",
+      "GBPUSD",
+      "NZDUSD",
+      "USDCAD",
+      "USDCHF",
+      "USDJPY"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2008-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Does last month's change in US 10-year yields predict the next month's move of the USD pairs, in the direction the changed differential favours?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.2905267314919255,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "US rate-differential changes",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "43f1ccd9ef138b5a4cca0fb1c1f0b132f03be42ecadbc5c491bdd6c36e224b7e"
+   },
+   "experiment_id": "R2B",
+   "hypothesis": "Does last month's change in US 10-year yields predict the next month's move of the USD pairs, in the direction the changed differential favours?",
+   "preregistration": "research/preregistrations/R2B-round2.md",
+   "registered": "2026-09-29T18:35:38.265262+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "US rate-differential changes",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/R2C.json",
+   "artifact_sha256": "6d5179688653ba55fdf688ba21b8e5255b03b413d8e00b66633ab1884df241fc",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "540e1ebad7ddecc13841998be1a87b7c2d871cfeb1e85aed6a3b98a0eb8db0ad",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2008-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-04-02"
+     },
+     "groups": {
+      "oil_pull": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "R2C-1",
+      "R2C-2"
+     ],
+     "id": "R2C",
+     "instruments": [
+      "USDCAD"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2008-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Does a 20-day move in Brent of more than 5% predict the next week's move of USDCAD, in the direction oil favours?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.301545184757089,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Cross-asset: oil and the Canadian dollar",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "318d548bffd345a6fd47a01835af39b166656467d7edf8969a50df6907656c6f"
+   },
+   "experiment_id": "R2C",
+   "hypothesis": "Does a 20-day move in Brent of more than 5% predict the next week's move of USDCAD, in the direction oil favours?",
+   "preregistration": "research/preregistrations/R2C-round2.md",
+   "registered": "2026-09-29T18:41:52.368313+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "Cross-asset: oil and the Canadian dollar",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/R2D.json",
+   "artifact_sha256": "96180a74f477ebc051afd0590914984ef982798f30a947ef524b05a71a434293",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "540e1ebad7ddecc13841998be1a87b7c2d871cfeb1e85aed6a3b98a0eb8db0ad",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2008-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-04-02"
+     },
+     "groups": {
+      "trend_sign": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "vix_state": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "R2D-1",
+      "R2D-2"
+     ],
+     "id": "R2D",
+     "instruments": [
+      "AUDJPY",
+      "AUDUSD",
+      "EURCHF",
+      "EURGBP",
+      "EURJPY",
+      "EURUSD",
+      "GBPJPY",
+      "GBPUSD",
+      "NZDUSD",
+      "USDCAD",
+      "USDCHF",
+      "USDJPY"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2008-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Does time-series momentum, rejected unconditionally in CP-001, have positive net expectancy when restricted in advance to calm risk regimes?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.3121176662593372,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Regime-conditioned time-series momentum",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "1daec1d8de9c7099c183bcde22ad69e84a202b5537faecb9c8e7ff94227e50e2"
+   },
+   "experiment_id": "R2D",
+   "hypothesis": "Does time-series momentum, rejected unconditionally in CP-001, have positive net expectancy when restricted in advance to calm risk regimes?",
+   "preregistration": "research/preregistrations/R2D-round2.md",
+   "registered": "2026-09-29T18:47:51.999711+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "Regime-conditioned time-series momentum",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/R3.json",
+   "artifact_sha256": "f96e12fbc1dbb6afe9a1cbc74a5b3705c14c05ea130109fcea8a312a187d494c",
+   "configurations": 8,
+   "design": {
+    "code_sha256": "e718bbec4e743e3dd7a14f05d40bc3718906eacbd08cf2fa7a28989bfc369681",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.0
+     },
+     "fit": {
+      "end": "2008-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-04-02"
+     },
+     "groups": {
+      "policy_move": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "rate_accel": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "rate_change": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "rate_level": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "vix_state": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "R3-A",
+      "R3-B",
+      "R3-C",
+      "R3-D",
+      "R3-E",
+      "R3-F",
+      "R3-G",
+      "R3-H"
+     ],
+     "id": "R3",
+     "instruments": [
+      "EURUSD",
+      "GBPUSD",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+      "EURGBP",
+      "EURCHF"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2008-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Does point-in-time interest-rate information (the level, change, acceleration of the policy-rate differential, and policy moves) improve directional prediction on the FX pairs, and does carry (spot + RATE-DIFFERENTIAL CARRY PROXY - financing - costs) have positive net expectancy?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.3505709013015026,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Genuine interest-rate information and FX carry",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "c85979b216fe7dea77eed63fd13b7c1a4dbd88ca16b545328232b16bdeb607f7"
+   },
+   "experiment_id": "R3",
+   "hypothesis": "Does point-in-time interest-rate information (the level, change, acceleration of the policy-rate differential, and policy moves) improve directional prediction on the FX pairs, and does carry (spot + RATE-DIFFERENTIAL CARRY PROXY - financing - costs) have positive net expectancy?",
+   "preregistration": "research/preregistrations/R3-round3.md",
+   "registered": "2026-09-30T07:43:26.909897+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 8,
+   "title": "Genuine interest-rate information and FX carry",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/R4.json",
+   "artifact_sha256": "cfdbc4a1c257ed7eea14998474403e37ff8e191570f2cd4e1f7a5f3988e8e774",
+   "configurations": 5,
+   "design": {
+    "code_sha256": "2d4abc31594ce71b5b16eb89af54d6b5f16b960f9fa07f3379028a91ab7fdcb9",
+    "confirmatory_program": {
+     "costs": {
+      "commission_pips_rt": 0.7,
+      "slippage_pips": 0.1,
+      "spread_multiple": 1.0,
+      "swap_atr_per_night": 0.01
+     },
+     "fit": {
+      "end": "2008-07-01",
+      "name": "fit",
+      "role": "fit",
+      "start": "2007-04-02"
+     },
+     "groups": {
+      "gold_pull": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "own5": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "usd_infl": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ],
+      "vix_jump": [
+       [
+        0.0
+       ],
+       [
+        1.0
+       ],
+       [
+        2.0
+       ]
+      ]
+     },
+     "holdout_start": "2017-01-01",
+     "hypotheses": [
+      "R4-XA-GOLD-A",
+      "R4-XA-GOLD-B",
+      "R4-XA-VIX-A",
+      "R4-MACRO-CPI-A",
+      "R4-MACRO-CPI-B"
+     ],
+     "id": "R4",
+     "instruments": [
+      "AUDJPY",
+      "AUDUSD",
+      "EURCHF",
+      "EURJPY",
+      "EURUSD",
+      "GBPJPY",
+      "GBPUSD",
+      "NZDUSD",
+      "USDCAD",
+      "USDCHF",
+      "USDJPY"
+     ],
+     "judge": {
+      "end": "2017-01-01",
+      "name": "confirmation",
+      "role": "judge",
+      "start": "2008-07-11"
+     },
+     "lookback_start": "2007-03-30",
+     "min_embargo_days": 10,
+     "question": "Does gold, a VIX spike or US inflation acceleration predict an FX pair's direction BEYOND its own recent price, after costs, out of sample?",
+     "rules": {
+      "instrument_share": 0.6,
+      "min_instrument_trades": 20,
+      "min_trades": 100,
+      "min_year_trades": 20,
+      "permutation_alpha": 0.05,
+      "permutations": 200,
+      "perturb": 0.05,
+      "random_draws": 20,
+      "random_welch_t": 2.0,
+      "regime_min_trades": 20,
+      "regime_negative_t": -2.0,
+      "regime_positive_cells": 2,
+      "seed": 20260929,
+      "t_threshold": 3.3719910787175382,
+      "top_max_contribution": 0.5,
+      "top_share": 0.05,
+      "year_share": 0.6
+     },
+     "title": "Directional information from outside the FX pair",
+     "universe": "fx-majors",
+     "version": "confirm-1.0.0"
+    },
+    "design_sha256": "c29fa3793878bd8380fd7b7fe128452cc96063f506a0fe6a86bc8d61ad9040ca"
+   },
+   "experiment_id": "R4",
+   "hypothesis": "Does gold, a VIX spike or US inflation acceleration predict an FX pair's direction BEYOND its own recent price, after costs, out of sample?",
+   "preregistration": "research/preregistrations/R4-directional-information.md",
+   "registered": "2026-09-30T14:21:44.169265+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 5,
+   "title": "Directional information from outside the FX pair",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/COT-1.json",
+   "artifact_sha256": "bce38fbde056ffca01e063a1129e8ef63f1473b0ae3ab9919b667fc9e5f0596c",
+   "configurations": 11,
+   "design": {
+    "code_sha256": "1843a078046fa8c233fbc8cdfe49e58a409d1222da90c088d6828fcbe3c655c2",
+    "spec": {
+     "abc": {
+      "A (price only)": [
+       "a_rev",
+       "a_cont"
+      ],
+      "B (COT only)": [
+       "p_rev",
+       "p_cont"
+      ],
+      "C (price + COT)": [
+       "c_rev",
+       "c_cont"
+      ]
+     },
+     "battery": {
+      "beats_random": "Welch t vs random entries >= 2.0 (20 draws)",
+      "costs_stress": "mean R > 0 with spread x1.5, slippage x2, commission and swap x1.5",
+      "delay_stress": "mean R > 0 with entry one bar late",
+      "instruments": ">= 60% of instruments with >= 20 trades positive (>= 2 instruments)",
+      "leave_one_out": "mean R > 0 with any one instrument removed",
+      "min_trades": "n >= 100",
+      "outliers": "top 5% of trades carry < 50% of total R",
+      "permutation": "circular-shift p < 0.05 (200 shifts)",
+      "perturbation": "mean R > 0 with tercile edges moved by -0.05 and +0.05 quantile",
+      "regimes": "no regime cell (er120 x vol_ratio, discovery medians) with t <= -2.0; >= 2 cells with >= 20 trades positive",
+      "significance": "clustered (by week) t >= 3.414",
+      "years": ">= 60% of years with >= 20 trades positive (>= 2 years)"
+     },
+     "controls": [
+      "a_rev",
+      "a_cont",
+      "af_cont",
+      "af_rev",
+      "av_rev",
+      "a_trend",
+      "a_trend_uncrowded"
+     ],
+     "costs": {
+      "commission_pips_round_trip": 0.7,
+      "slippage_pips_per_fill": 0.1,
+      "spread": "measured bid/ask x1.0",
+      "status": "slippage, commission and swap are declared approximations",
+      "swap": "0.01 x ATR24(D1) per New York close crossed"
+     },
+     "data": {
+      "bars": "D1 bid/ask, data/manifest.json",
+      "cot": {
+       "fin_fut_txt_2006_2016.zip": "c3a8d01765133a24ce9c082de88933816497d06f1b03eec8c53750bdd818f14b",
+       "fut_fin_txt_2017.zip": "e6e2dd537efcc57cdd6cdcc4e45e567fd47e65d8afc8369d8383bf09195ae7f5"
+      },
+      "cot_loader": "cot-1.0.0",
+      "vix": "data/external/manifest.json"
+     },
+     "decision_bar": "the first D1 bar closing at or after the release; none if the next report is already public",
+     "entry": "market order at the open of the bar after the decision bar (= the decision bar's close)",
+     "exit": {
+      "key": "D3",
+      "rule": "time exit after 5 D1 bars (the next decision bar's close), protective stop 2.0 x ATR24(D1); 1R = the stop distance; no target"
+     },
+     "gates": {
+      "confirmation_2016": "computed only for PROMISING-or-better: 2016 mean R > 0 and > 0 under the cost stress",
+      "development": "mean R (claim-signed) > 0 on 2008-07-11 -> 2014-01-01",
+      "incremental": "judged mean R minus the declared price-only control's judged mean R > 0; for the veto: the uncrowded trend control's mean minus the trend control's mean > 0",
+      "top5_removed": "judged mean R > 0 without the 5 best trades",
+      "validation": "mean R > 0 on 2014-01-01 -> 2016-01-01"
+     },
+     "holdout": {
+      "pass": "2016-2017 pooled mean > 0 with clustered t >= 1.645, 2017 alone mean > 0, and 2016-2017 mean > 0 under the cost stress",
+      "policy": "RESEARCH_PROTOCOL.md section 2: one preregistered final test of ONE candidate that passed everything else; the best such by judged t; never for a PROMISING one"
+     },
+     "hypotheses": [
+      {
+       "control": "a_rev",
+       "family": "primary",
+       "features": [
+        "cot_spec_pct"
+       ],
+       "hid": "COT1-P-REV",
+       "kind": "opportunity",
+       "mechanism": "reversal: a crowded speculative position has few marginal buyers (sellers) left and unwinds",
+       "rule": "p_rev",
+       "sources": "Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macroeconomics Annual 23 (2008): speculators' net futures positions in carry currencies relate to future crash risk; Tornell & Yuan, Speculation and hedging in the currency futures markets: are they informative to the spot exchange rates?, Journal of Futures Markets 32 (2012): examines whether turning points of net positions are informative",
+       "statement": "When Leveraged Money's net position (as a share of open interest) is at a 52-week extreme (percentile >= 0.90 or <= 0.10), trading the currency AGAINST it for one week (D3) has positive net expectancy."
+      },
+      {
+       "control": "a_cont",
+       "family": "primary",
+       "features": [
+        "cot_spec_pct"
+       ],
+       "hid": "COT1-P-CONT",
+       "kind": "opportunity",
+       "mechanism": "continuation: speculators trade on information or trends that persist beyond the report",
+       "rule": "p_cont",
+       "sources": "Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004): weekly position CHANGES move with same-week exchange rates; little evidence that they predict later moves; Tornell & Yuan, Speculation and hedging in the currency futures markets: are they informative to the spot exchange rates?, Journal of Futures Markets 32 (2012): examines whether turning points of net positions are informative",
+       "statement": "When Leveraged Money's net position is at a 52-week extreme, trading the currency WITH it for one week has positive net expectancy."
+      },
+      {
+       "control": "a_rev",
+       "family": "price+cot",
+       "features": [
+        "cot_spec_pct",
+        "cot_px_pct"
+       ],
+       "hid": "COT1-C-REV",
+       "kind": "opportunity",
+       "mechanism": "reversal: a stretched price that is also crowded has the least support left",
+       "rule": "c_rev",
+       "sources": "Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macroeconomics Annual 23 (2008): speculators' net futures positions in carry currencies relate to future crash risk",
+       "statement": "When positioning AND the currency's price are both at a same-side 52-week extreme, trading against them for one week has positive net expectancy -- and more than the price extreme alone."
+      },
+      {
+       "control": "a_cont",
+       "family": "price+cot",
+       "features": [
+        "cot_spec_pct",
+        "cot_px_pct"
+       ],
+       "hid": "COT1-C-CONT",
+       "kind": "opportunity",
+       "mechanism": "continuation: positioning confirms that the price extreme is a trend, not noise",
+       "rule": "c_cont",
+       "sources": "Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004): weekly position CHANGES move with same-week exchange rates; little evidence that they predict later moves",
+       "statement": "When positioning and price are both at a same-side 52-week extreme, trading with them for one week has positive net expectancy -- and more than the price extreme alone."
+      },
+      {
+       "control": "a_rev",
+       "family": "cot-beyond-price",
+       "features": [
+        "cot_spec_pct",
+        "cot_px_pct"
+       ],
+       "hid": "COT1-I-REV",
+       "kind": "opportunity",
+       "mechanism": "reversal: positioning information that price has not shown (the pure positioning effect)",
+       "rule": "i_rev",
+       "sources": "Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macroeconomics Annual 23 (2008): speculators' net futures positions in carry currencies relate to future crash risk",
+       "statement": "When positioning is at a 52-week extreme but price is NOT at the same-side extreme, trading against the positioning for one week has positive net expectancy."
+      },
+      {
+       "control": "a_cont",
+       "family": "cot-beyond-price",
+       "features": [
+        "cot_spec_pct",
+        "cot_px_pct"
+       ],
+       "hid": "COT1-I-CONT",
+       "kind": "opportunity",
+       "mechanism": "continuation: speculators position ahead of a move that price has not yet made",
+       "rule": "i_cont",
+       "sources": "Tornell & Yuan, Speculation and hedging in the currency futures markets: are they informative to the spot exchange rates?, Journal of Futures Markets 32 (2012): examines whether turning points of net positions are informative",
+       "statement": "When positioning is at a 52-week extreme but price is not, trading with the positioning for one week has positive net expectancy."
+      },
+      {
+       "control": "af_cont",
+       "family": "flow",
+       "features": [
+        "cot_spec_flow_pct"
+       ],
+       "hid": "COT1-F-CONT",
+       "kind": "opportunity",
+       "mechanism": "continuation: position building reflects information that is still being priced",
+       "rule": "f_cont",
+       "sources": "Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004): weekly position CHANGES move with same-week exchange rates; little evidence that they predict later moves",
+       "statement": "When the 4-week change in Leveraged Money's net position is at a 52-week extreme, trading with the flow for one week has positive net expectancy."
+      },
+      {
+       "control": "af_rev",
+       "family": "flow",
+       "features": [
+        "cot_spec_flow_pct"
+       ],
+       "hid": "COT1-F-REV",
+       "kind": "opportunity",
+       "mechanism": "reversal: a burst of position building overshoots and is given back",
+       "rule": "f_rev",
+       "sources": "Klitgaard & Weir, Exchange rate changes and net positions of speculators in the futures market, FRBNY Economic Policy Review 10 (2004): weekly position CHANGES move with same-week exchange rates; little evidence that they predict later moves",
+       "statement": "When the 4-week positioning change is at a 52-week extreme, trading against the flow for one week has positive net expectancy."
+      },
+      {
+       "control": "a_rev",
+       "family": "unwind",
+       "features": [
+        "cot_spec_pct",
+        "cot_spec_step"
+       ],
+       "hid": "COT1-U-REV",
+       "kind": "opportunity",
+       "mechanism": "reversal: the unwind of a crowded position has started and is self-reinforcing",
+       "rule": "u_rev",
+       "sources": "Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macroeconomics Annual 23 (2008): speculators' net futures positions in carry currencies relate to future crash risk; Tornell & Yuan, Speculation and hedging in the currency futures markets: are they informative to the spot exchange rates?, Journal of Futures Markets 32 (2012): examines whether turning points of net positions are informative",
+       "statement": "When positioning is at a 52-week extreme AND last week's change points back toward neutral, trading against the positioning for one week has positive net expectancy."
+      },
+      {
+       "control": "av_rev",
+       "family": "volatility",
+       "features": [
+        "cot_spec_pct",
+        "cot_vix"
+       ],
+       "hid": "COT1-V-REV",
+       "kind": "opportunity",
+       "mechanism": "reversal: in stress, funding constraints force crowded positions to unwind",
+       "rule": "v_rev",
+       "sources": "Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macroeconomics Annual 23 (2008): speculators' net futures positions in carry currencies relate to future crash risk",
+       "statement": "When positioning is at a 52-week extreme while VIX >= 20, trading against the positioning for one week has positive net expectancy."
+      },
+      {
+       "control": "a_trend",
+       "family": "filter",
+       "features": [
+        "cot_spec_pct",
+        "cot_px_trend"
+       ],
+       "hid": "COT1-X-VETO",
+       "kind": "veto",
+       "mechanism": "reversal: a crowded trend is the one most likely to stall; filtering it improves the price strategy",
+       "rule": "x_veto",
+       "sources": "Brunnermeier, Nagel & Pedersen, Carry trades and currency crashes, NBER Macroeconomics Annual 23 (2008): speculators' net futures positions in carry currencies relate to future crash risk",
+       "statement": "Taking the 13-week trend trade where positioning is ALREADY at an extreme in the trend's direction LOSES (negative net expectancy): positioning works as a veto on a price strategy."
+      }
+     ],
+     "id": "COT-1",
+     "instruments": [
+      "AUDUSD",
+      "EURUSD",
+      "GBPUSD",
+      "NZDUSD",
+      "USDCAD",
+      "USDCHF",
+      "USDJPY"
+     ],
+     "lags_days": {
+      "flow": [
+       25,
+       31
+      ],
+      "step": [
+       4,
+       10
+      ]
+     },
+     "levels": {
+      "hi": 0.9,
+      "lo": 0.1,
+      "neighbours": [
+       [
+        0.85,
+        0.15
+       ],
+       [
+        0.95,
+        0.05
+       ]
+      ],
+      "vix": 20.0
+     },
+     "lookback": {
+      "min_reports": 39,
+      "normalisation": "percentile rank (ties half) among the previous 52 weeks' reports; z-score only as a robustness variant",
+      "window_days": 364
+     },
+     "not_tested_here": [
+      "other lookbacks (52 weeks is frozen)",
+      "derived cross pairs",
+      "asset-manager and dealer positioning as signals (reported descriptively)",
+      "relative currency strength",
+      "position sizing (the Risk Engine's alone)"
+     ],
+     "orientation": {
+      "AUDUSD": {
+       "currency": "AUD",
+       "sign": 1
+      },
+      "EURUSD": {
+       "currency": "EUR",
+       "sign": 1
+      },
+      "GBPUSD": {
+       "currency": "GBP",
+       "sign": 1
+      },
+      "NZDUSD": {
+       "currency": "NZD",
+       "sign": 1
+      },
+      "USDCAD": {
+       "currency": "CAD",
+       "sign": -1
+      },
+      "USDCHF": {
+       "currency": "CHF",
+       "sign": -1
+      },
+      "USDJPY": {
+       "currency": "JPY",
+       "sign": -1
+      }
+     },
+     "positioning": "Leveraged Money long minus short (spreads excluded) / open interest; the currency future's own orientation (+ = bullish the currency)",
+     "prior_tests": 67,
+     "publication": "17:00 New York on the first weekday >= as-of + 6 days; 2013-10-01..2013-12-24 dropped",
+     "question": "Does CFTC positioning (Leveraged Money, TFF futures-only) predict the direction of the seven direct USD pairs over the following week, after costs, out of sample -- and does it add anything beyond a price-only rule with the same timing, exit and costs?",
+     "registry_uses": [
+      [
+       "2007-03-30",
+       "2008-07-01",
+       "fit"
+      ],
+      [
+       "2008-07-01",
+       "2016-01-01",
+       "judge"
+      ],
+      [
+       "2016-01-01",
+       "2017-01-01",
+       "judge"
+      ]
+     ],
+     "robustness_reported": [
+      "neighbouring levels 0.85/0.15 and 0.95/0.05 (battery perturbation, gating)",
+      "z-score definition at the same normal quantiles",
+      "bullish vs bearish extremes",
+      "costs x2 (spread x2, slippage x4, commission and swap x2)",
+      "without the best trade",
+      "without the 5 best trades (gating)",
+      "by instrument, year, regime; entry one bar late (battery)"
+     ],
+     "rules": {
+      "a_cont": "CONTROL: price at a 52-week extreme: trade with it",
+      "a_rev": "CONTROL: price at a 52-week extreme of its weekly samples: trade against it",
+      "a_trend": "CONTROL: trade the sign of the 13-week (65-bar) trend at every decision",
+      "a_trend_uncrowded": "CONTROL: the 13-week trend trade except where positioning is at an extreme in the trend's direction",
+      "af_cont": "CONTROL: 4-week price change at a 52-week extreme: trade with it",
+      "af_rev": "CONTROL: 4-week price change at a 52-week extreme: trade against it",
+      "av_rev": "CONTROL: price at a 52-week extreme while VIX >= 20: trade against it",
+      "c_cont": "positioning AND price both at a same-side 52-week extreme: trade with them",
+      "c_rev": "positioning AND price both at a same-side 52-week extreme: trade against them",
+      "f_cont": "4-week change of Leveraged Money net/OI at a 52-week extreme: trade WITH the flow",
+      "f_rev": "4-week positioning change at a 52-week extreme: trade AGAINST the flow",
+      "i_cont": "positioning at an extreme while price is not: trade with the positioning",
+      "i_rev": "positioning at an extreme while price is NOT at the same-side extreme: trade against the positioning",
+      "p_cont": "Leveraged Money net/OI at a 52-week extreme: trade WITH it",
+      "p_rev": "Leveraged Money net/OI at a 52-week extreme (pct >= 0.90 / <= 0.10): trade AGAINST it",
+      "u_rev": "positioning at an extreme AND last week's change points back (the unwind has started): trade against the positioning",
+      "v_rev": "positioning at an extreme while VIX >= 20: trade against the positioning",
+      "x_veto": "the 13-week trend trade taken where positioning is already at an extreme in the trend's direction (crowded)"
+     },
+     "segments": {
+      "confirmation_2016": {
+       "end": "2017-01-01",
+       "name": "confirmation_2016",
+       "role": "judge",
+       "start": "2016-01-01"
+      },
+      "development": {
+       "end": "2014-01-01",
+       "name": "development",
+       "role": "judge",
+       "start": "2008-07-11"
+      },
+      "fit": {
+       "end": "2008-07-01",
+       "name": "fit",
+       "role": "fit",
+       "start": "2007-04-02"
+      },
+      "holdout": {
+       "end": "2018-01-01",
+       "name": "holdout",
+       "role": "judge",
+       "start": "2016-01-01"
+      },
+      "holdout_2017": {
+       "end": "2018-01-01",
+       "name": "holdout_2017",
+       "role": "judge",
+       "start": "2017-01-01"
+      },
+      "judged": {
+       "end": "2016-01-01",
+       "name": "judged",
+       "role": "judge",
+       "start": "2008-07-11"
+      },
+      "validation": {
+       "end": "2016-01-01",
+       "name": "validation",
+       "role": "judge",
+       "start": "2014-01-01"
+      }
+     },
+     "status": {
+      "PROMISING": "judged mean > 0, clustered t >= 2.0, cost stress and beats-random pass, every gate passes (edges.judged_status), and the 2016 confirmation passes",
+      "REJECTED": "anything else",
+      "VALIDATED": "every battery check at the registry threshold, no blocking board objection, every gate, the 2016 confirmation, then the sealed holdout"
+     },
+     "threshold_t": 3.4136,
+     "trend_bars": 65,
+     "version": "cot-study-1.0.0",
+     "walk_forward": "fixed rules: each calendar year is an out-of-sample fold; plus a descriptive walk-forward of SELECTION: in each year 2010..2015 trade the opportunity hypothesis with the best judged mean over all earlier years (>= 30 trades); no verdict depends on it"
+    },
+    "spec_sha256": "0d850397a5bbe4e5723d120d0e039585fa303bac516421380ffee1a37d72054e"
+   },
+   "experiment_id": "COT-1",
+   "hypothesis": "Does CFTC positioning (Leveraged Money, TFF futures-only) predict the direction of the seven direct USD pairs over the following week, after costs, out of sample -- and does it add anything beyond a price-only rule with the same timing, exit and costs?",
+   "preregistration": "research/preregistrations/COT-1.md",
+   "registered": "2026-10-01T06:35:47.031762+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 11,
+   "title": "CFTC positioning as directional information for FX (COT-1)",
+   "uses": [
+    {
+     "end": "2008-07-01",
+     "role": "fit",
+     "start": "2007-03-30",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2016-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2016-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/RV-1.json",
+   "artifact_sha256": "c6953c9d6f95892826bfe2129036b7c2978873c954336a332bcfd595f3da2b9f",
+   "configurations": 6,
+   "design": {
+    "code_sha256": "a1661c2f1163d07a0680ff4e61da23d11e17947b1558c42b58ff6c3b4e6c8367",
+    "spec": {
+     "aud": "the repository's Dukascopy AUDUSD is defective in 2008-01..09 and 2009-04..09 (H.10 audit); RV-1 never reads it: Stage 1 uses H.10, Stage 2 and the holdout use AUDJPY/USDJPY",
+     "book": "weights = centred cross-sectional ranks scaled to sum 0 with gross 2 (one unit long, one short), over the currencies with a score; fewer than 6: no position",
+     "classification": {
+      "PROMISING": "Stage 1 gate and Stage 2 net t >= 2 with R1..R8, short of validation",
+      "REJECTED": "anything else",
+      "VALIDATED": "Stage 1 gate, Stage 2 at its threshold with R1..R8, and the holdout"
+     },
+     "data": {
+      "execution": "Dukascopy M15 bid/ask (data/manifest.json); AUDUSD synthesised from AUDJPY/USDJPY",
+      "h10": {
+       "files": {
+        "daily_2017-12-08_4eb22d3.csv": "7d421ce778bf364f9e10154215147a9dd0bdcf1c2ebcad4427f5f1d69d9514c9",
+        "daily_2018-10-17_8a6dec2.csv": "0791b898faf23541d0dea5038bd5634f7df42f52e0dd776a1be26672bfa9fb77",
+        "daily_2026-09-29_0947c23.csv": "944c4937703177bdc5e82ced55b6e50ffcd1f89fef4bbca29785ac7cce8bd6c4"
+       },
+       "primary_vintage": "2018-10-17"
+      },
+      "policy_rates": "BIS WS_CBPOL via aitrader/data/rates.py (point in time, staleness rule)"
+     },
+     "holdout": {
+      "pass": "net mean > 0 with t >= 1.645, and net mean > 0 with costs x2",
+      "period": [
+       "2017-01-01",
+       "2018-01-01"
+      ],
+      "policy": "RESEARCH_PROTOCOL.md section 2: one candidate that passed everything else, once"
+     },
+     "hypotheses": {
+      "RV1-H1-CARRY": {
+       "kind": "signal",
+       "price_based": false,
+       "signal": "carry",
+       "text": "Currencies with higher policy rates outperform lower-rate ones over the next week (cross-sectional carry)."
+      },
+      "RV1-H2-MOMENTUM": {
+       "kind": "signal",
+       "price_based": true,
+       "signal": "momentum",
+       "text": "Currencies with higher 3- and 12-month relative returns (skipping the last week) outperform over the next week (relative momentum)."
+      },
+      "RV1-H3-REVERSAL": {
+       "kind": "signal",
+       "price_based": true,
+       "signal": "reversal",
+       "text": "Last week's relative losers outperform last week's winners over the next week."
+      },
+      "RV1-H4-VALUE": {
+       "kind": "signal",
+       "price_based": true,
+       "signal": "value",
+       "text": "Currencies that fell most against the others over five years outperform over the next week (five-year reversal as a value proxy)."
+      },
+      "RV1-H5-CARRY-VOL": {
+       "kind": "regime",
+       "price_based": false,
+       "signal": "carry",
+       "text": "Carry's information differs between low and high global FX volatility."
+      },
+      "RV1-H6-MOMENTUM-VOL": {
+       "kind": "regime",
+       "price_based": true,
+       "signal": "momentum",
+       "text": "Momentum's information differs between low and high global FX volatility."
+      }
+     },
+     "id": "RV-1",
+     "no_sizing": "weights are fractions of a notional; sizing, limits and execution remain the Risk Engine's",
+     "question": "Does a cross-sectional ranking of eight currencies (carry, relative momentum, one-week reversal, five-year reversal, and carry/momentum by global FX volatility) predict the next week's RELATIVE returns -- and, if so, does a currency-neutral book survive realistic costs, robustness and the sealed holdout?",
+     "regime": "global FX volatility = mean |daily log change| of the seven currencies against USD over the last 20 changes usable at the decision; HIGH if above the median of the previous (up to 156, at least 52) weekly values, else LOW",
+     "signals": {
+      "carry": "policy rate (percent); a currency without one is excluded that week, never filled",
+      "momentum": "mean of the cross-sectional ranks of the log change over 91 and 364 days ending at the last fixing >= 7 days before the last usable fixing (skip one week)",
+      "reversal": "minus the log change over the last 7 days to the last usable fixing",
+      "value": "minus the log change over the last 1820 days (five years) to the last usable fixing"
+     },
+     "stage1": {
+      "candidate": "signal hypothesis: its signal in the direction of its mean IC; regime hypothesis: its signal traded only in the regime with the higher mean IC (in that IC's direction), no position in the other",
+      "gate_regime": "|t| >= 2.807, >= 50 weeks in each regime, the LOW-minus-HIGH difference has the same sign in both halves",
+      "gate_signal": "|t| >= 2.807, >= 100 weeks, the mean IC has the same sign in both halves of the period, leaving out any one currency never flips the sign, and the currency-neutral book's gross mean has the same sign",
+      "multiple_testing": "Bonferroni at 5% two-sided over the registry's 4 earlier tests on 2000-01..2007-03 plus these 6",
+      "period": [
+       "2000-01-01",
+       "2007-03-30"
+      ],
+      "reported": "weeks, mean/sd IC, t, IC by year and half, leave-one-currency-out, without the most favourable week, 1%-trimmed mean, book gross mean/t/Sharpe, contribution by currency, book without its 5 best weeks",
+      "sampling": "weekly, Fridays",
+      "statistic": "weekly Spearman IC between the score (literature sign: + = expected to outperform) and the next week's relative returns, >= 6 currencies; t = mean IC / (sd / sqrt(weeks)); H5/H6: Welch t of mean IC in LOW minus HIGH",
+      "threshold": 2.807,
+      "threshold_registry": 2.807
+     },
+     "stage2": {
+      "controls": {
+       "abstention": "hold the book only when the signal's raw cross-sectional dispersion is >= the median of its previous (up to 156, >= 52) weekly values; else flat",
+       "always_trade": "the candidate rebalanced every week (primary)",
+       "null_for_price_signals": "1000 random rank books (weekly permutations, seed 20261004): candidate gross mean > their 95th percentile",
+       "price_only_for_carry": "the momentum book (H2 definition) under the same regime gating: OLS alpha of the candidate's gross weekly return on it, t >= 2.0"
+      },
+      "costs": {
+       "commission_pips_rt": 0.7,
+       "financing": "position x (its policy rate - USD policy rate) x days/360, minus the markup on gross exposure",
+       "financing_markup": 0.005,
+       "slippage_pips": 0.1,
+       "spread": "measured at the execution bar, half paid on every change of position",
+       "spread_multiple": 1.0
+      },
+      "execution": "rebalance at the H.10 entry fixing time (noon New York, first business day after the Friday) on Dukascopy M15 bid/ask (the bar closing then, else the nearest within 60 minutes; any missing pair -> no rebalance that week); AUDUSD = AUDJPY/USDJPY (bid = AUDJPY bid / USDJPY ask, ask = AUDJPY ask / USDJPY bid)",
+      "halves": [
+       "2008-07-01",
+       "2012-07-01",
+       "2017-01-01"
+      ],
+      "pass": "net mean > 0 with t >= the Stage-2 threshold and R1..R8 -> holdout eligible (the best by t only); net mean > 0, t >= 2.0 and R1..R8 -> PROMISING; else REJECTED",
+      "period": [
+       "2008-07-01",
+       "2017-01-01"
+      ],
+      "robustness": {
+       "R1_halves": "net mean > 0 in both halves",
+       "R2_years": ">= 60% of years with >= 26 weeks net positive",
+       "R3_concentration": "no currency carries > 50% of the gross P&L, and leaving out any one currency keeps the net mean > 0",
+       "R4_outliers": "net mean > 0 without the 5 best weeks",
+       "R5_costs": "net mean > 0 with spread, slippage and commission x2",
+       "R6_execution": "net mean > 0 when every rebalance is one business day later",
+       "R7_regimes": "net mean not significantly negative (t > -2) in either volatility regime",
+       "R8_incremental": "the control test above"
+      },
+      "threshold": "bonferroni over the registry's tests on 2008-07..2017-01 plus the number of candidates, computed when RV-1-S2 is registered",
+      "universe_rule": "a currency without a policy rate at the decision is excluded from every Stage-2 book that week (its financing cannot be priced; never filled)"
+     },
+     "timing": {
+      "decision": "Friday 17:00 New York",
+      "forward": "from the first H.10 fixing after the Friday to the first fixing >= 7 days later (<= 10 days, else the week is skipped)",
+      "information": "H.10 rates with available_at <= decision (the next business day 17:00 New York after their date); policy rates public at the decision"
+     },
+     "transformations": "value of each currency in USD (USD = 1); log; relative return = return minus the mean of the eight; only dates on which all seven H.10 rates exist",
+     "universe": [
+      "USD",
+      "EUR",
+      "JPY",
+      "GBP",
+      "CHF",
+      "CAD",
+      "AUD",
+      "NZD"
+     ],
+     "version": "rv-1.0.0"
+    },
+    "spec_sha256": "3bcf1b1bb496613d8502f61a448cf5a6ad315e353f3e55fb7f63caafe0210517"
+   },
+   "experiment_id": "RV-1",
+   "hypothesis": "Does a cross-sectional ranking of eight currencies (carry, relative momentum, one-week reversal, five-year reversal, and carry/momentum by global FX volatility) predict the next week's RELATIVE returns -- and, if so, does a currency-neutral book survive realistic costs, robustness and the sealed holdout?",
+   "preregistration": "research/preregistrations/RV-1.md",
+   "registered": "2026-10-04T05:23:18.347768+00:00",
+   "registry_verdict": "PASSED",
+   "status": "FAILED",
+   "status_reasons": [
+    "stage 1 (signal IC) passed; stage 2 (after costs) FAILED, so the program FAILED"
+   ],
+   "tests": 6,
+   "title": "RV-1 Stage 1: cross-sectional currency information",
+   "uses": [
+    {
+     "end": "2000-01-01",
+     "role": "fit",
+     "start": "1999-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2007-03-30",
+     "role": "judge",
+     "start": "2000-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/RV-1-S2.json",
+   "artifact_sha256": "d0a4ff343bf257a0079bc82aeb36998ce6d18ca1e7491559b6e95386fcaf11c5",
+   "configurations": 1,
+   "design": {
+    "candidates": [
+     "RV1-H1-CARRY"
+    ],
+    "spec_sha256": "3bcf1b1bb496613d8502f61a448cf5a6ad315e353f3e55fb7f63caafe0210517",
+    "threshold_t": 3.4171038168913705
+   },
+   "experiment_id": "RV-1-S2",
+   "hypothesis": "Stage-1 passers on bid/ask with costs, 2008-07..2016",
+   "preregistration": "research/preregistrations/RV-1.md",
+   "registered": "2026-10-04T05:26:56.324137+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "RV-1 Stage 2: realistic currency-neutral books",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2008-07-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/FLOW-1.json",
+   "artifact_sha256": "94f10df4a687c68db80df5cdd4b8d5e9a576b6ecbfdc4b63dc6cf451b68ddc2b",
+   "configurations": 4,
+   "design": {
+    "code_sha256": "3d27011e8b405e87314da8082d87c5208e177b177b0b8b1a79dc9218ba7c9f49",
+    "spec_sha256": "6d09ec9c406597e4422de3704be32651688a727f2baeaae895e3beef1b0bc985",
+    "threshold_t": 3.4305
+   },
+   "experiment_id": "FLOW-1",
+   "hypothesis": "Do scheduled, non-informational orders at the Tokyo and London fixes move prices predictably, after costs?",
+   "preregistration": "research/preregistrations/FLOW-1.md",
+   "registered": "2026-10-04T16:24:06.020928+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 4,
+   "title": "FLOW-1: scheduled order flow at the Tokyo and London fixes",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2007-04-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/DIV-1.json",
+   "artifact_sha256": "ef971e74f0b618688fa01a903adcdbc32f4302d52aec80c188360590ca983151",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "154bf791575b29940f0aed0e6112db3ec89fe897e02085a95d38569aa45ded44",
+    "spec_sha256": "fa14c08919c8c514546aabe999f659bbfe0ed6cf2b393636bfe309dd1ae19254"
+   },
+   "experiment_id": "DIV-1",
+   "hypothesis": "Do trailing 12-month (and 1/3/12 blended) returns predict next-month returns across asset classes, after costs?",
+   "preregistration": "research/preregistrations/DIV-1.md",
+   "registered": "2026-10-04T16:41:45.882949+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "DIV-1: diversified time-series momentum (multi-asset ETFs)",
+   "uses": [
+    {
+     "end": "2021-01-01",
+     "role": "judge",
+     "start": "2008-01-01",
+     "universe": "multi-asset-etf"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/DIV-2.json",
+   "artifact_sha256": "ae3ab3db2517c8cfb7bac01693b051471c8d38def340fb7a0309164a84f0e700",
+   "configurations": 2,
+   "design": {
+    "code_sha256": "899011a34463eeaaf2fa7554362b4139fbfb4b0462a786eb1c1437e40a045a4c",
+    "spec_sha256": "cb440fbd470e6747e22cb4bdb33624116e59ca5745495eee4ec85eaa4eaf9249"
+   },
+   "experiment_id": "DIV-2",
+   "hypothesis": "Does diversified time-series momentum earn a positive net return on futures-style excess returns over 1990-2007?",
+   "preregistration": "research/preregistrations/DIV-2.md",
+   "registered": "2026-10-04T19:03:50.910553+00:00",
+   "registry_verdict": "PASSED",
+   "status": "FAILED",
+   "status_reasons": [
+    "net_positive: -0.004721 (positive net expectancy after every cost)"
+   ],
+   "tests": 2,
+   "title": "DIV-2: DIV-1's trend rules on long-history excess returns",
+   "uses": [
+    {
+     "end": "2008-01-01",
+     "role": "judge",
+     "start": "1990-01-01",
+     "universe": "multi-asset-long"
+    },
+    {
+     "end": "2021-01-01",
+     "role": "judge",
+     "start": "2008-01-01",
+     "universe": "multi-asset-long"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/DIV-2-H.json",
+   "artifact_sha256": "794d832e589fc1a78088f42890984f17f27307e70fd73856c365201ce3b482dd",
+   "configurations": 2,
+   "design": {
+    "candidates": [
+     "DIV2-H1-TSMOM12",
+     "DIV2-H2-BLEND"
+    ],
+    "spec_sha256": "cb440fbd470e6747e22cb4bdb33624116e59ca5745495eee4ec85eaa4eaf9249"
+   },
+   "experiment_id": "DIV-2-H",
+   "hypothesis": "DIV2-H1-TSMOM12, DIV2-H2-BLEND",
+   "preregistration": "research/preregistrations/DIV-2.md",
+   "registered": "2026-10-04T19:08:00.187597+00:00",
+   "registry_verdict": "PASSED",
+   "status": "FAILED",
+   "status_reasons": [
+    "net_positive: -0.004721 (positive net expectancy after every cost)"
+   ],
+   "tests": 2,
+   "title": "DIV-2 sealed holdout (2021+)",
+   "uses": [
+    {
+     "end": "2100-01-01",
+     "role": "judge",
+     "start": "2021-01-01",
+     "universe": "multi-asset-etf"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/RC-EQ.json",
+   "artifact_sha256": "7d544b1c7f0b38e5cac2f9ab62e0bee7a730eb714b8c6ff9808a296ee5f65618",
+   "configurations": 45,
+   "design": {
+    "code_sha256": "ef104e65f856eeca5ce6ae36c749553f104f802c96891940ebd062ecedb2c553",
+    "spec_sha256": "bbe20ccd5feb1d9e5ef27b833bdd86af306ad6c2438ebae4b179792a5f592646"
+   },
+   "experiment_id": "RC-EQ",
+   "hypothesis": "Does any low-turnover equity-index rule earn a significant net return after retail CFD spreads, slippage, financing and dividends over 1990-2020?",
+   "preregistration": "research/preregistrations/RC-EQ.md",
+   "registered": "2026-10-04T20:00:13.928392+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 7,
+   "title": "RC-EQ: retail-CFD equity-index candidates (calendar, reversal, relative strength, regime, volatility management, ensemble)",
+   "uses": [
+    {
+     "end": "2021-01-01",
+     "role": "judge",
+     "start": "1990-01-01",
+     "universe": "multi-asset-long"
+    },
+    {
+     "end": "2021-01-01",
+     "role": "judge",
+     "start": "2008-01-01",
+     "universe": "multi-asset-etf"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/RC-FX.json",
+   "artifact_sha256": "df2eec072eeb33d5ee463542622fdb191ca866814395efb84ecccab280163a4d",
+   "configurations": 24,
+   "design": {
+    "code_sha256": "5db1cba5da73431edf270d59fec1154c86b17444b22c9aa8d7bf5db6d3058fc5",
+    "spec_sha256": "ac4afb159f53a4030ebf973872af2acdf370ad13aa5731ecfb06bb8c8dce9641"
+   },
+   "experiment_id": "RC-FX",
+   "hypothesis": "Does a carry+momentum+value composite earn a significant net return after retail FX costs and swaps, and does COT crowding add value to monthly trend?",
+   "preregistration": "research/preregistrations/RC-FX.md",
+   "registered": "2026-10-04T20:00:14.064975+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 2,
+   "title": "RC-FX: FX factor composite and COT as a low-frequency filter, retail costs",
+   "uses": [
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "1990-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/RC-EQ2.json",
+   "artifact_sha256": "f2d593dc7ac8e1b84baf46dede670dc589400b6e18547e63ebe95aae51b95475",
+   "configurations": 9,
+   "design": {
+    "code_sha256": "90c71e12e066aa41ec887b0b56a149fa1feda46bbea2519a245e30641edd5a97",
+    "spec_sha256": "e786d11852f8ee5b55c8b380a9db33a398de7c5756af46365d94267b4229dcb6"
+   },
+   "experiment_id": "RC-EQ2",
+   "hypothesis": "Does holding index CFDs only November-April earn a significant net return after retail costs over 1990-2020?",
+   "preregistration": "research/preregistrations/RC-EQ2.md",
+   "registered": "2026-10-04T20:10:54.814024+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "RC-EQ2: Halloween on universe A (RC-EQ's gates)",
+   "uses": [
+    {
+     "end": "2021-01-01",
+     "role": "judge",
+     "start": "1990-01-01",
+     "universe": "multi-asset-long"
+    },
+    {
+     "end": "2021-01-01",
+     "role": "judge",
+     "start": "2008-01-01",
+     "universe": "multi-asset-etf"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/RC-EQ2-H.json",
+   "artifact_sha256": "925dcb6f544c639e46435b81477ee297277da960caf41151a93fdf822907f146",
+   "configurations": 2,
+   "design": {
+    "candidates": [
+     "RCEQ-E1-TOM",
+     "RCEQ-E7-ENSEMBLE"
+    ],
+    "spec_sha256": "e786d11852f8ee5b55c8b380a9db33a398de7c5756af46365d94267b4229dcb6"
+   },
+   "experiment_id": "RC-EQ2-H",
+   "hypothesis": "RCEQ-E1-TOM, RCEQ-E7-ENSEMBLE",
+   "preregistration": "research/preregistrations/RC-EQ2.md",
+   "registered": "2026-10-04T20:16:50.024930+00:00",
+   "registry_verdict": "PASSED",
+   "status": "PROMISING",
+   "status_reasons": [
+    "t_stat: 2.175 (t-statistic >= 2.5)",
+    "median_positive: None (positive median trade)",
+    "forward_positive: None (positive untouched forward period)",
+    "no_leakage: None (no data leakage (tested))",
+    "max_instrument_trade_share: None (no instrument contributes more than 50% of trades)",
+    "max_day_profit_share: None (no day contributes more than 20% of total profits)",
+    "max_month_profit_share: None (no month contributes more than 20% of total profits)",
+    "max_trade_profit_share: None (no single trade contributes more than 10% of total profits)",
+    "max_drawdown_r: None (maximum drawdown <= 20R)",
+    "beats_baseline: None (better than the correct baseline)",
+    "parameter_stability: None (parameter stability)",
+    "feature_stability: None (feature stability)",
+    "no_broker_anomaly: None (no dependence on one broker-specific anomaly)",
+    "independent_review: None (independent code review)",
+    "reproduced_clean: None (reproducible results from a clean environment)",
+    "demo_consistent: None (demo execution does not invalidate the backtest)",
+    "human_promotion_record: None (explicit human promotion record)"
+   ],
+   "tests": 2,
+   "title": "RC-EQ2 replication: universe B (never loaded)",
+   "uses": [
+    {
+     "end": "2100-01-01",
+     "role": "judge",
+     "start": "1900-01-01",
+     "universe": "equity-index-b"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 12,
+   "design": {
+    "code_sha256": "b2a286b2d9cea6712e40476436b225567f02e7e729391b1842eda38376d42bad",
+    "spec_sha256": "84e6029567431916cfbed9eee60e62ed69c348554406f170390d9ad9bcb7dbcb"
+   },
+   "experiment_id": "TOM-D",
+   "hypothesis": "none: decomposition, decay, cost, calendar, universe and weighting diagnostics of RC-EQ's E1 TOM on data already used",
+   "preregistration": "research/preregistrations/TOM-D.md",
+   "registered": "2026-10-04T22:59:49.896053+00:00",
+   "registry_verdict": "PENDING",
+   "status": "REGISTERED",
+   "status_reasons": [
+    "no verdict (descriptive or forward-only)"
+   ],
+   "tests": 0,
+   "title": "TOM-D: diagnostics of the turn-of-the-month candidate (descriptive)",
+   "uses": [
+    {
+     "end": "2021-01-01",
+     "role": "select",
+     "start": "1990-01-01",
+     "universe": "multi-asset-long"
+    },
+    {
+     "end": "2021-01-01",
+     "role": "select",
+     "start": "2008-01-01",
+     "universe": "multi-asset-etf"
+    },
+    {
+     "end": "2026-10-01",
+     "role": "select",
+     "start": "1990-01-01",
+     "universe": "equity-index-b"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 3,
+   "design": {
+    "judge_after_months": 120,
+    "origin": "TOM-D diagnostics (descriptive)",
+    "rules": {
+     "TOM-F0": {
+      "k_post": 3,
+      "k_pre": 1
+     },
+     "TOM-F1": {
+      "k_post": 3,
+      "k_pre": 2
+     },
+     "TOM-F2": {
+      "k_post": 1,
+      "k_pre": 0
+     }
+    },
+    "t_required": 2.13
+   },
+   "experiment_id": "TOM-F",
+   "hypothesis": "F1 (enter one day earlier) and F2 (first trading day only) against the unchanged E1 TOM control, judged on index closes from 2026-10-05",
+   "preregistration": "research/preregistrations/TOM-F.md",
+   "registered": "2026-10-04T23:09:56.491168+00:00",
+   "registry_verdict": "PENDING",
+   "status": "REGISTERED",
+   "status_reasons": [
+    "no verdict (descriptive or forward-only)"
+   ],
+   "tests": 3,
+   "title": "TOM-F: two TOM variants for forward data only",
+   "uses": [
+    {
+     "end": "2100-01-01",
+     "role": "judge",
+     "start": "2026-10-05",
+     "universe": "equity-index-forward"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/ID-1.json",
+   "artifact_sha256": "1b448658ff45cdf1d1430b651415bf551f5ed726c1de7589223f3b4ecc836537",
+   "configurations": 132,
+   "design": {
+    "code_sha256": "169118ce0f2c4ddcb8b4c40390202b449d4132205555822b5842f694719a3703",
+    "spec_sha256": "429a0b48cbbd5e9101dc23d0ab140a42d8dabb20cbbbbbd3e0241f64c94c83c8"
+   },
+   "experiment_id": "ID-1",
+   "hypothesis": "Does any precisely defined M5 rule earn a significant net expectancy after measured bid/ask spreads, commission, slippage and financing, beyond matched random entries?",
+   "preregistration": "research/preregistrations/ID-1.md",
+   "registered": "2026-10-05T08:20:43.607880+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 16,
+   "title": "ID-1: intraday M5 edge program (liquidity/SMC, price, cross-market, hybrids)",
+   "uses": [
+    {
+     "end": "2014-01-01",
+     "role": "select",
+     "start": "2009-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2014-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  },
+  {
+   "artifact": "research/knowledge/ID-2.json",
+   "artifact_sha256": "448cac49858f70457894f718342d65e2031e2f2a35c173c3fc33d24df330d203",
+   "configurations": 33,
+   "design": {
+    "code_sha256": "3c1ef70a26ef7e8de4be43174a58d2baa5b29b825909547b190e0389439b3049",
+    "spec_sha256": "4b3aa7ef0fac23b362dc10aac0f669d99d6e8ace489cdbaeec22dcc7fe32fc64"
+   },
+   "experiment_id": "ID-2",
+   "hypothesis": "Does a walk-forward estimate of each M5 candidate's net R, built from every family of market information, select trades with a significant positive net expectancy after measured costs and the risk engine's limits, beyond matched random entries and simple deterministic rules?",
+   "preregistration": "research/preregistrations/ID-2.md",
+   "registered": "2026-10-05T09:44:10.581328+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 30,
+   "title": "ID-2: intraday opportunity engine (scanner + walk-forward EV model)",
+   "uses": [
+    {
+     "end": "2014-01-01",
+     "role": "select",
+     "start": "2009-01-01",
+     "universe": "fx-majors"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "judge",
+     "start": "2014-01-01",
+     "universe": "fx-majors"
+    }
+   ]
+  }
+ ],
+ "failed_edges": [
+  {
+   "edge_id": "A1-SWEEP-PDHL",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "A2-SWEEP-ASIA",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "A3-SWEEP-EQUAL",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "A4-BOS-FVG",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "A5-CHOCH",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "A6-ORDER-BLOCK",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "B1-OPENING-RANGE",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "B2-SQUEEZE",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "B3-MOMENTUM",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "B4-MEAN-REVERSION",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "B5-FAILED-BREAKOUT",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "B6-SESSION-OPEN",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "C1-USD-LAG",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "COT1-C-CONT",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, costs_stress, delay_stress, years, instruments, leave_one_out, outliers, development, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-C-REV",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-F-CONT",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-F-REV",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers, development, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-I-CONT",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-I-REV",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-P-CONT",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-P-REV",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-U-REV",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-V-REV",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed"
+   ]
+  },
+  {
+   "edge_id": "COT1-X-VETO",
+   "program": "COT-1",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, instruments, leave_one_out, outliers, validation"
+   ]
+  },
+  {
+   "edge_id": "CP-001-T1",
+   "program": "CP-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "CP-001-T2",
+   "program": "CP-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, years, outliers"
+   ]
+  },
+  {
+   "edge_id": "CP-001-T3",
+   "program": "CP-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers"
+   ]
+  },
+  {
+   "edge_id": "CP-001-T4",
+   "program": "CP-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, years, instruments, outliers"
+   ]
+  },
+  {
+   "edge_id": "D1-BEST-SWEEP+HIGH-VOL",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "D2-MOMENTUM+OVERLAP",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "D3-SQUEEZE+H1-TREND",
+   "program": "ID-1",
+   "reasons": [
+    "edge registry REJECTED: development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "DIV1-H1-TSMOM12",
+   "program": "DIV-1",
+   "reasons": [
+    "edge registry REJECTED: t, validation, costs_x2, leave_one_class_out"
+   ]
+  },
+  {
+   "edge_id": "DIV1-H2-BLEND",
+   "program": "DIV-1",
+   "reasons": [
+    "edge registry REJECTED: t, validation, costs_x2, leave_one_class_out"
+   ]
+  },
+  {
+   "edge_id": "DIV2-H1-TSMOM12",
+   "program": "DIV-2",
+   "reasons": [
+    "net_positive: -0.004721 (positive net expectancy after every cost)"
+   ]
+  },
+  {
+   "edge_id": "DIV2-H2-BLEND",
+   "program": "DIV-2",
+   "reasons": [
+    "edge registry REJECTED: holdout (t -0.636 < 2.5)"
+   ]
+  },
+  {
+   "edge_id": "FLOW1-H1-GOTOBI-PRE",
+   "program": "FLOW-1",
+   "reasons": [
+    "edge registry REJECTED: t, development, validation, years, costs_x2, top_year, specificity"
+   ]
+  },
+  {
+   "edge_id": "FLOW1-H2-GOTOBI-POST",
+   "program": "FLOW-1",
+   "reasons": [
+    "edge registry REJECTED: t, costs_x2, specificity"
+   ]
+  },
+  {
+   "edge_id": "FLOW1-H3-FIX-MONTHEND",
+   "program": "FLOW-1",
+   "reasons": [
+    "edge registry REJECTED: t, development, validation, years, costs_x2, top_year, leave_one_pair_out"
+   ]
+  },
+  {
+   "edge_id": "FLOW1-H4-FIX-DAILY",
+   "program": "FLOW-1",
+   "reasons": [
+    "edge registry REJECTED: t, development, validation, years, costs_x2, top_year, leave_one_pair_out"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S15-tau0.00",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S15-tau0.05",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S15-tau0.10",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S5-tau0.00",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S5-tau0.05",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S5-tau0.10",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S60-tau0.00",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S60-tau0.05",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-ridge-S60-tau0.10",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:min_trades, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S15-tau0.00",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S15-tau0.05",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S15-tau0.10",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S5-tau0.00",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S5-tau0.05",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S5-tau0.10",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S60-tau0.00",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S60-tau0.05",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "M-trees-S60-tau0.10",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-BRK-S15",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-BRK-S5",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-BRK-S60",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-MOM-S15",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-MOM-S5",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-MOM-S60",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-MR-S15",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-MR-S5",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-MR-S60",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-SWEEP-S15",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-SWEEP-S5",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R-SWEEP-S60",
+   "program": "ID-2",
+   "reasons": [
+    "edge registry REJECTED: development:beats_matched_random, development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day"
+   ]
+  },
+  {
+   "edge_id": "R2A-1",
+   "program": "R2A",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2A-2",
+   "program": "R2A",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2B-1",
+   "program": "R2B",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2B-2",
+   "program": "R2B",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2C-1",
+   "program": "R2C",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, delay_stress, instruments, leave_one_out, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2C-2",
+   "program": "R2C",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2D-1",
+   "program": "R2D",
+   "reasons": [
+    "edge registry REJECTED: significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R2D-2",
+   "program": "R2D",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, years, instruments, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-A",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-B",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-C",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-D",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-E",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-F",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-G",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R3-H",
+   "program": "R3",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R4-MACRO-CPI-A",
+   "program": "R4",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R4-MACRO-CPI-B",
+   "program": "R4",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, outliers"
+   ]
+  },
+  {
+   "edge_id": "R4-XA-GOLD-A",
+   "program": "R4",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, outliers"
+   ]
+  },
+  {
+   "edge_id": "R4-XA-GOLD-B",
+   "program": "R4",
+   "reasons": [
+    "edge registry REJECTED: min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "R4-XA-VIX-A",
+   "program": "R4",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "RCEQ-E2-DIP",
+   "program": "RC-EQ",
+   "reasons": [
+    "edge registry REJECTED: t, region"
+   ]
+  },
+  {
+   "edge_id": "RCEQ-E3-XSMOM",
+   "program": "RC-EQ",
+   "reasons": [
+    "edge registry REJECTED: t, development, validation, modern, costs_x2, delay, leave_one_out, drawdown, region"
+   ]
+  },
+  {
+   "edge_id": "RCEQ-E4-REGIME",
+   "program": "RC-EQ",
+   "reasons": [
+    "edge registry REJECTED: t, region"
+   ]
+  },
+  {
+   "edge_id": "RCEQ-E5-VOLMAN",
+   "program": "RC-EQ",
+   "reasons": [
+    "edge registry REJECTED: t, costs_x2, drawdown, region"
+   ]
+  },
+  {
+   "edge_id": "RCEQ-E6-BREAKOUT",
+   "program": "RC-EQ",
+   "reasons": [
+    "edge registry REJECTED: t, region"
+   ]
+  },
+  {
+   "edge_id": "RCEQ-E7-ENSEMBLE",
+   "program": "RC-EQ",
+   "reasons": [
+    "edge registry REJECTED: t, holdout:t, holdout:costs_x2"
+   ]
+  },
+  {
+   "edge_id": "RCEQ2-E8-HALLOWEEN",
+   "program": "RC-EQ2",
+   "reasons": [
+    "failed its preregistered gates: drawdown, region"
+   ]
+  },
+  {
+   "edge_id": "RCFX-X1-COMPOSITE",
+   "program": "RC-FX",
+   "reasons": [
+    "edge registry REJECTED: t, region"
+   ]
+  },
+  {
+   "edge_id": "RCFX-X2-COT-FILTER",
+   "program": "RC-FX",
+   "reasons": [
+    "edge registry REJECTED: t, development, validation, modern, costs_x2, delay, leave_one_out, top_year, region, value_added"
+   ]
+  },
+  {
+   "edge_id": "RV1-H1-CARRY",
+   "program": "RV-1",
+   "reasons": [
+    "edge registry REJECTED: "
+   ]
+  },
+  {
+   "edge_id": "RV1-H2-MOMENTUM",
+   "program": "RV-1",
+   "reasons": [
+    "edge registry REJECTED: t"
+   ]
+  },
+  {
+   "edge_id": "RV1-H3-REVERSAL",
+   "program": "RV-1",
+   "reasons": [
+    "edge registry REJECTED: halves_same_sign, leave_one_out_same_sign, t"
+   ]
+  },
+  {
+   "edge_id": "RV1-H4-VALUE",
+   "program": "RV-1",
+   "reasons": [
+    "edge registry REJECTED: book_same_sign, t"
+   ]
+  },
+  {
+   "edge_id": "RV1-H5-CARRY-VOL",
+   "program": "RV-1",
+   "reasons": [
+    "edge registry REJECTED: t"
+   ]
+  },
+  {
+   "edge_id": "RV1-H6-MOMENTUM-VOL",
+   "program": "RV-1",
+   "reasons": [
+    "edge registry REJECTED: t"
+   ]
+  },
+  {
+   "edge_id": "SL-001-01",
+   "program": "SL-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers"
+   ]
+  },
+  {
+   "edge_id": "SL-001-02",
+   "program": "SL-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "SL-001-03",
+   "program": "SL-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers"
+   ]
+  },
+  {
+   "edge_id": "SL-001-04",
+   "program": "SL-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "SL-001-05",
+   "program": "SL-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "SL-001-06",
+   "program": "SL-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "SL-002-01",
+   "program": "SL-002",
+   "reasons": [
+    "edge registry REJECTED: significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "WF-001",
+   "program": "WF-001",
+   "reasons": [
+    "edge registry REJECTED: mean_R_positive, t_above_registry_threshold, positive_fold_share, robust"
+   ]
+  },
+  {
+   "edge_id": "WF-002",
+   "program": "WF-002",
+   "reasons": [
+    "edge registry REJECTED: mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust"
+   ]
+  },
+  {
+   "edge_id": "WF-003",
+   "program": "WF-003",
+   "reasons": [
+    "edge registry REJECTED: mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust"
+   ]
+  },
+  {
+   "edge_id": "XS-001-L",
+   "program": "XS-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  },
+  {
+   "edge_id": "XS-001-S",
+   "program": "XS-001",
+   "reasons": [
+    "edge registry REJECTED: significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers"
+   ]
+  }
+ ],
+ "final_statement": "NO EDGE \u2014 DO NOT TRADE",
+ "final_status": "NO EDGE",
+ "generated_at_utc": "2026-10-05T13:52:58+00:00",
+ "known_data_defects": [
+  {
+   "defect": "00:00-00:59 UTC missing",
+   "files": [
+    "AUDJPY_M15.npz",
+    "AUDUSD_M15.npz",
+    "EURCHF_M15.npz",
+    "EURGBP_M15.npz",
+    "EURJPY_M15.npz",
+    "GBPJPY_M15.npz",
+    "GBPUSD_M15.npz",
+    "NZDUSD_M15.npz",
+    "USDCAD_M15.npz",
+    "USDCHF_M15.npz",
+    "USDJPY_M15.npz",
+    "XAUUSD_M15.npz",
+    "AUDUSD_M5_2009_2016.npz",
+    "GBPUSD_M5_2009_2016.npz",
+    "NZDUSD_M5_2009_2016.npz",
+    "USDCAD_M5_2009_2016.npz",
+    "USDCHF_M5_2009_2016.npz",
+    "USDJPY_M5_2009_2016.npz",
+    "XAUUSD_M5_2009_2016.npz"
+   ],
+   "measured_bias_r": 0.00337,
+   "rerun": "impossible here: no source with the hour is reachable (docs/DATA_QUALITY_REPORT.md)"
+  },
+  {
+   "defect": "live historical ask = bid + the current spread",
+   "files": "broker/tradelocker/adapter.py bars()",
+   "measured_bias_r": null,
+   "rerun": "affects only live feature bars; costs use the live quote"
+  },
+  {
+   "defect": "no intraday bid/ask index CFD history",
+   "files": null,
+   "measured_bias_r": null,
+   "rerun": "index strategies are daily-bar research only"
+  }
+ ],
+ "known_research_limitations": [
+  "TradeLocker's actual spreads, commission and swaps are unmeasured; all costs are provisional",
+  "FX bid/ask history is 2007-2016 for research (2017+ sealed); about 10 years, one source",
+  "a language model cannot be backtested (training data contains the outcomes): its value is forward-only",
+  "every rejected hypothesis was judged on overlapping FX data; thresholds count prior tests (registry)",
+  "the forward ledger has no resolved EVALUATION outcomes in this repository: no forward evidence exists"
+ ],
+ "mutation_audit": {
+  "command": "python scripts/mutation_audit.py",
+  "killed": 176,
+  "total": 176
+ },
+ "promising_edges": [
+  {
+   "curated": {
+    "evidence": {
+     "costs_x2_positive": 0.000456,
+     "delay_positive": 0.001082,
+     "first_half_positive": 0.003745,
+     "min_outcomes": 441,
+     "net_positive": 0.001556,
+     "no_survivorship": true,
+     "second_half_positive": 0.000474,
+     "t_stat": 2.175
+    },
+    "failed_preregistered_gates": [
+     "t"
+    ],
+    "label_before_audit": "edge registry PROMISING; RC-EQ2-H PASSED (PROMISING_REPLICATED)",
+    "notes": [
+     "universe B after all costs: 0.0187 a year, t 2.175, max drawdown 0.2333",
+     "costs x2: t 0.636; one-session delay: t 1.366",
+     "from 2021: t 0.459; since 2009 (universe A 'modern'): t 0.575",
+     "universe A validation half: t 0.348 after t 2.754 in development: decayed",
+     "every single instrument removed: still positive (leave_one_out, both universes)",
+     "without its best year: t 1.68 (B) / 1.82 (A); the best year is 21-22% of the total",
+     "UNATTRACTIVE: about 1.9-2.6% a year with a 22-23% maximum drawdown at 1x"
+    ],
+    "source": "research/knowledge/RC-EQ2-H.json results.RCEQ-E1-TOM (universe B, never loaded before) and research/knowledge/RC-EQ.json (universe A)",
+    "unit": "monthly account return at 1x (not R)"
+   },
+   "edge_id": "RCEQ-E1-TOM",
+   "net_expectancy": 0.0022,
+   "program": "RC-EQ",
+   "reasons": [
+    "t_stat: 2.175 (t-statistic >= 2.5)",
+    "median_positive: None (positive median trade)",
+    "forward_positive: None (positive untouched forward period)",
+    "no_leakage: None (no data leakage (tested))",
+    "max_instrument_trade_share: None (no instrument contributes more than 50% of trades)",
+    "max_day_profit_share: None (no day contributes more than 20% of total profits)",
+    "max_month_profit_share: None (no month contributes more than 20% of total profits)",
+    "max_trade_profit_share: None (no single trade contributes more than 10% of total profits)",
+    "max_drawdown_r: None (maximum drawdown <= 20R)",
+    "beats_baseline: None (better than the correct baseline)",
+    "parameter_stability: None (parameter stability)",
+    "feature_stability: None (feature stability)",
+    "no_broker_anomaly: None (no dependence on one broker-specific anomaly)",
+    "independent_review: None (independent code review)",
+    "reproduced_clean: None (reproducible results from a clean environment)",
+    "demo_consistent: None (demo execution does not invalidate the backtest)",
+    "human_promotion_record: None (explicit human promotion record)"
+   ],
+   "registry_status": "PROMISING",
+   "sample_size": 372,
+   "source": "research/knowledge/RC-EQ.json",
+   "status": "PROMISING",
+   "t_stat": 2.24
+  }
+ ],
+ "promotion_version": "promotion-1.0.0",
+ "risk_policy": {
+  "experimental_execute": "refused",
+  "live_risk_pct": 0.0,
+  "llm_veto": "advisory only (recorded as would_veto for the A/B comparison)",
+  "max_risk_per_trade_pct_while_unvalidated": 0.25,
+  "model_originated_trades": "SHADOW"
+ },
+ "sealed_periods": [
+  {
+   "exposure_before_seal": [],
+   "file": "research/holdout-div.json",
+   "opened_by": [
+    "DIV-2-H"
+   ],
+   "sealed_at": "2026-10-04T16:41:24.540314+00:00",
+   "start": "2021-01-01",
+   "state": "OPENED",
+   "universe": "multi-asset-etf"
+  },
+  {
+   "exposure_before_seal": [],
+   "file": "research/holdout-rc-eq.json",
+   "opened_by": [
+    "RC-EQ2-H",
+    "TOM-D"
+   ],
+   "sealed_at": "2026-10-04T19:58:10.662343+00:00",
+   "start": "1900-01-01",
+   "state": "OPENED",
+   "universe": "equity-index-b"
+  },
+  {
+   "exposure_before_seal": [
+    "archive-smc-h1",
+    "archive-smc-h2",
+    "archive-trend-3",
+    "archive-reversion",
+    "archive-edge-program-8"
+   ],
+   "file": "research/holdout.json",
+   "opened_by": [],
+   "sealed_at": "2026-09-26T20:28:47+00:00",
+   "start": "2017-01-01",
+   "state": "SEALED",
+   "universe": "fx-majors"
+  }
+ ],
+ "status_version": "research-status-1.0.0",
+ "strategies": [
+  {
+   "reason": "PR-001 FAILED: -0.07R per trade after costs, t -2.9 (2010-2016)",
+   "route": "SHADOW in DEMO",
+   "status": "FAILED",
+   "strategy": "evidence (analogue synthesis, PR-001 system)"
+  },
+  {
+   "reason": "never backtestable; no forward evidence of value",
+   "route": "SHADOW in every mode (takeover audit)",
+   "status": "PROPOSED",
+   "strategy": "llm_trader / trading_room / experimental_ai (a language model proposes)"
+  },
+  {
+   "reason": "models/artifacts/promoted_edges.json absent: nothing promoted",
+   "route": "nothing to trade",
+   "status": "REGISTERED",
+   "strategy": "edges (promoted edges only)"
+  },
+  {
+   "reason": "research only; not implemented in the bot; see promising_edges",
+   "route": "not implemented",
+   "status": "PROMISING",
+   "strategy": "turn-of-the-month on index CFDs (RCEQ-E1-TOM)"
+  },
+  {
+   "reason": "0 of 30 tests promoted on development 2011-2013",
+   "route": "research only",
+   "status": "FAILED",
+   "strategy": "ID-2 intraday opportunity engine"
+  }
+ ],
+ "tests": {
+  "collected": 809,
+  "command": "python -m pytest tests"
+ },
+ "validated_edges": []
+}

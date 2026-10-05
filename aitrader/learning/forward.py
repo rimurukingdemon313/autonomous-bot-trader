@@ -101,6 +101,8 @@ def proposal(decision, *, t: int, bid: float | None, ask: float | None, atr: flo
         "session": session_of(t), "partition": partition(t),
         "provider": ai.get("provider"), "model": ai.get("model"), "ai_verdict": decision.ai_verdict,
         "confidence": view.get("confidence"), "expected_r_model": view.get("expected_r"),
+        # Track B of the AI-veto comparison: the same proposal, marked if the advisory model would have vetoed it
+        "ai_would_veto": ai.get("would_veto"),
         "expected_r": decision.expected_R, "method": view.get("method"),
         "cost_estimate": decision.cost_estimate, "version": FORWARD_VERSION,
     }
