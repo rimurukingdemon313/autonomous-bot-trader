@@ -1,0 +1,57 @@
+# IX-4: M5 bid/ask bars of the Nasdaq-100 CFD from Dukascopy minute candles, 2012-2020 only (holdout not fetched). Only the years named in
+# the matrix are materialised: holdout years are fetched only after a candidate earns them.
+# The bars are committed to the orphan branch ix4b-data (data/ix4src/), never to main.
+name: IX-4b M5 ingest
+on:
+  push:
+    branches: [ix4b-ingest]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include: [{"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2012-2012", "from": "2012-07-01", "to": "2012-12-31"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2013-2013", "from": "2013-01-01", "to": "2013-06-30"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2017-2017", "from": "2017-01-01", "to": "2017-06-30"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2017-2017", "from": "2017-07-01", "to": "2017-12-31"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2018-2018", "from": "2018-01-01", "to": "2018-06-30"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2018-2018", "from": "2018-07-01", "to": "2018-12-31"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2019-2019", "from": "2019-01-01", "to": "2019-06-30"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2019-2019", "from": "2019-07-01", "to": "2019-12-31"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2020-2020", "from": "2020-01-01", "to": "2020-06-30"}, {"sym": "USATECHIDXUSD", "band": "2000,18000", "years": "2020-2020", "from": "2020-07-01", "to": "2020-12-31"}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - name: Ingest
+        timeout-minutes: 330
+        continue-on-error: true
+        run: |
+          mkdir -p out
+          python scripts/ingest_dukascopy_candles.py --symbol ${{ matrix.sym }} --band ${{ matrix.band }} \
+            --years ${{ matrix.years }} --from-date ${{ matrix.from }} --to-date ${{ matrix.to }} --timeframe M5 --out out --pace 0.5 2>&1 | tee out/ingest_${{ matrix.sym }}_${{ matrix.from }}.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ix4b-${{ matrix.sym }}-${{ matrix.from }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Commit to the ix4b-data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git fetch -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ix4b-data && git checkout -q FETCH_HEAD -b ix4b-data || git checkout -q --orphan ix4b-data
+          mkdir -p data/ix4src
+          cp ../arts/*/* data/ix4src/ 2>/dev/null || true
+          ls -la data/ix4src
+          git add data/ix4src
+          git commit -q -m "IX-4 M5 bid/ask bars 2012-2020 (Dukascopy minute candles)" || true
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ix4b-data
