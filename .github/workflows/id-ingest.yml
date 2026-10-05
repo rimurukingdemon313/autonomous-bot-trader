@@ -1,0 +1,54 @@
+# Build M5 bid/ask bars from the FX-Data mirror of Dukascopy ticks for the intraday program (ID-1).
+# Only 2009-2016 is built here: the fx-majors holdout (2017+) is not materialised until a candidate earns it.
+# The bars are committed to the orphan branch id-data (data/m5/), never to main.
+name: ID M5 ingest (2009-2016)
+on:
+  push:
+    branches: [id-ingest]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        pair: [EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, XAUUSD]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements-dev.txt || pip install -r requirements.txt pandas
+      - name: Ingest
+        run: |
+          mkdir -p out
+          python scripts/ingest_dukascopy.py --out out --symbols ${{ matrix.pair }} --timeframe M5 --years 2009-2016 \
+            --tag _2009_2016 --workers 1 --manifest out/manifest_${{ matrix.pair }}.json 2>&1 | tee out/ingest_${{ matrix.pair }}.log
+          test -f out/${{ matrix.pair }}_M5_2009_2016.npz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m5-${{ matrix.pair }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Commit to the id-data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan id-data
+          mkdir -p data/m5
+          cp ../arts/*/* data/m5/ 2>/dev/null || true
+          ls -la data/m5
+          git add data/m5
+          git commit -q -m "M5 bid/ask bars 2009-2016 (FX-Data mirror of Dukascopy ticks)"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" id-data

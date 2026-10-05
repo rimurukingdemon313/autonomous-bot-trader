@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from aitrader.data import instruments  # noqa: E402
-from aitrader.data.bars import BarSeries  # noqa: E402
+from aitrader.data.bars import PERIOD_SECONDS, BarSeries  # noqa: E402
 from aitrader.data.ticks import TickAudit, aggregate, week_openings  # noqa: E402
 from aitrader.data.validate import validate  # noqa: E402
 
@@ -76,7 +76,7 @@ def _read_ticks(files: list[Path]):
     return t_ms, df["c1"].to_numpy(float)[ok], df["c2"].to_numpy(float)[ok], int((~ok).sum())
 
 
-def ingest_year(pair: str, year: int, sha: str) -> dict:
+def ingest_year(pair: str, year: int, sha: str, period: int = 900) -> dict:
     tmp = Path(tempfile.mkdtemp(prefix=f"ing-{pair}-{year}-"))
     try:
         _run("git", "init", "-q", "--bare", str(tmp / "g"))
@@ -116,7 +116,7 @@ def ingest_year(pair: str, year: int, sha: str) -> dict:
             else:
                 raise RuntimeError(f"{pair} {year}-{month}: cannot tell bid from ask ({le:.3f} have c1<=c2)")
             orders.add(order)
-            res = aggregate(t_ms, bid, ask, 900)
+            res = aggregate(t_ms, bid, ask, period)
             audit.add(res.audit)
             parts.append(res.columns)
             srt = np.sort(t_ms)
@@ -127,7 +127,7 @@ def ingest_year(pair: str, year: int, sha: str) -> dict:
         if len(orders) > 1:
             raise RuntimeError(f"{pair} {year}: column order changed between months: {orders}")
         columns = {k: np.concatenate([c[k] for c in parts]) for k in parts[0]} if parts else aggregate(
-            np.array([], dtype=np.int64), np.array([]), np.array([]), 900).columns
+            np.array([], dtype=np.int64), np.array([]), np.array([]), period).columns
         opens = np.concatenate(open_t) if open_t else np.array([], dtype=np.int64)
         return {
             "pair": pair, "year": year, "sha": sha, "files": len(files),
@@ -140,13 +140,16 @@ def ingest_year(pair: str, year: int, sha: str) -> dict:
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def ingest_pair(pair: str, out: Path) -> dict:
+def ingest_pair(pair: str, out: Path, timeframe: str = "M15", first: int | None = None, last: int | None = None,
+                tag: str = "") -> dict:
     t0 = time.time()
-    years = available_years(pair)
+    years = {y: s for y, s in available_years(pair).items()
+             if (first is None or y >= first) and (last is None or y <= last)}
+    period = PERIOD_SECONDS[timeframe]
     parts, meta, audit = [], [], TickAudit()
     open_hours, open_days = [], []
     for year, sha in years.items():
-        r = ingest_year(pair, year, sha)
+        r = ingest_year(pair, year, sha, period)
         cols = r.pop("columns_data")
         # A year's branch is authoritative only for bars inside that year:
         # branches overlap at their edges, and taking both copies produced
@@ -156,7 +159,7 @@ def ingest_pair(pair: str, out: Path) -> dict:
         r["bars_outside_year_dropped"] = int((~inside).sum())
         cols = {k: v[inside] for k, v in cols.items()}
         if len(cols["open_time"]):
-            parts.append(BarSeries.from_columns(pair, "M15", SOURCE, **cols))
+            parts.append(BarSeries.from_columns(pair, timeframe, SOURCE, **cols))
         a = TickAudit(**r.pop("audit"))
         audit.add(a)
         open_hours += r.pop("week_open_hours_utc")
@@ -171,7 +174,7 @@ def ingest_pair(pair: str, out: Path) -> dict:
     # gold divided by 100 (USDJPY 0.772 for 77.2).
     scale = instruments.price_scale(pair, float(np.median(series.mid_close)))
     if scale != 1.0:
-        series = BarSeries.from_columns(pair, "M15", SOURCE, **{
+        series = BarSeries.from_columns(pair, timeframe, SOURCE, **{
             f: (getattr(series, f) * scale if f not in ("open_time", "ticks") else getattr(series, f))
             for f in ("open_time", "bid_open", "bid_high", "bid_low", "bid_close", "ask_open", "ask_high",
                       "ask_low", "ask_close", "ticks", "spread_mean", "spread_max")})
@@ -181,13 +184,13 @@ def ingest_pair(pair: str, out: Path) -> dict:
     dup = int((~keep).sum())
     if dup:
         series = series.take(keep)
-    path = out / f"{pair}_M15.npz"
+    path = out / f"{pair}_{timeframe}{tag}.npz"
     digest = series.save(path)
     report = validate(series, instruments.get(pair))
     hours = {h: open_hours.count(h) for h in sorted(set(open_hours))}
     days = {d: open_days.count(d) for d in sorted(set(open_days))}
     return {
-        "symbol": pair, "timeframe": "M15", "source": SOURCE,
+        "symbol": pair, "timeframe": timeframe, "source": SOURCE,
         "source_repo": REPO.format(pair=pair), "years": meta,
         "file": path.name, "content_sha256": digest, "bars": len(series), "price_scale": scale,
         "duplicate_bars_dropped": dup, "tick_audit": audit.as_dict(),
@@ -201,6 +204,9 @@ def main() -> int:
     p.add_argument("--out", default=str(ROOT / "data" / "processed"))
     p.add_argument("--symbols", default=",".join(instruments.UNIVERSE))
     p.add_argument("--workers", type=int, default=3)
+    p.add_argument("--timeframe", default="M15", choices=sorted(PERIOD_SECONDS))
+    p.add_argument("--years", default="", help="first-last, e.g. 2009-2016 (default: every year the mirror has)")
+    p.add_argument("--tag", default="", help="file-name suffix, e.g. _2009_2016")
     p.add_argument("--manifest", default=str(ROOT / "data" / "manifest.json"))
     args = p.parse_args()
 
@@ -211,7 +217,8 @@ def main() -> int:
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"datasets": {}}
 
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
-        futures = {s: pool.submit(ingest_pair, s, out) for s in symbols}
+        first, last = (int(x) for x in args.years.split("-")) if args.years else (None, None)
+        futures = {s: pool.submit(ingest_pair, s, out, args.timeframe, first, last, args.tag) for s in symbols}
         for s, fut in futures.items():
             try:
                 entry = fut.result()
