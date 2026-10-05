@@ -133,6 +133,8 @@ def main() -> int:
     p.add_argument("--symbol", required=True)
     p.add_argument("--band", required=True, help="plausible price band lo,hi used to derive the scale")
     p.add_argument("--years", required=True, help="first-last, inclusive")
+    p.add_argument("--from-date", default="", help="optional first day (YYYY-MM-DD), minute mode only")
+    p.add_argument("--to-date", default="", help="optional last day (YYYY-MM-DD), minute mode only")
     p.add_argument("--timeframe", default="M5", choices=sorted(PERIOD_SECONDS))
     p.add_argument("--out", required=True)
     p.add_argument("--pace", type=float, default=1.0)
@@ -162,7 +164,10 @@ def main() -> int:
             chunks.append(rows)
         print(f"{args.symbol} {d}: {status}, {time.time() - t0:.0f}s", flush=True)
         d = date(d.year + 1, 1, 1) if args.daily else date(d.year + (d.month == 12), d.month % 12 + 1, 1)
-    while not (args.hourly or args.daily) and d <= date(last, 12, 31):
+    stop_day = date.fromisoformat(args.to_date) if args.to_date else date(last, 12, 31)
+    if args.from_date and not (args.hourly or args.daily):
+        d = date.fromisoformat(args.from_date)
+    while not (args.hourly or args.daily) and d <= stop_day:
         if d.weekday() != 5:  # Saturday has no quotes
             rows, status = day_minutes(args.symbol, d, args.pace)
             if status == "failed":
@@ -188,7 +193,8 @@ def main() -> int:
     m[:, 1:] *= scale
     cols = to_bars(m, period)
     series = BarSeries.from_columns(args.symbol, args.timeframe, SOURCE, **cols)
-    path = out / f"{args.symbol}_{args.timeframe}_{first}_{last}.npz"
+    tag = f"{args.from_date or first}_{args.to_date or last}".replace("-", "")
+    path = out / f"{args.symbol}_{args.timeframe}_{tag}.npz"
     digest = series.save(path)
     crossed = int((series.ask_close < series.bid_close).sum())
     manifest = {
@@ -199,7 +205,7 @@ def main() -> int:
         "units": "years" if args.daily else "months" if args.hourly else "days", "days_ok": ok, "days_empty": empty, "failed_days": failed, "crossed_bars": crossed,
         "duplicate_minutes_dropped": int((~keep).sum()), "seconds": round(time.time() - t0, 1),
     }
-    (out / f"manifest_{args.symbol}_{first}_{last}.json").write_text(json.dumps(manifest, indent=1))
+    (out / f"manifest_{args.symbol}_{args.timeframe}_{tag}.json").write_text(json.dumps(manifest, indent=1))
     print(json.dumps({k: v for k, v in manifest.items() if k != "failed_days"} | {"failed": len(failed)}), flush=True)
     return 0
 

@@ -1,0 +1,85 @@
+{
+ "spec": {
+  "program": "IX-4",
+  "version": "ixo-1.0.0",
+  "symbol": "USATECHIDXUSD",
+  "universe": "index-cfd-intraday",
+  "session": {
+   "tz": "America/New_York",
+   "signal_bar_opens": "09:30",
+   "session_close": "16:00"
+  },
+  "ema": {
+   "n": 12,
+   "of": "mid close",
+   "series": "full continuous M5 (primary)",
+   "variant_reported": "regular-session bars only",
+   "robustness_reported": [
+    8,
+    10,
+    14,
+    16
+   ]
+  },
+  "entry": "open of the next bar (09:35), bid/ask + slippage; delay stress: one bar later",
+  "exits": [
+   "T30",
+   "T60",
+   "T120",
+   "T240",
+   "TCLOSE",
+   "S1.0",
+   "S1.5",
+   "S2.0",
+   "TRATR",
+   "TRBAR"
+  ],
+  "development": [
+   "2012-01-01",
+   "2017-01-01"
+  ],
+  "validation": [
+   "2017-01-01",
+   "2021-01-01"
+  ],
+  "holdout": [
+   "2021-01-01",
+   "2025-01-01"
+  ],
+  "costs": {
+   "spread": "bar bid/ask",
+   "slippage_per_fill": "0.25 x median spread of the development bars at 09:35",
+   "commission": 0.0,
+   "financing": "none (flat by 16:00)"
+  },
+  "baselines": [
+   "random direction, same bars (3 seeds)",
+   "random 09:35-15:00 bar with the EMA side (3 seeds)",
+   "random bar and side (3 seeds)",
+   "first-candle direction, no EMA",
+   "session long 09:35 -> 16:00"
+  ],
+  "promote": {
+   "min_trades": 300,
+   "net_bps": "> 0",
+   "t_day": 2.0,
+   "costs_x1.5": "> 0",
+   "vs_random_direction_welch_t": 2.0
+  },
+  "gates": {
+   "net_bps": "> 0",
+   "t_day": ">= Bonferroni over every registered test",
+   "costs_x1.5": "> 0",
+   "costs_x2": "> 0 (else FRAGILE)",
+   "delay": "> 0 with entry one bar (5 min) later",
+   "halves": "both > 0",
+   "profit_factor": ">= 1.05 on R",
+   "top_year_share": "<= 0.5",
+   "vs_random_direction_welch_t": ">= 2.0"
+  },
+  "holdout_rule": "validation passers only, once: net > 0, t >= z(1 - 0.05 / k), costs x1.5 > 0, delay > 0",
+  "dev_tests": 10,
+  "code_sha256": "08295f20348e066dd2fea0ca312fad798c449b3cad1b8e88390e3e0eaee231ba"
+ },
+ "sha256": "c981710d50d2dd435376c9eb5d8cf29a8613cfe01e689f8fab0d84d67ec8c3be"
+}
