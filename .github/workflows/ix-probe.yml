@@ -1,0 +1,24 @@
+# Availability probe for the index-CFD intraday program: coverage and paced throughput of the Dukascopy datafeed.
+name: IX availability probe
+on:
+  push:
+    branches: [ix-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/ix_probe.py
+      - name: Commit the probe
+        if: always()
+        run: |
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git add -f research/results/ix-probe.json || true
+          git commit -m "IX availability probe [skip ci]" || true
+          git push origin HEAD:ix-probe
