@@ -128,6 +128,37 @@ def scale_for(median_raw: float, band: tuple[float, float]) -> float:
     return fits[0]
 
 
+def write(args, out: Path, chunks: list, band, period: int, first: int, last: int, ok: int, empty: int,
+          failed: list, t0: float, complete: bool) -> None:
+    """Write the bars fetched so far and their manifest. Called once a month as a checkpoint (complete=False)
+    so a job stopped by its time limit still leaves everything it fetched, and once at the end."""
+    m = np.concatenate(chunks)
+    m = m[np.argsort(m[:, 0], kind="stable")]
+    keep = np.r_[True, np.diff(m[:, 0]) > 0]
+    m = m[keep]
+    scale = scale_for(float(np.median(m[:, 4])), band)
+    m[:, 1:] *= scale
+    cols = to_bars(m, period)
+    series = BarSeries.from_columns(args.symbol, args.timeframe, SOURCE, **cols)
+    tag = f"{args.from_date or first}_{args.to_date or last}".replace("-", "")
+    path = out / f"{args.symbol}_{args.timeframe}_{tag}.npz"
+    digest = series.save(path)
+    crossed = int((series.ask_close < series.bid_close).sum())
+    manifest = {
+        "symbol": args.symbol, "timeframe": args.timeframe, "source": SOURCE, "file": path.name,
+        "content_sha256": digest, "bars": len(series), "minutes": int(len(m)), "price_scale": scale,
+        "first": datetime.fromtimestamp(int(series.open_time[0]), timezone.utc).isoformat(),
+        "last": datetime.fromtimestamp(int(series.open_time[-1]), timezone.utc).isoformat(),
+        "units": "years" if args.daily else "months" if args.hourly else "days", "days_ok": ok,
+        "days_empty": empty, "failed_days": failed, "crossed_bars": crossed, "complete": complete,
+        "duplicate_minutes_dropped": int((~keep).sum()), "seconds": round(time.time() - t0, 1),
+    }
+    (out / f"manifest_{args.symbol}_{args.timeframe}_{tag}.json").write_text(json.dumps(manifest, indent=1))
+    if complete:
+        print(json.dumps({k: v for k, v in manifest.items() if k != "failed_days"} | {"failed": len(failed)}),
+              flush=True)
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--symbol", required=True)
@@ -177,6 +208,8 @@ def main() -> int:
             else:
                 ok += 1
                 chunks.append(rows)
+        if d.day == 1 and chunks:
+            write(args, out, chunks, band, period, first, last, ok, empty, failed, t0, complete=False)
         if d.day == 1:
             print(f"{args.symbol} {d}: ok {ok}, empty {empty}, failed {len(failed)}, {time.time() - t0:.0f}s", flush=True)
         d += timedelta(days=1)
@@ -185,28 +218,7 @@ def main() -> int:
         (out / f"manifest_{args.symbol}.json").write_text(json.dumps(
             {"symbol": args.symbol, "error": "no data", "failed_days": failed, "empty_days": empty}, indent=1))
         return 1
-    m = np.concatenate(chunks)
-    m = m[np.argsort(m[:, 0], kind="stable")]
-    keep = np.r_[True, np.diff(m[:, 0]) > 0]
-    m = m[keep]
-    scale = scale_for(float(np.median(m[:, 4])), band)
-    m[:, 1:] *= scale
-    cols = to_bars(m, period)
-    series = BarSeries.from_columns(args.symbol, args.timeframe, SOURCE, **cols)
-    tag = f"{args.from_date or first}_{args.to_date or last}".replace("-", "")
-    path = out / f"{args.symbol}_{args.timeframe}_{tag}.npz"
-    digest = series.save(path)
-    crossed = int((series.ask_close < series.bid_close).sum())
-    manifest = {
-        "symbol": args.symbol, "timeframe": args.timeframe, "source": SOURCE, "file": path.name,
-        "content_sha256": digest, "bars": len(series), "minutes": int(len(m)), "price_scale": scale,
-        "first": datetime.fromtimestamp(int(series.open_time[0]), timezone.utc).isoformat(),
-        "last": datetime.fromtimestamp(int(series.open_time[-1]), timezone.utc).isoformat(),
-        "units": "years" if args.daily else "months" if args.hourly else "days", "days_ok": ok, "days_empty": empty, "failed_days": failed, "crossed_bars": crossed,
-        "duplicate_minutes_dropped": int((~keep).sum()), "seconds": round(time.time() - t0, 1),
-    }
-    (out / f"manifest_{args.symbol}_{args.timeframe}_{tag}.json").write_text(json.dumps(manifest, indent=1))
-    print(json.dumps({k: v for k, v in manifest.items() if k != "failed_days"} | {"failed": len(failed)}), flush=True)
+    write(args, out, chunks, band, period, first, last, ok, empty, failed, t0, complete=True)
     return 0
 
 
