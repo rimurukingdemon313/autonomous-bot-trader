@@ -1,0 +1,50 @@
+# CR-1 data: Binance spot/perp 1h klines and funding, 2020-01 -> 2024-12 only (2025+ is the sealed holdout).
+# Bars go to the orphan branch cr-data, never to main.
+name: CR ingest
+on:
+  push:
+    branches: [cr-ingest]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        sym: [ADAUSDT, BCHUSDT, BTCUSDT, EOSUSDT, ETCUSDT, ETHUSDT, LINKUSDT, LTCUSDT, TRXUSDT, XLMUSDT, XRPUSDT]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - run: |
+          mkdir -p out
+          python scripts/ingest_binance.py --symbols ${{ matrix.sym }} --from 2020-01 --to 2024-12 --out out 2>&1 | tee out/ingest_${{ matrix.sym }}.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cr-${{ matrix.sym }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan cr-data
+          mkdir -p data/cr
+          cp ../arts/*/* data/cr/ 2>/dev/null || true
+          git add data/cr
+          git commit -q -m "CR-1 data: Binance 1h spot/perp klines and funding, 2020-01 to 2024-12"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" cr-data
