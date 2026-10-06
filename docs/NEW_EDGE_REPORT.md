@@ -291,3 +291,66 @@ python scripts/ft1.py run                                             # once
      forward test of NE-ON worth running. It would get a new ID, and its data would be the future.
 3. **Do not reopen any holdout to look for another answer.** The 2021–2024 index holdout stays sealed
    for a candidate that passes development and validation, if one ever does.
+
+## Addendum: crypto perpetual futures (CR-1, CR-2)
+
+After the CFD and FX programs, the search moved to the one liquid market where the carry is an observed
+cash flow and costs are small relative to holding periods: **Binance USDT-M perpetuals**.
+
+**Data:**
+
+- Binance public archives, every file verified against its published SHA-256: 1,980 files, 0 failures,
+  0 checksum mismatches.
+- Point-in-time universe: the 11 perpetuals present when the funding archive starts (2020-01). None was
+  delisted.
+- 2025 onward is sealed and was never fetched.
+
+### CR-1 (`research/preregistrations/CR-1.md`, committed `335d741` before any data was downloaded)
+
+| | Development 2020–2022 | Validation 2023–2024 (t ≥ 3.6878) |
+|---|---|---|
+| CARRY, timed (k 3, entry at mean funding ≥ 1 bp) | **+8.43%/yr** on capital, t 11.5, Sharpe 6.6, max drawdown 2.4%. **Every development gate passed** | **+1.97%/yr**, t 6.46, but did **not** beat random timing (Welch t 1.60) and the k = 1 neighbour lost (−3.6%/yr): **FAILED** |
+| CARRY by year | 2020 +10.3%, 2021 +17.5%, 2022 −2.3% | 2023 +1.37%, 2024 +2.60% |
+| TSMOM-28 (momentum on the perpetual) | +68.8%/yr but t 1.19 and max drawdown 135%; does not beat random sides: **FAILED** | not run |
+
+Position economics (development carry): funding +177 bp, basis +5 bp, cost 46 bp, net +137 bp per
+position. Win rate 27%; median holding 4.7 days.
+
+**Gate-code bugs found after validation** (`scripts/cr1_regate.py` → `research/results/CR-1-regate.json`):
+
+1. **years:** a 2025 ledger stub of 0.0 counted as a losing year.
+2. **monte_carlo:** `0.0 or 1` read the best possible probability as 1.
+
+Corrected, both gates pass, and the verdict is **still FAILED** on placebo and neighbours. Ten
+positions still open at the seal could not be closed and are counted, not estimated.
+
+### CR-2 (`research/preregistrations/CR-2.md`, committed `58b9352`)
+
+**Question:** does the plain always-on carry beat **cash** (the US policy rate)?
+
+- Development is a walk-forward over 2020–2024: one position per coin per year.
+- Overall excess over cash is **+3.0%/yr, t 5.6** (costs ×1.5: +2.9%).
+- By year:
+
+| 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|
+| +2.4% | **+18.3%** | −2.6% | −2.6% | +0.0% |
+
+The gate needed 4 of 5 years positive and got 2. **FAILED.** The 2025–2026 holdout stays sealed.
+
+Eight perpetuals listed during January 2020 hold no 2020 position. Their idle capital was charged the
+risk-free rate, which is conservative.
+
+### What the crypto evidence says
+
+- The funding premium is real: it is a cash flow, measured exactly. But it was large in **one regime**:
+  zero interest rates and the 2021 leverage boom.
+- Since 2022 it has been about equal to what Treasury bills pay. The arbitrage has been competed down to
+  the risk-free rate, as He–Manela–Ross–von Wachter warned ("deviations diminish over time").
+- **Crypto time-series momentum** did not beat random direction once funding is paid.
+
+### Verdict after every program in this mission
+
+**NO ROBUST EDGE FOUND UNDER THE AVAILABLE DATA AND EXECUTION CONDITIONS.**
+
+The registry now counts every test, including CR-1 (8) and CR-2 (1).
