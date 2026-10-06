@@ -1,0 +1,160 @@
+{
+ "spec": {
+  "program": "CR-1",
+  "module": "cr-1.0.0",
+  "universe": "crypto-binance-usdtm",
+  "symbols": [
+   "ADAUSDT",
+   "BCHUSDT",
+   "BTCUSDT",
+   "EOSUSDT",
+   "ETCUSDT",
+   "ETHUSDT",
+   "LINKUSDT",
+   "LTCUSDT",
+   "TRXUSDT",
+   "XLMUSDT",
+   "XRPUSDT"
+  ],
+  "development": [
+   "2020-01-01",
+   "2023-01-01"
+  ],
+  "validation": [
+   "2023-01-01",
+   "2025-01-01"
+  ],
+  "holdout": [
+   "2025-01-01",
+   "2026-10-01"
+  ],
+  "holdout_rule": "validation passers only, registered separately, data fetched only then: net > 0, costs x1.5 net > 0, latency net > 0 and t_day >= 1.645",
+  "configs": {
+   "CARRY-k3-in1.0": [
+    "CARRY",
+    {
+     "k": 3,
+     "theta_in": 0.0001,
+     "theta_out": 0.0
+    }
+   ],
+   "CARRY-k1-in1.0": [
+    "CARRY",
+    {
+     "k": 1,
+     "theta_in": 0.0001,
+     "theta_out": 0.0
+    }
+   ],
+   "CARRY-k9-in1.0": [
+    "CARRY",
+    {
+     "k": 9,
+     "theta_in": 0.0001,
+     "theta_out": 0.0
+    }
+   ],
+   "CARRY-k3-in0.5": [
+    "CARRY",
+    {
+     "k": 3,
+     "theta_in": 5e-05,
+     "theta_out": 0.0
+    }
+   ],
+   "CARRY-k3-in2.0": [
+    "CARRY",
+    {
+     "k": 3,
+     "theta_in": 0.0002,
+     "theta_out": 0.0
+    }
+   ],
+   "TSMOM-28": [
+    "TSMOM",
+    {
+     "lookback_d": 28
+    }
+   ],
+   "TSMOM-14": [
+    "TSMOM",
+    {
+     "lookback_d": 14
+    }
+   ],
+   "TSMOM-56": [
+    "TSMOM",
+    {
+     "lookback_d": 56
+    }
+   ]
+  },
+  "primary": {
+   "CARRY": "CARRY-k3-in1.0",
+   "TSMOM": "TSMOM-28"
+  },
+  "capital_per_notional": {
+   "CARRY": 2.0,
+   "TSMOM": 1.0
+  },
+  "costs": {
+   "spot_fee_bp": 10.0,
+   "perp_fee_bp": 5.0,
+   "half_spread_bp": 2.0,
+   "major_half_spread_bp": 1.0,
+   "slip_bp": 1.0,
+   "latency_h": 1,
+   "k": 1.0
+  },
+  "cost_stress": [
+   1.25,
+   1.5,
+   2.0
+  ],
+  "latency_extra_h": 1,
+  "placebo_seeds": [
+   1,
+   2,
+   3
+  ],
+  "monte_carlo": {
+   "n": 5000,
+   "seed": 0,
+   "block_days": 10
+  },
+  "dev_gates": {
+   "min_days": ">= 500 daily portfolio returns",
+   "min_positions": ">= 100 positions",
+   "net": "annualised net return > 0",
+   "t_day": ">= 2.0 on the daily portfolio return",
+   "costs_x1.25": "net > 0",
+   "costs_x1.5": "net > 0",
+   "latency": "net > 0 when every fill is one more hour late",
+   "vs_placebo": "CARRY: Welch t >= 2.0 of position net vs random-timing positions of the same durations (seeds 1-3); TSMOM: Welch t >= 2.0 of daily returns vs random daily sides (seeds 1-3) and block permutation of position sides p <= 0.05",
+   "without_top5_days": "net > 0 without the five best days",
+   "neighbours": "every other configuration of the family net > 0",
+   "halves": "both chronological halves net > 0"
+  },
+  "val_gates": {
+   "min_days": ">= 500 daily portfolio returns",
+   "min_positions": ">= 100 positions",
+   "net": "annualised net return > 0",
+   "t_day": ">= the Bonferroni threshold",
+   "costs_x1.25": "net > 0",
+   "costs_x1.5": "net > 0",
+   "latency": "net > 0 when every fill is one more hour late",
+   "vs_placebo": "CARRY: Welch t >= 2.0 of position net vs random-timing positions of the same durations (seeds 1-3); TSMOM: Welch t >= 2.0 of daily returns vs random daily sides (seeds 1-3) and block permutation of position sides p <= 0.05",
+   "without_top5_days": "net > 0 without the five best days",
+   "neighbours": "every other configuration of the family net > 0",
+   "halves": "both chronological halves net > 0",
+   "years": "2023 and 2024 each net > 0",
+   "coins": ">= 6 of 11 coins net > 0",
+   "monte_carlo": "block bootstrap P(total <= 0) <= 0.05",
+   "drawdown": "total / max drawdown >= 1.0"
+  },
+  "tests": 8,
+  "t_required": 3.6878,
+  "code_sha256": "e75f6ae856ba5d9e89e5756673c3e1937a6b6f4d71fa5d7a1b8032b2e6b48d79"
+ },
+ "sha256": "ef6707fb6892abf113234a14aeef32be5533eaeca3316268d392e8fd7d60e2b6"
+}
