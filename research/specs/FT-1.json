@@ -1,0 +1,55 @@
+{
+ "spec": {
+  "program": "FT-1",
+  "rule": "IX-2 unchanged (ixmom ix-1.0.0, scripts/ix2.py)",
+  "symbols": [
+   "USA500IDXUSD",
+   "USATECHIDXUSD",
+   "USA30IDXUSD",
+   "JPNIDXJPY",
+   "HKGIDXHKD",
+   "AUSIDXAUD"
+  ],
+  "judge": [
+   "2025-01-01",
+   "2026-10-01"
+  ],
+  "variants": {
+   "ALL": 0.0,
+   "STRONG": 1.0
+  },
+  "offset_min": 60,
+  "vol_days": 60,
+  "stop_sd": 2.5,
+  "slip_spread_fraction": 0.25,
+  "bars": "H1 bid/ask, Dukascopy hour candles 2025-01 onward (scripts/ingest_dukascopy_candles.py --hourly)",
+  "gates": {
+   "min_trades": 300,
+   "net_bps": "> 0 at base costs",
+   "t_day": "t on the daily equal-weight book >= Bonferroni over every test ever registered",
+   "costs_x1.5": "net > 0",
+   "costs_x2": "net > 0 (otherwise FRAGILE, which fails)",
+   "late_entry": "net > 0 when entering at the typical price (O+H+L+C)/4 of the entry hour, adverse side",
+   "halves": "both chronological halves net > 0",
+   "instruments": ">= 60% of instruments with >= 50 trades net > 0",
+   "profit_factor": ">= 1.05 on R",
+   "top_year_share": "no calendar year contributes more than 50% of the total net"
+  },
+  "tiers": {
+   "PASSED": "every IX-2 gate, t_day >= the Bonferroni threshold",
+   "PROMISING": "net > 0, costs x1.5 > 0, late entry > 0, >= 300 trades and t_day >= 2.0, but not PASSED",
+   "FAILED": "anything else"
+  },
+  "reported_not_gated": [
+   "US-only subset",
+   "spread by symbol"
+  ],
+  "tests": [
+   "EQ-ALL",
+   "EQ-STRONG"
+  ],
+  "t_required": 3.6635,
+  "code_sha256": "8cd687db60fe22e6a8fbd5907253b8b59abf04eeed0500ac89a60341f16e0e5a"
+ },
+ "sha256": "204ffab856337993cd69d8bd28189728ef6faf8085f0f6b5d0e6d3ad71e78d31"
+}
