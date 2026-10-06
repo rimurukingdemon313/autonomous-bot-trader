@@ -1,5 +1,5 @@
 {
- "code_commit": "78de15728364d77390c412adc32721d8683e3f2e",
+ "code_commit": "fc2ef3d04f9ca6fbb0cd06f27801847172077972",
  "cost_model_version": {
   "intraday": "intraday.Costs (id-1.0.0): measured bid/ask, 0.1 pip slippage, 0.7 pip commission, BIS financing per 21:00 UTC rollover (Wednesday x3) with 1.5% markup",
   "paper_broker": "paper-1.1.0: live bid/ask + 0.1 pip slippage, $7/lot commission, swap per 21:00 UTC rollover",
@@ -27,7 +27,7 @@
   "FORWARD_TESTING": 0,
   "PROMISING": 1,
   "PROPOSED": 0,
-  "REGISTERED": 3,
+  "REGISTERED": 4,
   "RETIRED": 0,
   "VALIDATED": 0
  },
@@ -3474,6 +3474,41 @@
      "universe": "index-cfd-intraday"
     }
    ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 12,
+   "design": {
+    "code_sha256": "c0350751bea29f441b5ddefdaaaa6955dae35f482a4e7dd443db625a5c5a9dea",
+    "spec_sha256": "798129936d897fe2295fd2a50d2a1c39adb5684e2fac473a8e5f8c23bd7a66d6",
+    "threshold_t": 3.6784
+   },
+   "experiment_id": "NE-1",
+   "hypothesis": "NE-ON: US index CFDs earn a positive premium from the cash close to the next morning, net of spread, slippage and financing. NE-GAP: large overnight moves partially reverse during the next cash session, net of costs.",
+   "preregistration": "research/preregistrations/NE-1.md",
+   "registered": "2026-10-06T08:55:25.708185+00:00",
+   "registry_verdict": "PENDING",
+   "status": "REGISTERED",
+   "status_reasons": [
+    "no verdict"
+   ],
+   "tests": 12,
+   "title": "NE-1: overnight premium and overnight-intraday reversal, US index CFDs (canonical engine)",
+   "uses": [
+    {
+     "end": "2014-01-01",
+     "role": "fit",
+     "start": "2013-09-01",
+     "universe": "index-cfd-intraday"
+    },
+    {
+     "end": "2017-01-01",
+     "role": "select",
+     "start": "2014-01-01",
+     "universe": "index-cfd-intraday"
+    }
+   ]
   }
  ],
  "failed_edges": [
@@ -4299,7 +4334,7 @@
  ],
  "final_statement": "NO EDGE \u2014 DO NOT TRADE",
  "final_status": "NO EDGE",
- "generated_at_utc": "2026-10-06T08:24:59+00:00",
+ "generated_at_utc": "2026-10-06T08:55:25+00:00",
  "known_data_defects": [
   {
    "defect": "00:00-00:59 UTC missing",
@@ -4487,7 +4522,7 @@
   }
  ],
  "tests": {
-  "collected": 823,
+  "collected": 859,
   "command": "python -m pytest tests"
  },
  "validated_edges": []

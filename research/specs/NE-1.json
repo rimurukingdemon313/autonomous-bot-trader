@@ -1,0 +1,181 @@
+{
+ "spec": {
+  "program": "NE-1",
+  "engine": "canon-1.0.0",
+  "validate": "canon-validate-1.0.0",
+  "sessions": "ne-sessions-1.0.0",
+  "universe": "index-cfd-intraday",
+  "symbols": [
+   "USA500IDXUSD",
+   "USATECHIDXUSD",
+   "USA30IDXUSD"
+  ],
+  "warmup_mid_only_from": "2013-09-01",
+  "development": [
+   "2014-01-01",
+   "2017-01-01"
+  ],
+  "validation": [
+   "2017-01-01",
+   "2021-01-01"
+  ],
+  "holdout": "2021-01-01..2025-01-01 sealed, never fetched",
+  "configs": {
+   "ON-16-09": [
+    "ON",
+    {
+     "entry_hour": 16,
+     "exit_hour": 9
+    }
+   ],
+   "ON-16-08": [
+    "ON",
+    {
+     "entry_hour": 16,
+     "exit_hour": 8
+    }
+   ],
+   "ON-16-10": [
+    "ON",
+    {
+     "entry_hour": 16,
+     "exit_hour": 10
+    }
+   ],
+   "ON-15-08": [
+    "ON",
+    {
+     "entry_hour": 15,
+     "exit_hour": 8
+    }
+   ],
+   "ON-15-09": [
+    "ON",
+    {
+     "entry_hour": 15,
+     "exit_hour": 9
+    }
+   ],
+   "ON-15-10": [
+    "ON",
+    {
+     "entry_hour": 15,
+     "exit_hour": 10
+    }
+   ],
+   "GAP-z1.00-v60": [
+    "GAP",
+    {
+     "z": 1.0,
+     "vol_days": 60
+    }
+   ],
+   "GAP-z0.75-v60": [
+    "GAP",
+    {
+     "z": 0.75,
+     "vol_days": 60
+    }
+   ],
+   "GAP-z1.25-v60": [
+    "GAP",
+    {
+     "z": 1.25,
+     "vol_days": 60
+    }
+   ],
+   "GAP-z1.00-v40": [
+    "GAP",
+    {
+     "z": 1.0,
+     "vol_days": 40
+    }
+   ],
+   "GAP-z1.00-v80": [
+    "GAP",
+    {
+     "z": 1.0,
+     "vol_days": 80
+    }
+   ],
+   "GAP-z0.00-v60": [
+    "GAP",
+    {
+     "z": 0.0,
+     "vol_days": 60
+    }
+   ]
+  },
+  "primary": {
+   "ON": "ON-16-09",
+   "GAP": "GAP-z1.00-v60"
+  },
+  "stop_sd": 3.0,
+  "costs": {
+   "spread_mult": 1.0,
+   "slip_frac": 0.25,
+   "stop_through_frac": 0.5,
+   "commission_bp_side": 0.0,
+   "markup_pa": 2.5,
+   "short_dividend_pa": 2.0,
+   "day_count": 360,
+   "latency_bars": 0
+  },
+  "cost_stress": [
+   1.25,
+   1.5,
+   2.0
+  ],
+  "latency_bars": 1,
+  "placebo_seeds": [
+   1,
+   2,
+   3
+  ],
+  "permutation": {
+   "n": 2000,
+   "seed": 0,
+   "block": 5
+  },
+  "monte_carlo": {
+   "n": 5000,
+   "seed": 0,
+   "block_days": 10
+  },
+  "financing": "BIS policy rate (US) public at the rollover + 2.5%/yr markup, day count 360",
+  "dev_gates": {
+   "min_trades": ">= 300 trades (three instruments pooled)",
+   "net_bp": "> 0 after every cost",
+   "t_day": ">= 2.0 on the daily book",
+   "costs_x1.25": "net > 0",
+   "costs_x1.5": "net > 0",
+   "latency_1bar": "net > 0 with entry one bar later",
+   "vs_random_window": "Welch t >= 2.0 against random entries with the same side, holding time and stop (3 seeds)",
+   "mechanism": "ON: overnight gross > same-day 10:00-16:00 long gross, paired by day, t >= 2.0; GAP: block permutation of sides p <= 0.05 and Welch t >= 2.0 against random sides",
+   "without_top5": "net > 0 without the five best trades",
+   "neighbours": "every other configuration of the family net > 0",
+   "halves": "both chronological halves net > 0"
+  },
+  "val_gates": {
+   "min_trades": ">= 300",
+   "net_bp": "> 0",
+   "t_day": ">= the Bonferroni threshold (spec t_required)",
+   "costs_x1.25": "net > 0",
+   "costs_x1.5": "net > 0",
+   "latency_1bar": "net > 0",
+   "vs_random_window": "Welch t >= 2.0",
+   "mechanism": "as in development",
+   "years": ">= 3 of the 4 calendar years net > 0",
+   "vol_terciles": "net > 0 in >= 2 of 3 volatility terciles (cuts fixed on development)",
+   "without_top5": "net > 0 and the five best trades < 50% of the total",
+   "neighbours": "every other configuration of the family net > 0",
+   "instruments": ">= 2 of 3 instruments net > 0",
+   "monte_carlo": "block-bootstrap P(total <= 0) <= 0.05",
+   "drawdown": "total net / maximum drawdown of the daily book >= 1.0"
+  },
+  "tests": 12,
+  "t_required": 3.6784,
+  "code_sha256": "c0350751bea29f441b5ddefdaaaa6955dae35f482a4e7dd443db625a5c5a9dea"
+ },
+ "sha256": "798129936d897fe2295fd2a50d2a1c39adb5684e2fac473a8e5f8c23bd7a66d6"
+}
