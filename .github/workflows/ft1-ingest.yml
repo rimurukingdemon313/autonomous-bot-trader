@@ -1,0 +1,55 @@
+# FT-1: H1 bid/ask bars for six index CFDs from 2025-01 only (research/preregistrations/FT-1.md).
+# The 2021-2024 holdout is never fetched. Bars go to the orphan branch ft1-data, never to main.
+name: FT-1 H1 ingest
+on:
+  push:
+    branches: [ft1-ingest]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include: [{"sym": "USA500IDXUSD", "band": "2500,20000"}, {"sym": "USATECHIDXUSD", "band": "8000,60000"}, {"sym": "USA30IDXUSD", "band": "15000,120000"}, {"sym": "JPNIDXJPY", "band": "15000,120000"}, {"sym": "HKGIDXHKD", "band": "10000,60000"}, {"sym": "AUSIDXAUD", "band": "3000,15000"}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - name: Ingest
+        run: |
+          mkdir -p out
+          python scripts/ingest_dukascopy_candles.py --symbol ${{ matrix.sym }} --band ${{ matrix.band }} \
+            --years 2025-2026 --hourly --out out --pace 1.0 2>&1 | tee out/ingest_${{ matrix.sym }}.log
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ft1-${{ matrix.sym }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Commit to the ft1-data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan ft1-data
+          mkdir -p data/ft1
+          cp ../arts/*/* data/ft1/ 2>/dev/null || true
+          ls -la data/ft1
+          git add data/ft1
+          git commit -q -m "FT-1 H1 bid/ask bars 2025-01 onward (Dukascopy hour candles)"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ft1-data
