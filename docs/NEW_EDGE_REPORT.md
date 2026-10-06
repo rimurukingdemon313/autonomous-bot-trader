@@ -354,3 +354,31 @@ risk-free rate, which is conservative.
 **NO ROBUST EDGE FOUND UNDER THE AVAILABLE DATA AND EXECUTION CONDITIONS.**
 
 The registry now counts every test, including CR-1 (8) and CR-2 (1).
+
+### CR-3: cross-sectional carry over the point-in-time universe (`research/preregistrations/CR-3.md`, committed `63700db`)
+
+**Data:**
+
+- 342 USDT perpetuals with spot pairs, including 38 delisted before 2025.
+- 31,205 archive files, 0 checksum mismatches.
+- 46 months missing in Binance's own archive (FTT and USDC spot suspensions). They are left missing,
+  never filled.
+
+**Development 2020–2022: FAILED every gate.**
+
+| Config | Return/yr | Excess/yr | t | Max drawdown | Positions |
+|---|---|---|---|---|---|
+| **s5-in3** (primary) | −30.9% | −31.6% | −9.5 | 97% | 2451 |
+| s3-in3 | −40.2% | −41.0% | −8.4 | 125% | 1794 |
+| s10-in3 | −17.5% | −18.2% | −9.4 | 63% | 3353 |
+| s5-in1.5 | −35.5% | −36.3% | −8.0 | 111% | 2695 |
+| s5-in6 | −11.4% | −12.2% | −10.8 | 39% | 1500 |
+
+**Why** (primary book):
+
+- Total funding collected: +54,136 bp. Total basis: +46 bp. Total cost: 146,898 bp.
+- The median position lasted **one day**. The cross-sectional rank of 24-hour funding changes every 8
+  hours, so the book churned. It paid about 60 bp per round trip to collect about 22 bp of funding.
+- Random coin selection with the same exit rule lost far less (−0.7%/yr excess).
+- This is the preregistered rule failing, not a code error. A holding-period constraint added now would
+  be a variation chosen after the result, so it is not run.
