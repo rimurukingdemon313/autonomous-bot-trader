@@ -1,0 +1,42 @@
+# Publish the IX-4 M5 artifacts of runs 37372130014, 37378126611 and 37398154141 to the ix4-dev-data branch.
+name: IX-4 publish artifacts
+on:
+  push:
+    branches: [runner-ping]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 37372130014
+          github-token: ${{ github.token }}
+          path: a1
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 37378126611
+          github-token: ${{ github.token }}
+          path: a2
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 37398154141
+          github-token: ${{ github.token }}
+          path: a3
+      - name: Commit to the ix4-dev-data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la a1/* a2/* a3/* | head -80
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan ix4-dev-data
+          mkdir -p data/ix
+          for d in ../a1 ../a2 ../a3; do cp $d/*/*.npz $d/*/*.json data/ix/ 2>/dev/null || true; done
+          ls -la data/ix
+          git add data/ix
+          git commit -q -m "IX-4 M5 bid/ask bars (Dukascopy minute candles), runs 37372130014 37378126611 37398154141"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ix4-dev-data
