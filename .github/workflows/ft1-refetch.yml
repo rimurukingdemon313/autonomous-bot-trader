@@ -1,0 +1,52 @@
+# FT-1: re-fetch 2025 hour candles for the two instruments whose first fetch lost months
+# (research/preregistrations/FT-1.md, clarification). Bars go to the orphan branch ft1-refetch-data.
+name: FT-1 H1 re-fetch
+on:
+  push:
+    branches: [ft1-refetch]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [{"sym": "USATECHIDXUSD", "band": "8000,60000"}, {"sym": "JPNIDXJPY", "band": "15000,120000"}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - name: Ingest
+        run: |
+          mkdir -p out
+          python scripts/ingest_dukascopy_candles.py --symbol ${{ matrix.sym }} --band ${{ matrix.band }} \
+            --years 2025-2025 --hourly --out out --pace 2.0 2>&1 | tee out/ingest_${{ matrix.sym }}_2025.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ft1r-${{ matrix.sym }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Commit to the ft1-refetch-data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan ft1-refetch-data
+          mkdir -p data/ft1r
+          cp ../arts/*/* data/ft1r/ 2>/dev/null || true
+          git add data/ft1r
+          git commit -q -m "FT-1 re-fetch: 2025 H1 bid/ask for USATECH and JPN"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ft1-refetch-data
