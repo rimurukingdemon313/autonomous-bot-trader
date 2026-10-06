@@ -12,6 +12,7 @@ import json
 import re
 import sys
 import time
+import urllib.parse
 import urllib.request
 import zipfile
 
@@ -34,7 +35,7 @@ def get(url: str) -> bytes:
 def listing(prefix: str, delimiter: bool = True) -> tuple[list[str], list[str]]:
     keys, prefixes, marker = [], [], ""
     while True:
-        url = f"{S3}?prefix={prefix}" + ("&delimiter=/" if delimiter else "") + (f"&marker={marker}" if marker else "")
+        url = f"{S3}?prefix={urllib.parse.quote(prefix)}" + ("&delimiter=/" if delimiter else "") + (f"&marker={urllib.parse.quote(marker)}" if marker else "")
         x = get(url).decode()
         keys += re.findall(r"<Key>([^<]+)</Key>", x)
         prefixes += re.findall(r"<Prefix>([^<]+)</Prefix>", x)[1:] if delimiter else []
