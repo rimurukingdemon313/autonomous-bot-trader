@@ -1,0 +1,25 @@
+# CR probe 2: spot/perp kline availability for every USDT perpetual (metadata only).
+name: CR probe 2
+on:
+  push:
+    branches: [cr-probe2]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/cr_probe2.py research/results/cr-probe.json cr-probe2.json 2>&1 | tee cr-probe2.log
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir pub && cp cr-probe2.* pub/ 2>/dev/null || true
+          cd pub && git init -q && git config user.name "div-runner" && git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan cr-probe2-results && git add . && git commit -q -m "CR probe 2 results"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" cr-probe2-results
