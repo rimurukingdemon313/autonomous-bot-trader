@@ -1,0 +1,51 @@
+# CR-3 data: every USDT perpetual with a spot pair, 1h klines + funding, first archived month -> 2024-12 only.
+# 2025+ is CR-3's sealed holdout. Bars go to the orphan branch cr3-data, never to main.
+name: CR-3 ingest
+on:
+  push:
+    branches: [cr3-ingest]
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - run: |
+          mkdir -p out
+          python scripts/ingest_binance_xs.py --probe research/results/cr-probe2.json --shard ${{ matrix.shard }} \
+            --nshards 20 --out out 2>&1 | tee out/ingest_shard${{ matrix.shard }}.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cr3-${{ matrix.shard }}
+          path: out/
+  publish:
+    needs: ingest
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q data && cd data
+          git config user.name "div-runner"; git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan cr3-data
+          mkdir -p data/cr3
+          cp ../arts/*/* data/cr3/ 2>/dev/null || true
+          git add data/cr3
+          git commit -q -m "CR-3 data: Binance USDT perpetual universe 1h spot/perp klines and funding to 2024-12"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" cr3-data
