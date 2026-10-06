@@ -84,3 +84,19 @@ about 1.0 bp. As a result:
 - choosing instruments after the result;
 - fetching or reading 2021–2024;
 - a second run.
+
+## Clarification, committed before any FT-1 result was computed
+
+The first fetch (run 37436760026) lost three months to datafeed failures:
+
+- JPNIDXJPY 2025-04 and 2025-06;
+- USATECHIDXUSD 2025-07.
+
+No bar of FT-1's period had been simulated or summarised when this was found. The rule, fixed now:
+
+1. The two instruments' 2025 hour candles are fetched once more.
+2. A re-fetched month is used **only** for a month the first fetch lost.
+3. Months present in both fetches must agree exactly, or the run stops.
+4. Anything still missing stays missing: it is excluded and reported, never filled.
+
+No other change to FT-1.
