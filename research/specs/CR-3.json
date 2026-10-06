@@ -1,0 +1,88 @@
+{
+ "spec": {
+  "program": "CR-3",
+  "module": "xs-1.0.0",
+  "carry_module": "cr-1.0.0",
+  "universe": "crypto-binance-usdtm-all",
+  "universe_rule": "every USDT-M perpetual with a matching spot pair in the archives (research/results/cr-probe2.json); eligible at T if both have a bar at T and have traded 30 days",
+  "development": [
+   "2020-01-01",
+   "2023-01-01"
+  ],
+  "validation": [
+   "2023-01-01",
+   "2025-01-01"
+  ],
+  "holdout": [
+   "2025-01-01",
+   "2026-09-29"
+  ],
+  "configs": {
+   "XS-s5-in3": {
+    "slots": 5,
+    "theta_in": 0.0003,
+    "theta_out": 0.0
+   },
+   "XS-s3-in3": {
+    "slots": 3,
+    "theta_in": 0.0003,
+    "theta_out": 0.0
+   },
+   "XS-s10-in3": {
+    "slots": 10,
+    "theta_in": 0.0003,
+    "theta_out": 0.0
+   },
+   "XS-s5-in1.5": {
+    "slots": 5,
+    "theta_in": 0.00015,
+    "theta_out": 0.0
+   },
+   "XS-s5-in6": {
+    "slots": 5,
+    "theta_in": 0.0006,
+    "theta_out": 0.0
+   }
+  },
+  "primary": "XS-s5-in3",
+  "seasoning_d": 30,
+  "costs": "XsCosts: spot 10 bp, perp 5 bp; half-spread/slippage 1/1 BTC ETH, 2/1 CR-1 coins, 5/3 others",
+  "rebalance_at": 1.8,
+  "risk_free": "BIS US policy rate public that day / 365",
+  "dev_gates": {
+   "min_positions": ">= 100",
+   "excess": "annualised excess over the US policy rate > 0",
+   "t_excess": ">= 2.0 on daily excess returns",
+   "costs_x1.5": "excess > 0",
+   "latency": "excess > 0, fills 1 h later",
+   "vs_placebo": "Welch t >= 2.0 of daily returns against random coin selection at the same times (seeds 1-3)",
+   "neighbours": "every other configuration excess > 0",
+   "years": ">= 2 of 3 calendar years excess > 0",
+   "drawdown": "maximum drawdown of cumulative excess <= 15%",
+   "without_top5_days": "excess > 0"
+  },
+  "val_gates": {
+   "min_positions": ">= 100",
+   "excess": "annualised excess over the US policy rate > 0",
+   "t_excess": ">= the Bonferroni threshold (spec t_required)",
+   "costs_x1.5": "excess > 0",
+   "latency": "excess > 0, fills 1 h later",
+   "vs_placebo": "Welch t >= 2.0 of daily returns against random coin selection at the same times (seeds 1-3)",
+   "neighbours": "every other configuration excess > 0",
+   "years": "2023 and 2024 each excess > 0",
+   "drawdown": "maximum drawdown of cumulative excess <= 15%",
+   "without_top5_days": "excess > 0",
+   "monte_carlo": "block bootstrap P(total excess <= 0) <= 0.05"
+  },
+  "holdout_rule": {
+   "excess": "> 0",
+   "t_excess": ">= 1.645",
+   "costs_x1.5": "excess > 0",
+   "drawdown": "<= 15%"
+  },
+  "tests": 5,
+  "t_required": 3.6957,
+  "code_sha256": "543e212b34aaf4cbdfc14d86037a9118444fe230aef451a0705216d6bf17fe3e"
+ },
+ "sha256": "f90a63a59bc454377b0ce087a2f3f0a70a12cb096fb7f0b6960aa285ff4c9d9f"
+}
