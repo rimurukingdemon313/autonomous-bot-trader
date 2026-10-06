@@ -1,0 +1,26 @@
+# CR probe: metadata only (symbols, first/last months, file formats). Results to branch cr-probe-results.
+name: CR probe
+on:
+  push:
+    branches: [cr-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/cr_probe.py cr-probe.json 2>&1 | tee cr-probe.log
+      - name: Publish
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir pub && cp cr-probe.* pub/ 2>/dev/null || true
+          cd pub && git init -q && git config user.name "div-runner" && git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan cr-probe-results && git add . && git commit -q -m "CR probe results"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" cr-probe-results
