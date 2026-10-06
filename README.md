@@ -10,7 +10,7 @@ is measured, never assumed.**
 > - Edges: 118 recorded; FAILED 117, PROMISING 1. VALIDATED requires every gate in `aitrader/research/promotion.py`; none passes.
 > - The one PROMISING lead (not a pass), turn-of-the-month on index CFDs, is **unattractive and decayed**: about 1.9% a year at t 2.18 with a 23% drawdown, t 0.46 since 2021, t 0.64 at doubled costs. It is not implemented.
 > - Live trading is impossible; DEMO sends no order (nothing is validated); per-trade risk is capped at 0.25%. Language-model trades are shadow only.
-> - Tests collected: 839; mutation audit: 176 of 176 killed. Numbers in older reports are snapshots of their date.
+> - Tests collected: 823; mutation audit: 176 of 176 killed. Numbers in older reports are snapshots of their date.
 > - Defects, patches, tests and the strategy-by-strategy record: docs/TAKEOVER_AUDIT.md.
 <!-- research-status:end -->
 >
@@ -115,7 +115,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md), and its implementation map.
 |---|---|---|
 | Risk per trade ≤ 1 % whatever the config; risk falls after losses, never rises | `aitrader/risk/engine.py` | `tests/unit/test_risk.py` |
 | Drawdown 8 % halts until a person clears it | risk engine | same |
-| No order unless the account is **positively** verified demo/paper (two signals; a name can only fail) | `execution/engine.py`, `broker/tradelocker/demo_guard.py` | `test_execution.py`, `test_tradelocker_adapter.py` |
+| No order unless the account is **positively** verified demo/paper (two signals; a name can only fail) | `execution/engine.py`, `service/config.py` (PAPER only; no broker is integrated) | `test_execution.py`, `test_service.py` |
 | An unknown write outcome is resolved by querying the broker, **never by resending** | `execution/engine.py` | `test_execution.py` |
 | An unreadable kill switch counts as active | same | same |
 | Any agent failure, missing input or malformed model reply means NO_TRADE | `decision/synthesis.py` | `test_agents.py` |
@@ -230,8 +230,12 @@ MODE=PAPER DATA_DIR=./state DASHBOARD_TOKEN=$(openssl rand -hex 24) python -m ai
 # dashboard: http://localhost:8080   health: /healthz
 ```
 
-Without TradeLocker credentials it starts, serves the dashboard, and
-reports `DATA: NOT CONNECTED`. It makes no decision on invented prices.
+It is PAPER only: prices come from Yahoo Finance (`DATA_SOURCE=yahoo`, the
+default) and orders are simulated in-process. No broker is integrated; a
+MetaTrader 5 adapter is planned only once a strategy has positive forward
+evidence in paper. With `DATA_SOURCE=offline` it starts, serves the
+dashboard, and reports `DATA: NOT CONNECTED`; it makes no decision on
+invented prices.
 
 **Railway** (Dockerfile + `railway.json` included): add a Volume at `/data`,
 set the variables from [.env.example](.env.example) under Railway →
@@ -286,6 +290,6 @@ python scripts/mutation_audit.py       # remove each guard, require a failing te
 
 The predecessor, a DEMO-only TradeLocker bot, found **no edge in 13
 strategy families** under pre-registered rules. It is kept as a read-only
-archive. Its TradeLocker client was transferred after review, with one
-safety change. Everything else stayed there.
+archive. Its TradeLocker client was transferred after review and later
+removed entirely when this build became PAPER only.
 [docs/HISTORICAL_ARCHIVE.md](docs/HISTORICAL_ARCHIVE.md).

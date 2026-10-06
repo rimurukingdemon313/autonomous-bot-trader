@@ -103,10 +103,10 @@ def test_the_service_runs_paper_on_yahoo_without_any_broker(tmp_path, monkeypatc
     from aitrader.broker.paper import PaperBroker
     from aitrader.service.runtime import Runtime
 
-    monkeypatch.setenv("TRADELOCKER_EMAIL", "")
     cfg = ServiceConfig(mode="PAPER", data_dir=str(tmp_path), port=0, symbols=("EURUSD",), data_source="yahoo")
     rt = Runtime(cfg, knowledge_dir=tmp_path / "no-kb")
-    assert rt.tl is None and isinstance(rt.broker, PaperBroker) and type(rt.feed).__name__ == "YahooFeed"
+    assert isinstance(rt.broker, PaperBroker) and type(rt.feed).__name__ == "YahooFeed"
+    assert rt.status()["components"]["broker"] == "PAPER (simulated)"
     assert rt.status()["components"]["data_source"] == "yahoo"
 
 

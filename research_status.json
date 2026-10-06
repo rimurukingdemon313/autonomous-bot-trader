@@ -1,9 +1,9 @@
 {
- "code_commit": "3445866ec205ff933725a68765f09e9b7ef6f3b1",
+ "code_commit": "90d0098e97b1c5e69a0d085b883edaafc96e3fa7",
  "cost_model_version": {
   "intraday": "intraday.Costs (id-1.0.0): measured bid/ask, 0.1 pip slippage, 0.7 pip commission, BIS financing per 21:00 UTC rollover (Wednesday x3) with 1.5% markup",
   "paper_broker": "paper-1.1.0: live bid/ask + 0.1 pip slippage, $7/lot commission, swap per 21:00 UTC rollover",
-  "provisional": "TradeLocker's real spreads are unmeasured (the spread recorder has no history): every research cost is provisional against them",
+  "provisional": "no broker is integrated (PAPER only; MetaTrader 5 planned): every research cost is provisional against the broker that will eventually be used",
   "research_h1": "labels.CostModel: measured bid/ask, 0.1 pip slippage per fill, 0.7 pip commission, swap 0.05 x ATR24(H1) per night either side",
   "retail_cfd": "retail.py / rc.py: spread, slippage, overnight markup, dividends (RC programs)",
   "risk_engine": "risk-1.2.0"
@@ -4270,7 +4270,7 @@
  ],
  "final_statement": "NO EDGE \u2014 DO NOT TRADE",
  "final_status": "NO EDGE",
- "generated_at_utc": "2026-10-06T05:18:38+00:00",
+ "generated_at_utc": "2026-10-06T08:22:08+00:00",
  "known_data_defects": [
   {
    "defect": "00:00-00:59 UTC missing",
@@ -4299,20 +4299,15 @@
    "rerun": "impossible here: no source with the hour is reachable (docs/DATA_QUALITY_REPORT.md)"
   },
   {
-   "defect": "live historical ask = bid + the current spread",
-   "files": "broker/tradelocker/adapter.py bars()",
+   "defect": "index-CFD bid/ask history only from 2012 (Dukascopy datafeed), sparse quoting in 2012-2013",
+   "files": "data/ix/",
    "measured_bias_r": null,
-   "rerun": "affects only live feature bars; costs use the live quote"
-  },
-  {
-   "defect": "no intraday bid/ask index CFD history",
-   "files": null,
-   "measured_bias_r": null,
-   "rerun": "index strategies are daily-bar research only"
+   "rerun": "IX programs use 2012+; days without a quote are skipped, never filled"
   }
  ],
  "known_research_limitations": [
-  "TradeLocker's actual spreads, commission and swaps are unmeasured; all costs are provisional",
+  "no broker is integrated (PAPER only): real spreads, commission and swaps of the eventual broker are unmeasured; all costs are provisional",
+  "index-CFD spreads are roughly constant in points, so their cost in bp fell 3-5x from 2013 to 2020 as the indices rose: results from early years overstate today's cost",
   "FX bid/ask history is 2007-2016 for research (2017+ sealed); about 10 years, one source",
   "a language model cannot be backtested (training data contains the outcomes): its value is forward-only",
   "every rejected hypothesis was judged on overlapping FX data; thresholds count prior tests (registry)",
@@ -4433,7 +4428,7 @@
  "strategies": [
   {
    "reason": "PR-001 FAILED: -0.07R per trade after costs, t -2.9 (2010-2016)",
-   "route": "SHADOW in DEMO",
+   "route": "PAPER only",
    "status": "FAILED",
    "strategy": "evidence (analogue synthesis, PR-001 system)"
   },
@@ -4463,7 +4458,7 @@
   }
  ],
  "tests": {
-  "collected": 839,
+  "collected": 823,
   "command": "python -m pytest tests"
  },
  "validated_edges": []

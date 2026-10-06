@@ -253,8 +253,8 @@ def build(with_tests: bool = True) -> dict:
             "retail_cfd": "retail.py / rc.py: spread, slippage, overnight markup, dividends (RC programs)",
             "paper_broker": "paper-1.1.0: live bid/ask + 0.1 pip slippage, $7/lot commission, swap per 21:00 UTC rollover",
             "risk_engine": RISK_VERSION,
-            "provisional": "TradeLocker's real spreads are unmeasured (the spread recorder has no history): every "
-                           "research cost is provisional against them",
+            "provisional": "no broker is integrated (PAPER only; MetaTrader 5 planned): every research cost is "
+                           "provisional against the broker that will eventually be used",
         },
         "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "final_status": final,
@@ -264,7 +264,7 @@ def build(with_tests: bool = True) -> dict:
         "experiments": experiments,
         "strategies": [
             {"strategy": "evidence (analogue synthesis, PR-001 system)", "status": "FAILED",
-             "reason": "PR-001 FAILED: -0.07R per trade after costs, t -2.9 (2010-2016)", "route": "SHADOW in DEMO"},
+             "reason": "PR-001 FAILED: -0.07R per trade after costs, t -2.9 (2010-2016)", "route": "PAPER only"},
             {"strategy": "llm_trader / trading_room / experimental_ai (a language model proposes)", "status": "PROPOSED",
              "reason": "never backtestable; no forward evidence of value", "route": "SHADOW in every mode (takeover audit)"},
             {"strategy": "edges (promoted edges only)", "status": "REGISTERED",
@@ -284,13 +284,15 @@ def build(with_tests: bool = True) -> dict:
             {"defect": "00:00-00:59 UTC missing", "files": dq.get("hour00_missing_files"),
              "measured_bias_r": (dq.get("hour00_sensitivity") or {}).get("max_abs_difference_r"),
              "rerun": "impossible here: no source with the hour is reachable (docs/DATA_QUALITY_REPORT.md)"},
-            {"defect": "live historical ask = bid + the current spread", "files": "broker/tradelocker/adapter.py bars()",
-             "measured_bias_r": None, "rerun": "affects only live feature bars; costs use the live quote"},
-            {"defect": "no intraday bid/ask index CFD history", "files": None, "measured_bias_r": None,
-             "rerun": "index strategies are daily-bar research only"},
+            {"defect": "index-CFD bid/ask history only from 2012 (Dukascopy datafeed), sparse quoting in 2012-2013",
+             "files": "data/ix/", "measured_bias_r": None,
+             "rerun": "IX programs use 2012+; days without a quote are skipped, never filled"},
         ],
         "known_research_limitations": [
-            "TradeLocker's actual spreads, commission and swaps are unmeasured; all costs are provisional",
+            "no broker is integrated (PAPER only): real spreads, commission and swaps of the eventual broker are "
+            "unmeasured; all costs are provisional",
+            "index-CFD spreads are roughly constant in points, so their cost in bp fell 3-5x from 2013 to 2020 as the "
+            "indices rose: results from early years overstate today's cost",
             "FX bid/ask history is 2007-2016 for research (2017+ sealed); about 10 years, one source",
             "a language model cannot be backtested (training data contains the outcomes): its value is forward-only",
             "every rejected hypothesis was judged on overlapping FX data; thresholds count prior tests (registry)",

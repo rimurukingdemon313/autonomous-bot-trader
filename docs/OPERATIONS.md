@@ -41,8 +41,8 @@ only when a volume is attached): `SAVED ON VOLUME`, or `NOT PERSISTENT` in red.
    root before the service starts. No extra setting is needed.
 3. Variables (Railway -> Variables; never in the repository) — see
    `.env.example` for the full list. Minimum for paper trading on live data:
-   `MODE=PAPER`, `DATA_DIR=/data`, `DASHBOARD_TOKEN` (a long random string),
-   and the four `TRADELOCKER_*` credentials of a **demo** account.
+   `MODE=PAPER`, `DATA_DIR=/data`, `DASHBOARD_TOKEN` (a long random string).
+   No broker credentials exist: the build is PAPER only.
 4. Open the service URL: the dashboard. **It starts paused** (the knowledge
    base FAILED its pre-registered test, docs/SYSTEM_LIFECYCLE.md Amendment 2).
    Trading starts only when you press Resume with the dashboard token.
@@ -50,7 +50,7 @@ only when a volume is attached): `SAVED ON VOLUME`, or `NOT PERSISTENT` in red.
    `DATABASE: HEALTHY` and `KNOWLEDGE: LOADED · FAILED` (loaded and
    verified; FAILED is the knowledge base's research verdict).
 
-Without TradeLocker credentials the service still starts and reports
+With `DATA_SOURCE=offline` the service still starts and reports
 `DATA: NOT CONNECTED`; it makes no decisions on invented prices.
 
 If startup fails (for example the volume is not writable), the service
@@ -60,9 +60,8 @@ check fails, so the reason is on the URL and in the logs.
 
 ## Where prices come from
 
-- **`DATA_SOURCE=yahoo` (PAPER only).** Prices come from Yahoo Finance's
-  public chart data, with no broker, account or key. The TradeLocker
-  variables are ignored and can be deleted.
+- **`DATA_SOURCE=yahoo` (the default; `auto` means the same).** Prices come
+  from Yahoo Finance's public chart data, with no broker, account or key.
   - **Spread.** Yahoo publishes one price per bar, so the paper account
     pays a fixed, typical spread per pair. It is an estimate (EURUSD 0.8
     pip, GBPUSD 1.2, USDJPY 1.0, ...) and can be overridden with
@@ -77,8 +76,8 @@ check fails, so the reason is on the URL and in the logs.
     window.
   - **If Yahoo refuses.** The dashboard's DATA chip turns red with Yahoo's
     reason.
-- **`DATA_SOURCE=tradelocker` (or `auto` with credentials).** The broker's
-  own prices, needed for DEMO.
+- **`DATA_SOURCE=offline`.** No prices; nothing trades. `DATA_SOURCE=tradelocker`
+  is refused at startup: the TradeLocker integration was removed.
 
 ## Who decides
 
@@ -98,11 +97,11 @@ the service at startup with a visible 503; it is never silently replaced.
 
 | MODE | Market data | Orders | Account |
 |---|---|---|---|
-| `PAPER` | TradeLocker (live) | simulated in-process | virtual, `PAPER_START_BALANCE` (default $20,000) |
-| `DEMO` | TradeLocker (live) | TradeLocker **demo** account, after the two-signal demo check | the broker's demo balance |
+| `PAPER` | Yahoo Finance (live, estimated spreads) | simulated in-process | virtual, `PAPER_START_BALANCE` (default $20,000) |
+| `DEMO` | — | **refused at startup**: no broker is integrated (TradeLocker was removed; MetaTrader 5 is planned once a strategy has positive forward evidence in paper) | — |
 | `LIVE` | — | **refused at startup** (`MODE=LIVE`, `LIVE_TRADING=true`, or any unknown value) | — |
 
-Both PAPER and DEMO are **forward tests** of an unvalidated system while
+PAPER is a **forward test** of an unvalidated system while
 PR-001 has not passed (docs/SYSTEM_LIFECYCLE.md, "Forward testing"). They
 generate the only evidence no one could have seen in advance.
 
@@ -112,7 +111,7 @@ Every decision carries an **edge status** (docs/FORWARD_VALIDATION.md):
 VALIDATED, PROMISING, EXPERIMENTAL or NONE. Today no edge is validated, so
 every trade is **EXPERIMENTAL**.
 
-| | PAPER | DEMO |
+| | PAPER | a future broker mode (MetaTrader 5, not built) |
 |---|---|---|
 | VALIDATED | executed (simulated) | sent to the demo account |
 | PROMISING / EXPERIMENTAL | executed (simulated) | **SHADOW**: risk-checked, recorded, followed forward, never sent |
@@ -131,13 +130,9 @@ are measured identically in the forward ledger, after costs.
 Paper (the default; nothing reaches a broker):
 
     MODE=PAPER  LIVE_TRADING=false  DATA_DIR=/data  DASHBOARD_TOKEN=<long random>
-    DATA_SOURCE=yahoo            # or TradeLocker demo credentials for broker prices
+    DATA_SOURCE=yahoo            # the default; offline = no prices
     DECISION_MODE=experimental_ai   AI_PROVIDERS=groq,gemini  AI_GROQ_API_KEY=...  AI_GROQ_MODEL=...
     AI_GEMINI_API_KEY=...  AI_GEMINI_MODEL=...
-
-Demo, shadow only (orders are never sent for unvalidated trades):
-
-    MODE=DEMO  PAPER_MODE=false  LIVE_TRADING=false  TRADELOCKER_EMAIL/PASSWORD/SERVER/ACCOUNT_ID=<demo account>
 
 Then open the dashboard and press **Resume** with the token. Locally:
 `python -m aitrader` with the same variables in the environment.
@@ -179,8 +174,9 @@ feed's completed bars: nothing about them lives only in memory.
 ## Logs
 
 One JSON object per line on stdout (Railway -> Deployments -> Logs).
-Secrets are redacted at the sink: values of `TRADELOCKER_PASSWORD`,
-`TRADELOCKER_EMAIL`, `AI_API_KEY`, `DASHBOARD_TOKEN`, bearer tokens and JWTs.
+Secrets are redacted at the sink: values of `AI_API_KEY`, `DASHBOARD_TOKEN`,
+bearer tokens and JWTs (and the legacy `TRADELOCKER_*` names, should an old
+deployment still set them).
 
 ## Rebuilding the knowledge base (research machine, not Railway)
 

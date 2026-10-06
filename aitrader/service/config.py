@@ -43,7 +43,7 @@ def _f(e, key, default):
 
 @dataclass(frozen=True)
 class ServiceConfig:
-    mode: str = "PAPER"  # PAPER | DEMO
+    mode: str = "PAPER"  # PAPER only: no broker is integrated (TradeLocker removed; MetaTrader 5 planned)
     data_dir: str = "./runtime"
     port: int = 8080
     symbols: tuple[str, ...] = DEFAULT_SYMBOLS
@@ -60,13 +60,12 @@ class ServiceConfig:
     #: SCAN_TIMEFRAME: "H1" = decide on H1 closes at the tested cadence; "M15" = the opportunity
     #: scanner: every M15 close, with H1 and H4 as context (edges / model modes only, see runtime).
     scan_timeframe: str = "H1"
-    #: Where prices come from: "auto" (TradeLocker when its credentials are set, else none),
-    #: "tradelocker", or "yahoo" (PAPER only: no broker, no account, estimated spreads).
-    data_source: str = "auto"
+    #: Where prices come from: "yahoo" (public prices, estimated spreads; the default) or "offline"
+    #: (no data: the service runs, reports DATA: NOT CONNECTED and never trades). "auto" means "yahoo".
+    data_source: str = "yahoo"
     spreads_pips: dict = field(default_factory=dict)  # PAPER_SPREAD_PIPS_<PAIR> overrides (yahoo)
     risk: RiskLimits = field(default_factory=RiskLimits)
-    #: EXPERIMENTAL_EXECUTE (DEMO only): send unvalidated trades (every trade today: no edge is
-    #: validated) to the demo broker. Default false: they are SHADOW, recorded and followed forward.
+    #: EXPERIMENTAL_EXECUTE: kept refused (there is no broker to send to; PAPER simulates every trade).
     experimental_execute: bool = False
     #: EXEC_MAX_DECISION_AGE_S: a decision older than this is not executed (stale).
     max_decision_age_s: int = 900
@@ -86,13 +85,18 @@ class ServiceConfig:
             pm = _flag(e, "PAPER_MODE", True)
             if pm and mode != "PAPER":
                 raise ServiceConfigError(f"PAPER_MODE=true contradicts MODE={mode}: set one consistently")
-            if not pm and mode == "PAPER":
-                raise ServiceConfigError("PAPER_MODE=false needs MODE=DEMO stated explicitly (there is no live mode)")
+            if not pm:
+                raise ServiceConfigError("PAPER_MODE=false is not available: this build is PAPER only (no broker is "
+                                         "integrated; a MetaTrader 5 adapter is planned)")
         if mode == "LIVE":
             raise ServiceConfigError("MODE=LIVE is not available: nothing reaches LIVE without every evidence gate "
                                      "and explicit approval (docs/SYSTEM_LIFECYCLE.md)")
-        if mode not in ("PAPER", "DEMO"):
-            raise ServiceConfigError(f"MODE must be PAPER or DEMO, got {mode!r}")
+        if mode == "DEMO":
+            raise ServiceConfigError("MODE=DEMO is not available: the TradeLocker integration was removed and no "
+                                     "broker is integrated. This build is PAPER only; a MetaTrader 5 adapter is "
+                                     "planned once a strategy has positive forward evidence in paper")
+        if mode != "PAPER":
+            raise ServiceConfigError(f"MODE must be PAPER, got {mode!r}")
         symbols = tuple(s.strip().upper() for s in e.get("SYMBOLS", ",".join(DEFAULT_SYMBOLS)).split(",") if s.strip())
         funded = None
         if e.get("FUNDED_NAME"):
@@ -126,14 +130,17 @@ class ServiceConfig:
             max_cost_to_risk=min(_f(e, "RISK_MAX_COST_TO_RISK", 0.25), 0.25),
             # A public feed timestamps its price itself and may lag a broker's by up to a minute.
             max_quote_age_s=int(_f(e, "RISK_MAX_QUOTE_AGE_S",
-                                   90 if e.get("DATA_SOURCE", "").strip().lower() == "yahoo" else 30)),
+                                   90 if e.get("DATA_SOURCE", "yahoo").strip().lower() in ("yahoo", "auto", "") else 30)),
             funded=funded)
-        source = e.get("DATA_SOURCE", "auto").strip().lower() or "auto"
-        if source not in ("auto", "tradelocker", "yahoo"):
-            raise ServiceConfigError(f"DATA_SOURCE must be auto, tradelocker or yahoo, got {source!r}; "
+        source = e.get("DATA_SOURCE", "yahoo").strip().lower() or "yahoo"
+        if source == "auto":
+            source = "yahoo"
+        if source == "tradelocker":
+            raise ServiceConfigError("DATA_SOURCE=tradelocker is not available: the TradeLocker integration was "
+                                     "removed. Use yahoo (public prices) or offline")
+        if source not in ("yahoo", "offline"):
+            raise ServiceConfigError(f"DATA_SOURCE must be yahoo or offline, got {source!r}; "
                                      "an unknown source is refused, never replaced")
-        if source == "yahoo" and mode != "PAPER":
-            raise ServiceConfigError("DATA_SOURCE=yahoo is for MODE=PAPER only: it has no broker to place orders")
         spreads = {k[len("PAPER_SPREAD_PIPS_"):].upper(): float(v) for k, v in e.items()
                    if k.startswith("PAPER_SPREAD_PIPS_") and v}
         interval = int(_f(e, "DECISION_INTERVAL_MIN", 0))

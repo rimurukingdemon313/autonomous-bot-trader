@@ -1,13 +1,13 @@
 """The running system: wiring, scheduler, position monitor, and read models.
 
-MODE=PAPER  live TradeLocker market data (when credentials are configured),
-            simulated $20,000 paper account, orders never leave the process.
-MODE=DEMO   live TradeLocker market data AND orders on a DEMO account,
-            verified by the two-signal demo guard before every order.
+MODE=PAPER is the only mode: public market data (Yahoo Finance, estimated
+spreads) and a simulated paper account; orders never leave the process. No
+broker is integrated (the TradeLocker integration was removed); a MetaTrader 5
+adapter is planned once a strategy shows positive forward evidence in paper.
 
-Without broker credentials the system still starts, serves the dashboard
-and health, and reports DATA: NOT CONNECTED — it does not trade on
-invented prices (rule: never fabricate a value).
+With DATA_SOURCE=offline the system still starts, serves the dashboard and
+health, and reports DATA: NOT CONNECTED — it does not trade on invented
+prices (rule: never fabricate a value).
 
 Startup sequence: open the database -> load knowledge -> reconcile broker
 state (before any decision) -> start the scheduler. If reconciliation
@@ -114,82 +114,6 @@ class OfflineFeed:
         return None
 
 
-class LiveFeedAdapter:
-    """Wraps the TradeLocker adapter as the orchestrator's feed, with a short
-    per-cycle cache so one decision does not fetch the same bars twice."""
-
-    def __init__(self, tl, clock):
-        self.tl = tl
-        self.clock = clock
-        self._cache: dict = {}
-        self._quotes: dict = {}  # symbol -> (fetched at, quote or None)
-        self._lock = threading.Lock()  # the dashboard's threads and the scheduler share this cache
-        self.last_ok: int | None = None
-        self.last_bars_ok: int | None = None  # the last time H1 bars (what decisions need) arrived
-        self.last_error: str | None = None
-
-    def symbols(self):
-        return self.tl.symbols()
-
-    #: How long fetched bars are reused. Decisions can run every minute; an H1 bar
-    #: only changes hourly, so re-fetching it every minute for every pair would
-    #: spend the broker's rate limit on data that has not changed.
-    CACHE_S = {"M1": 60, "M5": 60, "M15": 60, "H1": 300, "H4": 300, "D1": 300}
-    #: One fetch per (pair, timeframe) serves every caller: the longest window anyone asks for.
-    #: Separate fetches for 3, 260 and 720 H1 bars were three requests for one series.
-    FETCH_BARS = {"M1": 60, "M5": 48, "M15": 32, "H1": 720, "H4": 180, "D1": 60}
-    #: A live quote is reused for this long, by the dashboard and the bot alike. The dashboard
-    #: refreshes every few seconds per open tab; without this each refresh was one request per
-    #: pair, and TradeLocker's Cloudflare answered 1015 (rate limited) to all of it.
-    QUOTE_TTL_S = 10
-
-    def bars(self, symbol, as_of, count):
-        return self.bars_tf(symbol, "H1", as_of, count)
-
-    def bars_tf(self, symbol, timeframe, as_of, count):
-        """Completed bars of any broker timeframe (M1, M5, M15, H1, H4, D1), or None."""
-        key = (symbol, timeframe, as_of // self.CACHE_S.get(timeframe, 60))
-        with self._lock:
-            hit = key in self._cache
-        if not hit:
-            want = max(count, self.FETCH_BARS.get(timeframe, count))
-            try:
-                got = self.tl.bars(symbol, as_of, want, timeframe)
-                if got is not None:
-                    self.last_ok = int(self.clock())
-                    if timeframe == "H1":
-                        self.last_bars_ok = self.last_ok
-            except Exception as exc:
-                self.last_error = f"{type(exc).__name__}: {exc}"
-                got = None
-            with self._lock:
-                self._cache[key] = got  # a failure is cached too: no retry storm within the window
-                if len(self._cache) > 400:
-                    self._cache.pop(next(iter(self._cache)))
-        with self._lock:
-            got = self._cache[key]
-        if got is None or len(got) <= count:
-            return got
-        return got.take(slice(len(got) - count, len(got)))
-
-    def data_error(self, symbol: str) -> str | None:
-        """Why the last H1 bars for `symbol` did not arrive, or None."""
-        return getattr(self.tl, "bars_errors", {}).get((symbol, "H1")) or self.last_error
-
-    def quote(self, symbol, now=None):
-        t = self.clock()
-        with self._lock:
-            hit = self._quotes.get(symbol)
-        if hit is not None and t - hit[0] < self.QUOTE_TTL_S:
-            return hit[1]
-        q = self.tl.quote(symbol)
-        with self._lock:
-            self._quotes[symbol] = (t, q)  # a missing quote is reused too: no retry storm
-        if q is not None:
-            self.last_ok = int(t)
-        return q
-
-
 class Runtime:
     def __init__(self, cfg: ServiceConfig, *, feed=None, broker=None, clock=None,
                  knowledge_dir: Path | None = None) -> None:
@@ -210,7 +134,6 @@ class Runtime:
             self.db.set_kv("paused", True, reason="first start: paused until an operator resumes "
                                                   "(PR-001 found no demonstrated edge)")
         self.llm = LLMClient(LLMConfig.from_env())
-        self.tl = None
         self.feed, self.broker = feed, broker
         if self.feed is None or self.broker is None:
             self._connect()
@@ -231,7 +154,7 @@ class Runtime:
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
             # The calendar is read from the internet like the broker: only for a live feed.
             news=(EconomicCalendar(Path(cfg.data_dir) / "calendar_cache.json")
-                  if self.tl is not None or cfg.data_source == "yahoo" else None),
+                  if cfg.data_source == "yahoo" else None),
             history=self.history,
             versions={**stamp(), "service": SERVICE_VERSION, "knowledge_base": (self.knowledge_meta.get("hash", "none")
                                                      if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
@@ -267,37 +190,11 @@ class Runtime:
             # PAPER on public prices: no broker session exists, so nothing can reach one.
             from ..data.yahoo import YahooFeed
             self.feed = YahooFeed(self.cfg.symbols, self.clock, spreads_pips=self.cfg.spreads_pips)
-            self.broker = PaperBroker(self.feed, self.clock, self.db, start_balance=self.cfg.start_balance)
             log_event("STARTUP", "data source: Yahoo Finance (paper account, estimated spreads)")
-            return
-        from ..broker.tradelocker._compat import TradingConfig
-        tlcfg = TradingConfig.from_env()
-        if tlcfg.broker.configured and self.cfg.data_source in ("auto", "tradelocker"):
-            from ..broker.tradelocker.adapter import TradeLockerAdapter
-
-            def intent_lookup(cid):
-                row = self.db.one("SELECT * FROM intents WHERE id=?", (cid,))
-                if not row:
-                    return None
-                p = json.loads(row["payload"])
-                return {"symbol": row["symbol"], "side": row["side"], "qty": p["qty"], "ts": row["ts"]}
-
-            self.tl = TradeLockerAdapter(
-                tlcfg, list(self.cfg.symbols), intent_lookup=intent_lookup,
-                claimed_positions=lambda: {r["id"] for r in self.db.query("SELECT id FROM positions")})
-            self.feed = LiveFeedAdapter(self.tl, self.clock)
         else:
             self.feed = OfflineFeed(self.cfg.symbols)
-        if self.cfg.mode == "DEMO":
-            if self.tl is None:
-                log_event("STARTUP", "MODE=DEMO but TradeLocker is not configured: running with no broker",
-                          severity="critical")
-                self.broker = PaperBroker(self.feed, self.clock, self.db, start_balance=self.cfg.start_balance)
-                self.db.set_kv("paused", True, reason="DEMO requested without broker credentials")
-            else:
-                self.broker = self.tl
-        else:
-            self.broker = PaperBroker(self.feed, self.clock, self.db, start_balance=self.cfg.start_balance)
+            log_event("STARTUP", "data source: offline (no prices: nothing will trade)", severity="warning")
+        self.broker = PaperBroker(self.feed, self.clock, self.db, start_balance=self.cfg.start_balance)
 
     def _load_knowledge(self):
         """Load the research knowledge base only if its files are the ones its card describes.
@@ -607,13 +504,8 @@ class Runtime:
             db_ok = True
         except Exception:
             db_ms, db_ok = None, False
-        broker_state = "NOT CONNECTED"
-        demo = None
-        if self.tl is not None:
-            demo = self.tl.demo_status()
-            broker_state = "CONNECTED" if getattr(self.feed, "last_ok", None) else "CONNECTING"
-        elif isinstance(self.broker, PaperBroker):
-            broker_state = "PAPER (simulated)"
+        broker_state = "PAPER (simulated)" if isinstance(self.broker, PaperBroker) else "NOT CONNECTED"
+        demo = None  # no broker account exists (PAPER only)
         feed_ok = getattr(self.feed, "last_ok", None)
         ks = self.db.get_kv("kill_switch", None)
         return {

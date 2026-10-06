@@ -1,9 +1,9 @@
 """Market feeds: the one interface through which decisions see prices.
 
 `ReplayFeed` serves recorded bars as of a clock time — the backtest's view.
-A live feed (TradeLocker) implements the same interface, so the orchestrator
-cannot tell which one it is running on; that is what makes a backtest a test
-of the system that actually runs.
+A live feed (Yahoo Finance today; a MetaTrader 5 feed later) implements the
+same interface, so the orchestrator cannot tell which one it is running on;
+that is what makes a backtest a test of the system that actually runs.
 """
 
 from __future__ import annotations

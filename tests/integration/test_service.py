@@ -181,8 +181,21 @@ def test_static_dashboard_is_served_and_path_traversal_is_refused(server):
 def test_live_mode_is_refused_at_configuration():
     with pytest.raises(ServiceConfigError, match="MODE=LIVE is not available"):
         ServiceConfig.from_env({"MODE": "LIVE"})
-    with pytest.raises(ServiceConfigError, match="PAPER or DEMO"):
+    with pytest.raises(ServiceConfigError, match="MODE must be PAPER"):
         ServiceConfig.from_env({"MODE": "REAL"})
+
+
+def test_the_build_is_paper_only_no_broker_mode_or_source_is_accepted():
+    """TradeLocker was removed: DEMO and the tradelocker data source are refused, by name, never replaced."""
+    with pytest.raises(ServiceConfigError, match="MODE=DEMO is not available"):
+        ServiceConfig.from_env({"MODE": "DEMO"})
+    with pytest.raises(ServiceConfigError, match="PAPER_MODE=false is not available"):
+        ServiceConfig.from_env({"PAPER_MODE": "false"})
+    with pytest.raises(ServiceConfigError, match="DATA_SOURCE=tradelocker is not available"):
+        ServiceConfig.from_env({"DATA_SOURCE": "tradelocker"})
+    assert ServiceConfig.from_env({}).data_source == "yahoo"
+    assert ServiceConfig.from_env({"DATA_SOURCE": "auto"}).data_source == "yahoo"
+    assert ServiceConfig.from_env({"DATA_SOURCE": "offline"}).data_source == "offline"
 
 
 def test_risk_configuration_cannot_exceed_the_ceiling():

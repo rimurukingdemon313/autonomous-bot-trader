@@ -145,9 +145,9 @@ def test_ambiguous_or_live_configuration_is_refused(env):
 
 
 def test_experimental_execute_is_refused_while_nothing_is_validated():
-    """Takeover audit: no edge is VALIDATED, so DEMO sends no unvalidated order. The switch is refused."""
+    """Takeover audit: no edge is VALIDATED, so nothing unvalidated may reach a broker. The switch is refused."""
     with pytest.raises(ServiceConfigError, match="EXPERIMENTAL_EXECUTE"):
-        ServiceConfig.from_env({"MODE": "DEMO", "PAPER_MODE": "false", "EXPERIMENTAL_EXECUTE": "true"})
+        ServiceConfig.from_env({"EXPERIMENTAL_EXECUTE": "true"})
 
 
 # ── execution: no live path, shadow by default, stale and drifted refused ──
