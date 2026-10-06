@@ -1,0 +1,64 @@
+{
+ "spec": {
+  "program": "CR-2",
+  "module": "cr-1.0.0",
+  "universe": "crypto-binance-usdtm",
+  "symbols": [
+   "ADAUSDT",
+   "BCHUSDT",
+   "BTCUSDT",
+   "EOSUSDT",
+   "ETCUSDT",
+   "ETHUSDT",
+   "LINKUSDT",
+   "LTCUSDT",
+   "TRXUSDT",
+   "XLMUSDT",
+   "XRPUSDT"
+  ],
+  "development": [
+   "2020-01-01",
+   "2025-01-01"
+  ],
+  "holdout": [
+   "2025-01-01",
+   "2026-09-29"
+  ],
+  "years": [
+   "2020",
+   "2021",
+   "2022",
+   "2023",
+   "2024"
+  ],
+  "costs": {
+   "spot_fee_bp": 10.0,
+   "perp_fee_bp": 5.0,
+   "half_spread_bp": 2.0,
+   "major_half_spread_bp": 1.0,
+   "slip_bp": 1.0,
+   "latency_h": 1,
+   "k": 1.0
+  },
+  "capital_per_notional": 2.0,
+  "rebalance_at": 1.8,
+  "risk_free": "BIS US policy rate public on the day, /365 per calendar day",
+  "dev_gates": {
+   "excess": "annualised excess return over the US policy rate > 0 (2020-2024)",
+   "t_excess": ">= 2.0 on daily excess returns",
+   "years": ">= 4 of the 5 calendar years with excess > 0 (walk-forward: yearly windows, one position per coin per year, nothing fitted)",
+   "costs_x1.5": "excess > 0 with every cost x1.5",
+   "drawdown": "maximum drawdown of cumulative excess return <= 10%",
+   "coins": ">= 6 of 11 coins with excess > 0"
+  },
+  "holdout_rule": {
+   "excess": "> 0",
+   "t_excess": ">= 1.645 (one test, one-sided 5%)",
+   "costs_x1.5": "excess > 0",
+   "drawdown": "<= 10%"
+  },
+  "tests": 1,
+  "code_sha256": "a9832def4e7c29ef4b92abf7c32d75f35d98d71e4d8e6c6a18f44954d2c5f581"
+ },
+ "sha256": "d8c7ca2fda9ec9b60f8658ffc43410ba77029e52f6828abff89debfe6d89a141"
+}
