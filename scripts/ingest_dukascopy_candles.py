@@ -133,6 +133,8 @@ def write(args, out: Path, chunks: list, band, period: int, first: int, last: in
     """Write the bars fetched so far and their manifest. Called once a month as a checkpoint (complete=False)
     so a job stopped by its time limit still leaves everything it fetched, and once at the end."""
     m = np.concatenate(chunks)
+    if not len(m):
+        return
     m = m[np.argsort(m[:, 0], kind="stable")]
     keep = np.r_[True, np.diff(m[:, 0]) > 0]
     m = m[keep]
@@ -190,6 +192,8 @@ def main() -> int:
             failed.append(str(d))
         elif status == "empty":
             empty += 1
+        elif not len(rows):
+            empty += 1
         else:
             ok += 1
             chunks.append(rows)
@@ -204,6 +208,8 @@ def main() -> int:
             if status == "failed":
                 failed.append(str(d))
             elif status == "empty":
+                empty += 1
+            elif not len(rows):  # quoted but never traded (a market holiday): empty, not data
                 empty += 1
             else:
                 ok += 1
