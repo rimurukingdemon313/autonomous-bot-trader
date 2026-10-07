@@ -1,0 +1,21 @@
+name: Radar probe
+on:
+  push:
+    branches: [radar-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/radar_probe.py radar-probe.json
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir pub && cp radar-probe.json pub/ && cd pub && git init -q && git config user.name "div-runner" && git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan radar-probe-results && git add . && git commit -q -m "radar probe" && git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" radar-probe-results
