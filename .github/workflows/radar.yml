@@ -1,0 +1,57 @@
+# The live funding radar (research/preregistrations/RADAR-1.md): one paper run per hour, on GitHub's runner
+# because the venues' public APIs are reachable from there and not from the development container.
+# PAPER ONLY: no key, no account, no order. Full state (rolling history + ledger) lives in the Actions cache;
+# the small public ledger and the report are committed to the `radar-data` branch every hour.
+name: Funding radar (hourly, paper)
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write  # to re-enable this schedule: GitHub disables schedules after 60 days without repository activity
+concurrency:
+  group: radar
+  cancel-in-progress: false
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-data
+          path: pub
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the radar state
+        uses: actions/cache/restore@v4
+        with:
+          path: radar-state
+          key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: radar-state-
+      - name: One radar run
+        run: |
+          set -o pipefail
+          python scripts/radar_run.py --state radar-state --publish pub --rf 0.03875 2>&1 | tee pub/last-run.log
+      - name: Save the radar state
+        uses: actions/cache/save@v4
+        with:
+          path: radar-state
+          key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Publish the ledger and the report
+        run: |
+          cd pub
+          git config user.name "radar-runner"; git config user.email "radar-runner@users.noreply.github.com"
+          git add -A
+          git commit -q -m "radar $(date -u +%Y-%m-%dT%H:00Z)" || exit 0
+          for i in 1 2 3 4; do git push -q origin HEAD:radar-data && exit 0; sleep $((i * 5)); git pull -q --rebase origin radar-data; done
+          exit 1
+      - name: Keep the hourly schedule enabled through the 60-day look
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/radar.yml/enable" || true

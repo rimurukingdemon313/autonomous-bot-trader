@@ -421,3 +421,16 @@ The gap halved again, to about 4%/yr. At 3× that is just the cost of capital.
 - The pattern held in every form tested, and on data fetched only after the hypothesis was registered.
 
 **Final status after CR-1 … CR-5: NO ROBUST EDGE FOUND.**
+
+### RADAR-1: the live forward test (`research/preregistrations/RADAR-1.md`, `docs/RADAR_PLAN.md`)
+
+A backtest only finds premiums that have already been competed away. The one version of the carry idea it
+cannot refute is catching **new** cross-venue gaps while they are open.
+
+RADAR-1 does that live:
+- hourly, on four venues' public quotes (Hyperliquid, Gate, MEXC, dYdX);
+- as a paper book of delta-neutral pairs, short where funding is higher and long where it is lower;
+- with every rule and gate frozen by a code hash before the first run;
+- with one verdict, frozen by the runner at day 60.
+
+Until that look its status is **NO ROBUST EDGE FOUND**, and the hourly report is not evidence.
