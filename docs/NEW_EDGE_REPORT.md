@@ -382,3 +382,42 @@ The registry now counts every test, including CR-1 (8) and CR-2 (1).
 - Random coin selection with the same exit rule lost far less (−0.7%/yr excess).
 - This is the preregistered rule failing, not a code error. A holding-period constraint added now would
   be a variation chosen after the result, so it is not run.
+
+### CR-4: cross-venue funding differential, Hyperliquid vs Binance (`research/preregistrations/CR-4.md`, committed `5b94acb`)
+
+**Data:** 182 coins listed on both venues, delisted included. Hyperliquid funding is hourly; Binance archives
+are checksum-verified.
+
+| | Development 2023-06 → 2024-06 | Validation 2024-07 → 2025-06 (t ≥ 3.7012) |
+|---|---|---|
+| Primary (10 slots, 3 bp a day) | **+9.85%/yr excess**, t 6.13, max drawdown 0.9%. **Every gate passed** | **−1.35%/yr excess**, t −0.19, max drawdown 5.0%. **FAILED 9 gates** |
+| Funding / basis / cost per position | +309 / +21 / 44 bp | +77 / −4 / 41 bp |
+| Worst positions | — | basis blowups between venues on small coins: MAVIA −2,088, ORBS −1,823, FTT −1,383 bp |
+
+The gap was hand-checked against raw data: CRV +1,964 bp.
+
+### CR-5: static BTC/ETH carry, short Hyperliquid, long Binance, 3× per venue (`research/preregistrations/CR-5.md`)
+
+**How it was formed.** After CR-4's verdict, the seen data showed Hyperliquid's funding above Binance's on
+BTC and ETH: +4.6 to +12.8%/yr in both years. CR-5 was registered with that period as "select" and judged once
+on **2025-07-01 → 2026-09-29, fetched only after registration**.
+
+| | Seen 2023-06 → 2025-06 (consistency check) | **Holdout 2025-07 → 2026-09** |
+|---|---|---|
+| Return at 3× / risk-free | +11.9% / 5.0% | +4.04% / 3.83% |
+| Excess at 3× | +6.9%/yr, t 3.56 | **+0.21%/yr, t 0.23** |
+| Costs × 1.5 | +6.0% | **−0.76%** |
+| P(total ≤ 0), bootstrap | 0.00 | **0.34** |
+| Verdict | consistency only | **FAILED** |
+
+The gap halved again, to about 4%/yr. At 3× that is just the cost of capital.
+
+### What every crypto program says together
+
+- The funding premium is real and exactly measured: one venue (CR-1/2), the cross-section (CR-3), two venues
+  (CR-4/5).
+- Each time it was large, arbitrage capital arrived within one to two years, and it converged to about the
+  risk-free rate after costs.
+- The pattern held in every form tested, and on data fetched only after the hypothesis was registered.
+
+**Final status after CR-1 … CR-5: NO ROBUST EDGE FOUND.**
