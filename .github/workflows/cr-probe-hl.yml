@@ -1,0 +1,25 @@
+# CR-4 probe: Hyperliquid API reachability and listing dates (metadata only).
+name: CR probe HL
+on:
+  push:
+    branches: [cr-probe-hl]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/cr_probe_hl.py cr-probe-hl.json 2>&1 | tee cr-probe-hl.log
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir pub && cp cr-probe-hl.* pub/ 2>/dev/null || true
+          cd pub && git init -q && git config user.name "div-runner" && git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan cr-probe-hl-results && git add . && git commit -q -m "CR probe HL results"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" cr-probe-hl-results
