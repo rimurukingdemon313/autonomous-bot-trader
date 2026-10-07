@@ -1,5 +1,5 @@
 {
- "code_commit": "56158eac6b6656b6ab46198237c053aa9da60a21",
+ "code_commit": "f298ea415cbc43b2511a8725ddf41517a4ef0109",
  "cost_model_version": {
   "intraday": "intraday.Costs (id-1.0.0): measured bid/ask, 0.1 pip slippage, 0.7 pip commission, BIS financing per 21:00 UTC rollover (Wednesday x3) with 1.5% markup",
   "paper_broker": "paper-1.1.0: live bid/ask + 0.1 pip slippage, $7/lot commission, swap per 21:00 UTC rollover",
@@ -23,7 +23,7 @@
  "experiment_counts": {
   "DEGRADED": 0,
   "ELIGIBLE_FOR_REVIEW": 0,
-  "FAILED": 47,
+  "FAILED": 49,
   "FORWARD_TESTING": 0,
   "PROMISING": 1,
   "PROPOSED": 0,
@@ -3634,16 +3634,69 @@
    "hypothesis": "Short the venue whose perpetual pays more funding and long the other on the same coin earns more than the US policy rate after both venues' costs and basis risk.",
    "preregistration": "research/preregistrations/CR-4.md",
    "registered": "2026-10-07T05:24:38.064850+00:00",
-   "registry_verdict": "PENDING",
-   "status": "REGISTERED",
+   "registry_verdict": "PASSED",
+   "status": "FAILED",
    "status_reasons": [
-    "no verdict"
+    "registry verdict PASSED: not examined against the strict gates"
    ],
    "tests": 5,
    "title": "CR-4: cross-venue funding differential, Hyperliquid vs Binance, excess over cash",
    "uses": [
     {
      "end": "2024-07-01",
+     "role": "select",
+     "start": "2023-06-01",
+     "universe": "crypto-xvenue-hl-binance"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 5,
+   "design": {},
+   "experiment_id": "CR-4-V",
+   "hypothesis": "CR-4 primary holds on the validation year",
+   "preregistration": "research/preregistrations/CR-4.md",
+   "registered": "2026-10-07T06:34:05.134013+00:00",
+   "registry_verdict": "FAILED",
+   "status": "FAILED",
+   "status_reasons": [
+    "registry verdict FAILED"
+   ],
+   "tests": 1,
+   "title": "CR-4 validation 2024-07 to 2025-06",
+   "uses": [
+    {
+     "end": "2025-07-01",
+     "role": "judge",
+     "start": "2024-07-01",
+     "universe": "crypto-xvenue-hl-binance"
+    }
+   ]
+  },
+  {
+   "artifact": null,
+   "artifact_sha256": null,
+   "configurations": 1,
+   "design": {
+    "code_sha256": "aa0b2043127e248198d45afdb97af9e6365be5594c73b15c7f718312535e686d",
+    "spec_sha256": "0e52b84552f3e2b8f694fa66a16c77f2b10e2c0ab288a31dd1aabd95aa262689"
+   },
+   "experiment_id": "CR-5",
+   "hypothesis": "Hyperliquid's BTC and ETH perpetuals pay structurally more funding than Binance's; a static short-HL/long-BN position at 3x per venue beats the US policy rate after costs and forced rebalances.",
+   "preregistration": "research/preregistrations/CR-5.md",
+   "registered": "2026-10-07T06:43:05.846503+00:00",
+   "registry_verdict": "PENDING",
+   "status": "REGISTERED",
+   "status_reasons": [
+    "no verdict"
+   ],
+   "tests": 1,
+   "title": "CR-5: static BTC/ETH carry, short Hyperliquid / long Binance, 3x, excess over cash",
+   "uses": [
+    {
+     "end": "2025-07-01",
      "role": "select",
      "start": "2023-06-01",
      "universe": "crypto-xvenue-hl-binance"
@@ -4474,7 +4527,7 @@
  ],
  "final_statement": "NO EDGE \u2014 DO NOT TRADE",
  "final_status": "NO EDGE",
- "generated_at_utc": "2026-10-07T05:24:39+00:00",
+ "generated_at_utc": "2026-10-07T06:43:05+00:00",
  "known_data_defects": [
   {
    "defect": "00:00-00:59 UTC missing",
@@ -4662,7 +4715,7 @@
   }
  ],
  "tests": {
-  "collected": 891,
+  "collected": 893,
   "command": "python -m pytest tests"
  },
  "validated_edges": []
