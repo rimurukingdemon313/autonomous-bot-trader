@@ -35,6 +35,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from ..broker.base import AmbiguousExecution, BrokerError, BrokerRejected, ClosedTrade
+from ..broker.paper import PaperBroker
 from ..memory.db import Database
 from ..risk.hard_gate import HardRiskGate, TradeProposal
 
@@ -49,7 +50,10 @@ from ..risk.hard_gate import HardRiskGate, TradeProposal
 #: 1.5.0: every submission passes the hard risk gate (FTMO-style limits) and carries its permit; a request
 #:        racing another for the same decision is a DUPLICATE, not an exception; a reconciled unknown order
 #:        confirms or releases its gate reservation.
-EXECUTION_VERSION = "exec-1.5.0"
+#: 1.6.0: `paper_forward`: on the PAPER broker only, a model-originated trade may be executed (PAPER_FORWARD);
+#:        every other check, the risk verdict and the hard gate unchanged. A fill records the trade's full
+#:        provenance (source, agent, edge status, confidence, expected costs, equity at entry).
+EXECUTION_VERSION = "exec-1.6.0"
 #: Signal classes a language model originates. They are SHADOW by route; refused here as a second check.
 MODEL_SIGNAL_CLASSES = frozenset({"LLM_TRADER", "TRADING_ROOM", "EXPERIMENTAL_AI"})
 UNKNOWN_RECHECKS = 5
@@ -71,7 +75,10 @@ def client_id_for(decision_id: str) -> str:
 class ExecutionEngine:
     def __init__(self, db: Database, broker, clock: Callable[[], int], *, gate: HardRiskGate,
                  allow_unvalidated: bool = False, max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25,
-                 max_entry_slippage_r: float = 0.2) -> None:
+                 max_entry_slippage_r: float = 0.2, paper_forward: bool = False) -> None:
+        if paper_forward and not isinstance(broker, PaperBroker):
+            raise ValueError("PAPER_FORWARD executes on the paper broker only: there is no other broker for it")
+        self.paper_forward = paper_forward
         if not isinstance(gate, HardRiskGate):
             raise TypeError("the execution engine needs the hard risk gate: there is no execution path without it")
         self.gate = gate
@@ -126,7 +133,8 @@ class ExecutionEngine:
         demo = self.broker.is_demo()
         if demo is not True:
             return f"account is not verified demo/paper (is_demo={demo}): there is no live path"
-        if getattr(decision, "signal_class", None) in MODEL_SIGNAL_CLASSES:
+        model_on_paper = self.paper_forward and isinstance(self.broker, PaperBroker) and self.broker.name == "paper"
+        if getattr(decision, "signal_class", None) in MODEL_SIGNAL_CLASSES and not model_on_paper:
             return (f"signal class {decision.signal_class}: a language model's own trade is research only "
                     "(shadow), never sent")
         status = getattr(decision, "edge_status", None)
@@ -217,7 +225,24 @@ class ExecutionEngine:
                 self._pause(f"order {cid} outcome unknown ({type(exc).__name__}): paused until reconciled")
                 return ExecutionResult(decision.id, "UNKNOWN", str(exc))
             self.gate.confirm(cid, fill.position_id)
-        self._record_fill(cid, decision, verdict, fill.position_id, fill.price, fill.time, fill.order_id)
+        c = gate.calc
+        ai = getattr(decision, "ai", None) or {}
+        view = ai.get("view") or {} if isinstance(ai, dict) else {}
+        stated = view.get("confidence")  # a model's own stated confidence: recorded, never used to size
+        provenance = {"trade_id": fill.position_id, "decision_id": decision.id, "opened": fill.time,
+                      "source": proposal.source, "family": getattr(decision, "family", None),
+                      "edge_status": getattr(decision, "edge_status", None),
+                      "confidence": stated if stated is not None else getattr(decision, "confidence", None),
+                      "model": ai.get("model") if isinstance(ai, dict) else None,
+                      "provider": ai.get("provider") if isinstance(ai, dict) else None,
+                      "probability": getattr(decision, "probability", None),
+                      "expected_r": getattr(decision, "expected_R", None),
+                      "notional": c.get("notional"), "max_loss": c.get("max_loss"),
+                      "expected_costs": c.get("loss_breakdown"), "equity_at_entry": c.get("equity"),
+                      "balance_at_entry": c.get("balance"), "quote_at_entry": c.get("quote"),
+                      "paper_forward": self.paper_forward}
+        self._record_fill(cid, decision, verdict, fill.position_id, fill.price, fill.time, fill.order_id,
+                          provenance)
         ref = verdict.entry_ref
         if ref is not None and verdict.stop is not None and abs(ref - verdict.stop) > 0:
             slip_r = (fill.price - ref) * side / abs(ref - verdict.stop)  # positive = paid more than the reference
@@ -225,7 +250,7 @@ class ExecutionEngine:
                 self._pause(f"entry slippage {slip_r:.2f}R on {cid} exceeds {self.max_entry_slippage_r}R: paused")
         return ExecutionResult(decision.id, "FILLED", "filled", fill.position_id, fill.price)
 
-    def _record_fill(self, cid, decision, verdict, position_id, price, t, order_id) -> None:
+    def _record_fill(self, cid, decision, verdict, position_id, price, t, order_id, provenance=None) -> None:
         side = 1 if decision.decision == "BUY" else -1
         with self.db.tx() as c:
             c.execute("UPDATE intents SET status='FILLED', broker_order_id=?, updated=? WHERE id=?",
@@ -235,7 +260,8 @@ class ExecutionEngine:
                       (position_id, cid, decision.id, decision.instrument, "BUY" if side > 0 else "SELL",
                        verdict.qty, price, verdict.stop, verdict.target, t,
                        json.dumps({"slippage": price - verdict.entry_ref if verdict.entry_ref else None,
-                                   "risk_amount": verdict.risk_amount}), time.time()))
+                                   "risk_amount": verdict.risk_amount, **(provenance or {})}, default=str),
+                       time.time()))
             self.db.event("ORDER_FILLED", {"intent": cid, "position": position_id, "price": price}, ref=cid, conn=c)
 
     def _lookup(self, cid: str):

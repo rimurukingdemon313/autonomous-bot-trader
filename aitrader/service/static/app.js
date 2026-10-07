@@ -618,6 +618,34 @@ async function refreshAnalysis() { await safe(async () => renderAnalysis(await a
 
 async function refreshLive() { await safe(async () => renderLive(await api("/api/live"))); }
 
+// PAPER FORWARD TEST: presentation only. Every number is the server's; a missing one renders as N/A.
+function renderPaperForward(P) {
+  const card = $("pf-card");
+  card.hidden = !P.active;
+  if (!P.active) return;
+  const A = P.account || {}, O = (P.performance || {}).overall || {};
+  $("pf-sub").textContent = `${P.research_status} · profile ${P.profile}`;
+  const money = (x) => (x === null || x === undefined) ? NA : `$${num(x, 2)}`;
+  $("pf-tiles").innerHTML = [
+    tile("Mode", "PAPER FORWARD"), tile("Account", money(P.start_balance)), tile("Equity", money(A.equity)),
+    tile("P&L today", money(A.today_pnl)), tile("Total P&L", money(A.total_pnl)),
+    tile("Drawdown", money(A.drawdown_from_start)), tile("Open positions", String((P.open_positions || []).length)),
+    tile("Trades", String(O.trades ?? 0)), tile("Win rate", pct(O.win_rate)),
+    tile("Expectancy", O.expectancy_r === null || O.expectancy_r === undefined ? NA : `${signed(O.expectancy_r)}R`),
+    tile("Profit factor", num(O.profit_factor)), tile("Risk status", esc(P.risk_status || "N/A")),
+    tile("Bot status", esc(P.bot_status || "N/A")),
+  ].join("");
+  $("pf-sample").textContent = O.trades ? `${O.trades} trades · sample ${O.sample}` : "none yet";
+  $("pf-pipeline").innerHTML = (P.pipeline || []).map((e) => {
+    const stages = (e.stages || []).map((s) => `<span class="${/REJECTED|NOT EXECUTED|SHADOW/.test(s) ? "stage-no" : "stage-ok"}">${esc(s)}</span>`).join(" → ");
+    return `<li>${ts(e.t)} · ${esc(e.symbol)} ${esc(e.decision)} · ${stages}${e.reason ? `<br><span class="muted">${esc(e.reason)}</span>` : ""}</li>`;
+  }).join("") || '<li class="muted">No trade decision yet.</li>';
+  $("pf-trades").querySelector("tbody").innerHTML = (P.recent_trades || []).map((t) => `<tr><td>${ts(t.closed)}</td>
+    <td>${esc(t.symbol)}</td><td>${esc(t.direction)}</td><td>${signed(t.net_pnl, 2)}</td><td>${signed(t.r, 2)}</td>
+    <td>${num(t.costs_total)}</td><td>${esc(t.exit_reason)}</td><td>${esc(t.agent || t.source || "")}</td></tr>`).join("");
+}
+async function refreshPaperForward() { await safe(async () => renderPaperForward(await api("/api/paper_forward"))); }
+
 /* ── forward evidence ───────────────────────────────────────────────── */
 const sampleTag = (x) => esc(x || "none");
 const statTd = (st) => `<td class="num">${st?.n ?? 0}</td><td class="num">${st?.n ? signed(st.expectancy_r) : NA}</td>`;
@@ -688,6 +716,8 @@ async function refreshSlow() {
 refreshFast().then(refreshSlow);
 refreshLive();
 setInterval(refreshLive, 2500);
+setInterval(refreshPaperForward, 10000);
+refreshPaperForward();
 refreshAnalysis();
 setInterval(refreshAnalysis, 1000);  // the discussion: who is thinking now  // the account itself; prices behind it refresh about every 10 s
 setInterval(refreshFast, 10000);  // prices are cached 10 s server-side: refreshing faster only costs requests

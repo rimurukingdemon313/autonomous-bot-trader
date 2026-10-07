@@ -45,7 +45,9 @@ from ..memory.db import Database, _canonical, _hash
 from ..observability import log_event
 from .profile import HardRiskProfile, loss_per_lot, pip_of
 
-GATE_VERSION = "hard-gate-1.0.0"
+#: 1.1.0: a profile's `daily_breach` LOCK_DAY: a daily breach stops new trades until the next reset (DAILY_LOCK),
+#:        recorded as an FTMO-rule violation, without the kill switch; status reports the risk state.
+GATE_VERSION = "hard-gate-1.1.0"
 SYMBOL_RE = re.compile(r"^[A-Z0-9]{6,12}$")
 RESET_CONFIRMATION = "RESET-EVALUATION"
 CLEAR_KILL_CONFIRMATION = "CLEAR-KILL-SWITCH"
@@ -107,9 +109,15 @@ class GateResult:
 
 
 class _Reject(Exception):
-    def __init__(self, code: str, detail: str, kill: bool = False, lock: bool = False) -> None:
+    def __init__(self, code: str, detail: str, kill: bool = False, lock: bool = False, day_lock: bool = False) -> None:
         super().__init__(detail)
-        self.code, self.detail, self.kill, self.lock = code, detail, kill, lock
+        self.code, self.detail, self.kill, self.lock, self.day_lock = code, detail, kill, lock, day_lock
+
+
+def _daily_breach(profile: HardRiskProfile, detail: str) -> _Reject:
+    """A daily-loss breach: the run locks (FTMO) or the day locks (PAPER_FORWARD), as the profile says."""
+    run = profile.daily_breach == "LOCK_RUN"
+    return _Reject("DAILY_LOSS_LIMIT", detail, lock=run, day_lock=not run)
 
 
 class HardRiskGate:
@@ -176,6 +184,8 @@ class HardRiskGate:
         problem = _validate_state(st)
         if problem:
             raise _Reject("STATE_CORRUPT", f"gate state invalid: {problem}", kill=True)
+        st.setdefault("day_lock", None)  # fields added in 1.1.0
+        st.setdefault("daily_violations", [])
         if not started or started[-1]["run_id"] != st["run_id"]:
             raise _Reject("STATE_CORRUPT", f"gate state run {st['run_id']} is not the last logged run", kill=True)
         locked_logged = any(r["kind"] == "LOCKED" and r["run_id"] == st["run_id"] for r in runs)
@@ -259,6 +269,13 @@ class HardRiskGate:
                 if rej.lock and st["lock"] is None:
                     st["lock"] = {"code": rej.code, "detail": rej.detail, "t": now}
                     self._log("LOCKED", st["lock"], run_id)
+                if rej.day_lock and (st.get("day_lock") or {}).get("day") != calc.get("day_id"):
+                    st["day_lock"] = {"day": calc.get("day_id") or self.day_id(now), "code": rej.code,
+                                      "detail": rej.detail, "t": now}
+                    st.setdefault("daily_violations", []).append(st["day_lock"])
+                    self._log("DAY_LOCKED", {**st["day_lock"], "note": "an FTMO evaluation would be failed by this "
+                                                                        "breach; the paper forward test continues "
+                                                                        "from the next reset"}, run_id)
                 if (rej.lock or rej.kill) and st["kill"] is None:
                     st["kill"] = {"code": rej.code, "detail": rej.detail, "t": now}
                     self._log("KILL_SWITCH", st["kill"], run_id)
@@ -331,10 +348,16 @@ class HardRiskGate:
         if eq_c <= total_floor:
             raise _Reject("MAX_TOTAL_LOSS", f"equity {eq_c:.2f} <= floor {total_floor:.2f} (starting balance "
                                             f"{p.starting_balance:.2f} - max loss {p.max_total_loss:.2f})", lock=True)
+        dl = st.get("day_lock")
+        if dl is not None and dl["day"] == calc["day_id"]:
+            raise _Reject("DAILY_LOCK", f"the daily loss limit was reached today ({dl['detail']}): no new trade "
+                                        f"until the next reset ({calc['reset']})")
+        if dl is not None:
+            self._log("DAY_UNLOCKED", {"was": dl, "day": calc["day_id"]}, st["run_id"])
+            st["day_lock"] = None
         if eq_c <= daily_floor:
-            raise _Reject("DAILY_LOSS_LIMIT", f"equity {eq_c:.2f} <= daily floor {daily_floor:.2f} (reference "
-                                              f"{ref:.2f} - limit {p.daily_loss_limit:.2f}); daily P/L "
-                                              f"{eq_c - ref:.2f}", lock=True)
+            raise _daily_breach(p, f"equity {eq_c:.2f} <= daily floor {daily_floor:.2f} (reference {ref:.2f} - limit "
+                                   f"{p.daily_loss_limit:.2f}); daily P/L {eq_c - ref:.2f}")
 
         # ── the proposal ──
         if not isinstance(pr.decision_id, str) or not pr.decision_id or not isinstance(pr.client_id, str) \
@@ -577,6 +600,8 @@ class HardRiskGate:
                 return f"{rej.code}: {rej.detail}"
             if st is None or st["lock"] is not None or st["kill"] is not None:
                 return "RISK_LOCKED: the gate locked or killed after the permit was issued"
+            if (st.get("day_lock") or {}).get("day") == self.day_id(self.clock()):
+                return "DAILY_LOCK: the daily loss limit was reached after the permit was issued"
             if st["ledger"].get(client_id, {}).get("status") != "RESERVED":
                 return "INVALID_EXECUTION_PERMIT: no reservation for this client id"
             self._permits[permit.id] = (permit, True)
@@ -634,9 +659,12 @@ class HardRiskGate:
                 p, eq_c = self._profile, calc["equity_conservative"]
                 if eq_c <= p.total_loss_floor:
                     raise _Reject("MAX_TOTAL_LOSS", f"equity {eq_c:.2f} <= floor {p.total_loss_floor:.2f}", lock=True)
-                if eq_c <= calc["daily_floor"]:
-                    raise _Reject("DAILY_LOSS_LIMIT", f"equity {eq_c:.2f} <= daily floor {calc['daily_floor']:.2f}",
-                                  lock=True)
+                dl = st.get("day_lock")
+                if dl is not None and dl["day"] != calc["day_id"]:
+                    self._log("DAY_UNLOCKED", {"was": dl, "day": calc["day_id"]}, st["run_id"])
+                    st["day_lock"] = None
+                if eq_c <= calc["daily_floor"] and st.get("day_lock") is None:
+                    raise _daily_breach(p, f"equity {eq_c:.2f} <= daily floor {calc['daily_floor']:.2f}")
                 self._save(st)
             except _Reject as rej:
                 hb = TradeProposal("heartbeat", "heartbeat", "-", 0, 0.0, None, None, None, source="HEARTBEAT")
@@ -655,8 +683,14 @@ class HardRiskGate:
         last = st["last_obs"] or {}
         eq = last.get("equity")
         profit = None if eq is None else eq - self._profile.starting_balance
-        return {"state": "LOCKED" if st["lock"] else "KILLED" if st["kill"] else "ACTIVE",
-                "trading": st["lock"] is None and st["kill"] is None, "run_id": st["run_id"],
+        day_locked = (st.get("day_lock") or {}).get("day") == self.day_id(self.clock())
+        risk = ("MAX_LOSS_LOCK" if st["lock"] and st["lock"]["code"] == "MAX_TOTAL_LOSS" else
+                "DAILY_LOCK" if st["lock"] or day_locked else "KILLED" if st["kill"] else "ACTIVE")
+        return {"state": "LOCKED" if st["lock"] else "KILLED" if st["kill"] else "ACTIVE", "risk_status": risk,
+                "trading": st["lock"] is None and st["kill"] is None and not day_locked, "run_id": st["run_id"],
+                "day_lock": st.get("day_lock") if day_locked else None,
+                "daily_limit_violations": len(st.get("daily_violations") or []),
+                "ftmo_rules_passed_so_far": st["lock"] is None and not st.get("daily_violations"),
                 "profile": self._profile.name, "lock": st["lock"], "kill": st["kill"], "day": st["day"],
                 "equity_conservative": eq, "profit": profit,
                 "challenge_target": self._profile.challenge_target,

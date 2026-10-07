@@ -49,8 +49,8 @@ MUTANTS = [
      "aitrader/service/config.py", 'if mode == "LIVE":', 'if mode == "NEVER":',
      ["tests/integration/test_service.py"]),
     ("live-both-layers", "MODE=LIVE is refused even if the allow-list were widened",
-     "aitrader/service/config.py", ['if mode == "LIVE":', 'if mode != "PAPER":'],
-     ['if mode == "NEVER":', 'if mode not in ("PAPER", "LIVE"):'],
+     "aitrader/service/config.py", ['if mode == "LIVE":', 'if mode not in PAPER_MODES:\n            raise ServiceConfigError(f"MODE must'],
+     ['if mode == "NEVER":', 'if mode not in PAPER_MODES + ("LIVE",):\n            raise ServiceConfigError(f"MODE must'],
      ["tests/integration/test_service.py"]),
     ("token", "resume / clear / scan / revert need the dashboard token",
      "aitrader/service/server.py", "if given and hmac.compare_digest(given.encode(), token.encode()):",
@@ -249,10 +249,10 @@ MUTANTS = [
      "tgt_hit = open_ & (hi >= target)", ["tests/unit/test_labels.py"]),
     ("paper-stop-first", "stop and target in one bar resolve as the stop (paper broker)",
      "aitrader/broker/paper.py",
-     '                    if lo <= p["stop"]:\n                        closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP"))\n'
+     '                    if lo <= p["stop"]:\n                        closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP", slip))\n'
      '                    elif hi >= p["target"]:',
      '                    if hi >= p["target"]:\n                        closed.append(self._close(pid, p["target"], bar["close_time"], "TARGET"))\n'
-     '                    elif lo <= p["stop"]:\n                        closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP"))\n'
+     '                    elif lo <= p["stop"]:\n                        closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP", slip))\n'
      '                    elif False:',
      ["tests/unit/test_execution.py", "tests/integration/test_pipeline.py"]),
     ("synth-blocking", "a market-wide BLOCKING objection gives NO_TRADE before any candidate is weighed",
@@ -355,7 +355,7 @@ MUTANTS = [
     ("live-trading-flag", "LIVE_TRADING=true is refused",
      "aitrader/service/config.py", 'if _flag(e, "LIVE_TRADING", False):', "if False:", ["tests/unit/test_experimental_ai.py"]),
     ("paper-mode-conflict", "PAPER_MODE contradicting MODE is refused",
-     "aitrader/service/config.py", 'if pm and mode != "PAPER":', "if False:", ["tests/unit/test_experimental_ai.py"]),
+     "aitrader/service/config.py", 'if pm and mode not in PAPER_MODES:', "if False:", ["tests/unit/test_experimental_ai.py"]),
     ("experimental-execute-refused", "EXPERIMENTAL_EXECUTE=true is refused while nothing is validated",
      "aitrader/service/config.py", "        if experimental_execute:\n", "        if False:\n", ["tests/unit/test_experimental_ai.py"]),
     ("route-shadow", "in DEMO an unvalidated trade is shadow unless explicitly enabled",
@@ -503,7 +503,7 @@ MUTANTS = [
      'aitrader/decision/edge_status.py', '    if ai_originated:\n        return "SHADOW"',
      '    if False:\n        return "SHADOW"', ['tests/unit/test_yahoo_feed.py']),
     ('audit-model-refused-at-execution', "the execution engine refuses a language model's trade",
-     'aitrader/execution/engine.py', 'if getattr(decision, "signal_class", None) in MODEL_SIGNAL_CLASSES:',
+     'aitrader/execution/engine.py', 'if getattr(decision, "signal_class", None) in MODEL_SIGNAL_CLASSES and not model_on_paper:',
      'if False:', ['tests/unit/test_execution.py']),
     ('audit-unknown-pauses', 'an order of unknown outcome pauses trading',
      'aitrader/execution/engine.py', 'self._pause(f"order {cid} outcome unknown after an ambiguous broker response: paused until "\n'
@@ -574,6 +574,26 @@ MUTANTS = [
      'if False:\n            raise BrokerRejected("NO_RISK_GATE', ["tests/unit/test_hard_gate.py"]),
     ("gate-exec-refusal", "a gate refusal stops the execution engine before the broker",
      "aitrader/execution/engine.py", "            if not gate.approved:", "            if False:", ["tests/unit/test_hard_gate.py"]),
+    # ── PAPER_FORWARD (docs/PAPER_FORWARD.md) ──
+    ("pf-paper-only", "a model's trade executes only in PAPER_FORWARD and only on the paper broker",
+     "aitrader/execution/engine.py",
+     'model_on_paper = self.paper_forward and isinstance(self.broker, PaperBroker) and self.broker.name == "paper"',
+     "model_on_paper = True", ["tests/integration/test_paper_forward.py"]),
+    ("pf-paper-broker-required", "PAPER_FORWARD refuses any broker but the paper broker",
+     "aitrader/execution/engine.py", "if paper_forward and not isinstance(broker, PaperBroker):", "if False:", ["tests/integration/test_paper_forward.py"]),
+    ("pf-route", "only PAPER_FORWARD executes a model's proposal; plain PAPER keeps it shadow",
+     "aitrader/decision/edge_status.py", 'if mode == "PAPER_FORWARD":', 'if mode in ("PAPER_FORWARD", "PAPER"):', ["tests/integration/test_paper_forward.py"]),
+    ("pf-day-lock", "after a daily breach no new trade until the next reset",
+     "aitrader/risk/hard_gate.py", 'if dl is not None and dl["day"] == calc["day_id"]:\n            raise _Reject("DAILY_LOCK"',
+     'if False:\n            raise _Reject("DAILY_LOCK"', ["tests/integration/test_paper_forward.py"]),
+    ("pf-close-costs", "a paper close records the slippage it charged",
+     "aitrader/broker/paper.py", "return self._close(position_id, exit_px, self.clock(), reason, exit_slip=slip)",
+     "return self._close(position_id, exit_px, self.clock(), reason)", ["tests/integration/test_paper_forward.py"]),
+    ("pf-stop-costs", "a stop fill's slippage is part of the trade's recorded costs",
+     "aitrader/broker/paper.py",
+     'closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP", slip))',
+     'closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP"))', ["tests/integration/test_paper_forward.py"]),
+
 ]
 
 

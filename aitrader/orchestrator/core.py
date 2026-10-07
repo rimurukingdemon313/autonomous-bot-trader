@@ -75,7 +75,11 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         lessons are mined from LEARNING outcomes and shown to the model traders; experimental_ai mode.
 #: 1.13.0: the hard risk gate observes the account every cycle (day roll at its reset time, breach lock even when
 #:         nothing is proposed), and the risk engine sizes with the same financing estimate the gate verifies.
-ORCHESTRATOR_VERSION = "orchestrator-1.13.0"
+#: 1.14.0: PAPER_FORWARD: the route allows model proposals to execute on paper; every trade decision emits a
+#:         PIPELINE event (decision -> risk approved/rejected -> paper executed / not, with the exact reason); every
+#:         closed trade records a full outcome (costs decomposed, R, MFE/MAE, holding time, reasoning, source,
+#:         edge status, regime, partition, whether the direction and the risk estimate were right).
+ORCHESTRATOR_VERSION = "orchestrator-1.14.0"
 
 
 class NullKnowledge:
@@ -399,10 +403,23 @@ class Orchestrator:
             # (takeover audit: no forward evidence that it adds value; it may not create trades).
             route = execution_route(d.edge_status, self.cfg.mode, self.cfg.experimental_execute,
                                     ai_originated=mode in MODEL_MODES)
+            origin = "AI DECISION" if mode in MODEL_MODES else "STRATEGY DECISION"
+            trail = {"id": d.id, "symbol": symbol, "decision": d.decision, "t": t, "mode": self.cfg.mode,
+                     "edge_status": d.edge_status, "stages": [origin], "reason": None}
             if verdict.approved and route == "EXECUTE":
                 res = self.execution.execute(d, verdict, meta={"swap_per_night": swap})
                 executed = res.status == "FILLED"
                 self.counts["executed"] += int(executed)
+                if executed:
+                    trail["stages"] += ["RISK APPROVED", "PAPER EXECUTED"]
+                    trail.update(position_id=res.position_id, fill=res.fill_price)
+                    trail["size"] = verdict.qty  # the risk engine's size, shown; never computed here
+                elif res.status == "BLOCKED" and "RISK_GATE_REJECTED" in res.detail:
+                    trail["stages"] += ["RISK APPROVED", "RISK REJECTED"]
+                    trail["reason"] = f"hard risk gate: {res.detail}"
+                else:
+                    trail["stages"] += ["RISK APPROVED", f"NOT EXECUTED ({res.status})"]
+                    trail["reason"] = res.detail
             elif verdict.approved:
                 executed = False
                 self.counts["shadow"] += 1
@@ -411,6 +428,13 @@ class Orchestrator:
                                                        "(EXPERIMENTAL_EXECUTE is not set)"}, ref=d.id, key=True)
             else:
                 self.counts["risk_rejected"] += 1
+            if not verdict.approved:
+                trail["stages"].append("RISK REJECTED")
+                trail["reason"] = "; ".join(verdict.reasons) or "risk engine did not approve"
+            elif route != "EXECUTE":
+                trail["stages"] += ["RISK APPROVED", f"{route} (not executed)"]
+                trail["reason"] = f"{d.edge_status} in {self.cfg.mode}: {route.lower()} by policy"
+            self._event("PIPELINE", trail, ref=d.id, key=True)
             if self.cfg.journal == "full":
                 pip = pip_of(symbol)
                 self.forward.record(forward_proposal(
@@ -541,12 +565,37 @@ class Orchestrator:
                      "data_flags": ((dec.get("context") or {}).get("data_flags"))}
             pm = postmortem(trade)
             self._postmortems.append(pm)
+            costs = [ct.commission, ct.swap, ct.slippage_cost, ct.spread_cost]
+            max_loss = pos_payload.get("max_loss") or risk_amount
+            outcome = {
+                "trade_id": row["id"], "decision_id": row["decision_id"], "symbol": row["symbol"],
+                "direction": row["side"], "opened": int(ct.opened), "closed": int(ct.closed),
+                "holding_s": int(ct.closed - ct.opened), "win": None if ct.pnl is None else ct.pnl > 0,
+                "net_pnl": ct.pnl, "gross_pnl": ct.gross_pnl, "fees": ct.commission, "financing": ct.swap,
+                "slippage": ct.slippage_cost, "spread": ct.spread_cost,
+                "costs_total": sum(costs) if all(c is not None for c in costs) else None,
+                "r": r, "mfe_r": mfe, "mae_r": mae, "exit_reason": ct.reason,
+                "entry_reasoning": str(dec.get("thesis") or "")[:600] or None,
+                "exit_reasoning": f"{ct.reason}: {pm.get('cause')}",
+                "source": pos_payload.get("source") or dec.get("signal_class"),
+                "agent": dec.get("family"), "edge_status": pos_payload.get("edge_status") or dec.get("edge_status"),
+                "confidence": pos_payload.get("confidence", dec.get("confidence")),
+                "probability": pos_payload.get("probability", dec.get("probability")),
+                "regime": (dec.get("regime") or {}).get("label"), "regime_exit": regime_exit,
+                # direction right = the price moved the predicted way before costs; risk right = the realised loss
+                # stayed within the maximum loss planned at entry (costs included)
+                "prediction_correct": None if ct.gross_pnl is None else ct.gross_pnl > 0,
+                "risk_estimate_correct": (None if ct.pnl is None or not max_loss else
+                                          True if ct.pnl >= 0 else -ct.pnl <= max_loss * 1.001 + 0.01),
+                "planned_max_loss": max_loss, "expected_costs": pos_payload.get("expected_costs"),
+                "equity_at_entry": pos_payload.get("equity_at_entry"),
+                "partition": partition(int(ct.opened)), "paper_forward": bool(pos_payload.get("paper_forward"))}
             record = {"decision": {k: dec.get(k) for k in ("id", "decision", "family", "template", "thesis",
                                                            "expected_R", "lower_R", "probability", "confidence",
                                                            "required_edge", "regime", "versions")},
                       "position": {k: row[k] for k in ("id", "symbol", "side", "qty", "entry", "stop", "target", "opened")},
                       "exit": {"price": ct.exit, "time": ct.closed, "reason": ct.reason, "pnl": ct.pnl},
-                      "r": r, "mfe_r": mfe, "mae_r": mae, "postmortem": pm}
+                      "r": r, "mfe_r": mfe, "mae_r": mae, "postmortem": pm, "outcome": outcome}
             with self.db.tx() as c:
                 if c.execute("SELECT 1 FROM trades WHERE position_id=?", (row["id"],)).fetchone():
                     continue

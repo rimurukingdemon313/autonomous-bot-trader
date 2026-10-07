@@ -26,7 +26,10 @@ import math
 from dataclasses import asdict, dataclass, fields, replace
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-PROFILE_VERSION = "hard-profile-1.0.0"
+#: 1.1.0: `daily_breach` (LOCK_RUN, FTMO's rule: a daily breach ends the run; LOCK_DAY: no new trade until the
+#:        next reset, the breach recorded as a violation) and the PAPER-FORWARD-200K profile.
+PROFILE_VERSION = "hard-profile-1.1.0"
+DAILY_BREACH = ("LOCK_RUN", "LOCK_DAY")
 
 
 class ProfileError(ValueError):
@@ -64,6 +67,10 @@ class HardRiskProfile:
     max_lots: float = 50.0
     max_open_positions: int = 5
     permit_ttl_s: int = 10  # an execution permit is single-use and expires
+    #: LOCK_RUN: a daily breach locks the evaluation run (FTMO fails the account). LOCK_DAY: no new trade until
+    #: the next daily reset, and the breach is recorded as an FTMO-rule violation. A maximum-loss breach always
+    #: locks the run.
+    daily_breach: str = "LOCK_RUN"
 
     def __post_init__(self) -> None:
         problems = self.problems()
@@ -88,6 +95,8 @@ class HardRiskProfile:
             p.append(f"swap_nights_allowance must be an integer >= 0 (got {self.swap_nights_allowance!r})")
         if not isinstance(self.reset_hour, int) or isinstance(self.reset_hour, bool) or not 0 <= self.reset_hour <= 23:
             p.append(f"reset_hour must be an integer 0..23 (got {self.reset_hour!r})")
+        if self.daily_breach not in DAILY_BREACH:
+            p.append(f"daily_breach must be one of {DAILY_BREACH} (got {self.daily_breach!r})")
         if not (isinstance(self.currency, str) and len(self.currency) == 3 and self.currency.isupper()):
             p.append(f"currency must be a 3-letter code (got {self.currency!r})")
         try:
@@ -120,7 +129,10 @@ class HardRiskProfile:
         return asdict(self)
 
     def sha256(self) -> str:
-        return hashlib.sha256(json.dumps(self.as_dict(), sort_keys=True).encode()).hexdigest()
+        d = self.as_dict()
+        if d["daily_breach"] == "LOCK_RUN":  # the 1.0.0 behaviour: a run started before the field keeps its hash
+            del d["daily_breach"]
+        return hashlib.sha256(json.dumps(d, sort_keys=True).encode()).hexdigest()
 
     def scaled(self, starting_balance: float, name: str | None = None) -> "HardRiskProfile":
         """The same percentages on another balance (a $20,000 paper account, a backtest). Per-lot costs and
@@ -141,7 +153,10 @@ class HardRiskProfile:
 
 
 FTMO_200K = HardRiskProfile()
-PROFILES = {FTMO_200K.name: FTMO_200K}
+#: The PAPER_FORWARD account: the same limits; a daily breach stops new trades for the day and is recorded as a
+#: violation, so the forward measurement continues. The maximum loss still ends the run.
+PAPER_FORWARD_200K = replace(FTMO_200K, name="PAPER-FORWARD-200K", daily_breach="LOCK_DAY")
+PROFILES = {FTMO_200K.name: FTMO_200K, PAPER_FORWARD_200K.name: PAPER_FORWARD_200K}
 
 
 def pip_of(symbol: str) -> float:
@@ -162,4 +177,4 @@ def loss_per_lot(profile: HardRiskProfile, *, stop_distance: float, pip: float, 
     return parts
 
 
-__all__ = ["FTMO_200K", "PROFILES", "PROFILE_VERSION", "HardRiskProfile", "ProfileError", "loss_per_lot", "pip_of"]
+__all__ = ["DAILY_BREACH", "FTMO_200K", "PAPER_FORWARD_200K", "PROFILES", "PROFILE_VERSION", "HardRiskProfile", "ProfileError", "loss_per_lot", "pip_of"]

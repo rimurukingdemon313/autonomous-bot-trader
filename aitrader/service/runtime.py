@@ -48,6 +48,8 @@ from ..orchestrator.tracker import ACTIONS
 from ..regime.model import RegimeModel
 from ..risk.engine import RiskEngine
 from ..risk.hard_gate import HardRiskGate
+from ..decision.edge_status import PAPER_MODES
+from ..learning import paper_metrics
 from ..version import stamp
 from .config import ServiceConfig, ServiceConfigError
 
@@ -131,10 +133,16 @@ class Runtime:
         if self.db.get_kv("kill_switch", None) is None:
             self.db.set_kv("kill_switch", {"active": False}, reason="first start")
         if self.db.get_kv("paused", None) is None:
-            # Nothing trades until an operator decides it should: PR-001 found no
-            # edge, so starting to trade is an explicit, authenticated act (resume).
-            self.db.set_kv("paused", True, reason="first start: paused until an operator resumes "
-                                                  "(PR-001 found no demonstrated edge)")
+            if cfg.mode == "PAPER_FORWARD":
+                # MODE=PAPER_FORWARD is itself the operator's explicit decision to let the system trade ON PAPER
+                # and measure itself; it is set in the deployment's own configuration, never by the dashboard.
+                self.db.set_kv("paused", False, reason="first start in PAPER_FORWARD: the paper forward test runs "
+                                                       "(not real money; research status unchanged: NO EDGE)")
+            else:
+                # Nothing trades until an operator decides it should: PR-001 found no
+                # edge, so starting to trade is an explicit, authenticated act (resume).
+                self.db.set_kv("paused", True, reason="first start: paused until an operator resumes "
+                                                      "(PR-001 found no demonstrated edge)")
         self.llm = LLMClient(LLMConfig.from_env())
         self.feed, self.broker = feed, broker
         if self.feed is None or self.broker is None:
@@ -148,8 +156,9 @@ class Runtime:
         # live in the same database and survive a restart.
         self.gate = HardRiskGate(self.db, cfg.hard_profile, self.clock)
         self.execution = ExecutionEngine(self.db, self.broker, self.clock, gate=self.gate,
-                                         allow_unvalidated=cfg.mode == "PAPER" or cfg.experimental_execute,
-                                         max_decision_age_s=cfg.max_decision_age_s)
+                                         allow_unvalidated=cfg.mode in PAPER_MODES or cfg.experimental_execute,
+                                         max_decision_age_s=cfg.max_decision_age_s,
+                                         paper_forward=cfg.mode == "PAPER_FORWARD")
         self.orch = Orchestrator(
             OrchestratorConfig(list(cfg.symbols), mode=cfg.mode, journal="full", events="all",
                                start_balance=cfg.start_balance, experimental_execute=cfg.experimental_execute),
@@ -740,6 +749,52 @@ class Runtime:
             "last_decision": ({"symbol": last["symbol"], "decision": last["decision"], "time": lp.get("timestamp"),
                                "reason": lp.get("no_trade_reason") or lp.get("thesis")} if last else None),
         }
+
+    def paper_forward(self) -> dict:
+        """The PAPER FORWARD TEST panel: what the system's own paper trades did, read from the account, the
+        hard gate and the closed-trade outcomes. Every figure is read; one that cannot be is None, with why.
+        Presentation only: nothing here can open, size or close a trade."""
+        out: dict = {"mode": self.cfg.mode, "banner": "PAPER FORWARD TEST", "money": "NOT REAL MONEY",
+                     "active": self.cfg.mode == "PAPER_FORWARD", "live_trading": False,
+                     "research_status": "NO EDGE — DO NOT TRADE (historical research; this test measures forward)",
+                     "profile": self.cfg.hard_profile.name, "start_balance": self.cfg.hard_profile.starting_balance}
+        gate = self.gate.status()
+        out["risk_status"] = gate.get("risk_status") or gate.get("state")
+        out["gate"] = {k: gate.get(k) for k in ("state", "risk_status", "lock", "day_lock", "kill",
+                                                "daily_limit_violations", "ftmo_rules_passed_so_far", "day",
+                                                "trading_days", "min_trading_days", "challenge_target",
+                                                "challenge_objective_met")}
+        paused = bool(self.db.get_kv("paused", True))
+        ks = self.db.get_kv("kill_switch", None)
+        killed = not isinstance(ks, dict) or ks.get("active") is not False
+        locked = out["risk_status"] in ("DAILY_LOCK", "MAX_LOSS_LOCK", "KILLED", "FAULT")
+        out["bot_status"] = ("RISK LOCK" if killed or locked else "PAUSED" if paused else
+                             "STARTING" if out["risk_status"] == "NOT_STARTED" else "RUNNING")
+        try:
+            snap = self.broker.account()
+            eq = snap.equity
+            start = self.cfg.hard_profile.starting_balance
+            day = (gate.get("day") or {})
+            out["account"] = {"equity": round(eq, 2), "balance": round(snap.balance, 2),
+                              "total_pnl": round(eq - start, 2),
+                              "today_pnl": round(eq - day["reference"], 2) if day.get("reference") else None,
+                              "day_reference": day.get("reference"),
+                              "drawdown_from_start": round(min(0.0, eq - start), 2),
+                              "max_loss_floor": self.cfg.hard_profile.total_loss_floor,
+                              "daily_loss_limit": self.cfg.hard_profile.daily_loss_limit}
+        except Exception as exc:  # noqa: BLE001 - shown as unavailable, never as a number
+            out["account"] = {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
+        outcomes = []
+        for row in self.db.query("SELECT payload FROM trades ORDER BY seq"):
+            o = (json.loads(row["payload"]) or {}).get("outcome")
+            if o:
+                outcomes.append(o)
+        out["performance"] = paper_metrics.report(outcomes)
+        out["open_positions"] = self._live_positions()
+        out["recent_trades"] = outcomes[-20:][::-1]
+        out["pipeline"] = [json.loads(e["payload"]) for e in
+                           self.db.query("SELECT payload FROM events WHERE type='PIPELINE' ORDER BY seq DESC LIMIT 20")]
+        return out
 
     def trades(self, closed: bool = True, limit: int = 200) -> list[dict]:
         if not closed:

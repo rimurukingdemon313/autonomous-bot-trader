@@ -1,0 +1,70 @@
+# The continuous PAPER_FORWARD run (docs/PAPER_FORWARD.md): the real service in 6-hour shifts on GitHub's runner,
+# which can reach live market data. PAPER ONLY: simulated orders on a $200,000 paper account, no broker, no key
+# to any account, no real money. The paper account (database) is carried from shift to shift in the Actions
+# cache, with a snapshot on the `paper-forward-data` branch; the dashboard view is published there every 15 min.
+#
+# Decision system: `evidence` (deterministic) unless the repository variable PF_DECISION_MODE names a model mode
+# (llm_trader / trading_room / experimental_ai) AND the owner has added a model key as the Actions secret
+# AI_API_KEY (with variables AI_PROVIDER, AI_BASE_URL, AI_MODEL). The key is the owner's to add in the repository
+# settings; it is never written anywhere else.
+name: Paper forward test (continuous, paper only)
+on:
+  schedule:
+    - cron: "7 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: paper-forward
+  cancel-in-progress: false
+jobs:
+  shift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      MODE: PAPER_FORWARD
+      DATA_DIR: pf-state
+      DATA_SOURCE: yahoo
+      DECISION_MODE: ${{ vars.PF_DECISION_MODE || 'evidence' }}
+      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'none' }}
+      AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+      AI_MODEL: ${{ vars.AI_MODEL }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: paper-forward-data
+          path: pf-pub
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the paper account
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: pf-state
+          key: pf-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: pf-state-
+      - name: Fall back to the published snapshot if the cache is gone
+        if: steps.cache.outputs.cache-matched-key == ''
+        run: |
+          mkdir -p pf-state
+          if [ -f pf-pub/aitrader.db.gz ]; then gunzip -c pf-pub/aitrader.db.gz > pf-state/aitrader.db; fi
+      - name: One shift of the service
+        run: |
+          cd pf-pub && git config user.name "paper-forward" && git config user.email "paper-forward@users.noreply.github.com" && cd ..
+          python scripts/paper_forward_shift.py --publish pf-pub --minutes 335 --every 15
+      - name: Save the paper account
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: pf-state
+          key: pf-state-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Keep the schedule enabled
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/paper-forward.yml/enable" || true

@@ -31,7 +31,9 @@ from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, 
 #: midnights, so Friday->Monday was charged three nights and Wednesday's triple charge never appeared.
 #: 1.2.0: an order needs a permit from the hard risk gate, bound to its symbol, side, size, stop, target and
 #:        client id; without one it is rejected before any state changes. Fills themselves are unchanged.
-PAPER_VERSION = "paper-1.2.0"
+#: 1.3.0: every close records its cost decomposition (commission, financing, slippage on both fills, the spread
+#:        paid at entry) next to the net P/L; prices, fills and P/L themselves are unchanged.
+PAPER_VERSION = "paper-1.3.0"
 ROLLOVER_HOUR_UTC = 21
 
 
@@ -202,12 +204,12 @@ class PaperBroker:
                 "id": pid, "symbol": symbol, "side": side, "qty": qty, "entry": fill, "stop": stop,
                 "target": target, "client_id": client_id, "opened": now, "best": fill, "worst": fill,
                 "swap_per_night": float((meta or {}).get("swap_per_night", 0.0)),
-                "spread_at_entry": q.ask - q.bid}
+                "spread_at_entry": q.ask - q.bid, "slip_entry": slip}
             self.state["clients"][client_id] = pid
             self._save()
             return Fill(f"O{self.state['seq']}", pid, fill, now)
 
-    def _close(self, pid: str, exit_px: float, when: int, reason: str) -> ClosedTrade:
+    def _close(self, pid: str, exit_px: float, when: int, reason: str, exit_slip: float = 0.0) -> ClosedTrade:
         p = self.state["positions"].pop(pid)
         rate = self._rate(p["symbol"][3:])
         cs = contract_size(p["symbol"])
@@ -217,13 +219,22 @@ class PaperBroker:
         pnl = None if rate is None else (gross - swap) * rate - self.commission * p["qty"]
         if pnl is not None:
             self.state["balance"] += pnl
+        costs = {}
+        if rate is not None:
+            units = p["qty"] * cs * rate
+            costs = {"commission": self.commission * p["qty"], "swap": swap * rate,
+                     "slippage_cost": (p.get("slip_entry", self.slippage_pips * pip_of(p["symbol"])) + exit_slip) * units,
+                     "spread_cost": p.get("spread_at_entry", 0.0) * units}
+            # before every cost: the executable-price P/L with the spread and slippage paid added back
+            costs["gross_pnl"] = gross * rate + costs["slippage_cost"] + costs["spread_cost"]
         c = {"position_id": pid, "client_id": p["client_id"], "symbol": p["symbol"], "side": p["side"],
              "qty": p["qty"], "entry": p["entry"], "exit": exit_px, "opened": p["opened"], "closed": when,
-             "reason": reason, "pnl": pnl, "mfe_price": p["best"], "mae_price": p["worst"], "nights": nights}
+             "reason": reason, "pnl": pnl, "mfe_price": p["best"], "mae_price": p["worst"], "nights": nights,
+             **costs}
         self.state["closed"].append(c)
         self.state["closed"] = self.state["closed"][-5000:]
         self._save()
-        return ClosedTrade(**{k: c[k] for k in ClosedTrade.__dataclass_fields__})
+        return ClosedTrade(**{k: c.get(k) for k in ClosedTrade.__dataclass_fields__})
 
     def close(self, position_id: str, client_id: str | None = None, reason: str = "MANUAL") -> ClosedTrade:
         with self._lock:
@@ -235,7 +246,7 @@ class PaperBroker:
                 raise BrokerError(f"no price to close {p['symbol']}")
             slip = self.slippage_pips * pip_of(p["symbol"])
             exit_px = (q.bid - slip) if p["side"] > 0 else (q.ask + slip)
-            return self._close(position_id, exit_px, self.clock(), reason)
+            return self._close(position_id, exit_px, self.clock(), reason, exit_slip=slip)
 
     def on_bar(self, symbol: str, bar: dict) -> list[ClosedTrade]:
         """Apply a newly CLOSED bar to open positions: stop first, then target."""
@@ -249,14 +260,14 @@ class PaperBroker:
                     lo, hi, op = bar["bid_low"], bar["bid_high"], bar["bid_open"]
                     p["best"], p["worst"] = max(p["best"], hi), min(p["worst"], lo)
                     if lo <= p["stop"]:
-                        closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP"))
+                        closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP", slip))
                     elif hi >= p["target"]:
                         closed.append(self._close(pid, p["target"], bar["close_time"], "TARGET"))
                 else:
                     lo, hi, op = bar["ask_low"], bar["ask_high"], bar["ask_open"]
                     p["best"], p["worst"] = min(p["best"], lo), max(p["worst"], hi)
                     if hi >= p["stop"]:
-                        closed.append(self._close(pid, max(op, p["stop"]) + slip, bar["close_time"], "STOP"))
+                        closed.append(self._close(pid, max(op, p["stop"]) + slip, bar["close_time"], "STOP", slip))
                     elif lo <= p["target"]:
                         closed.append(self._close(pid, p["target"], bar["close_time"], "TARGET"))
             if not closed and self.state["positions"]:
@@ -265,5 +276,5 @@ class PaperBroker:
 
     def closed_since(self, t: int) -> list[ClosedTrade]:
         with self._lock:
-            return [ClosedTrade(**{k: c[k] for k in ClosedTrade.__dataclass_fields__})
+            return [ClosedTrade(**{k: c.get(k) for k in ClosedTrade.__dataclass_fields__})
                     for c in self.state["closed"] if c["closed"] >= t]

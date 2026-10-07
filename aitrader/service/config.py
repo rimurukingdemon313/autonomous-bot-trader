@@ -11,7 +11,8 @@ import os
 from dataclasses import dataclass, field
 
 from ..risk.engine import HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits
-from ..risk.profile import FTMO_200K, PROFILES, HardRiskProfile, ProfileError
+from ..decision.edge_status import PAPER_MODES
+from ..risk.profile import FTMO_200K, PAPER_FORWARD_200K, PROFILES, HardRiskProfile, ProfileError
 
 DEFAULT_SYMBOLS = ("EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
                    "EURGBP", "EURJPY", "GBPJPY", "EURCHF", "AUDJPY")
@@ -45,7 +46,9 @@ def _f(e, key, default):
 
 @dataclass(frozen=True)
 class ServiceConfig:
-    mode: str = "PAPER"  # PAPER only: no broker is integrated (TradeLocker removed; MetaTrader 5 planned)
+    #: PAPER or PAPER_FORWARD, both simulated in-process: no broker is integrated (TradeLocker removed; MetaTrader 5
+    #: planned). PAPER_FORWARD also executes the model traders' proposals on paper (docs/PAPER_FORWARD.md).
+    mode: str = "PAPER"
     data_dir: str = "./runtime"
     port: int = 8080
     symbols: tuple[str, ...] = DEFAULT_SYMBOLS
@@ -88,7 +91,7 @@ class ServiceConfig:
         paper_mode = (e.get("PAPER_MODE") or "").strip()
         if paper_mode:
             pm = _flag(e, "PAPER_MODE", True)
-            if pm and mode != "PAPER":
+            if pm and mode not in PAPER_MODES:
                 raise ServiceConfigError(f"PAPER_MODE=true contradicts MODE={mode}: set one consistently")
             if not pm:
                 raise ServiceConfigError("PAPER_MODE=false is not available: this build is PAPER only (no broker is "
@@ -100,8 +103,8 @@ class ServiceConfig:
             raise ServiceConfigError("MODE=DEMO is not available: the TradeLocker integration was removed and no "
                                      "broker is integrated. This build is PAPER only; a MetaTrader 5 adapter is "
                                      "planned once a strategy has positive forward evidence in paper")
-        if mode != "PAPER":
-            raise ServiceConfigError(f"MODE must be PAPER, got {mode!r}")
+        if mode not in PAPER_MODES:
+            raise ServiceConfigError(f"MODE must be PAPER or PAPER_FORWARD, got {mode!r}")
         symbols = tuple(s.strip().upper() for s in e.get("SYMBOLS", ",".join(DEFAULT_SYMBOLS)).split(",") if s.strip())
         funded = None
         if e.get("FUNDED_NAME"):
@@ -170,7 +173,8 @@ class ServiceConfig:
         max_age = int(_f(e, "EXEC_MAX_DECISION_AGE_S", 900))
         if not 30 <= max_age <= 3600:
             raise ServiceConfigError(f"EXEC_MAX_DECISION_AGE_S must be 30..3600, got {max_age}")
-        name = (e.get("RISK_PROFILE") or FTMO_200K.name).strip()
+        default_profile = PAPER_FORWARD_200K if mode == "PAPER_FORWARD" else FTMO_200K
+        name = (e.get("RISK_PROFILE") or default_profile.name).strip()
         if name not in PROFILES:  # never silently replaced by the default
             raise ServiceConfigError(f"RISK_PROFILE={name!r} is unknown; available: {sorted(PROFILES)}")
         profile = PROFILES[name]
@@ -199,7 +203,8 @@ class ServiceConfig:
                    data_source=source, spreads_pips=spreads)
 
     def public(self) -> dict:
-        return {"mode": self.mode, "live_trading": False, "paper_mode": self.mode == "PAPER",
+        return {"mode": self.mode, "live_trading": False, "real_money": False,
+                "paper_mode": self.mode in PAPER_MODES, "paper_forward": self.mode == "PAPER_FORWARD",
                 "experimental_execute": self.experimental_execute, "max_decision_age_s": self.max_decision_age_s,
                 "symbols": list(self.symbols), "start_balance": self.start_balance,
                 "decision_interval_min": self.decision_interval_min, "symbols_per_cycle": self.symbols_per_cycle,

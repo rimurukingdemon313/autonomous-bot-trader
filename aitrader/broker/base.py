@@ -72,6 +72,13 @@ class ClosedTrade:
     pnl: float | None  # account currency; None if the broker did not say
     mfe_price: float | None = None
     mae_price: float | None = None
+    #: the cost decomposition, account currency (paper broker; None where a broker does not say):
+    #: gross_pnl - commission - swap - slippage_cost - spread_cost == pnl
+    gross_pnl: float | None = None
+    commission: float | None = None
+    swap: float | None = None
+    slippage_cost: float | None = None
+    spread_cost: float | None = None
 
 
 class Broker(Protocol):
