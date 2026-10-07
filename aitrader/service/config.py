@@ -6,10 +6,12 @@ Secrets are read here and passed to the one component that needs them;
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 
 from ..risk.engine import HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits
+from ..risk.profile import FTMO_200K, PROFILES, HardRiskProfile, ProfileError
 
 DEFAULT_SYMBOLS = ("EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
                    "EURGBP", "EURJPY", "GBPJPY", "EURCHF", "AUDJPY")
@@ -47,7 +49,10 @@ class ServiceConfig:
     data_dir: str = "./runtime"
     port: int = 8080
     symbols: tuple[str, ...] = DEFAULT_SYMBOLS
-    start_balance: float = 20_000.0
+    start_balance: float = 200_000.0  # the FTMO-style $200K evaluation account (hard_profile)
+    #: RISK_PROFILE (+ RISK_PROFILE_OVERRIDES, a JSON object of fields): the hard risk gate's limits. Fixed for an
+    #: evaluation run: a different profile is refused by the gate until an explicit evaluation reset.
+    hard_profile: HardRiskProfile = FTMO_200K
     dashboard_token: str = field(default="", repr=False)
     cycle_delay_s: int = 90  # after each H1 close, give the broker time to publish the bar
     monitor_interval_s: int = 20
@@ -165,9 +170,30 @@ class ServiceConfig:
         max_age = int(_f(e, "EXEC_MAX_DECISION_AGE_S", 900))
         if not 30 <= max_age <= 3600:
             raise ServiceConfigError(f"EXEC_MAX_DECISION_AGE_S must be 30..3600, got {max_age}")
+        name = (e.get("RISK_PROFILE") or FTMO_200K.name).strip()
+        if name not in PROFILES:  # never silently replaced by the default
+            raise ServiceConfigError(f"RISK_PROFILE={name!r} is unknown; available: {sorted(PROFILES)}")
+        profile = PROFILES[name]
+        raw = (e.get("RISK_PROFILE_OVERRIDES") or "").strip()
+        try:
+            overrides = json.loads(raw) if raw else {}
+            if not isinstance(overrides, dict):
+                raise ValueError("must be a JSON object of profile fields")
+            # The quote-age tolerance follows the data source the risk engine already accepts (a public feed
+            # timestamps its own price and lags a broker's by up to a minute), capped at 90 s, unless set here.
+            overrides.setdefault("max_quote_age_s", min(risk.max_quote_age_s, 90))
+            profile = HardRiskProfile.from_overrides(profile, overrides)
+        except (ValueError, TypeError, ProfileError) as exc:
+            raise ServiceConfigError(f"RISK_PROFILE_OVERRIDES refused: {exc}") from exc
+        start_balance = _f(e, "PAPER_START_BALANCE", profile.starting_balance)
+        if abs(start_balance - profile.starting_balance) > 0.005:
+            raise ServiceConfigError(
+                f"PAPER_START_BALANCE={start_balance:g} differs from the hard risk profile's starting balance "
+                f"{profile.starting_balance:g} ({profile.name}): the evaluation reference must be the account's. "
+                "Unset PAPER_START_BALANCE, or set starting_balance in RISK_PROFILE_OVERRIDES")
         return cls(mode=mode, data_dir=e.get("DATA_DIR", "./runtime"), port=int(e.get("PORT", "8080")),
                    experimental_execute=experimental_execute, max_decision_age_s=max_age,
-                   symbols=symbols, start_balance=_f(e, "PAPER_START_BALANCE", 20_000.0),
+                   symbols=symbols, start_balance=start_balance, hard_profile=profile,
                    dashboard_token=e.get("DASHBOARD_TOKEN", ""), risk=risk,
                    decision_interval_min=interval, symbols_per_cycle=per_cycle, scan_timeframe=scan,
                    data_source=source, spreads_pips=spreads)
@@ -180,5 +206,6 @@ class ServiceConfig:
                 "scan_timeframe": self.scan_timeframe,
                 "data_source": self.data_source,
                 "dashboard_token_configured": bool(self.dashboard_token),
-                "risk": {k: v for k, v in self.risk.__dict__.items() if k != "funded"},
+                "risk": {k: v for k, v in self.risk.__dict__.items() if k not in ("funded", "hard")},
+                "hard_profile": self.hard_profile.as_dict(),
                 "funded": (self.risk.funded.__dict__ if self.risk.funded else None)}

@@ -24,6 +24,8 @@ from .orchestrator.core import ORCHESTRATOR_VERSION
 from .regime.model import REGIME_VERSION
 from .research.labels import LABEL_VERSION
 from .risk.engine import RISK_VERSION
+from .risk.hard_gate import GATE_VERSION
+from .risk.profile import PROFILE_VERSION
 
 DATA_VERSION = "data-1.0.0"
 
@@ -33,6 +35,7 @@ def stamp() -> dict[str, str]:
     return {"data": DATA_VERSION, "features": FEATURE_VERSION, "labels": LABEL_VERSION,
             "regime": REGIME_VERSION, "memory": MEMORY_VERSION, "agents": AGENT_VERSION,
             "prompt": PROMPT_VERSION, "decision": DECISION_VERSION, "risk": RISK_VERSION,
+            "risk_gate": GATE_VERSION, "risk_profile": PROFILE_VERSION,
             "execution": EXECUTION_VERSION, "orchestrator": ORCHESTRATOR_VERSION,
             "learning": LEARNING_VERSION, "review": REVIEW_VERSION, "llm_trader": LLM_TRADER_VERSION,
             "experimental_ai": EXPERIMENTAL_AI_VERSION, "edge_status": EDGE_STATUS_VERSION,

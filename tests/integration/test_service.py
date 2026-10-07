@@ -20,6 +20,8 @@ from aitrader.service.config import ServiceConfig, ServiceConfigError
 from aitrader.service.runtime import Runtime
 from aitrader.service.server import make_handler
 
+from tests.gate_kit import open_direct
+
 from .test_pipeline import START, market
 
 TOKEN = "t0ken-for-tests"
@@ -36,7 +38,7 @@ def build(tmp_path, token=TOKEN, knowledge_dir=None):
     clock = Clock(int(data["EURUSD"].available_at[2000]))
     cfg = ServiceConfig(mode="PAPER", data_dir=str(tmp_path), port=0, symbols=("EURUSD", "GBPUSD"),
                         dashboard_token=token)
-    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    broker = PaperBroker(feed, clock, None, start_balance=200_000)
     # Never the repository's own models/artifacts: a test must not depend on what was last built.
     rt = Runtime(cfg, feed=feed, broker=broker, clock=clock, knowledge_dir=knowledge_dir or tmp_path / "no-kb")
     broker.db = rt.db
@@ -500,10 +502,10 @@ def test_the_live_panel_reads_the_account_and_every_open_trade(server):
     the position's place between its stop and target comes from its own levels."""
     rt, base, clock = server
     code, live = call(base, "/api/live")
-    assert code == 200 and live["available"] and live["equity"] == live["balance"] == 20_000
+    assert code == 200 and live["available"] and live["equity"] == live["balance"] == 200_000
     assert live["floating_pnl"] == 0 and live["total_pnl"] == 0 and live["positions"] == []
     q = rt.feed.quote("EURUSD", clock.t)
-    fill = rt.broker.place_market("EURUSD", 1, 0.5, q.bid - 0.0050, q.ask + 0.0100, "cid-live")
+    fill = open_direct(rt.broker, "EURUSD", 1, 0.5, q.bid - 0.0050, q.ask + 0.0100, "cid-live")
     with rt.db.tx() as c:
         c.execute("INSERT INTO positions(id, intent_id, decision_id, symbol, side, qty, entry, stop, target, opened, "
                   "status, payload, updated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",

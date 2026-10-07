@@ -20,6 +20,8 @@ from aitrader.data.feed import ReplayFeed
 from aitrader.service.config import ServiceConfig, ServiceConfigError
 from aitrader.service.runtime import FAST_DELAY_S, Runtime
 
+from tests.gate_kit import open_direct
+
 from .test_pipeline import START, market
 from .test_service import Clock
 
@@ -66,7 +68,7 @@ def build(tmp_path, monkeypatch, mode="llm_trader", lower=None, broken=(), **cfg
     data = {s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0) for i, s in enumerate(SYMS)}
     feed = LiveLikeFeed(data, lower, broken)
     clock = Clock(int(data["EURUSD"].available_at[2000]))
-    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    broker = PaperBroker(feed, clock, None, start_balance=200_000)
     rt = Runtime(ServiceConfig(mode="PAPER", data_dir=str(tmp_path), port=0, symbols=SYMS, dashboard_token="t", **cfg),
                  feed=feed, broker=broker, clock=clock, knowledge_dir=tmp_path / "no-kb")
     broker.db = rt.db
@@ -111,7 +113,7 @@ def test_an_open_paper_position_is_stopped_on_the_minute_not_at_the_next_hour(tm
     rt, clock, feed = build(tmp_path, monkeypatch, decision_interval_min=1)
     q = feed.quote("EURUSD", clock.t)
     opened = clock.t
-    fill = rt.broker.place_market("EURUSD", 1, 0.1, q.bid - 0.0020, q.ask + 0.0040, "cid-1")
+    fill = open_direct(rt.broker, "EURUSD", 1, 0.1, q.bid - 0.0020, q.ask + 0.0040, "cid-1")
     mid = (q.bid + q.ask) / 2
     lows = [mid - 0.0030, mid - 0.0005, mid - 0.0005, mid - 0.0030]  # the first minute is BEFORE the open
     start = (opened // 60) * 60 - 60
@@ -188,7 +190,7 @@ def test_every_few_minutes_the_model_reads_m5_and_trades_on_it_through_the_risk_
             "bid_open", "bid_high", "bid_low", "bid_close", "ask_open", "ask_high", "ask_low", "ask_close",
             "ticks", "spread_mean", "spread_max")}, open_time=clock.t - 300 * 60 + 300 * np.arange(60))
     feed = LiveLikeFeed(data, lower)
-    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    broker = PaperBroker(feed, clock, None, start_balance=200_000)
     rt = Runtime(ServiceConfig(mode="PAPER", data_dir=str(tmp_path / "rt"), port=0, symbols=SYMS, dashboard_token="t",
                                decision_interval_min=5, symbols_per_cycle=1),
                  feed=feed, broker=broker, clock=clock, knowledge_dir=tmp_path / "kb")
@@ -243,13 +245,13 @@ def review_rt(tmp_path, monkeypatch, verdict):
     data = {s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0) for i, s in enumerate(SYMS)}
     clock = Clock(int(data["EURUSD"].available_at[2000]))
     feed = LiveLikeFeed(data)
-    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    broker = PaperBroker(feed, clock, None, start_balance=200_000)
     rt = Runtime(ServiceConfig(mode="PAPER", data_dir=str(tmp_path / "rt"), port=0, symbols=SYMS, dashboard_token="t",
                                decision_interval_min=5, symbols_per_cycle=1),
                  feed=feed, broker=broker, clock=clock, knowledge_dir=tmp_path / "kb")
     broker.db = rt.db
     q = feed.quote("EURUSD", clock.t)
-    fill = broker.place_market("EURUSD", 1, 0.1, q.bid - 0.0050, q.ask + 0.0100, "cid-r")
+    fill = open_direct(broker, "EURUSD", 1, 0.1, q.bid - 0.0050, q.ask + 0.0100, "cid-r")
     rt.db.append("decisions", {"id": "d-r", "symbol": "EURUSD", "timeframe": "M1", "decision": "BUY", "mode": "PAPER",
                                "payload": {"thesis": "scalp", "max_hold_minutes": 3}})
     with rt.db.tx() as c:
@@ -353,7 +355,7 @@ def test_a_stop_hit_while_the_team_was_deliberating_is_still_applied(tmp_path, m
     every completed minute since the last one it applied must still be checked."""
     rt, clock, feed = build(tmp_path, monkeypatch, decision_interval_min=1)
     q = feed.quote("EURUSD", clock.t)
-    rt.broker.place_market("EURUSD", 1, 0.1, q.bid - 0.0020, q.ask + 0.0040, "cid-gap")
+    open_direct(rt.broker, "EURUSD", 1, 0.1, q.bid - 0.0020, q.ask + 0.0040, "cid-gap")
     mid = (q.bid + q.ask) / 2
     start = (clock.t // 60) * 60
     lows = [mid - 0.0005] * 3 + [mid - 0.0030] + [mid - 0.0005] * 11  # the stop is hit in minute 4 of 15
@@ -399,7 +401,7 @@ def test_once_the_daily_loss_limit_is_spent_the_models_are_not_asked(tmp_path, m
     data = {s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0) for i, s in enumerate(SYMS)}
     clock = Clock(int(data["EURUSD"].available_at[2000]))
     feed = LiveLikeFeed(data)
-    broker = PaperBroker(feed, clock, None, start_balance=20_000)
+    broker = PaperBroker(feed, clock, None, start_balance=200_000)
     rt = Runtime(ServiceConfig(mode="PAPER", data_dir=str(tmp_path / "rt"), port=0, symbols=SYMS, dashboard_token="t",
                                decision_interval_min=1, symbols_per_cycle=1),
                  feed=feed, broker=broker, clock=clock, knowledge_dir=tmp_path / "kb")
@@ -410,7 +412,7 @@ def test_once_the_daily_loss_limit_is_spent_the_models_are_not_asked(tmp_path, m
     assert asked  # a normal day: the model is asked
     asked.clear()
     day = int(bucket_start(np.array([clock.t + 60]), "D1")[0])
-    rt.db.set_kv("day_start", {"day": day, "equity": 20_600}, reason="test: the day started higher")  # now -2.9%
+    rt.db.set_kv("day_start", {"day": day, "equity": 206_000}, reason="test: the day started higher")  # now -2.9%
     for _ in range(3):
         clock.t += 60
         rt.run_cycle(decide=True)

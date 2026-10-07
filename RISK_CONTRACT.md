@@ -102,6 +102,20 @@ drawdown, news restrictions, holding rules, consistency rules and similar.
 **The rules are supplied by the owner.** They are not guessed, and until
 they are supplied, no funded-account mode exists.
 
+## 7a. The hard risk gate
+
+After the risk engine has sized a trade and the execution engine has checked it, the hard risk gate
+(`aitrader/risk/hard_gate.py`, docs/HARD_RISK_GATE.md) verifies it once more against the FTMO-style evaluation
+limits, immediately before the broker:
+- $500 all-in per trade;
+- $2,000 open risk;
+- a $10,000 daily loss on equity from the day's reference at 00:00 Europe/Prague;
+- a $20,000 maximum loss.
+
+It never sizes. It issues the single-use permit without which the paper broker fills nothing. A breach locks
+the evaluation run until an explicit reset. Under its profile, the risk engine sizes with the same all-in cost
+model, within the same fixed $500.
+
 ## 8. What the risk engine does not do
 
 It does not look for trades, predict prices, or second-guess a model's

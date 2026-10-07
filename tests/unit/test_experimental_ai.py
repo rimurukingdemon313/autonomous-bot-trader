@@ -11,12 +11,13 @@ import pytest
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.experimental_ai import FAMILY, ExperimentalConfig, synthesize
 from aitrader.broker.paper import PaperBroker
-from aitrader.execution.engine import ExecutionEngine
 from aitrader.llm.provider import Endpoint, LLMClient, LLMConfig
 from aitrader.risk.engine import RiskVerdict
 from aitrader.service.config import ServiceConfig, ServiceConfigError
 
 from .test_agents import V
+from tests.gate_kit import BAL, engine
+
 from .test_execution import decision, setup, verdict
 from .test_llm_trader import live_ctx
 
@@ -144,6 +145,11 @@ def test_ambiguous_or_live_configuration_is_refused(env):
         ServiceConfig.from_env(env)
 
 
+def test_paper_mode_contradicting_mode_is_refused_as_a_contradiction():
+    with pytest.raises(ServiceConfigError, match="contradicts"):  # its own reason, not a later, unrelated refusal
+        ServiceConfig.from_env({"PAPER_MODE": "true", "MODE": "DEMO"})
+
+
 def test_experimental_execute_is_refused_while_nothing_is_validated():
     """Takeover audit: no edge is VALIDATED, so nothing unvalidated may reach a broker. The switch is refused."""
     with pytest.raises(ServiceConfigError, match="EXPERIMENTAL_EXECUTE"):
@@ -155,22 +161,22 @@ def test_experimental_execute_is_refused_while_nothing_is_validated():
 def test_there_is_no_live_argument_and_an_unverified_account_never_trades():
     feed, clock, db = setup()
     with pytest.raises(TypeError):
-        ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_live=True)
-    broker = PaperBroker(feed, clock, db)
+        engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_live=True)
+    broker = PaperBroker(feed, clock, db, start_balance=BAL)
     broker.is_demo = lambda: None  # could not tell
-    r = ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(edge_status="VALIDATED"), verdict())
+    r = engine(db, broker, clock, allow_unvalidated=True).execute(decision(edge_status="VALIDATED"), verdict())
     assert r.status == "BLOCKED" and "no live path" in r.detail
 
 
 def test_an_unvalidated_trade_is_blocked_unless_execution_of_it_was_enabled():
     feed, clock, db = setup()
-    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock).execute(decision(), verdict())
+    r = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock).execute(decision(), verdict())
     assert r.status == "BLOCKED" and "shadow only" in r.detail
     feed, clock, db = setup()
     missing = SimpleNamespace(id="d1", decision="BUY", instrument="EURUSD", timestamp=clock())  # no edge status
-    assert ExecutionEngine(db, PaperBroker(feed, clock, db), clock).execute(missing, verdict()).status == "BLOCKED"
+    assert engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock).execute(missing, verdict()).status == "BLOCKED"
     feed, clock, db = setup()
-    ok = ExecutionEngine(db, PaperBroker(feed, clock, db), clock).execute(decision(edge_status="VALIDATED"), verdict())
+    ok = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock).execute(decision(edge_status="VALIDATED"), verdict())
     assert ok.status == "FILLED"
 
 
@@ -178,7 +184,7 @@ def test_a_stale_decision_is_not_executed():
     feed, clock, db = setup()
     d = decision()
     d.timestamp = clock() - 3600
-    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True).execute(d, verdict())
+    r = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True).execute(d, verdict())
     assert r.status == "BLOCKED" and "stale" in r.detail
     assert db.one("SELECT status FROM intents")["status"] == "BLOCKED"  # the intent is on record either way
 
@@ -186,7 +192,7 @@ def test_a_stale_decision_is_not_executed():
 def test_a_price_that_ran_away_from_the_entry_is_not_chased():
     feed, clock, db = setup()  # the market is at 1.10; the risk check priced the entry at 1.0990
     v = RiskVerdict("d1", True, qty=0.5, risk_amount=100, risk_pct=0.5, entry_ref=1.0990, stop=1.0970, target=1.1100)
-    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True).execute(decision(), v)
+    r = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True).execute(decision(), v)
     assert r.status == "BLOCKED" and "not chased" in r.detail
 
 

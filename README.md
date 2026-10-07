@@ -10,7 +10,7 @@ is measured, never assumed.**
 > - Edges: 118 recorded; FAILED 117, PROMISING 1. VALIDATED requires every gate in `aitrader/research/promotion.py`; none passes.
 > - The one PROMISING lead (not a pass), turn-of-the-month on index CFDs, is **unattractive and decayed**: about 1.9% a year at t 2.18 with a 23% drawdown, t 0.46 since 2021, t 0.64 at doubled costs. It is not implemented.
 > - Live trading is impossible; DEMO sends no order (nothing is validated); per-trade risk is capped at 0.25%. Language-model trades are shadow only.
-> - Tests collected: 913; mutation audit: 176 of 176 killed. Numbers in older reports are snapshots of their date.
+> - Tests collected: 999; mutation audit: 194 of 194 killed. Numbers in older reports are snapshots of their date.
 > - Defects, patches, tests and the strategy-by-strategy record: docs/TAKEOVER_AUDIT.md.
 <!-- research-status:end -->
 >
@@ -280,6 +280,7 @@ python scripts/mutation_audit.py       # remove each guard, require a failing te
 | [docs/FINAL_ENGINEERING_AUDIT.md](docs/FINAL_ENGINEERING_AUDIT.md) | The 2026-10 engineering audit: what was broken, fixed, preserved and added |
 | [docs/FORWARD_VALIDATION.md](docs/FORWARD_VALIDATION.md) | Edge status, shadow trading, the forward ledger, partitions, lessons, and the exact definition of a validated edge |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Deploying and operating on Railway |
+| [docs/HARD_RISK_GATE.md](docs/HARD_RISK_GATE.md) | The hard risk gate before the paper broker: the FTMO-style $200K profile, every rejection rule, lock, kill switch, audit log, limitations |
 | [docs/RADAR_PLAN.md](docs/RADAR_PLAN.md) | The live cross-venue funding radar (paper): how it would earn, its risks, and the staged plan; hourly report on the `radar-data` branch |
 | [docs/AI_MODELS.md](docs/AI_MODELS.md) | The optional language-model layer and which free models to use |
 | [docs/RESEARCH_LOG.md](docs/RESEARCH_LOG.md) | Sources reviewed, adopted, rejected, and why |

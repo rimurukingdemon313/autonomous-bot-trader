@@ -83,3 +83,10 @@ def test_the_discovery_engine_reads_only_data_features_and_research():
     bad = [f"{p.relative_to(PKG)} imports {m}" for p in modules("research/discovery") for m in imports_of(p)
            if m.startswith("aitrader") and not m.startswith(allowed)]
     assert bad == []  # no risk engine, execution, broker, service, orchestrator, agents, memory or llm client
+
+
+def test_only_the_execution_engine_sends_an_order():
+    """The broker's write is called from one place, right after the hard risk gate (docs/HARD_RISK_GATE.md). A second
+    caller would be a second path to the market; it would still need the gate's permit, but it should not exist."""
+    callers = [p.relative_to(PKG).as_posix() for p in PKG.rglob("*.py") if ".place_market(" in p.read_text()]
+    assert callers == ["execution/engine.py"]

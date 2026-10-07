@@ -10,6 +10,9 @@
   is missing the spec is unavailable and nothing trades (fail closed).
 - State persists in the database, so a restart resumes the same account.
 - A client id is accepted once; a repeat is rejected, not filled twice.
+- No order fills without a single-use permit from the hard risk gate (aitrader/risk/hard_gate.py) that
+  authorises exactly that order. A broker without a gate refuses every order: calling it directly is not a
+  way around the gate.
 """
 
 from __future__ import annotations
@@ -26,7 +29,9 @@ from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, 
 #: 1.1.0 (takeover audit): swap is charged per 21:00 UTC rollover crossed, Wednesday's three times, weekend
 #: nights not at all (the convention of the research simulators, intraday.financing). 1.0.0 counted UTC
 #: midnights, so Friday->Monday was charged three nights and Wednesday's triple charge never appeared.
-PAPER_VERSION = "paper-1.1.0"
+#: 1.2.0: an order needs a permit from the hard risk gate, bound to its symbol, side, size, stop, target and
+#:        client id; without one it is rejected before any state changes. Fills themselves are unchanged.
+PAPER_VERSION = "paper-1.2.0"
 ROLLOVER_HOUR_UTC = 21
 
 
@@ -59,8 +64,9 @@ class PaperBroker:
 
     def __init__(self, feed, clock: Callable[[], int], db: Database | None = None, *,
                  start_balance: float = 20_000.0, currency: str = "USD", slippage_pips: float = 0.1,
-                 commission_per_lot_rt: float = 7.0) -> None:
+                 commission_per_lot_rt: float = 7.0, gate=None) -> None:
         self.feed = feed
+        self._gate = gate
         self.clock = clock
         self.db = db
         self.currency = currency
@@ -161,8 +167,22 @@ class PaperBroker:
 
     # ── orders ──────────────────────────────────────────────────────────
 
+    def attach_gate(self, gate) -> None:
+        """Bind the hard risk gate whose permits this broker honours. Once: it can never be swapped."""
+        if self._gate is not None and self._gate is not gate:
+            raise BrokerError("a hard risk gate is already attached; it cannot be replaced")
+        self._gate = gate
+
     def place_market(self, symbol: str, side: int, qty: float, stop: float, target: float,
-                     client_id: str, meta: dict | None = None) -> Fill:
+                     client_id: str, meta: dict | None = None, permit=None) -> Fill:
+        # The permit is checked before this broker's lock is taken: the gate reads the broker while holding its
+        # own lock, so taking them in the other order here could deadlock.
+        if self._gate is None:
+            raise BrokerRejected("NO_RISK_GATE: this paper broker has no hard risk gate attached; it fills nothing")
+        problem = self._gate.redeem(permit, symbol=symbol, side=side, qty=qty, stop=stop, target=target,
+                                    client_id=client_id)
+        if problem:
+            raise BrokerRejected(problem)
         with self._lock:
             if client_id in self.state["clients"]:
                 raise BrokerRejected(f"client id {client_id} already used")

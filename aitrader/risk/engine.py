@@ -20,6 +20,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from math import floor
 
+from .profile import HardRiskProfile, loss_per_lot
+
 #: 1.1.0: the cost ceiling counts the WHOLE round trip (spread + commission + slippage on both fills)
 #: against the stop, not the spread alone: a 5-pip stop paid ~0.9 pip of commission and slippage
 #: that the old check never saw. Evidence: every gross edge measured in this project is below 0.31R
@@ -34,7 +36,12 @@ from math import floor
 #:   - flagged market data (stale bars) is a rejection in every decision mode;
 #:   - a time-exit trade (exit_kind == "TIME") needs no target, but still needs a protective stop:
 #:     without one its loss is unbounded and no size can be computed.
-RISK_VERSION = "risk-1.2.0"
+#: 1.3.0 (hard risk gate): with a `hard` profile (the FTMO-style $200K evaluation), the size is computed from
+#:   the trade's ALL-IN maximum loss - stop distance from the executable price, round-trip commission, slippage
+#:   on both fills, financing allowance - within min(equity x risk%, the profile's fixed risk per trade). So risk
+#:   never grows with a winning account, and the size is the one the hard gate will verify. Without a profile,
+#:   unchanged.
+RISK_VERSION = "risk-1.3.0"
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -77,6 +84,8 @@ class RiskLimits:
     loss_streak_step: int = 3  # every N consecutive losses halves risk...
     loss_streak_floor: float = 0.25  # ...down to this multiple
     funded: FundedRules | None = None
+    #: the hard risk gate's profile: sizing then budgets the all-in maximum loss (see RISK_VERSION 1.3.0)
+    hard: HardRiskProfile | None = None
 
     def effective_risk_pct(self) -> float:
         pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
@@ -262,7 +271,7 @@ class RiskEngine:
 
     def evaluate(self, decision, account: AccountState, spec: InstrumentSpec | None, quote: Quote | None,
                  now: int, executed_ids: set[str] | frozenset = frozenset(),
-                 data_flags: tuple[str, ...] | list[str] = ()) -> RiskVerdict:
+                 data_flags: tuple[str, ...] | list[str] = (), swap_per_night: float = 0.0) -> RiskVerdict:
         L = self.limits
         v = RiskVerdict(decision.id, False)
         checks = v.checks
@@ -344,6 +353,12 @@ class RiskEngine:
         risk_pct = L.effective_risk_pct() * mult
         risk_amount = eq * risk_pct / 100.0
         per_lot = stop_dist * spec.value_per_price_unit * spec.contract_size
+        if L.hard is not None:
+            # all-in: what the hard gate verifies, within a budget that never exceeds the fixed per-trade risk
+            per_lot = loss_per_lot(L.hard, stop_distance=stop_dist, pip=pip_size(decision.instrument),
+                                   contract_size=spec.contract_size, value_per_price_unit=spec.value_per_price_unit,
+                                   swap_per_night=swap_per_night)["total"]
+            risk_amount = min(risk_amount, L.hard.risk_per_trade * mult)
         raw = risk_amount / per_lot if per_lot > 0 else 0.0
         lots = floor(raw / spec.lot_step + 1e-9) * spec.lot_step
         lots = min(lots, spec.max_lot, L.funded.max_lots if (L.funded and L.funded.max_lots) else spec.max_lot)

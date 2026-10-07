@@ -11,9 +11,11 @@ from aitrader.broker.base import AmbiguousExecution, BrokerRejected
 from aitrader.broker.paper import PaperBroker
 from aitrader.data.bars import BarSeries
 from aitrader.data.feed import ReplayFeed
-from aitrader.execution.engine import UNKNOWN_RECHECKS, ExecutionEngine, client_id_for
+from aitrader.execution.engine import UNKNOWN_RECHECKS, client_id_for
 from aitrader.memory.db import Database
 from aitrader.risk.engine import RiskVerdict
+from aitrader.risk.hard_gate import TradeProposal
+from tests.gate_kit import BAL, engine, gate_for, open_direct
 
 T0 = 1_600_000_000 // 3600 * 3600
 
@@ -54,7 +56,7 @@ def verdict(did="d1", stop=1.098, target=1.104, qty=0.5):
 
 def test_fill_then_duplicate_is_not_resent():
     feed, clock, db = setup()
-    ex = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True)
+    ex = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True)
     r1 = ex.execute(decision(), verdict())
     assert r1.status == "FILLED"
     r2 = ex.execute(decision(), verdict())
@@ -64,10 +66,10 @@ def test_fill_then_duplicate_is_not_resent():
 
 def test_unapproved_verdicts_never_reach_the_broker():
     feed, clock, db = setup()
-    broker = PaperBroker(feed, clock, db)
+    broker = PaperBroker(feed, clock, db, start_balance=BAL)
     v = verdict()
     v.approved = False
-    assert ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), v).status == "SKIPPED"
+    assert engine(db, broker, clock, allow_unvalidated=True).execute(decision(), v).status == "SKIPPED"
     assert broker.positions() == []
 
 
@@ -80,22 +82,25 @@ def test_final_checks_block_submission(state, reason):
     feed, clock, db = setup()
     for k, v in state.items():
         db.set_kv(k, v)
-    broker = PaperBroker(feed, clock, db)
-    r = ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict())
+    broker = PaperBroker(feed, clock, db, start_balance=BAL)
+    r = engine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict())
     assert r.status == "BLOCKED" and reason in r.detail and broker.positions() == []
+    # refused by the execution engine's own final check: the hard gate behind it was never consulted
+    assert db.one("SELECT COUNT(*) AS n FROM risk_gate_log WHERE kind='DECISION'")["n"] == 0
 
 
 def test_a_non_demo_broker_is_refused_unless_live_is_explicitly_allowed():
     feed, clock, db = setup()
-    broker = PaperBroker(feed, clock, db)
+    broker = PaperBroker(feed, clock, db, start_balance=BAL)
     broker.is_demo = lambda: None  # could not be verified
-    assert ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict()).status == "BLOCKED"
+    assert engine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict()).status == "BLOCKED"
 
 
 def test_price_through_the_stop_blocks():
     feed, clock, db = setup()
-    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True).execute(decision(), verdict(stop=1.2, target=1.3))
-    assert r.status == "BLOCKED" and "stop" in r.detail
+    r = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True).execute(decision(), verdict(stop=1.2, target=1.3))
+    assert r.status == "BLOCKED" and "already beyond the stop" in r.detail
+    assert db.one("SELECT COUNT(*) AS n FROM risk_gate_log WHERE kind='DECISION'")["n"] == 0  # caught before the gate
 
 
 class AmbiguousBroker(PaperBroker):
@@ -117,8 +122,8 @@ class LostBroker(PaperBroker):
 
 def test_ambiguous_write_is_resolved_by_query_not_by_resending():
     feed, clock, db = setup()
-    broker = AmbiguousBroker(feed, clock, db)
-    r = ExecutionEngine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict())
+    broker = AmbiguousBroker(feed, clock, db, start_balance=BAL)
+    r = engine(db, broker, clock, allow_unvalidated=True).execute(decision(), verdict())
     assert r.status == "FILLED" and "query" in r.detail
     assert len(broker.positions()) == 1
 
@@ -126,8 +131,8 @@ def test_ambiguous_write_is_resolved_by_query_not_by_resending():
 def test_ambiguous_write_with_no_order_stays_unknown_and_is_never_resent():
     feed, clock, db = setup()
     LostBroker.calls = 0
-    broker = LostBroker(feed, clock, db)
-    ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
+    broker = LostBroker(feed, clock, db, start_balance=BAL)
+    ex = engine(db, broker, clock, allow_unvalidated=True)
     assert ex.execute(decision(), verdict()).status == "UNKNOWN"
     for _ in range(UNKNOWN_RECHECKS + 2):
         ex.reconcile()
@@ -139,8 +144,8 @@ def test_ambiguous_write_with_no_order_stays_unknown_and_is_never_resent():
 def test_crash_between_intent_and_submit_is_recovered_on_restart(tmp_path):
     path = tmp_path / "s.db"
     feed, clock, db = setup(db=Database(path))
-    broker = PaperBroker(feed, clock, db)
-    ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
+    broker = PaperBroker(feed, clock, db, start_balance=BAL)
+    ex = engine(db, broker, clock, allow_unvalidated=True)
     # Simulate: intent written, order sent, process died before recording the fill.
     ex._final_checks = lambda d, v: None
     ex._record_fill = lambda *a: (_ for _ in ()).throw(SystemExit("crash"))
@@ -149,8 +154,8 @@ def test_crash_between_intent_and_submit_is_recovered_on_restart(tmp_path):
     assert db.one("SELECT status FROM intents")["status"] == "SUBMITTING"
     # Restart: new objects over the same database and broker state.
     db2 = Database(path)
-    broker2 = PaperBroker(feed, clock, db2)
-    ex2 = ExecutionEngine(db2, broker2, clock, allow_unvalidated=True)
+    broker2 = PaperBroker(feed, clock, db2, start_balance=BAL)
+    ex2 = engine(db2, broker2, clock, allow_unvalidated=True)
     rep = ex2.reconcile()
     assert rep["resolved"] == [client_id_for("d1")]
     assert db2.one("SELECT status FROM intents")["status"] == "FILLED"
@@ -161,11 +166,15 @@ def test_crash_between_intent_and_submit_is_recovered_on_restart(tmp_path):
 def test_paper_state_survives_restart(tmp_path):
     path = tmp_path / "s.db"
     feed, clock, db = setup(db=Database(path))
-    PaperBroker(feed, clock, db).place_market("EURUSD", 1, 0.1, 1.09, 1.12, "c1")
-    again = PaperBroker(feed, clock, Database(path))
+    open_direct(PaperBroker(feed, clock, db, start_balance=BAL), "EURUSD", 1, 0.1, 1.09, 1.12, "c1")
+    again = PaperBroker(feed, clock, Database(path), start_balance=BAL)
     assert len(again.positions()) == 1
+    gate = gate_for(again)  # the same evaluation run, restored from the database
+    repeat = gate.authorize(TradeProposal("c1", "c1", "EURUSD", 1, 0.1, 1.10005, 1.09, 1.12), again)
+    assert not repeat.approved and repeat.code == "DUPLICATE_REQUEST"  # a repeat gets no permit...
     with pytest.raises(BrokerRejected):
-        again.place_market("EURUSD", 1, 0.1, 1.09, 1.12, "c1")
+        again.place_market("EURUSD", 1, 0.1, 1.09, 1.12, "c1")  # ...and without one nothing fills
+    assert len(again.positions()) == 1
 
 
 def test_stop_is_checked_before_target_in_the_same_bar():
@@ -173,8 +182,8 @@ def test_stop_is_checked_before_target_in_the_same_bar():
     s = h1("EURUSD", mids)
     feed = ReplayFeed({"EURUSD": s})
     clock = Clock(int(s.available_at[10]))
-    b = PaperBroker(feed, clock)
-    b.place_market("EURUSD", 1, 1.0, 1.0995, 1.1005, "c1")
+    b = PaperBroker(feed, clock, start_balance=BAL)
+    open_direct(b, "EURUSD", 1, 1.0, 1.0995, 1.1005, "c1")
     bar = {"open_time": int(s.open_time[11]), "close_time": int(s.available_at[11]),
            "bid_open": 1.1, "bid_high": 1.101, "bid_low": 1.099, "bid_close": 1.1,
            "ask_open": 1.1001, "ask_high": 1.1011, "ask_low": 1.0991, "ask_close": 1.1001}
@@ -187,8 +196,8 @@ def test_gap_through_the_stop_fills_at_the_open_and_pnl_is_in_usd():
     s = h1("EURUSD", [1.1] * 20)
     feed = ReplayFeed({"EURUSD": s})
     clock = Clock(int(s.available_at[10]))
-    b = PaperBroker(feed, clock, commission_per_lot_rt=0.0, slippage_pips=0.0)
-    fill = b.place_market("EURUSD", 1, 1.0, 1.098, 1.104, "c1")
+    b = PaperBroker(feed, clock, commission_per_lot_rt=0.0, slippage_pips=0.0, start_balance=BAL)
+    fill = open_direct(b, "EURUSD", 1, 1.0, 1.098, 1.104, "c1")
     bar = {"open_time": int(s.open_time[11]), "close_time": int(s.available_at[11]),
            "bid_open": 1.095, "bid_high": 1.096, "bid_low": 1.094, "bid_close": 1.095,
            "ask_open": 1.0951, "ask_high": 1.0961, "ask_low": 1.0941, "ask_close": 1.0951}
@@ -205,8 +214,8 @@ def test_missing_conversion_rate_means_no_spec_and_no_trade():
 
 def test_sync_closures_turns_broker_exits_into_closed_positions():
     feed, clock, db = setup()
-    broker = PaperBroker(feed, clock, db)
-    ex = ExecutionEngine(db, broker, clock, allow_unvalidated=True)
+    broker = PaperBroker(feed, clock, db, start_balance=BAL)
+    ex = engine(db, broker, clock, allow_unvalidated=True)
     r = ex.execute(decision(), verdict(stop=1.0999 - 0.0005, target=1.1004))
     assert r.status == "FILLED"
     s = feed.series["EURUSD"]
@@ -225,14 +234,14 @@ def test_a_language_model_trade_is_refused_by_the_execution_engine_even_if_route
     feed, clock, db = setup()
     d = decision()
     d.signal_class = "LLM_TRADER"
-    r = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True).execute(d, verdict())
+    r = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True).execute(d, verdict())
     assert r.status == "BLOCKED" and "language model" in r.detail
 
 
 def test_an_order_of_unknown_outcome_pauses_trading():
     feed, clock, db = setup()
     db.set_kv("paused", False)
-    ex = ExecutionEngine(db, LostBroker(feed, clock, db), clock, allow_unvalidated=True)
+    ex = engine(db, LostBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True)
     assert ex.execute(decision(), verdict()).status == "UNKNOWN"
     assert db.get_kv("paused", False) is True
 
@@ -240,12 +249,12 @@ def test_an_order_of_unknown_outcome_pauses_trading():
 def test_entry_slippage_beyond_the_limit_pauses_trading_and_normal_fills_do_not():
     feed, clock, db = setup()
     db.set_kv("paused", False)
-    ok = ExecutionEngine(db, PaperBroker(feed, clock, db), clock, allow_unvalidated=True)
+    ok = engine(db, PaperBroker(feed, clock, db, start_balance=BAL), clock, allow_unvalidated=True)
     assert ok.execute(decision(), verdict()).status == "FILLED" and db.get_kv("paused", False) is False
     feed2, clock2, db2 = setup()
     db2.set_kv("paused", False)
     v = verdict(did="d2", stop=1.0999)
     v.entry_ref = 1.1000  # the risk check priced 1.1000 with a 1-pip stop; the fill at ~1.10006 pays ~0.6R
-    ex = ExecutionEngine(db2, PaperBroker(feed2, clock2, db2), clock2, allow_unvalidated=True, max_entry_drift_r=10)
+    ex = engine(db2, PaperBroker(feed2, clock2, db2, start_balance=BAL), clock2, allow_unvalidated=True, max_entry_drift_r=10)
     assert ex.execute(decision(did="d2"), v).status == "FILLED"
     assert db2.get_kv("paused", False) is True

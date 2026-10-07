@@ -16,6 +16,7 @@ fails, trading starts PAUSED and the dashboard says why.
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 import os
@@ -46,6 +47,7 @@ from ..orchestrator.core import Orchestrator, OrchestratorConfig
 from ..orchestrator.tracker import ACTIONS
 from ..regime.model import RegimeModel
 from ..risk.engine import RiskEngine
+from ..risk.hard_gate import HardRiskGate
 from ..version import stamp
 from .config import ServiceConfig, ServiceConfigError
 
@@ -142,7 +144,10 @@ class Runtime:
         self.experience = ExperienceView()
         self._replay_experience()
         # PAPER simulates every trade; DEMO sends an unvalidated trade only with EXPERIMENTAL_EXECUTE=true.
-        self.execution = ExecutionEngine(self.db, self.broker, self.clock,
+        # The hard risk gate (FTMO-style limits) is the last step before the paper broker; its state and its lock
+        # live in the same database and survive a restart.
+        self.gate = HardRiskGate(self.db, cfg.hard_profile, self.clock)
+        self.execution = ExecutionEngine(self.db, self.broker, self.clock, gate=self.gate,
                                          allow_unvalidated=cfg.mode == "PAPER" or cfg.experimental_execute,
                                          max_decision_age_s=cfg.max_decision_age_s)
         self.orch = Orchestrator(
@@ -150,7 +155,7 @@ class Runtime:
                                start_balance=cfg.start_balance, experimental_execute=cfg.experimental_execute),
             db=self.db, feed=self.feed, broker=self.broker,
             brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=BrainConfig.from_env()),
-            risk=RiskEngine(cfg.risk), execution=self.execution, experience=self.experience,
+            risk=RiskEngine(dataclasses.replace(cfg.risk, hard=cfg.hard_profile)), execution=self.execution, experience=self.experience,
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
             # The calendar is read from the internet like the broker: only for a live feed.
             news=(EconomicCalendar(Path(cfg.data_dir) / "calendar_cache.json")

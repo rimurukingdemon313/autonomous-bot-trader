@@ -36,6 +36,8 @@ from ..orchestrator.tracker import ACTIONS
 from ..regime.model import RegimeModel
 from ..research.labels import BUY, SELL, CostModel, compute_labels
 from ..risk.engine import RiskEngine, RiskLimits
+from ..risk.hard_gate import HardRiskGate
+from ..risk.profile import FTMO_200K, HardRiskProfile
 from ..version import stamp
 from .metrics import summarise
 
@@ -60,6 +62,8 @@ class BacktestConfig:
     risk: RiskLimits = field(default_factory=RiskLimits)
     start_balance: float = 20_000.0
     db_path: str = ":memory:"
+    #: the hard risk gate's profile; None = the FTMO-style percentages on start_balance
+    hard_profile: HardRiskProfile | None = None
     journal: str = "trades"  # "full" also journals every NO_TRADE and shadow outcome, as the service does
 
 
@@ -124,13 +128,19 @@ def run(cfg: BacktestConfig, series: dict[str, BarSeries], progress: Callable[[s
     broker = PaperBroker(feed, clock, db, start_balance=cfg.start_balance,
                          slippage_pips=cfg.costs.slippage_pips, commission_per_lot_rt=cfg.costs.commission_pips_rt * 10.0)
     brain = Brain(llm=None, synthesizer=EvidenceSynthesizer(cfg.synthesis), config=BrainConfig(llm_agents=(), parallel=False))
-    execution = ExecutionEngine(db, broker, clock, allow_unvalidated=True)  # a simulation, like PAPER
+    # The hard risk gate applies to simulations too (there is no execution path without it): the FTMO-style
+    # percentages on the backtest's own balance, unless the config names a profile.
+    # Replayed quotes are as old as their bar: the same hour of tolerance the risk engine gets below.
+    profile = cfg.hard_profile or replace(FTMO_200K.scaled(cfg.start_balance), max_quote_age_s=3600)
+    gate = HardRiskGate(db, profile, clock)
+    execution = ExecutionEngine(db, broker, clock, gate=gate, allow_unvalidated=True)  # a simulation, like PAPER
     experience = ExperienceView()
     versions = {**stamp(), "synthesis_mode": cfg.synthesis.mode, "learning_enabled": cfg.learning_enabled, "backtest": cfg.name}
     orch = Orchestrator(
         OrchestratorConfig(cfg.symbols, mode="BACKTEST", journal=cfg.journal, events="key",
                            start_balance=cfg.start_balance, costs=cfg.costs, learning_enabled=cfg.learning_enabled),
-        db=db, feed=feed, broker=broker, brain=brain, risk=RiskEngine(replace(cfg.risk, max_quote_age_s=3600)),
+        db=db, feed=feed, broker=broker, brain=brain,
+        risk=RiskEngine(replace(cfg.risk, max_quote_age_s=3600, hard=profile)),
         execution=execution, experience=experience, memory=memory,
         regime_for=lambda t: regimes[datetime.fromtimestamp(t, timezone.utc).year], clock=clock, versions=versions)
 

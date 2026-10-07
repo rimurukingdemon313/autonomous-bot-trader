@@ -21,17 +21,22 @@ EXECUTION_CONTRACT.md, implemented:
   EXPERIMENTAL_EXECUTE=true). A decision that does not state its status is unvalidated.
 - A stale decision (older than `max_decision_age_s`) or a price that has already moved against
   the entry by more than `max_entry_drift_r` of the stop distance is refused, not chased.
+- The hard risk gate (aitrader/risk/hard_gate.py) is the last step before the broker, and not optional: the
+  engine cannot be built without one. Its permit is what the broker honours. The gate is held from
+  authorisation to the broker's answer, so concurrent requests cannot both pass an aggregate limit.
 """
 
 from __future__ import annotations
 
 import json
+import sqlite3
 import time
 from dataclasses import dataclass
 from typing import Callable
 
 from ..broker.base import AmbiguousExecution, BrokerError, BrokerRejected, ClosedTrade
 from ..memory.db import Database
+from ..risk.hard_gate import HardRiskGate, TradeProposal
 
 #: 1.1.0: a model exit (MODEL_EXIT) is recorded under that reason; every other close is unchanged.
 #: 1.2.0: a holding-time exit is recorded as TIME, not the broker's default MANUAL. Label only: the
@@ -41,7 +46,10 @@ from ..memory.db import Database
 #: 1.4.0 (takeover audit): a language-model trade (signal class LLM_TRADER / TRADING_ROOM / EXPERIMENTAL_AI)
 #:        is refused here too; an order whose outcome is unknown, or a fill whose entry slippage exceeds
 #:        `max_entry_slippage_r` of the stop distance, PAUSES trading until an operator has looked.
-EXECUTION_VERSION = "exec-1.4.0"
+#: 1.5.0: every submission passes the hard risk gate (FTMO-style limits) and carries its permit; a request
+#:        racing another for the same decision is a DUPLICATE, not an exception; a reconciled unknown order
+#:        confirms or releases its gate reservation.
+EXECUTION_VERSION = "exec-1.5.0"
 #: Signal classes a language model originates. They are SHADOW by route; refused here as a second check.
 MODEL_SIGNAL_CLASSES = frozenset({"LLM_TRADER", "TRADING_ROOM", "EXPERIMENTAL_AI"})
 UNKNOWN_RECHECKS = 5
@@ -61,9 +69,15 @@ def client_id_for(decision_id: str) -> str:
 
 
 class ExecutionEngine:
-    def __init__(self, db: Database, broker, clock: Callable[[], int], *, allow_unvalidated: bool = False,
-                 max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25,
+    def __init__(self, db: Database, broker, clock: Callable[[], int], *, gate: HardRiskGate,
+                 allow_unvalidated: bool = False, max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25,
                  max_entry_slippage_r: float = 0.2) -> None:
+        if not isinstance(gate, HardRiskGate):
+            raise TypeError("the execution engine needs the hard risk gate: there is no execution path without it")
+        self.gate = gate
+        attach = getattr(broker, "attach_gate", None)
+        if attach is not None:
+            attach(gate)
         self.db = db
         self.broker = broker
         self.clock = clock
@@ -158,36 +172,51 @@ class ExecutionEngine:
         side = 1 if decision.decision == "BUY" else -1
         payload = {"qty": verdict.qty, "stop": verdict.stop, "target": verdict.target, "side": side,
                    "risk_amount": verdict.risk_amount, "version": EXECUTION_VERSION, "history": []}
-        with self.db.tx() as c:
-            c.execute("INSERT INTO intents(id, decision_id, ts, symbol, side, status, payload, updated) "
-                      "VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?)",
-                      (cid, decision.id, time.time(), decision.instrument, decision.decision,
-                       json.dumps(payload), time.time()))
-            self.db.event("ORDER_INTENT", {"intent": cid, "decision": decision.id, **{k: v for k, v in payload.items() if k != "history"}},
-                          ref=cid, conn=c)
+        try:
+            with self.db.tx() as c:
+                c.execute("INSERT INTO intents(id, decision_id, ts, symbol, side, status, payload, updated) "
+                          "VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?)",
+                          (cid, decision.id, time.time(), decision.instrument, decision.decision,
+                           json.dumps(payload), time.time()))
+                self.db.event("ORDER_INTENT", {"intent": cid, "decision": decision.id,
+                                               **{k: v for k, v in payload.items() if k != "history"}}, ref=cid, conn=c)
+        except sqlite3.IntegrityError:  # a concurrent request for the same decision got there first
+            return ExecutionResult(decision.id, "DUPLICATE", "intent already exists; not resent")
         problem = self._final_checks(decision, verdict)
         if problem:
             self._set_status(cid, "BLOCKED", {"reason": problem})
             return ExecutionResult(decision.id, "BLOCKED", problem)
-        self._set_status(cid, "SUBMITTING", {})
-        try:
-            fill = self.broker.place_market(decision.instrument, side, verdict.qty, verdict.stop,
-                                            verdict.target, cid, meta=meta or {})
-        except BrokerRejected as exc:
-            self._set_status(cid, "REJECTED", {"reason": str(exc)})
-            return ExecutionResult(decision.id, "REJECTED", str(exc))
-        except AmbiguousExecution as exc:
-            self._set_status(cid, "UNKNOWN", {"reason": str(exc)})
-            found = self._lookup(cid)
-            if found is not None:
-                return ExecutionResult(decision.id, "FILLED", "confirmed by broker query after ambiguous response",
-                                       found.id, found.entry)
-            self._pause(f"order {cid} outcome unknown after an ambiguous broker response: paused until reconciled")
-            return ExecutionResult(decision.id, "UNKNOWN", f"outcome unknown ({exc}); will reconcile, never resend")
-        except BrokerError as exc:  # anything else during a write is ambiguous too
-            self._set_status(cid, "UNKNOWN", {"reason": f"{type(exc).__name__}: {exc}"})
-            self._pause(f"order {cid} outcome unknown ({type(exc).__name__}): paused until reconciled")
-            return ExecutionResult(decision.id, "UNKNOWN", str(exc))
+        proposal = TradeProposal(decision.id, cid, decision.instrument, side, verdict.qty, verdict.entry_ref,
+                                 verdict.stop, verdict.target, (meta or {}).get("swap_per_night", 0.0),
+                                 source=str(getattr(decision, "signal_class", None) or "STRATEGY"))
+        with self.gate.transaction():
+            gate = self.gate.authorize(proposal, self.broker)
+            if not gate.approved:
+                self._set_status(cid, "BLOCKED", {"reason": gate.line, "gate": gate.code})
+                return ExecutionResult(decision.id, "BLOCKED", gate.line)
+            self._set_status(cid, "SUBMITTING", {"permit": gate.permit.id})
+            try:
+                fill = self.broker.place_market(decision.instrument, side, verdict.qty, verdict.stop,
+                                                verdict.target, cid, meta=meta or {}, permit=gate.permit)
+            except BrokerRejected as exc:
+                self.gate.release(cid, f"broker rejected: {exc}")
+                self._set_status(cid, "REJECTED", {"reason": str(exc)})
+                return ExecutionResult(decision.id, "REJECTED", str(exc))
+            except AmbiguousExecution as exc:
+                self._set_status(cid, "UNKNOWN", {"reason": str(exc)})
+                found = self._lookup(cid)
+                if found is not None:
+                    return ExecutionResult(decision.id, "FILLED", "confirmed by broker query after ambiguous "
+                                           "response", found.id, found.entry)
+                self._pause(f"order {cid} outcome unknown after an ambiguous broker response: paused until "
+                            "reconciled")
+                return ExecutionResult(decision.id, "UNKNOWN", f"outcome unknown ({exc}); will reconcile, never "
+                                       "resend")
+            except BrokerError as exc:  # anything else during a write is ambiguous too
+                self._set_status(cid, "UNKNOWN", {"reason": f"{type(exc).__name__}: {exc}"})
+                self._pause(f"order {cid} outcome unknown ({type(exc).__name__}): paused until reconciled")
+                return ExecutionResult(decision.id, "UNKNOWN", str(exc))
+            self.gate.confirm(cid, fill.position_id)
         self._record_fill(cid, decision, verdict, fill.position_id, fill.price, fill.time, fill.order_id)
         ref = verdict.entry_ref
         if ref is not None and verdict.stop is not None and abs(ref - verdict.stop) > 0:
@@ -225,6 +254,7 @@ class ExecutionEngine:
         class _D:
             id, instrument, decision = intent["decision_id"], intent["symbol"], intent["side"]
         self._record_fill(cid, _D, _V, found.id, found.entry, found.opened, None)
+        self.gate.confirm(cid, found.id)
         return found
 
     # ── reconciliation: startup and periodic ────────────────────────────
@@ -240,6 +270,7 @@ class ExecutionEngine:
             checks = sum(1 for h in p.get("history", []) if h.get("status") == "RECHECK") + 1
             if checks >= UNKNOWN_RECHECKS:
                 self._set_status(it["id"], "NOT_FOUND", {"reason": f"broker has no such order after {checks} checks"})
+                self.gate.release(it["id"], f"not found at the broker after {checks} checks")
                 report["not_found"].append(it["id"])
             else:
                 self._note(it["id"], {"status": "RECHECK", "check": checks})

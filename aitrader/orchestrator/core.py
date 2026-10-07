@@ -73,7 +73,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         EXPERIMENTAL_EXECUTE) is SHADOW: recorded and followed forward, never sent; every BUY/SELL
 #:         proposal goes to the forward ledger (shadow outcome, gross/costs/net, partition); forward
 #:         lessons are mined from LEARNING outcomes and shown to the model traders; experimental_ai mode.
-ORCHESTRATOR_VERSION = "orchestrator-1.12.0"
+#: 1.13.0: the hard risk gate observes the account every cycle (day roll at its reset time, breach lock even when
+#:         nothing is proposed), and the risk engine sizes with the same financing estimate the gate verifies.
+ORCHESTRATOR_VERSION = "orchestrator-1.13.0"
 
 
 class NullKnowledge:
@@ -189,6 +191,10 @@ class Orchestrator:
         self.forward_tick(t)
         self._process_closures(t)
         self._time_exits(t)
+        try:  # the hard gate's heartbeat; it fails closed on its own state whatever happens here
+            self.execution.gate.observe(self.broker)
+        except Exception as exc:  # noqa: BLE001
+            self._event("RISK_GATE_OBSERVE_FAILED", {"error": f"{type(exc).__name__}: {exc}"}, key=True)
         if getattr(getattr(self.brain, "config", None), "decision_mode", "evidence") in MODEL_MODES \
                 and symbols != []:
             self._review_positions(t, symbols)
@@ -379,7 +385,9 @@ class Orchestrator:
                 spec = self.broker.spec(symbol)
             except BrokerError:
                 spec = None
-            verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags)
+            swap = self.cfg.costs.swap_atr_per_night * (atr if np.isfinite(atr) else 0.0)
+            verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags,
+                                         swap_per_night=swap)
             if not self.db.one("SELECT 1 AS x FROM risk_verdicts WHERE decision_id=?", (d.id,)):
                 self.db.append("risk_verdicts", {"decision_id": d.id, "approved": int(verdict.approved),
                                                  "payload": verdict.as_dict()})
@@ -392,7 +400,7 @@ class Orchestrator:
             route = execution_route(d.edge_status, self.cfg.mode, self.cfg.experimental_execute,
                                     ai_originated=mode in MODEL_MODES)
             if verdict.approved and route == "EXECUTE":
-                res = self.execution.execute(d, verdict, meta={"swap_per_night": self.cfg.costs.swap_atr_per_night * (atr or 0)})
+                res = self.execution.execute(d, verdict, meta={"swap_per_night": swap})
                 executed = res.status == "FILLED"
                 self.counts["executed"] += int(executed)
             elif verdict.approved:

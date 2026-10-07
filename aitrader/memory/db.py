@@ -32,13 +32,14 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
-SCHEMA_VERSION = 3  # 2: evaluations (shadow outcomes, for restart); 3: forward ledger and forward lessons
+SCHEMA_VERSION = 4  # 2: evaluations (shadow outcomes, for restart); 3: forward ledger and forward lessons;
+#                    4: the hard risk gate's checksummed state and its append-only decision log
 
 IMMUTABLE = (
     "events", "decisions", "agent_reports", "risk_verdicts", "trades", "episodes",
     "postmortems", "reflections", "lessons", "knowledge_versions", "experiments",
     "experiment_verdicts", "performance_snapshots", "evaluations",
-    "forward_proposals", "forward_outcomes", "forward_lessons",
+    "forward_proposals", "forward_outcomes", "forward_lessons", "risk_gate_log",
 )
 
 _SCHEMA = """
@@ -140,6 +141,13 @@ CREATE TABLE IF NOT EXISTS forward_lessons (
   prev_hash TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE (lesson_id, version));
 
 CREATE TABLE IF NOT EXISTS paper_account (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated REAL NOT NULL);
+
+CREATE TABLE IF NOT EXISTS risk_gate_state (key TEXT PRIMARY KEY, value TEXT NOT NULL, sha256 TEXT NOT NULL,
+  updated REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS risk_gate_log (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, ts REAL NOT NULL, kind TEXT NOT NULL,
+  run_id TEXT, decision_id TEXT, approved INTEGER, payload TEXT NOT NULL, prev_hash TEXT NOT NULL, hash TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_risk_gate_log_kind ON risk_gate_log(kind, seq);
 """
 
 

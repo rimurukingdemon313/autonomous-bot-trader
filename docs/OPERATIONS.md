@@ -97,7 +97,7 @@ the service at startup with a visible 503; it is never silently replaced.
 
 | MODE | Market data | Orders | Account |
 |---|---|---|---|
-| `PAPER` | Yahoo Finance (live, estimated spreads) | simulated in-process | virtual, `PAPER_START_BALANCE` (default $20,000) |
+| `PAPER` | Yahoo Finance (live, estimated spreads) | simulated in-process, every order through the hard risk gate (docs/HARD_RISK_GATE.md) | virtual: the FTMO-style $200,000 evaluation account (`RISK_PROFILE=FTMO-200K`; `PAPER_START_BALANCE` must equal the profile's starting balance) |
 | `DEMO` | — | **refused at startup**: no broker is integrated (TradeLocker was removed; MetaTrader 5 is planned once a strategy has positive forward evidence in paper) | — |
 | `LIVE` | — | **refused at startup** (`MODE=LIVE`, `LIVE_TRADING=true`, or any unknown value) | — |
 

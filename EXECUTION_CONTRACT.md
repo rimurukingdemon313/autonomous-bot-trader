@@ -63,6 +63,14 @@ switch, the live spread against the approved limit, that the instrument is
 tradable now, and that the order still matches what was approved. Any
 failure cancels the order and records the reason.
 
+## 5a. The hard risk gate is the last step
+
+The execution engine cannot be built without a `HardRiskGate`. After its final checks it asks the gate, holding
+the gate from authorisation to the broker's answer. A refusal is `BLOCKED` with the gate's reason, and nothing
+reaches the broker. An approval carries a single-use permit, bound to the exact order, and the paper broker
+fills nothing without one. A definite broker rejection releases the reservation. An ambiguous outcome keeps
+it, counted as open risk, until reconciliation confirms or releases it. docs/HARD_RISK_GATE.md.
+
 ## 6. What execution may not do
 
 It may not change direction, size, entry type, stop or target from what was
