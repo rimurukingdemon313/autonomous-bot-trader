@@ -1,0 +1,27 @@
+# CR-5 holdout data: BTC and ETH, Hyperliquid + Binance perpetual funding and daily opens, 2025-07-01 -> 2026-09-29.
+# Fetched only after CR-5's development passed. Bars go to the orphan branch cr5-holdout-data.
+name: CR-5 holdout fetch
+on:
+  push:
+    branches: [cr5-holdout]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy
+      - run: |
+          mkdir -p out
+          python scripts/ingest_xv_window.py --coins BTC,ETH --start 2025-07-01 --end 2026-09-29 --out out 2>&1 | tee out/fetch.log
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out && git init -q && git config user.name "div-runner" && git config user.email "div-runner@users.noreply.github.com"
+          git checkout -q --orphan cr5-holdout-data && git add . && git commit -q -m "CR-5 holdout data 2025-07-01 to 2026-09-29"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" cr5-holdout-data
