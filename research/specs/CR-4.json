@@ -1,0 +1,94 @@
+{
+ "spec": {
+  "program": "CR-4",
+  "module": "xv-1.0.0",
+  "universe": "crypto-xvenue-hl-binance",
+  "universe_rule": "every Hyperliquid perpetual (research/results/cr-probe-hl.json, delisted included) that maps to a Binance USDT-M perpetual (X, 1000X, kX -> 1000X); eligible at D when both have a daily candle at D and 30 days of history",
+  "development": [
+   "2023-06-01",
+   "2024-07-01"
+  ],
+  "validation": [
+   "2024-07-01",
+   "2025-07-01"
+  ],
+  "holdout": [
+   "2025-07-01",
+   "2026-09-29"
+  ],
+  "configs": {
+   "XV-s10-in3": {
+    "slots": 10,
+    "theta_in": 0.0003,
+    "theta_out": 0.0001,
+    "lookback_d": 7
+   },
+   "XV-s5-in3": {
+    "slots": 5,
+    "theta_in": 0.0003,
+    "theta_out": 0.0001,
+    "lookback_d": 7
+   },
+   "XV-s20-in3": {
+    "slots": 20,
+    "theta_in": 0.0003,
+    "theta_out": 0.0001,
+    "lookback_d": 7
+   },
+   "XV-s10-in1.5": {
+    "slots": 10,
+    "theta_in": 0.00015,
+    "theta_out": 0.0001,
+    "lookback_d": 7
+   },
+   "XV-s10-in6": {
+    "slots": 10,
+    "theta_in": 0.0006,
+    "theta_out": 0.0001,
+    "lookback_d": 7
+   }
+  },
+  "primary": "XV-s10-in3",
+  "seasoning_d": 30,
+  "latency_d": 1,
+  "costs": "XvCosts: HL taker 4.5 bp, Binance taker 5 bp; half-spread/slippage 1/1 BTC ETH, 3/2 others",
+  "rebalance_at": 1.8,
+  "capital": "2N per position (1x on each venue)",
+  "risk_free": "BIS US policy rate public that day / 365",
+  "dev_gates": {
+   "min_positions": ">= 100",
+   "excess": "annualised excess over the US policy rate > 0",
+   "t_excess": ">= 2.0 on daily excess",
+   "costs_x1.5": "excess > 0",
+   "latency": "excess > 0 with fills a day later",
+   "vs_placebo": "Welch t >= 2.0 of daily returns vs random coin and side at the same times (seeds 1-3)",
+   "neighbours": "every other configuration excess > 0",
+   "halves": "both chronological halves excess > 0",
+   "drawdown": "max drawdown of cumulative excess <= 15%",
+   "without_top5_days": "excess > 0"
+  },
+  "val_gates": {
+   "min_positions": ">= 100",
+   "excess": "annualised excess over the US policy rate > 0",
+   "t_excess": ">= the Bonferroni threshold (spec t_required)",
+   "costs_x1.5": "excess > 0",
+   "latency": "excess > 0 with fills a day later",
+   "vs_placebo": "Welch t >= 2.0 of daily returns vs random coin and side at the same times (seeds 1-3)",
+   "neighbours": "every other configuration excess > 0",
+   "halves": "both chronological halves excess > 0",
+   "drawdown": "max drawdown of cumulative excess <= 15%",
+   "without_top5_days": "excess > 0",
+   "monte_carlo": "block bootstrap P(total excess <= 0) <= 0.05"
+  },
+  "holdout_rule": {
+   "excess": "> 0",
+   "t_excess": ">= 1.645",
+   "costs_x1.5": "excess > 0",
+   "drawdown": "<= 15%"
+  },
+  "tests": 5,
+  "t_required": 3.7012,
+  "code_sha256": "54b329b94bd3eddf6f0cc5e8016c855d9e7f678db7210cfd24f2c86d71a69224"
+ },
+ "sha256": "d28442f73f4e70e2b93fae176a1cd26fd1d5b401fc0b9ce67f758ae129b9f6f4"
+}
