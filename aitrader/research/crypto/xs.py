@@ -53,15 +53,19 @@ class XsCosts:
         return replace(self, k=self.k * k)
 
 
-_CUM: dict[int, np.ndarray] = {}
+#: Prefix sums per funding array. The array itself is stored with its sums and compared by identity: an id()
+#: alone can be reused by a new object once the old one is freed (a stale cache, found by the full test suite).
+_CUM: dict[int, tuple[np.ndarray, np.ndarray]] = {}
 
 
 def score(c: C.Coin, T: int) -> float:
     """Funding paid over (T - 24 h, T]; NaN when no settlement fell in the window."""
-    cum = _CUM.get(id(c))
-    if cum is None or len(cum) != len(c.fund_r) + 1:
+    hit = _CUM.get(id(c.fund_r))
+    if hit is not None and hit[0] is c.fund_r:
+        cum = hit[1]
+    else:
         cum = np.r_[0.0, np.cumsum(c.fund_r)]
-        _CUM[id(c)] = cum
+        _CUM[id(c.fund_r)] = (c.fund_r, cum)
     a = int(np.searchsorted(c.fund_t, T - DAY, "right"))
     b = int(np.searchsorted(c.fund_t, T, "right"))
     return float(cum[b] - cum[a]) if b > a else float("nan")
