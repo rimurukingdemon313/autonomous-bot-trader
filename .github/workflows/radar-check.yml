@@ -1,0 +1,26 @@
+name: Radar live parser check (once)
+on:
+  push:
+    branches: [radar-check]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python scripts/radar_check.py
+      - name: Commit the result
+        if: always()
+        run: |
+          git config user.name "radar-runner"; git config user.email "radar-runner@users.noreply.github.com"
+          git checkout --orphan radar-check-results
+          git rm -rfq --cached .
+          git add -f radar-check.json
+          git commit -qm "radar live parser check"
+          git push -qf origin HEAD:radar-check-results
