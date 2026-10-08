@@ -10,7 +10,7 @@ is measured, never assumed.**
 > - Edges: 118 recorded; FAILED 117, PROMISING 1. VALIDATED requires every gate in `aitrader/research/promotion.py`; none passes.
 > - The one PROMISING lead (not a pass), turn-of-the-month on index CFDs, is **unattractive and decayed**: about 1.9% a year at t 2.18 with a 23% drawdown, t 0.46 since 2021, t 0.64 at doubled costs. It is not implemented.
 > - Live trading is impossible; DEMO sends no order (nothing is validated); per-trade risk is capped at 0.25%. Language-model trades are shadow only.
-> - Tests collected: 1028; mutation audit: 194 of 194 killed. Numbers in older reports are snapshots of their date.
+> - Tests collected: 1028; mutation audit: 200 of 200 killed. Numbers in older reports are snapshots of their date.
 > - Defects, patches, tests and the strategy-by-strategy record: docs/TAKEOVER_AUDIT.md.
 <!-- research-status:end -->
 >
