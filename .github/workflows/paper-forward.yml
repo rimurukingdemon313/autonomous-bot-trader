@@ -63,6 +63,12 @@ jobs:
         with:
           path: pf-state
           key: pf-state-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Start the next shift
+        # GitHub's cron is best-effort; the run continues by dispatching its own next shift.
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/actions/workflows/paper-forward.yml/dispatches" -f ref=main
       - name: Keep the schedule enabled
         if: always()
         env:

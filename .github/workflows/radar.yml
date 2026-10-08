@@ -5,7 +5,7 @@
 name: Funding radar (hourly, paper)
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 */6 * * *"  # a backup: each shift dispatches the next
   workflow_dispatch:
 permissions:
   contents: write
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   radar:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -33,23 +33,34 @@ jobs:
           path: radar-state
           key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: radar-state-
-      - name: One radar run
+      - name: Hourly radar runs for one shift (~5h40m)
+        # GitHub's cron is best-effort and can skip hours; the shift itself runs once per hour at :17 and the
+        # next shift is dispatched at the end, so the radar does not depend on the schedule firing.
         run: |
-          set -o pipefail
-          python scripts/radar_run.py --state radar-state --publish pub --rf 0.03875 2>&1 | tee pub/last-run.log
+          cd pub && git config user.name "radar-runner" && git config user.email "radar-runner@users.noreply.github.com" && cd ..
+          end=$(( $(date +%s) + 340 * 60 ))
+          while true; do
+            python scripts/radar_run.py --state radar-state --publish pub --rf 0.03875 > pub/last-run.log 2>&1 || true
+            tail -c 2000 pub/last-run.log
+            (cd pub && git add -A && git commit -q -m "radar $(date -u +%Y-%m-%dT%H:00Z)" && \
+              for i in 1 2 3 4; do git push -q origin HEAD:radar-data && break; sleep $((i * 5)); git pull -q --rebase origin radar-data; done) || true
+            now=$(date +%s)
+            next=$(( (now / 3600 + 1) * 3600 + 17 * 60 ))
+            [ $(( now % 3600 )) -lt $(( 17 * 60 )) ] && next=$(( now / 3600 * 3600 + 17 * 60 ))
+            [ "$next" -ge "$end" ] && break
+            sleep $(( next - now ))
+          done
       - name: Save the radar state
+        if: always()
         uses: actions/cache/save@v4
         with:
           path: radar-state
           key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Publish the ledger and the report
-        run: |
-          cd pub
-          git config user.name "radar-runner"; git config user.email "radar-runner@users.noreply.github.com"
-          git add -A
-          git commit -q -m "radar $(date -u +%Y-%m-%dT%H:00Z)" || exit 0
-          for i in 1 2 3 4; do git push -q origin HEAD:radar-data && exit 0; sleep $((i * 5)); git pull -q --rebase origin radar-data; done
-          exit 1
+      - name: Start the next shift
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/actions/workflows/radar.yml/dispatches" -f ref=main
       - name: Keep the hourly schedule enabled through the 60-day look
         if: always()
         env:
