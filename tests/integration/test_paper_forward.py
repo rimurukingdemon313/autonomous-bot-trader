@@ -397,6 +397,10 @@ def test_the_dashboard_says_paper_forward_test_not_real_money(tmp_path, monkeypa
     assert "NO EDGE" in v["research_status"]  # the research truth is shown, not replaced
     assert v["account"]["equity"] is not None and v["risk_status"] == "ACTIVE" and len(v["open_positions"]) == 1
     assert v["pipeline"][0]["stages"][-1] == "PAPER EXECUTED"
+    assert v["decisions_total"] >= 1 and v["last_decisions"][0]["decision"] == "BUY"  # every decision is shown
+    from scripts.paper_forward_shift import report_md
+    md = report_md(v, {"started": "now", "decision_mode": "llm_trader"})
+    assert "PAPER FORWARD TEST — NOT REAL MONEY" in md and "Latest decisions" in md and "NO EDGE" in md
     html = (runtime_mod.Path(runtime_mod.__file__).parent / "static" / "index.html").read_text()
     assert "PAPER FORWARD TEST" in html and "NOT REAL MONEY" in html
 

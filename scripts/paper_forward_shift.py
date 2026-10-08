@@ -58,6 +58,11 @@ def report_md(v: dict, shift: dict) -> str:
         when = datetime.fromtimestamp(e["t"], timezone.utc).strftime("%m-%d %H:%M")
         lines.append(f"- {when} {e['symbol']} {e['decision']}: {' → '.join(e['stages'])}"
                      + (f" — {e['reason'][:200]}" if e.get("reason") else ""))
+    lines += ["", f"## Latest decisions, NO TRADE included ({v.get('decisions_total', 0)} so far)", ""]
+    for d in (v.get("last_decisions") or [])[:12]:
+        when = datetime.fromtimestamp(d["t"], timezone.utc).strftime("%m-%d %H:%M") if d.get("t") else "?"
+        flags = f" [data: {'; '.join(d['data_flags'])}]" if d.get("data_flags") else ""
+        lines.append(f"- {when} {d['symbol']} {d['decision']}: {d.get('reason') or ''}{flags}")
     lines += ["", "## Open paper positions", "", "| Symbol | Side | Qty | Entry | Stop | Target | P&L |", "|---|---|---|---|---|---|---|"]
     for p in v.get("open_positions") or []:
         lines.append(f"| {p['symbol']} | {p['side']} | {p['qty']} | {p['entry']} | {p['stop']} | {p['target']} | {money(p.get('pnl'))} |")

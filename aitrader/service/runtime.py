@@ -794,6 +794,14 @@ class Runtime:
         out["recent_trades"] = outcomes[-20:][::-1]
         out["pipeline"] = [json.loads(e["payload"]) for e in
                            self.db.query("SELECT payload FROM events WHERE type='PIPELINE' ORDER BY seq DESC LIMIT 20")]
+        # every decision, NO_TRADE included, with its reason: shows the system is reading the market at all
+        out["last_decisions"] = []
+        for row in self.db.query("SELECT symbol, decision, payload FROM decisions ORDER BY seq DESC LIMIT 24"):
+            p = json.loads(row["payload"])
+            out["last_decisions"].append({"symbol": row["symbol"], "decision": row["decision"], "t": p.get("timestamp"),
+                                          "reason": str(p.get("no_trade_reason") or p.get("thesis") or "")[:200],
+                                          "data_flags": (p.get("context") or {}).get("data_flags")})
+        out["decisions_total"] = (self.db.one("SELECT COUNT(*) AS n FROM decisions") or {}).get("n", 0)
         return out
 
     def trades(self, closed: bool = True, limit: int = 200) -> list[dict]:
