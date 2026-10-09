@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-09 15:57 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-09 14:57 UTC · decision system `evidence`
+Updated 2026-10-09 16:12 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-09 14:57 UTC · decision system `evidence`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -11,20 +11,20 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 ## Last decisions (decision → risk → paper execution)
 
 
-## Latest decisions, NO TRADE included (120 so far)
+## Latest decisions, NO TRADE included (132 so far)
 
-- 10-09 12:01 AUDJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 EURCHF NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 GBPJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 EURJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 EURGBP NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 NZDUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 USDCHF NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 USDCAD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 AUDUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 USDJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 GBPUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-09 12:01 EURUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 AUDJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 EURCHF NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 GBPJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 EURJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 EURGBP NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 NZDUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 USDCHF NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 USDCAD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 AUDUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 USDJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 GBPUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
+- 10-09 16:01 EURUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
 
 ## Open paper positions
 
