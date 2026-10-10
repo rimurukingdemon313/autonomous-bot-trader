@@ -1,0 +1,266 @@
+{
+ "time": "2026-10-10 20:17 UTC",
+ "key": {
+  "provider": "openrouter",
+  "configured": false,
+  "base_url": "https://openrouter.ai/api/v1",
+  "key_hint": null,
+  "timeout_s": 120.0,
+  "max_retries": 3,
+  "daily_budget": 900,
+  "vision_pin": null,
+  "judge_pin": null
+ },
+ "sections": {
+  "catalog": {
+   "ok": true,
+   "catalog_models": 458,
+   "free_models": 14,
+   "error": null,
+   "trader1": [
+    "thinkingmachines/inkling-small:free",
+    "thinkingmachines/inkling:free",
+    "google/gemma-4-26b-a4b-it:free"
+   ],
+   "trader2": [
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "thinkingmachines/inkling:free"
+   ],
+   "debate": [
+    "google/gemma-4-26b-a4b-it:free",
+    "thinkingmachines/inkling:free",
+    "google/gemma-4-31b-it:free"
+   ]
+  },
+  "key": {
+   "ok": false,
+   "status": "NOT_CONFIGURED",
+   "fix": "add the repository secret OPENROUTER_API_KEY"
+  },
+  "chart": {
+   "ok": true,
+   "EURUSD": {
+    "ok": true,
+    "bytes": 29462,
+    "execution_timeframe": "M15",
+    "last_bar_closed": "2026-10-09 21:30 UTC",
+    "trend": {
+     "M15": "RANGE (MIXED SWINGS)",
+     "H4": "UP (HH+HL)"
+    }
+   },
+   "GBPUSD": {
+    "ok": true,
+    "bytes": 30593,
+    "execution_timeframe": "M15",
+    "last_bar_closed": "2026-10-09 21:30 UTC",
+    "trend": {
+     "M15": "DOWN (LH+LL)",
+     "H4": "UP (HH+HL)"
+    }
+   },
+   "USDJPY": {
+    "ok": true,
+    "bytes": 30311,
+    "execution_timeframe": "M15",
+    "last_bar_closed": "2026-10-09 21:00 UTC",
+    "trend": {
+     "M15": "UP (HH+HL)",
+     "H4": "DOWN (LH+LL)"
+    }
+   }
+  },
+  "models": {
+   "ok": false,
+   "skipped": "no accepted key"
+  },
+  "desk_dry_run": {
+   "ok": true,
+   "error": null,
+   "seconds": 6.3,
+   "replay_of_last_close": "2026-10-09 21:01 UTC",
+   "openrouter_status": "READY",
+   "decisions": [
+    {
+     "symbol": "USDJPY",
+     "decision": "NO_TRADE",
+     "rule": "MARKET_UNAVAILABLE",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted"
+    },
+    {
+     "symbol": "GBPUSD",
+     "decision": "BUY",
+     "rule": "DEBATE",
+     "trader1": {
+      "confidence": 62,
+      "direction": "SELL",
+      "entry": 1.323321543159485,
+      "invalidation": 1.3245095431594849,
+      "liquidity": "equal highs above",
+      "market_structure": "HH/HL",
+      "momentum": "rising",
+      "reason": "scripted SELL",
+      "reversal_probability": 20,
+      "risk_reward": 1.67,
+      "stop_loss": 1.3245095431594849,
+      "take_profit": 1.3213415431594848,
+      "trend": "up"
+     },
+     "trader2": {
+      "confidence": 59,
+      "direction": "BUY",
+      "entry": 1.3234415431594848,
+      "invalidation": 1.3224515431594848,
+      "liquidity": "equal highs above",
+      "market_structure": "HH/HL",
+      "momentum": "rising",
+      "reason": "scripted BUY",
+      "reversal_probability": 20,
+      "risk_reward": 1.8,
+      "stop_loss": 1.3224515431594848,
+      "take_profit": 1.3252235431594848,
+      "trend": "up"
+     },
+     "debate": {
+      "confidence": 65,
+      "direction": "BUY",
+      "reason": "the higher timeframe decides"
+     },
+     "models": {
+      "trader1": "seer/vision-a:free",
+      "trader2": "think/trader-b:free",
+      "verifier": "third/debate-c:free"
+     },
+     "risk": {
+      "approved": true,
+      "reasons": [],
+      "qty": 3.82
+     },
+     "calls": [
+      {
+       "role": "vision",
+       "model": "seer/vision-a:free",
+       "status": "OK",
+       "latency_ms": 0.1,
+       "tokens": 321,
+       "error": null
+      },
+      {
+       "role": "judge",
+       "model": "think/trader-b:free",
+       "status": "OK",
+       "latency_ms": 0.2,
+       "tokens": 321,
+       "error": null
+      },
+      {
+       "role": "verifier",
+       "model": "third/debate-c:free",
+       "status": "OK",
+       "latency_ms": 0.2,
+       "tokens": 321,
+       "error": null
+      }
+     ],
+     "reason": "BUY GBPUSD on M15: DEBATE: Trader 1 (seer/vision-a:free) SELL 62: scripted SELL | Trader 2 (think/trader-b:free) BUY 59: scripted BUY | debate (third/debate-c:free) BUY: the higher timeframe decides"
+    },
+    {
+     "symbol": "EURUSD",
+     "decision": "BUY",
+     "rule": "AGREE",
+     "trader1": {
+      "confidence": 80,
+      "direction": "BUY",
+      "entry": 1.1206137590789795,
+      "invalidation": 1.1195937590789795,
+      "liquidity": "equal highs above",
+      "market_structure": "HH/HL",
+      "momentum": "rising",
+      "reason": "scripted BUY",
+      "reversal_probability": 20,
+      "risk_reward": 1.67,
+      "stop_loss": 1.1195937590789795,
+      "take_profit": 1.1223137590789796,
+      "trend": "up"
+     },
+     "trader2": {
+      "confidence": 64,
+      "direction": "BUY",
+      "entry": 1.1206137590789795,
+      "invalidation": 1.1197637590789795,
+      "liquidity": "equal highs above",
+      "market_structure": "HH/HL",
+      "momentum": "rising",
+      "reason": "scripted BUY",
+      "reversal_probability": 20,
+      "risk_reward": 1.8,
+      "stop_loss": 1.1197637590789795,
+      "take_profit": 1.1221437590789796,
+      "trend": "up"
+     },
+     "debate": null,
+     "models": {
+      "trader1": "seer/vision-a:free",
+      "trader2": "think/trader-b:free"
+     },
+     "risk": {
+      "approved": true,
+      "reasons": [],
+      "qty": 3.79
+     },
+     "calls": [
+      {
+       "role": "vision",
+       "model": "seer/vision-a:free",
+       "status": "OK",
+       "latency_ms": 0.1,
+       "tokens": 321,
+       "error": null
+      },
+      {
+       "role": "judge",
+       "model": "think/trader-b:free",
+       "status": "OK",
+       "latency_ms": 0.2,
+       "tokens": 321,
+       "error": null
+      }
+     ],
+     "reason": "BUY EURUSD on M15: AGREE: Trader 1 (seer/vision-a:free) BUY 80: scripted BUY | Trader 2 (think/trader-b:free) BUY 64: scripted BUY"
+    }
+   ],
+   "paper_positions": [
+    {
+     "symbol": "EURUSD",
+     "side": "BUY",
+     "qty": 3.79,
+     "entry": 1.1206237590789796,
+     "stop": 1.1195937590789795,
+     "target": 1.1223137590789796
+    },
+    {
+     "symbol": "GBPUSD",
+     "side": "BUY",
+     "qty": 3.82,
+     "entry": 1.3234515431594849,
+     "stop": 1.3224515431594848,
+     "target": 1.3252235431594848
+    }
+   ],
+   "live_trading": false,
+   "scripted_traders": true
+  },
+  "desk": {
+   "ok": false,
+   "skipped": "no accepted key"
+  }
+ },
+ "all_ok": false
+}
