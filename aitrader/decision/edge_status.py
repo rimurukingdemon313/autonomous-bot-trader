@@ -23,13 +23,15 @@ from __future__ import annotations
 
 #: 1.1.0: model-originated trades are SHADOW. 1.2.0: PAPER_FORWARD, the one mode in which any BUY/SELL proposal,
 #: a model's included, may EXECUTE: on the paper broker only, still through the risk engine and the hard gate.
-EDGE_STATUS_VERSION = "edge-status-1.2.0"
+#: 1.3.0: the DUAL_AI signal class (DECISION_MODE=dual_ai); routes unchanged: a model's trade executes in
+#: PAPER_FORWARD only.
+EDGE_STATUS_VERSION = "edge-status-1.3.0"
 #: Modes whose orders are simulated in-process. PAPER_FORWARD is a paper mode; there is no live mode here.
 PAPER_MODES = ("PAPER", "PAPER_FORWARD")
 EDGE_STATUSES = ("VALIDATED", "PROMISING", "EXPERIMENTAL", "NONE")
 
 SIGNAL_CLASS = {"evidence": "EVIDENCE", "llm_trader": "LLM_TRADER", "trading_room": "TRADING_ROOM",
-                "edges": "EDGE", "experimental_ai": "EXPERIMENTAL_AI"}
+                "edges": "EDGE", "experimental_ai": "EXPERIMENTAL_AI", "dual_ai": "DUAL_AI"}
 
 
 def classify(decision, decision_mode: str, promoted: list | None = None) -> str:
@@ -56,7 +58,7 @@ def execution_route(edge_status: str, mode: str, experimental_execute: bool, ai_
     PAPER_FORWARD executes every priced proposal on paper (see below).
 
     `ai_originated`: the trade was proposed by a language model (llm_trader, trading_room,
-    experimental_ai). Such a trade is SHADOW in every mode, paper included: a model may not create a
+    experimental_ai, dual_ai). Such a trade is SHADOW in every mode, paper included: a model may not create a
     trade until forward evidence shows it adds value (takeover audit, docs/TAKEOVER_AUDIT.md)."""
     if edge_status == "NONE":
         return "NONE"

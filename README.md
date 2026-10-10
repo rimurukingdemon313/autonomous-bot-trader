@@ -280,6 +280,7 @@ python scripts/mutation_audit.py       # remove each guard, require a failing te
 | [docs/FINAL_ENGINEERING_AUDIT.md](docs/FINAL_ENGINEERING_AUDIT.md) | The 2026-10 engineering audit: what was broken, fixed, preserved and added |
 | [docs/FORWARD_VALIDATION.md](docs/FORWARD_VALIDATION.md) | Edge status, shadow trading, the forward ledger, partitions, lessons, and the exact definition of a validated edge |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Deploying and operating on Railway |
+| [docs/DUAL_AI.md](docs/DUAL_AI.md) | DUAL AI desk (`DECISION_MODE=dual_ai`, PAPER_FORWARD only): two free OpenRouter traders always choose BUY or SELL, a debate settles disagreement, the risk engine sizes or refuses; one key `OPENROUTER_API_KEY` |
 | [docs/PAPER_FORWARD.md](docs/PAPER_FORWARD.md) | PAPER_FORWARD: the bot executes its own decisions on the $200K paper account and measures itself forward (not real money; the research status is unchanged) |
 | [docs/HARD_RISK_GATE.md](docs/HARD_RISK_GATE.md) | The hard risk gate before the paper broker: the FTMO-style $200K profile, every rejection rule, lock, kill switch, audit log, limitations |
 | [docs/RADAR_PLAN.md](docs/RADAR_PLAN.md) | The live cross-venue funding radar (paper): how it would earn, its risks, and the staged plan; hourly report on the `radar-data` branch |

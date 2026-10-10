@@ -6,6 +6,7 @@ every experiment records `stamp()`, and results are analysed per version.
 
 from __future__ import annotations
 
+from .agents.dual_ai import DUAL_AI_VERSION
 from .agents.experimental_ai import EXPERIMENTAL_AI_VERSION
 from .agents.llm_trader import LLM_TRADER_VERSION
 from .agents.types import AGENT_VERSION
@@ -39,4 +40,5 @@ def stamp() -> dict[str, str]:
             "execution": EXECUTION_VERSION, "orchestrator": ORCHESTRATOR_VERSION,
             "learning": LEARNING_VERSION, "review": REVIEW_VERSION, "llm_trader": LLM_TRADER_VERSION,
             "experimental_ai": EXPERIMENTAL_AI_VERSION, "edge_status": EDGE_STATUS_VERSION,
-            "forward": FORWARD_VERSION, "forward_metrics": METRICS_VERSION, "taxonomy": TAXONOMY_VERSION}
+            "forward": FORWARD_VERSION, "forward_metrics": METRICS_VERSION, "taxonomy": TAXONOMY_VERSION,
+            "dual_ai": DUAL_AI_VERSION}

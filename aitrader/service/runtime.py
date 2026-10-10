@@ -38,6 +38,7 @@ from ..execution.engine import ExecutionEngine
 from ..learning.experience import ExperienceView
 from ..learning import metrics as fwd_metrics
 from ..learning.forward import partition as fwd_partition
+from ..llm.openrouter import OpenRouterClient, OpenRouterConfig
 from ..llm.provider import LLMClient, LLMConfig
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
@@ -49,7 +50,7 @@ from ..regime.model import RegimeModel
 from ..risk.engine import RiskEngine
 from ..risk.hard_gate import HardRiskGate
 from ..decision.edge_status import PAPER_MODES
-from ..learning import paper_metrics
+from ..learning import dual_ai_stats, paper_metrics
 from ..version import stamp
 from .config import ServiceConfig, ServiceConfigError
 
@@ -94,7 +95,8 @@ def storage_state(data_dir: str, env=None) -> dict:
 #: 1.7.0: LIVE_TRADING / PAPER_MODE / EXPERIMENTAL_EXECUTE; startup reconciliation also reads the account
 #: and lists journal positions the broker no longer holds; the forward ledger resolves every 5 minutes;
 #: /readyz, /metrics, /api/evidence, /api/lessons.
-SERVICE_VERSION = "service-1.7.0"
+#: 1.8.0: /api/dual_ai and /api/dual_ai/chart.png (DECISION_MODE=dual_ai, PAPER_FORWARD only); OpenRouter status.
+SERVICE_VERSION = "service-1.8.0"
 #: modes that may decide more often than the evidence system's tested H1 cadence
 FLEX_MODES = MODEL_MODES + ("edges",)
 FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
@@ -144,6 +146,13 @@ class Runtime:
                 self.db.set_kv("paused", True, reason="first start: paused until an operator resumes "
                                                       "(PR-001 found no demonstrated edge)")
         self.llm = LLMClient(LLMConfig.from_env())
+        # The dual-AI trader's one provider (DECISION_MODE=dual_ai). Built always, used only in that mode; it
+        # reads nothing over the network until a decision asks it to.
+        self.openrouter = OpenRouterClient(OpenRouterConfig.from_env())
+        brain_cfg = BrainConfig.from_env()
+        if brain_cfg.decision_mode == "dual_ai" and cfg.mode != "PAPER_FORWARD":
+            raise ServiceConfigError(f"DECISION_MODE=dual_ai runs in MODE=PAPER_FORWARD only, not {cfg.mode}: the "
+                                     "two-model trader is a paper forward test (docs/DUAL_AI.md)")
         self.feed, self.broker = feed, broker
         if self.feed is None or self.broker is None:
             self._connect()
@@ -163,7 +172,8 @@ class Runtime:
             OrchestratorConfig(list(cfg.symbols), mode=cfg.mode, journal="full", events="all",
                                start_balance=cfg.start_balance, experimental_execute=cfg.experimental_execute),
             db=self.db, feed=self.feed, broker=self.broker,
-            brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=BrainConfig.from_env()),
+            brain=Brain(llm=self.llm, synthesizer=EvidenceSynthesizer(), config=brain_cfg, openrouter=self.openrouter,
+                        chart_dir=Path(cfg.data_dir) / "charts"),
             risk=RiskEngine(dataclasses.replace(cfg.risk, hard=cfg.hard_profile)), execution=self.execution, experience=self.experience,
             memory=self.memory, regime_for=lambda t: self.regime, clock=self.clock,
             # The calendar is read from the internet like the broker: only for a live feed.
@@ -172,7 +182,8 @@ class Runtime:
             history=self.history,
             versions={**stamp(), "service": SERVICE_VERSION, "knowledge_base": (self.knowledge_meta.get("hash", "none")
                                                      if self.knowledge_meta.get("integrity") == "VERIFIED" else "none"),
-                      "llm": self.llm.config.public()["model"] or "none"})
+                      "llm": ("openrouter (dual_ai)" if brain_cfg.decision_mode == "dual_ai" else
+                              self.llm.config.public()["model"] or "none")})
         self.health: dict = {"reconcile": None, "last_cycle": None, "last_cycle_error": None, "cycles": 0}
         self._stop = threading.Event()
         # One writer of orchestrator state at a time: the scheduler, a dashboard
@@ -532,6 +543,8 @@ class Runtime:
                 "ai_providers": self.llm.health().get("by_provider", {}),
                 "data_source": self.cfg.data_source,
                 "decision_mode": self.orch.brain.config.decision_mode,
+                "openrouter": (self.openrouter.health() if self.orch.brain.config.decision_mode == "dual_ai"
+                               or self.openrouter.config.configured else {"status": "NOT_USED"}),
                 "decision_interval_min": self.cfg.decision_interval_min or None,
                 "history_desk": self.history_meta,
                 "news_calendar": (self.orch.news.state(refresh=False) if self.orch.news is not None else {"status": "NOT_CONFIGURED"}),
@@ -803,6 +816,62 @@ class Runtime:
                                           "data_flags": (p.get("context") or {}).get("data_flags")})
         out["decisions_total"] = (self.db.one("SELECT COUNT(*) AS n FROM decisions") or {}).get("n", 0)
         return out
+
+    def dual_ai(self) -> dict:
+        """The DUAL AI desk panel: the provider's status (never the key), the three models, the last analyses with
+        both traders' answers, the agreement or the debate, the risk engine's verdict, the DUAL_AI paper positions
+        and their record. Read from the journal, so it survives a restart. Presentation only."""
+        mode = self.orch.brain.config.decision_mode
+        out: dict = {"active": mode == "dual_ai" and self.cfg.mode == "PAPER_FORWARD", "decision_mode": mode,
+                     "mode": self.cfg.mode, "live_trading": False, "money": "NOT REAL MONEY",
+                     "openrouter": self.openrouter.health(),
+                     "rules": {"max_calls_per_decision": 3, "free_models_only": True,
+                               "desk": "each trader chooses BUY or SELL; same side -> AGREE (the more confident "
+                                       "trader's levels); opposite sides -> one DEBATE picks the side; the risk "
+                                       "engine sizes and may refuse; NO_TRADE only when the market or an AI is "
+                                       "unavailable"}}
+        trader = getattr(self.orch.brain, "dual_ai", None)
+        out["charts"] = {s: {"t": c["t"], "decision_id": c["decision_id"], **c["meta"]}
+                         for s, c in (dict(trader.charts) if trader is not None else {}).items()}
+        analyses = []
+        for row in self.db.query("SELECT id, symbol, decision, payload FROM decisions ORDER BY seq DESC LIMIT 400"):
+            p = json.loads(row["payload"])
+            if p.get("family") != "DUAL_AI":
+                continue
+            rec = (p.get("ai") or {}).get("dual_ai") or {}
+            v = self.db.one("SELECT approved, payload FROM risk_verdicts WHERE decision_id=?", (row["id"],))
+            vp = json.loads(v["payload"]) if v else None
+            analyses.append({
+                "decision_id": row["id"], "symbol": row["symbol"], "t": p.get("timestamp"), "decision": row["decision"],
+                "reason": str(p.get("no_trade_reason") or p.get("thesis") or "")[:300],
+                "consensus": rec.get("consensus"), "models": rec.get("models"), "trader1": rec.get("trader1"),
+                "trader2": rec.get("trader2"), "verifier": rec.get("verifier"), "chart": rec.get("chart"),
+                "calls": rec.get("calls"),
+                "risk": (None if v is None else {"approved": bool(v["approved"]), "reasons": (vp or {}).get("reasons"),
+                                                 "qty": (vp or {}).get("qty")})})
+            if len(analyses) >= 12:
+                break
+        out["last_analysis"] = analyses[0] if analyses else None
+        out["analyses"] = analyses
+        out["open_positions"] = [p for p in self._live_positions() if self._family_of_position(p["id"]) == "DUAL_AI"]
+        outcomes = []
+        for row in self.db.query("SELECT payload FROM trades ORDER BY seq"):
+            rec = json.loads(row["payload"]) or {}
+            if (rec.get("decision") or {}).get("family") == "DUAL_AI" and rec.get("outcome"):
+                outcomes.append(rec["outcome"])
+        out["performance"] = paper_metrics.summary(outcomes)
+        out["record"] = dual_ai_stats.record(self.db)
+        out["recent_trades"] = outcomes[-10:][::-1]
+        return out
+
+    def _family_of_position(self, position_id) -> str | None:
+        row = self.db.one("SELECT decision_id FROM positions WHERE id=?", (position_id,))
+        dec = self.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],)) if row else None
+        return (json.loads(dec["payload"]) or {}).get("family") if dec else None
+
+    def dual_ai_chart(self, symbol: str) -> bytes | None:
+        trader = getattr(self.orch.brain, "dual_ai", None)
+        return trader.chart_png(symbol.upper()) if trader is not None else None
 
     def trades(self, closed: bool = True, limit: int = 200) -> list[dict]:
         if not closed:

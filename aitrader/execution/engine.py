@@ -36,6 +36,7 @@ from typing import Callable
 
 from ..broker.base import AmbiguousExecution, BrokerError, BrokerRejected, ClosedTrade
 from ..broker.paper import PaperBroker
+from ..decision.edge_status import SIGNAL_CLASS
 from ..memory.db import Database
 from ..risk.hard_gate import HardRiskGate, TradeProposal
 
@@ -53,9 +54,12 @@ from ..risk.hard_gate import HardRiskGate, TradeProposal
 #: 1.6.0: `paper_forward`: on the PAPER broker only, a model-originated trade may be executed (PAPER_FORWARD);
 #:        every other check, the risk verdict and the hard gate unchanged. A fill records the trade's full
 #:        provenance (source, agent, edge status, confidence, expected costs, equity at entry).
-EXECUTION_VERSION = "exec-1.6.0"
+#: 1.7.0: the model classes are every signal class except the deterministic ones (EVIDENCE, EDGE), so a new
+#:        model mode (DUAL_AI) is covered by this check without being listed: fail closed, not open.
+EXECUTION_VERSION = "exec-1.7.0"
 #: Signal classes a language model originates. They are SHADOW by route; refused here as a second check.
-MODEL_SIGNAL_CLASSES = frozenset({"LLM_TRADER", "TRADING_ROOM", "EXPERIMENTAL_AI"})
+DETERMINISTIC_SIGNAL_CLASSES = frozenset({"EVIDENCE", "EDGE"})
+MODEL_SIGNAL_CLASSES = frozenset(SIGNAL_CLASS.values()) - DETERMINISTIC_SIGNAL_CLASSES
 UNKNOWN_RECHECKS = 5
 
 

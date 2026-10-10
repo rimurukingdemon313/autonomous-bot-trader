@@ -102,6 +102,7 @@ def make_handler(rt: Runtime, token: str):
                     "/api/account": rt.account,
                     "/api/live": rt.live,
                     "/api/paper_forward": rt.paper_forward,
+                    "/api/dual_ai": rt.dual_ai,
                     "/api/room": lambda: getattr(getattr(rt.orch.brain, "room", None), "live", None) or {},
                     "/api/market": rt.market,
                     "/api/memory": rt.memory_view,
@@ -128,6 +129,9 @@ def make_handler(rt: Runtime, token: str):
                     return self._send(200 if d else 404, d or {"error": "not found"})
                 if p.startswith("/api/market/") and p.endswith("/bars"):
                     return self._send(200, rt.bars(p.split("/")[3].upper(), int(q.get("n", 200))))
+                if p == "/api/dual_ai/chart.png":  # the last chart Agent 1 read for a symbol (an image, no secret)
+                    png = rt.dual_ai_chart(q.get("symbol", ""))
+                    return self._send(200, png, "image/png") if png else self._send(404, {"error": "no chart yet"})
                 if p == "/api/events":
                     return self._send(200, rt.events(int(q.get("since", 0)), int(q.get("limit", 200))))
                 if p == "/api/stream":

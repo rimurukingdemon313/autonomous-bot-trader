@@ -3,10 +3,12 @@
 # to any account, no real money. The paper account (database) is carried from shift to shift in the Actions
 # cache, with a snapshot on the `paper-forward-data` branch; the dashboard view is published there every 15 min.
 #
-# Decision system: `evidence` (deterministic) unless the repository variable PF_DECISION_MODE names a model mode
-# (llm_trader / trading_room / experimental_ai) AND the owner has added a model key as the Actions secret
-# AI_API_KEY (with variables AI_PROVIDER, AI_BASE_URL, AI_MODEL). The key is the owner's to add in the repository
-# settings; it is never written anywhere else.
+# Decision system: the repository variable PF_DECISION_MODE when set. Otherwise `dual_ai` (docs/DUAL_AI.md: two
+# free OpenRouter models must agree) as soon as the owner adds the Actions secret OPENROUTER_API_KEY, deciding
+# every 75 minutes on one pair in rotation (2 or 3 requests each: inside a free key's 50 a day; PF_DECISION_INTERVAL_MIN and
+# PF_SYMBOLS_PER_CYCLE override), and `evidence` (deterministic) without it. The other model modes read the
+# secret AI_API_KEY with variables AI_PROVIDER, AI_BASE_URL, AI_MODEL. Keys are the owner's to add in the
+# repository settings; they are never written anywhere else.
 name: Paper forward test (continuous, paper only)
 on:
   schedule:
@@ -26,7 +28,10 @@ jobs:
       MODE: PAPER_FORWARD
       DATA_DIR: pf-state
       DATA_SOURCE: yahoo
-      DECISION_MODE: ${{ vars.PF_DECISION_MODE || 'evidence' }}
+      DECISION_MODE: ${{ vars.PF_DECISION_MODE || (secrets.OPENROUTER_API_KEY != '' && 'dual_ai' || 'evidence') }}
+      DECISION_INTERVAL_MIN: ${{ vars.PF_DECISION_INTERVAL_MIN || (secrets.OPENROUTER_API_KEY != '' && !vars.PF_DECISION_MODE && '75' || '0') }}
+      SYMBOLS_PER_CYCLE: ${{ vars.PF_SYMBOLS_PER_CYCLE || (secrets.OPENROUTER_API_KEY != '' && !vars.PF_DECISION_MODE && '1' || '0') }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'none' }}
       AI_BASE_URL: ${{ vars.AI_BASE_URL }}
       AI_MODEL: ${{ vars.AI_MODEL }}

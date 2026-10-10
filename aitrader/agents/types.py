@@ -198,6 +198,10 @@ class MarketContext:
     frames: dict = field(default_factory=dict)
     exec_atr: float | None = None
     open_symbols: tuple = ()
+    # Filled in the model modes: the completed bars themselves (timeframe -> BarSeries; the dual-AI trader
+    # draws its chart from them) and the declared cost estimate at the decision quote.
+    bars: dict = field(default_factory=dict)
+    costs: dict | None = None
 
     def as_dict(self) -> dict:
         return {

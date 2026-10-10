@@ -134,3 +134,7 @@ broker other than the paper broker exists.
 - The deterministic system's history is already known. PR-001 C, 2010–2016, ran bar by bar with real bid/ask
   and costs: −0.072 R per trade over 2,928 trades, t −2.9, negative in 5 of 7 years.
 - A model trader can only be judged here, forward. It cannot be judged on history it may have memorised.
+
+## Decision systems
+
+Any decision mode runs here through the same risk engine, hard gate and paper broker. `DECISION_MODE=dual_ai` (docs/DUAL_AI.md) is the two-trader desk on free OpenRouter models; the GitHub run selects it automatically once the `OPENROUTER_API_KEY` secret exists.

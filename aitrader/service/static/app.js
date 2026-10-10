@@ -646,6 +646,49 @@ function renderPaperForward(P) {
 }
 async function refreshPaperForward() { await safe(async () => renderPaperForward(await api("/api/paper_forward"))); }
 
+// DUAL AI: presentation only. The key is never sent to the page; only whether it is set and its last 4 characters.
+function renderDualAI(D) {
+  const card = $("dai-card");
+  card.hidden = !D.active;
+  if (!D.active) return;
+  const O = D.openrouter || {}, P = D.performance || {}, R = D.record || {}, L = D.last_analysis;
+  const conf = (a) => (a && a.confidence !== null && a.confidence !== undefined) ? `${num(a.confidence, 0)}` : NA;
+  $("dai-sub").textContent = `OpenRouter ${O.status || "N/A"} · key ${O.configured ? `set (${O.key_hint || "…"})` : "NOT SET"} · free models only · calls today ${O.calls_today ?? 0}/${O.daily_budget ?? "?"}`;
+  $("dai-tiles").innerHTML = [
+    tile("OpenRouter", esc(O.status || "N/A")), tile("Trader 1 (vision)", esc(O.vision_model || "none")),
+    tile("Trader 2", esc(O.judge_model || "none")), tile("Debate", esc(O.verifier_model || "none")),
+    tile("Trader 1 says", L && L.trader1 ? `${esc(L.trader1.direction)} · ${conf(L.trader1)}` : NA),
+    tile("Trader 2 says", L && L.trader2 ? `${esc(L.trader2.direction)} · ${conf(L.trader2)}` : NA),
+    tile("Desk", L && L.consensus ? esc(L.consensus.rule) : NA),
+    tile("Risk engine", L && L.risk ? (L.risk.approved ? "APPROVED" : "REJECTED") : NA),
+    tile("Open positions", String((D.open_positions || []).length)),
+    tile("AI trades", String(P.trades ?? 0)), tile("Wins", String(P.wins ?? 0)), tile("Losses", String(P.losses ?? 0)),
+    tile("Expectancy", P.expectancy_r === null || P.expectancy_r === undefined ? NA : `${signed(P.expectancy_r)}R`),
+    tile("Profit factor", num(P.profit_factor)), tile("Max drawdown", P.max_drawdown_usd === undefined ? NA : `$${num(P.max_drawdown_usd, 2)}`),
+    tile("Sample", esc(P.sample || "none")), tile("Agreement", R.agreement_rate === null || R.agreement_rate === undefined ? NA : pct(R.agreement_rate)),
+  ].join("");
+  $("dai-when").textContent = L ? `${ts(L.t)} · ${L.symbol}` : "none yet";
+  if (L) {
+    const m = L.models || {};
+    const line = (name, a, model) => a ? `<div><b>${name}</b> <span class="muted">${esc(model || "")}</span>: ${esc(a.direction || "")} · confidence ${conf(a)}${a.entry ? ` · entry ${num(a.entry, 5)} SL ${num(a.stop_loss, 5)} TP ${num(a.take_profit, 5)} RR ${num(a.risk_reward)}` : ""}<br><span class="muted">${esc(String(a.reason || "").slice(0, 300))}</span></div>` : "";
+    $("dai-last").innerHTML = line("Trader 1 (vision)", L.trader1, m.trader1) + line("Trader 2 (independent)", L.trader2, m.trader2)
+      + line("Debate", L.verifier, m.verifier)
+      + `<div><b>Final: ${esc(L.decision)}</b> <span class="muted">${esc(String(L.reason || "").slice(0, 300))}</span></div>`;
+    const fig = $("dai-figure");
+    fig.hidden = !L.chart;
+    if (L.chart && (D.charts || {})[L.symbol]) {
+      $("dai-img").src = `/api/dual_ai/chart.png?symbol=${encodeURIComponent(L.symbol)}&t=${D.charts[L.symbol].t}`;
+      $("dai-cap").textContent = `${L.symbol} · ${L.chart.execution_timeframe}/${L.chart.higher_timeframe || "-"} · completed bars to ${ts(L.chart.last_bar_available)} · sha256 ${String(L.chart.sha256 || "").slice(0, 12)}`;
+    } else fig.hidden = true;
+  } else $("dai-last").innerHTML = '<span class="muted">No analysis yet.</span>';
+  $("dai-table").querySelector("tbody").innerHTML = (D.analyses || []).map((a) => `<tr><td>${ts(a.t)}</td><td>${esc(a.symbol)}</td>
+    <td>${a.trader1 ? `${esc(a.trader1.direction)} ${conf(a.trader1)}` : NA}</td><td>${a.trader2 ? `${esc(a.trader2.direction)} ${conf(a.trader2)}` : "—"}</td>
+    <td>${a.verifier ? esc(a.verifier.direction) : "—"}</td><td>${esc((a.consensus || {}).rule || "")}</td><td>${esc(a.decision)}</td>
+    <td>${a.risk ? (a.risk.approved ? "APPROVED" : `<span class="neg">REJECTED</span>`) : "—"}</td></tr>`).join("")
+    || '<tr><td colspan="8" class="muted">No analysis yet.</td></tr>';
+}
+async function refreshDualAI() { await safe(async () => renderDualAI(await api("/api/dual_ai"))); }
+
 /* ── forward evidence ───────────────────────────────────────────────── */
 const sampleTag = (x) => esc(x || "none");
 const statTd = (st) => `<td class="num">${st?.n ?? 0}</td><td class="num">${st?.n ? signed(st.expectancy_r) : NA}</td>`;
@@ -718,6 +761,8 @@ refreshLive();
 setInterval(refreshLive, 2500);
 setInterval(refreshPaperForward, 10000);
 refreshPaperForward();
+setInterval(refreshDualAI, 15000);
+refreshDualAI();
 refreshAnalysis();
 setInterval(refreshAnalysis, 1000);  // the discussion: who is thinking now  // the account itself; prices behind it refresh about every 10 s
 setInterval(refreshFast, 10000);  // prices are cached 10 s server-side: refreshing faster only costs requests

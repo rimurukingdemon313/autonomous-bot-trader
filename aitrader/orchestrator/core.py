@@ -32,6 +32,7 @@ from typing import Callable
 import numpy as np
 
 from ..agents.brain import MODEL_MODES, Brain
+from ..agents.dual_ai import FAMILY as DUAL_FAMILY, counterfactual_decision
 from ..agents.llm_trader import FAMILY as LLM_FAMILY, multi_timeframe
 from ..agents.trading_room import member_records
 from ..agents.types import AccountView, MarketContext
@@ -43,13 +44,14 @@ from ..decision.synthesis import Decision
 from ..execution.engine import ExecutionEngine
 from ..features.store import LOOKBACK, compute_at
 from ..learning.experience import Evaluation, ExperienceView, session_of
+from ..learning import dual_ai_stats
 from ..learning.forward import Costs as ForwardCosts, ForwardLedger, partition, proposal as forward_proposal
 from ..learning.taxonomy import LessonBook
 from ..learning.proposals import proposals_from_reflection
 from ..learning.review import postmortem, reflect
 from ..memory.db import Database
 from ..memory.patterns import PatternMemory
-from ..memory.trade_memory import TradeMemory
+from ..memory.trade_memory import MODEL_FAMILIES, TradeMemory
 from ..research.labels import TEMPLATE_BY_KEY, CostModel, atr24
 from ..features.market_map import market_map
 from ..features.strategy_desk import strategy_desk
@@ -79,7 +81,10 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         PIPELINE event (decision -> risk approved/rejected -> paper executed / not, with the exact reason); every
 #:         closed trade records a full outcome (costs decomposed, R, MFE/MAE, holding time, reasoning, source,
 #:         edge status, regime, partition, whether the direction and the risk estimate were right).
-ORCHESTRATOR_VERSION = "orchestrator-1.14.0"
+#: 1.15.0: DECISION_MODE=dual_ai: model modes carry the completed bars (for the chart) and the declared cost
+#:         estimate; the dual-AI desk reads its own family's measured record; the side that lost a debate is
+#:         followed forward as DUAL_AI_DEBATE_LOSER; closed DUAL_AI trades are scored per trader.
+ORCHESTRATOR_VERSION = "orchestrator-1.15.0"
 
 
 class NullKnowledge:
@@ -346,12 +351,23 @@ class Orchestrator:
                 # more M5/M15 history than the packet shows: the market map reads structure from it
                 lower = {tf: self.feed.bars_tf(symbol, tf, t, n) for tf, n in (("M1", 60), ("M5", 600), ("M15", 300))}
             ctx.mtf = multi_timeframe(long, t, lower) if long is not None and len(long) else {}
+            ctx.bars = {tf: b for tf, b in {"H1": long, **lower}.items() if b is not None and len(b)}
+            if quote is not None:
+                pip = pip_of(symbol)
+                slip, comm = 2 * self.cfg.costs.slippage_pips * pip, self.cfg.costs.commission_pips_rt * pip
+                ctx.costs = {"spread": round(quote.ask - quote.bid, 8), "slippage_round_trip": round(slip, 8),
+                             "commission_round_trip": round(comm, 8),
+                             "total": round(quote.ask - quote.bid + slip + comm, 8),
+                             "basis": "spread from the live quote; slippage and commission are declared approximations"}
             ctx.market_map = market_map(symbol, long, lower, t) if long is not None and len(long) else None
             ctx.strategy_desk = strategy_desk(symbol, {**{k: v for k, v in lower.items() if k in ("M5", "M15")},
                                                        "H1": long}, t) if long is not None and len(long) else None
             if hasattr(self.feed, "intermarket"):
                 ctx.intermarket = self.feed.intermarket(t)
-            ctx.memory_brief = TradeMemory(self.db, self.experience).brief(symbol, regime.label, t)
+            families = (DUAL_FAMILY,) if mode == "dual_ai" else MODEL_FAMILIES  # never two systems' record as one
+            ctx.memory_brief = TradeMemory(self.db, self.experience, families).brief(symbol, regime.label, t)
+            if mode == "dual_ai":
+                ctx.memory_brief["dual_ai"] = dual_ai_stats.record(self.db, as_of=t, partition_="LEARNING")
             # Forward lessons confirmed out of sample (ACTIVE): information for the model, never a rule.
             ctx.memory_brief["forward_lessons"] = [
                 {"code": l["code"], "scope": l["scope"], "statement": l["statement"],
@@ -443,6 +459,12 @@ class Orchestrator:
                     route=route if verdict.approved else "REJECTED", risk=verdict.as_dict(), executed=executed))
         else:
             self.counts["no_trade"] += 1
+        cf = counterfactual_decision(d) if self.cfg.journal == "full" else None
+        if cf is not None:  # the side that lost a debate, followed forward as if taken: did the debate choose well?
+            self.forward.record(forward_proposal(
+                cf, t=t, bid=ctx.bid, ask=ctx.ask, atr=atr if np.isfinite(atr) else None, pip=pip_of(symbol),
+                costs=ForwardCosts(self.cfg.costs.slippage_pips, self.cfg.costs.commission_pips_rt),
+                route="COUNTERFACTUAL", risk=None, executed=False))
         room = getattr(self.brain, "room", None)
         if room is not None and hasattr(room, "publish_outcome"):  # the dashboard's view of the discussion
             room.publish_outcome(symbol, t, {
@@ -590,6 +612,8 @@ class Orchestrator:
                 "planned_max_loss": max_loss, "expected_costs": pos_payload.get("expected_costs"),
                 "equity_at_entry": pos_payload.get("equity_at_entry"),
                 "partition": partition(int(ct.opened)), "paper_forward": bool(pos_payload.get("paper_forward"))}
+            if dec.get("family") == DUAL_FAMILY:
+                outcome["dual_ai"] = dual_ai_stats.evaluate_trade(((dec.get("ai") or {}).get("dual_ai") or {}), outcome)
             record = {"decision": {k: dec.get(k) for k in ("id", "decision", "family", "template", "thesis",
                                                            "expected_R", "lower_R", "probability", "confidence",
                                                            "required_edge", "regime", "versions")},

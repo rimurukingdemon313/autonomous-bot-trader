@@ -73,6 +73,27 @@ def report_md(v: dict, shift: dict) -> str:
         lines.append(f"| {when} | {t['symbol']} | {t['direction']} | {money(t.get('net_pnl'))} | "
                      f"{fmt(t.get('r'), '{:+.2f}')} | {money(t.get('costs_total'))} | "
                      f"{t.get('exit_reason')} | {t.get('source') or t.get('agent')} |")
+    dai = v.get("dual_ai")
+    if dai and dai.get("active"):
+        o, perf = dai.get("openrouter") or {}, dai.get("performance") or {}
+        lines += ["", "## Dual AI desk (two free OpenRouter traders; a debate when they disagree)", "",
+                  f"OpenRouter `{o.get('status')}` · key {'set' if o.get('configured') else 'NOT SET'} · trader 1 "
+                  f"`{o.get('vision_model')}` · trader 2 `{o.get('judge_model')}` · debate `{o.get('verifier_model')}` · "
+                  f"calls today {o.get('calls_today')}/{o.get('daily_budget')}", "",
+                  f"AI trades {perf.get('trades', 0)} ({perf.get('sample', 'none')}) · wins {perf.get('wins', 0)} · "
+                  f"losses {perf.get('losses', 0)} · expectancy {fmt(perf.get('expectancy_r'), '{:+.3f}R')} · "
+                  f"profit factor {fmt(perf.get('profit_factor'), '{:.2f}')}", "",
+                  "| Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |",
+                  "|---|---|---|---|---|---|---|---|"]
+        for a in dai.get("analyses") or []:
+            when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"
+            t1, t2, vf = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}
+            risk = a.get("risk")
+            lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')} | "
+                         f"{t2.get('direction', '-')} {t2.get('confidence', '')} | {vf.get('direction', '-')} | "
+                         f"{(a.get('consensus') or {}).get('rule')} | "
+                         f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} |")
+        lines += ["", "The chart Agent 1 read last: `last_chart.png`."]
     lines += ["", "Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.", ""]
     return "\n".join(lines)
 
@@ -80,6 +101,12 @@ def report_md(v: dict, shift: dict) -> str:
 def publish(rt, pub: Path, shift: dict, push: bool) -> None:
     v = rt.paper_forward()
     v["shift"] = shift
+    if rt.orch.brain.config.decision_mode == "dual_ai":
+        v["dual_ai"] = rt.dual_ai()
+        last = (v["dual_ai"].get("last_analysis") or {}).get("symbol")
+        png = rt.dual_ai_chart(last) if last else None
+        if png:
+            (pub / "last_chart.png").write_bytes(png)
     v["health"] = {k: rt.health.get(k) for k in ("last_cycle", "last_cycle_error", "cycles")}
     (pub / "paper_forward.json").write_text(json.dumps(v, indent=1, default=str) + "\n")
     (pub / "REPORT.md").write_text(report_md(v, shift))
@@ -108,7 +135,9 @@ def main() -> int:
     pub.mkdir(parents=True, exist_ok=True)
     rt = Runtime(cfg)
     shift = {"started": f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC",
-             "decision_mode": rt.orch.brain.config.decision_mode, "llm": rt.llm.config.public().get("model") or "none"}
+             "decision_mode": rt.orch.brain.config.decision_mode,
+             "llm": ("openrouter (free models)" if rt.orch.brain.config.decision_mode == "dual_ai"
+                     else rt.llm.config.public().get("model") or "none")}
     rep = rt.execution.reconcile()
     print(json.dumps({"reconcile": rep, "gate": rt.gate.status().get("risk_status")}, default=str), flush=True)
     stop = {"now": False}

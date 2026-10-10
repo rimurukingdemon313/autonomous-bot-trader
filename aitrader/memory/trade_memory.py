@@ -24,10 +24,13 @@ import json
 from ..learning.forward import partition
 
 LLM_FAMILY = "LLM_TRADER"
-#: The model-proposed families whose trades the models read back (llm_trader / trading_room, experimental_ai).
-MODEL_FAMILIES = (LLM_FAMILY, "EXPERIMENTAL_AI")
+#: The model-proposed families whose trades the models read back (llm_trader / trading_room, experimental_ai,
+#: dual_ai). A trader reads its own family only when the orchestrator says so (`families`), so two systems'
+#: records are never averaged into one.
+MODEL_FAMILIES = (LLM_FAMILY, "EXPERIMENTAL_AI", "DUAL_AI")
 MAX_TRADES = 12
-MEMORY_VERSION_TRADES = "trade-memory-1.1.0"  # 1.1.0: LEARNING-partition trades only (learning/forward.py)
+MEMORY_VERSION_TRADES = "trade-memory-1.2.0"  # 1.1.0: LEARNING-partition trades only (learning/forward.py)
+#: 1.2.0: DUAL_AI is a model family; the reader chooses which families it reads (dual_ai: its own only).
 
 
 def _trade_view(row: dict, reflections: dict[str, dict]) -> dict:
@@ -47,8 +50,8 @@ def _trade_view(row: dict, reflections: dict[str, dict]) -> dict:
 
 
 class TradeMemory:
-    def __init__(self, db, knowledge=None) -> None:
-        self.db, self.knowledge = db, knowledge
+    def __init__(self, db, knowledge=None, families: tuple = MODEL_FAMILIES) -> None:
+        self.db, self.knowledge, self.families = db, knowledge, families
 
     def _rows(self) -> list[dict]:
         """The model families' closed trades whose decision fell in a LEARNING week. Trades decided in an
@@ -57,7 +60,7 @@ class TradeMemory:
         out = []
         for r in rows:
             p = json.loads(r["payload"])
-            if (p.get("decision") or {}).get("family") not in MODEL_FAMILIES:
+            if (p.get("decision") or {}).get("family") not in self.families:
                 continue
             opened = (p.get("position") or {}).get("opened")
             if opened is not None and partition(int(opened)) != "LEARNING":

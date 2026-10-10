@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import sys
 
+from . import envfile
 from .observability import log_event
 from .service.config import ServiceConfig, ServiceConfigError
 
 
 def main() -> int:
+    names = envfile.load(".env")  # a local .env fills only what the environment does not set
+    if names:
+        log_event("STARTUP", f".env supplied {len(names)} setting(s): {', '.join(sorted(names))}")  # names, never values
     try:
         cfg = ServiceConfig.from_env()
     except ServiceConfigError as exc:

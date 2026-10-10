@@ -28,6 +28,7 @@ from ..llm.provider import LLMClient
 from .analysts import (
     AdversarialAnalyst, MarketAnalyst, ReviewerAnalyst, RiskAnalyst, SetupAnalyst, validate_llm_review,
 )
+from .dual_ai import DualAITrader
 from .llm_trader import LLMTrader
 from ..decision.edge_engine import load_promoted
 from .edge_trader import edge_decision
@@ -60,9 +61,11 @@ SYSTEM_RULES = (
 )
 
 
-DECISION_MODES = ("evidence", "llm_trader", "trading_room", "edges", "experimental_ai")
+DECISION_MODES = ("evidence", "llm_trader", "trading_room", "edges", "experimental_ai", "dual_ai")
 #: The modes in which a language model proposes the trade (never backtestable; PAPER/DEMO only).
-MODEL_MODES = ("llm_trader", "trading_room", "experimental_ai")
+#: dual_ai: a desk of two traders on different free OpenRouter models, each choosing BUY or SELL, with one
+#: debate when they disagree (agents/dual_ai.py); MODE=PAPER_FORWARD only.
+MODEL_MODES = ("llm_trader", "trading_room", "experimental_ai", "dual_ai")
 
 
 @dataclass
@@ -106,7 +109,8 @@ class Thought:
 class Brain:
     def __init__(self, llm: LLMClient | None = None, synthesizer: EvidenceSynthesizer | None = None,
                  risk: RiskAnalyst | None = None, adversary: AdversarialAnalyst | None = None,
-                 config: BrainConfig | None = None, reviewer: ReviewerAnalyst | None = None) -> None:
+                 config: BrainConfig | None = None, reviewer: ReviewerAnalyst | None = None,
+                 openrouter=None, chart_dir=None) -> None:
         self.market = MarketAnalyst()
         self.setup = SetupAnalyst()
         self.risk = risk or RiskAnalyst()
@@ -116,6 +120,7 @@ class Brain:
         self.config = config or BrainConfig()
         self.room = TradingRoom(llm, self.config.room)
         self.experimental = ExperimentalAI(llm, self.config.experimental)
+        self.dual_ai = DualAITrader(openrouter, chart_dir)
         self.synth = synthesizer or EvidenceSynthesizer()
         self.edges = load_promoted()[0] if self.config.decision_mode == "edges" else []
         self.llm = llm
@@ -225,7 +230,7 @@ class Brain:
             t2 = time.perf_counter()
         elif self.config.decision_mode in MODEL_MODES:
             opinions = []  # the models ARE the traders here: no separate review calls
-            trader = {"trading_room": self.room, "experimental_ai": self.experimental}.get(
+            trader = {"trading_room": self.room, "experimental_ai": self.experimental, "dual_ai": self.dual_ai}.get(
                 self.config.decision_mode, self.llm_trader)
             decision = trader.decide(ctx, reports, versions)
             t2 = time.perf_counter()
