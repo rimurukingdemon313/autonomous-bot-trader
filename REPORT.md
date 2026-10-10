@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-10 19:55 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-10 18:55 UTC · decision system `evidence`
+Updated 2026-10-10 20:10 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-10 18:55 UTC · decision system `evidence`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -11,20 +11,20 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 ## Last decisions (decision → risk → paper execution)
 
 
-## Latest decisions, NO TRADE included (204 so far)
+## Latest decisions, NO TRADE included (216 so far)
 
-- 10-10 16:01 AUDJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 66729s old; STALE_DATA (risk): last closed bar is 1081  [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 EURCHF NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 66729s [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 GBPJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 66698s [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 EURJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 42025s old; STALE_DATA (risk): last closed bar is 1081  [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 EURGBP NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1021 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 63728s [data: latest bar closed 1021 minutes ago]
-- 10-10 16:01 NZDUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 40327s old; STALE_DATA (risk): last closed bar is 1081  [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 USDCHF NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1141 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 68498s old; STALE_DATA (risk): last closed bar is 1141  [data: latest bar closed 1141 minutes ago]
-- 10-10 16:01 USDCAD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 42025s [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 AUDUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 40327s [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 USDJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1141 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 68500s old; STALE_DATA (risk): last closed bar is 1141  [data: latest bar closed 1141 minutes ago]
-- 10-10 16:01 GBPUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 4268s  [data: latest bar closed 1081 minutes ago]
-- 10-10 16:01 EURUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1081 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 66729s [data: latest bar closed 1081 minutes ago]
+- 10-10 20:01 AUDJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 81142s old; STALE_DATA (risk): last closed bar is 1321  [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 EURCHF NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 81142s [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 GBPJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 81111s [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 EURJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 56438s old; STALE_DATA (risk): last closed bar is 1321  [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 EURGBP NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1261 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 78141s [data: latest bar closed 1261 minutes ago]
+- 10-10 20:01 NZDUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 1942s old; STALE_DATA (risk): last closed bar is 1321 m [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 USDCHF NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1381 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 82911s old; STALE_DATA (risk): last closed bar is 1381  [data: latest bar closed 1381 minutes ago]
+- 10-10 20:01 USDCAD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 56438s [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 AUDUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 54740s [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 USDJPY NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1381 minutes ago; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 82913s old; STALE_DATA (risk): last closed bar is 1381  [data: latest bar closed 1381 minutes ago]
+- 10-10 20:01 GBPUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 18681s [data: latest bar closed 1321 minutes ago]
+- 10-10 20:01 EURUSD NO_TRADE: blocked: DATA_QUALITY (risk): latest bar closed 1321 minutes ago; DATA_QUALITY (risk): features missing: bar_body; UNFAMILIAR_STATE (risk): familiarity distance inf; STALE_DATA (risk): quote is 81142s [data: latest bar closed 1321 minutes ago]
 
 ## Open paper positions
 
