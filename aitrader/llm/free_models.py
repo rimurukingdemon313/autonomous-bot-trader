@@ -1,28 +1,45 @@
-"""FREE OpenRouter model discovery and selection for the dual-AI trader (docs/DUAL_AI.md).
+"""FREE OpenRouter model discovery and selection for the dual-AI trading desk (docs/DUAL_AI.md).
 
-The catalog (`GET /api/v1/models`) is read; a model is FREE only when EVERY price it lists is exactly zero:
-prompt, completion, request, image, web search, internal reasoning, cache. A missing pricing block, a
-negative or variable price (routers such as `openrouter/auto` list -1), or any price above zero excludes it.
-Router and meta models (`openrouter/...`) are excluded outright: they choose the serving model themselves.
+The catalog (`GET /api/v1/models`) is read. A model is FREE only when all of these hold:
+- It is one of OpenRouter's explicit free variants: its id ends in ":free". A model that merely lists a zero
+  price without that suffix is a promotion that can end between two catalog reads, and OpenRouter's own
+  "Free" filter does not list it; it is never used.
+- EVERY price it lists is exactly zero: prompt, completion, request, image, web search, internal reasoning,
+  cache. A missing pricing block, a negative or variable price, or any price above zero excludes it.
+- It writes text only. Generators of audio or images are billed outside the token prices (Google's Lyria lists
+  $0 prompt/completion while its description says "$0.08 per song"), and embedding or rerank models write
+  vectors and scores, not answers.
+- Its description states no price ("$0.04 per clip").
+- It is not a router (`openrouter/...`), a safety/guard classifier, an embedding, rerank or speech model.
 
-Selection is an explicit, declared score, computed from the catalog's own fields; it is not tuned on trading
+Selection is an explicit, declared score computed from the catalog's own fields. It is never tuned on trading
 results:
 
-    vision  (Agent 1, chart image analysis)   requires image input and text output, context >= 16k
-            40 for vision + up to 10 size + up to 10 context + 5 structured output + 5 reasoning + 3 recent
-    judge   (Agent 2, independent evaluation)  requires text output, context >= 16k
-            up to 10 size + up to 10 context + 8 structured output + 8 reasoning + 3 recent
-            + 10 when its family (the id's prefix) differs from the vision model's: two different minds
-    verifier (optional one-shot)               a vision model other than Agent 1 when one exists
+    capability  the catalog's independent benchmark, the Artificial Analysis intelligence index, one point per
+                index point (capped at 60); without it, from the parameter count in the id, at most 12
+                (nothing stated: 4)
+    context     5 x min(1, log2(context / 8192) / 5)
+    vision      (Agent 1, reads the chart) needs image input:
+                40 + capability + context + 3 reasoning + 2 recent
+    trader      (Agent 2, independent) any FREE text model except Agent 1's:
+                capability + context + 6 reasoning + 2 recent + 3 image input
+                + 10 when its family (the id's prefix) differs from Agent 1's: two different minds
+    verifier    (the debate) any FREE model except the two agents':
+                capability + context + 6 reasoning + 4 image input (it can then see the chart) + 2 recent
+                + 10 when its family differs from both agents'; with no third model, the strongest
+                reasoning model of the two is reused
+    (structured-output support is shown but not scored: the client asks for JSON in the prompt and never sends
+    `response_format`, so that capability is not used)
+    penalties   -10 for a single-domain specialist (code, health, medicine); a model expiring within 7 days is
+                excluded, within 30 days it scores -10; 30 x its failure rate in this process (from 3 calls)
 
-    size      parameter count read from the id/name ("27b", "70b", "235b-a22b"): 10 * log2(B) / log2(400)
-    context   10 * min(1, log2(context / 8192) / 5)        (8k -> 0, 256k -> 10)
-    recent    created within the last 365 days
-    reliability  every score is reduced by 30 x the model's failure rate in this process (>= 3 calls)
+A model that fails is put on cooldown or excluded, and the next-best FREE model of the same role is used:
+- a 404 "no endpoints", or unavailability;
+- repeated errors;
+- a reply showing a cost above zero, or one served by another model.
 
-A model that fails (404 "no endpoints", unavailable, repeated errors, or a response showing a cost above zero)
-is put on cooldown or excluded, and the next-best FREE model of the same role is used. A paid model is never a
-fallback: when no free model qualifies, the role has no model and the decision is NO_TRADE.
+A paid model is never a fallback. When no free model qualifies, the role has no model and the decision is
+NO_TRADE (the AI is unavailable; that is not a market judgement).
 """
 
 from __future__ import annotations
@@ -31,10 +48,15 @@ import math
 import re
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
-FREE_MODELS_VERSION = "free-models-1.0.0"
+FREE_MODELS_VERSION = "free-models-1.2.0"
 MIN_CONTEXT = 16_384
 EXCLUDED_PREFIXES = ("openrouter/",)
+FREE_SUFFIX = ":free"
+CLASSIFIER_WORDS = ("safety", "guard", "moderation", "embed", "rerank", "tts", "speech", "whisper")
+SPECIALIST_WORDS = ("code", "coder", "coding", "sante", "medical", "medicine", "health", "math")
+PRICE_IN_TEXT = re.compile(r"\$\s?\d")
 
 
 def _price(v) -> float | None:
@@ -55,7 +77,15 @@ def is_free(model: dict) -> bool:
         if p is None or p != 0.0:
             return False
     mid = str(model.get("id") or "")
-    return bool(mid) and not mid.startswith(EXCLUDED_PREFIXES)
+    if not mid or mid.startswith(EXCLUDED_PREFIXES) or not mid.endswith(FREE_SUFFIX):
+        return False
+    _, outs = modalities(model)
+    if outs and outs != {"text"}:  # audio/image generation is billed outside the token prices
+        return False
+    if PRICE_IN_TEXT.search(str(model.get("description") or "")):
+        return False
+    words = f"{mid} {model.get('name', '')}".lower()
+    return not any(w in words for w in CLASSIFIER_WORDS)
 
 
 def modalities(model: dict) -> tuple[set, set]:
@@ -95,16 +125,46 @@ def params_b(model: dict) -> float | None:
     return max(sizes) if sizes else None
 
 
-def _size_score(model: dict) -> float:
+def intelligence(model: dict) -> float | None:
+    """The catalog's independent benchmark (Artificial Analysis intelligence index), when present."""
+    aa = ((model.get("benchmarks") or {}).get("artificial_analysis") or {}) if isinstance(model.get("benchmarks"), dict) else {}
+    v = aa.get("intelligence_index")
+    return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) else None
+
+
+def capability(model: dict) -> float:
+    ii = intelligence(model)
+    if ii is not None:
+        return min(60.0, max(0.0, ii))
     b = params_b(model)
     if b is None or b <= 0:
-        return 5.0  # unstated: neither rewarded nor punished
-    return 10.0 * min(1.0, max(0.0, math.log2(b) / math.log2(400)))
+        return 4.0  # nothing measured, nothing stated
+    return min(12.0, 12.0 * max(0.0, math.log2(b) / math.log2(400)))
 
 
 def _ctx_score(model: dict) -> float:
     c = context_length(model)
-    return 0.0 if c <= 8192 else 10.0 * min(1.0, math.log2(c / 8192) / 5)
+    return 0.0 if c <= 8192 else 5.0 * min(1.0, math.log2(c / 8192) / 5)
+
+
+def _expiry_days(model: dict, now: float) -> float | None:
+    exp = model.get("expiration_date")
+    if not exp:
+        return None
+    try:
+        t = datetime.fromisoformat(str(exp)).replace(tzinfo=timezone.utc).timestamp()
+    except ValueError:
+        return None
+    return (t - now) / 86400
+
+
+def _penalty(model: dict, now: float) -> float:
+    words = f"{model.get('id', '')} {model.get('name', '')}".lower()
+    p = 10.0 if any(w in words for w in SPECIALIST_WORDS) else 0.0
+    days = _expiry_days(model, now)
+    if days is not None and days <= 30:
+        p += 10.0
+    return p
 
 
 def _params(model: dict) -> set:
@@ -125,22 +185,33 @@ def _recent(model: dict, now: float) -> bool:
 
 
 def vision_score(model: dict, now: float) -> float:
-    return (40.0 + _size_score(model) + _ctx_score(model) + 5.0 * _structured(model) + 5.0 * _reasoning(model)
-            + 3.0 * _recent(model, now))
+    return (40.0 + capability(model) + _ctx_score(model) + 3.0 * _reasoning(model) + 2.0 * _recent(model, now)
+            - _penalty(model, now))
 
 
 def judge_score(model: dict, now: float, vision_family: str | None) -> float:
-    s = (_size_score(model) + _ctx_score(model) + 8.0 * _structured(model) + 8.0 * _reasoning(model)
-         + 3.0 * _recent(model, now))
+    """Agent 2, the independent trader."""
+    s = (capability(model) + _ctx_score(model) + 6.0 * _reasoning(model) + 2.0 * _recent(model, now)
+         + 3.0 * supports_image(model) - _penalty(model, now))
     if vision_family is not None and family(model["id"]) != vision_family:
+        s += 10.0
+    return s
+
+
+def verifier_score(model: dict, now: float, families: set[str]) -> float:
+    """The debate: reasoning first; seeing the chart helps; a third family is the most independent."""
+    s = (capability(model) + _ctx_score(model) + 6.0 * _reasoning(model) + 4.0 * supports_image(model)
+         + 2.0 * _recent(model, now) - _penalty(model, now))
+    if family(model["id"]) not in families:
         s += 10.0
     return s
 
 
 def free_candidates(catalog: list[dict]) -> dict[str, list[dict]]:
     """FREE models usable per role (unscored): vision needs image input; both need text output and context."""
+    now = time.time()
     free = [m for m in catalog if isinstance(m, dict) and is_free(m) and context_length(m) >= MIN_CONTEXT
-            and "text" in (modalities(m)[1] or {"text"})]
+            and (_expiry_days(m, now) is None or _expiry_days(m, now) > 7)]
     return {"vision": [m for m in free if supports_image(m)], "text": free}
 
 
@@ -163,8 +234,9 @@ class Selection:
 def _row(m: dict, score: float) -> dict:
     ins, _ = modalities(m)
     return {"id": m["id"], "name": m.get("name"), "score": round(score, 2), "context": context_length(m),
-            "image": "image" in ins, "params_b": params_b(m), "structured": _structured(m),
-            "reasoning": _reasoning(m), "family": family(m["id"])}
+            "image": "image" in ins, "intelligence_index": intelligence(m), "params_b": params_b(m),
+            "structured": _structured(m), "reasoning": _reasoning(m), "family": family(m["id"]),
+            "expires": m.get("expiration_date")}
 
 
 def select(catalog: list[dict], now: float | None = None, penalties: dict[str, float] | None = None,
@@ -187,8 +259,16 @@ def select(catalog: list[dict], now: float | None = None, penalties: dict[str, f
                   if m["id"] not in excluded and m["id"] != top_vision),
                  key=lambda x: (-x[0], x[1]["id"]))
     sel.judge = [_row(m, s) for s, m in jud]
-    # the verifier sees the chart: a vision model other than Agent 1 when one exists, else Agent 1 itself
-    sel.verifier = [r for r in sel.vision if r["id"] != top_vision] or sel.vision[:1]
+    top_judge = sel.judge[0]["id"] if sel.judge else None
+    fams = {f for f in (vfam, family(top_judge) if top_judge else None) if f}
+    ver = sorted(((verifier_score(m, now, fams) - pen(m["id"]), m) for m in cands["text"]
+                  if m["id"] not in excluded and m["id"] not in (top_vision, top_judge)),
+                 key=lambda x: (-x[0], x[1]["id"]))
+    sel.verifier = [_row(m, s) for s, m in ver]
+    if not sel.verifier:  # only two suitable models: the strongest reasoning one of them is reused
+        both = [m for m in cands["text"] if m["id"] in (top_vision, top_judge)]
+        both.sort(key=lambda m: (-(capability(m) + 6.0 * _reasoning(m)), m["id"]))
+        sel.verifier = [_row(m, verifier_score(m, now, set())) for m in both[:1]]
     if not sel.vision:
         sel.error = "no FREE vision model in the catalog"
     elif not sel.judge:
@@ -196,5 +276,6 @@ def select(catalog: list[dict], now: float | None = None, penalties: dict[str, f
     return sel
 
 
-__all__ = ["FREE_MODELS_VERSION", "MIN_CONTEXT", "Selection", "family", "free_candidates", "is_free", "judge_score",
-           "params_b", "select", "supports_image", "vision_score"]
+__all__ = ["FREE_MODELS_VERSION", "FREE_SUFFIX", "MIN_CONTEXT", "Selection", "capability", "family",
+           "free_candidates", "intelligence", "is_free", "judge_score", "params_b", "select", "supports_image",
+           "verifier_score", "vision_score"]
