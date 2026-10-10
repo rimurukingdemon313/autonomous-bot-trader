@@ -233,3 +233,39 @@ def test_the_image_goes_only_to_a_model_that_can_read_it():
     sent = {x["model"]: x["body"]["messages"][1]["content"] for x in fake.calls}
     assert isinstance(sent[VISION], list) and any(p["type"] == "image_url" for p in sent[VISION])
     assert sent[TRADER] == "{}"  # a text model gets the text alone
+
+
+# ── errors a new key commonly meets ─────────────────────────────────────
+
+def test_an_account_privacy_setting_that_blocks_free_models_is_named_and_not_blamed_on_a_model():
+    msg = "No endpoints found matching your data policy (Free model publication). Configure: https://openrouter.ai/settings/privacy"
+    fake = FakeOpenRouter(lambda r, b: (404, {}, {"error": {"message": msg}}))
+    c = client(fake)
+    res = c.chat_json("vision", MSG, accept, dedupe_key="k")
+    assert res.status == "DATA_POLICY" and "settings/privacy" in res.error
+    assert len(fake.calls) == 1  # every free model would answer the same: no fallback round, nothing rested
+    assert c.selection()["cooldown"] == {} and c.health()["status"] == "DATA_POLICY_BLOCKED"
+
+
+def test_a_reply_cut_at_max_tokens_is_named_as_such():
+    fake = FakeOpenRouter(lambda r, b: (200, {}, {"id": "g", "model": b["model"], "usage": {"cost": 0},
+                                                  "choices": [{"finish_reason": "length",
+                                                               "message": {"content": "", "reasoning": "thinking..."}}]}))
+    res = client(fake).chat_json("vision", MSG, accept, dedupe_key="k")
+    assert res.status.startswith("INVALID") and "max_tokens" in res.status
+
+
+def test_the_key_check_falls_back_to_the_older_path():
+    seen = []
+
+    class Old(FakeOpenRouter):
+        def __call__(self, method, url, headers, body, timeout):
+            seen.append(url.rsplit("/api/v1", 1)[-1])
+            if url.endswith("/api/v1/key"):
+                return 404, {}, {"error": {"message": "Not Found"}}
+            if url.endswith("/auth/key"):
+                return 200, {}, {"data": {"usage": 0, "is_free_tier": True}}
+            return super().__call__(method, url, headers, body, timeout)
+
+    c = client(Old(good))
+    assert c.check_key(force=True)["is_free_tier"] is True and seen == ["/key", "/auth/key"]

@@ -73,7 +73,7 @@ RR_ABS_TOL, RR_REL_TOL = 0.25, 0.20
 HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
 EXEC_ROWS, HTF_ROWS = 60, 30
-MAX_TOKENS = {"vision": 3000, "judge": 3000, "verifier": 2500}
+MAX_TOKENS = {"vision": 6000, "judge": 6000, "verifier": 5000}  # reasoning models think before they answer
 CHART_KEEP = 300  # chart files kept on disk
 
 _SCHEMA = """{{"direction": "BUY|SELL", "entry": <price>, "stop_loss": <price>, "take_profit": <price>,

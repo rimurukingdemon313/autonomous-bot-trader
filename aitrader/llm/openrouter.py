@@ -4,7 +4,7 @@ Configuration, environment only (a local `.env` file is read by `python -m aitra
 
     OPENROUTER_API_KEY              the one key ("PASTE_MY_KEY_HERE" and empty count as not configured)
     OPENROUTER_BASE_URL             default https://openrouter.ai/api/v1
-    OPENROUTER_TIMEOUT_S            per request, default 90 (vision models with an image can be slow)
+    OPENROUTER_TIMEOUT_S            per request, default 120 (vision and reasoning models can be slow)
     OPENROUTER_MAX_RETRIES          per request on a timeout / 429 / 5xx, default 3 (exponential backoff + jitter)
     OPENROUTER_DAILY_CALL_BUDGET    hard cap on requests per UTC day, default 900; never above the key's own free
                                     quota (OpenRouter: 50 a day on a key that never bought credits, 1000 after
@@ -55,7 +55,11 @@ from typing import Callable
 from .free_models import Selection, select, supports_image
 from .provider import extract_json
 
-OPENROUTER_VERSION = "openrouter-1.2.0"
+#: 1.3.0: an account whose privacy setting blocks free models is reported as DATA_POLICY (one setting fixes
+#:        it; no model is rested for it); a reply cut at max_tokens is named as such; GET /auth/key when /key is
+#:        not found; replies may take longer (timeout 120 s) and use more tokens (reasoning models think first).
+OPENROUTER_VERSION = "openrouter-1.3.0"
+PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
 COOLDOWN_S = {"unavailable": 6 * 3600, "rate_limited": 300, "failing": 900}
@@ -87,7 +91,7 @@ def _http(method: str, url: str, headers: dict, body: dict | None, timeout: floa
 class OpenRouterConfig:
     api_key: str = field(default="", repr=False)
     base_url: str = "https://openrouter.ai/api/v1"
-    timeout_s: float = 90.0
+    timeout_s: float = 120.0
     max_retries: int = 3
     daily_budget: int = 900
     vision_pin: str = ""
@@ -109,7 +113,7 @@ class OpenRouterConfig:
                 return default
         return cls(api_key=(e.get("OPENROUTER_API_KEY") or "").strip().strip('"').strip("'"),
                    base_url=(e.get("OPENROUTER_BASE_URL") or cls.base_url).rstrip("/"),
-                   timeout_s=max(5.0, num("OPENROUTER_TIMEOUT_S", 90.0)),
+                   timeout_s=max(5.0, num("OPENROUTER_TIMEOUT_S", 120.0)),
                    max_retries=max(0, min(6, num("OPENROUTER_MAX_RETRIES", 3, int))),
                    daily_budget=max(1, num("OPENROUTER_DAILY_CALL_BUDGET", 900, int)),
                    vision_pin=(e.get("OPENROUTER_VISION_MODEL") or "").strip(),
@@ -170,6 +174,7 @@ class OpenRouterClient:
         self._quota_until = 0.0
         self.last: dict = {}
         self.key_info: dict = {"checked": None}
+        self.data_policy: str | None = None
         self._usage0: float | None = None
         self._paid_usage: str | None = None
         self._key_checked_at = -1e18
@@ -206,10 +211,15 @@ class OpenRouterClient:
             if not self.config.configured or (not force and now - self._key_checked_at < KEY_CHECK_S):
                 return self.key_info
             self._key_checked_at = now
-            try:
-                status, _, payload = self.transport("GET", f"{self.config.base_url}/key", self._headers(), None, 30.0)
-            except Exception as exc:  # noqa: BLE001
-                status, payload = 0, {"error": f"{type(exc).__name__}"}
+            status, payload = 0, None
+            for path in ("/key", "/auth/key"):  # the current path first, the older one if it is not found
+                try:
+                    status, _, payload = self.transport("GET", f"{self.config.base_url}{path}", self._headers(), None,
+                                                        30.0)
+                except Exception as exc:  # noqa: BLE001
+                    status, payload = 0, {"error": f"{type(exc).__name__}"}
+                if status != 404:
+                    break
             data = (payload or {}).get("data") if status == 200 and isinstance(payload, dict) else None
             if not isinstance(data, dict):
                 self.key_info = {**self.key_info, "checked": int(now), "ok": False,
@@ -286,7 +296,7 @@ class OpenRouterClient:
 
     def chat_json(self, role: str, messages: list[dict], validate: Callable[[dict], str | None],
                   dedupe_key: str, max_models: int = 3, max_tokens: int = 3000, avoid: tuple = (),
-                  deadline_s: float = 240.0, avoid_soft: bool = False) -> CallResult:
+                  deadline_s: float = 300.0, avoid_soft: bool = False) -> CallResult:
         """One answer for `role`: the best FREE model first, the next FREE one when a model is unavailable.
         `validate(data)` returns None or why the reply is unusable (an unusable reply is not retried: NO_TRADE).
         `avoid`: models that must not answer (another agent's); `deadline_s`: wall clock for all attempts."""
@@ -316,7 +326,7 @@ class OpenRouterClient:
                 self.last = {"t": int(self.clock()), **res.record()}
             return res
 
-    def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=240.0,
+    def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=300.0,
               avoid_soft=False) -> CallResult:
         ranked = self.models_for(role)
         if self._paid_usage:  # the key check that refresh ran may have just found it
@@ -336,7 +346,7 @@ class OpenRouterClient:
                                   f"(last: {last.status})", attempts=last.attempts)
             res = self._one_model(role, model, messages, validate, max_tokens, deadline)
             if res.ok or res.status.startswith("INVALID") or res.status in (
-                    "NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "NOT_FREE", "WRONG_MODEL"):
+                    "NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "NOT_FREE", "WRONG_MODEL", "DATA_POLICY"):
                 return res  # an answer, an unusable answer, or a reason no other model would fix
             last = res  # unavailable / rate-limited / timing out: the next FREE model may answer
         return last
@@ -376,6 +386,12 @@ class OpenRouterClient:
                                   attempts=attempts, latency_ms=lat)
             if code == 402:
                 return CallResult(False, "BUDGET", role, model, error=f"HTTP 402 (credits): {msg}", request_id=rid,
+                                  attempts=attempts, latency_ms=lat)
+            if "data policy" in msg.lower() or "privacy" in msg.lower():
+                # the account's own privacy setting excludes free endpoints: every free model would answer the same
+                self.data_policy = (f"OpenRouter refused free models because of this account's privacy setting: "
+                                    f"enable free endpoints at {PRIVACY_URL}")
+                return CallResult(False, "DATA_POLICY", role, model, error=self.data_policy, request_id=rid,
                                   attempts=attempts, latency_ms=lat)
             if code in (404,) or (code == 400 and ("not a valid model" in msg.lower() or "no endpoints" in msg.lower())):
                 with self._lock:
@@ -435,17 +451,24 @@ class OpenRouterClient:
             return CallResult(False, "NOT_FREE", role, model, error=f"the reply reported cost {cost_v}: discarded, "
                               "and this model is not used again", request_id=rid, attempts=attempts, latency_ms=lat,
                               provider_id=payload.get("id"), tokens=tokens)
+        finish = None
         try:
-            text = payload["choices"][0]["message"]["content"]
+            choice = payload["choices"][0]
+            finish = choice.get("finish_reason")
+            text = choice["message"]["content"]
             if isinstance(text, list):  # some models return content parts
                 text = "".join(p.get("text", "") for p in text if isinstance(p, dict))
-        except (KeyError, IndexError, TypeError):
+        except (KeyError, IndexError, TypeError, AttributeError):
             text = None
         data = extract_json(text or "")
         with self._lock:
             self._note(model, data is not None)
+            if data is not None:
+                self.data_policy = None
         if data is None:
-            return CallResult(False, "INVALID: no JSON object in the reply", role, model, request_id=rid,
+            why = ("the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)"
+                   if finish == "length" else "no JSON object in the reply")
+            return CallResult(False, f"INVALID: {why}", role, model, request_id=rid,
                               attempts=attempts, latency_ms=lat, provider_id=payload.get("id"), tokens=tokens)
         problem = validate(data)
         if problem:
@@ -463,11 +486,13 @@ class OpenRouterClient:
             return {**self.config.public(), "version": OPENROUTER_VERSION,
                     "status": ("NOT_CONFIGURED" if not self.config.configured else
                                "PAID_USAGE_STOPPED" if self._paid_usage else
+                               "DATA_POLICY_BLOCKED" if self.data_policy else
                                "KEY_REJECTED" if self.key_info.get("status") == "KEY_REJECTED" else
                                "DAILY_QUOTA_SPENT" if self.clock() < self._quota_until else
                                "NO_FREE_MODEL" if not sel["vision"] or not sel["judge"] else "READY"),
                     "calls_today": self._calls, "daily_budget": self.daily_budget, "last_call": self.last,
                     "key": {k: v for k, v in self.key_info.items()}, "paid_usage": self._paid_usage,
+                    "data_policy": self.data_policy,
                     "vision_model": sel["vision"][0]["id"] if sel["vision"] else None,
                     "judge_model": sel["judge"][0]["id"] if sel["judge"] else None,
                     "verifier_model": sel["verifier"][0]["id"] if sel["verifier"] else None,

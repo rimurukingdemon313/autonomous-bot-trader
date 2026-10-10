@@ -120,9 +120,12 @@ The catalog changes; the selection is recomputed hourly and on failures. Optiona
 ## Limits, retries, duplicates
 
 - At most 3 requests per decision (2 when the traders agree). No loops, no second debate.
-- Per request: timeout `OPENROUTER_TIMEOUT_S` (90); up to `OPENROUTER_MAX_RETRIES` (3) retries on timeout,
+- Per request: timeout `OPENROUTER_TIMEOUT_S` (120); up to `OPENROUTER_MAX_RETRIES` (3) retries on timeout,
   429 or 5xx with exponential backoff and jitter; a 429 honours `Retry-After`; a wall-clock deadline per role
-  (240 s) across retries and fallbacks; up to 3 free models per role.
+  (300 s) across retries and fallbacks; up to 3 free models per role.
+- An account whose OpenRouter privacy setting excludes free endpoints gets `DATA_POLICY` on every free model:
+  the dashboard says so and names the setting (https://openrouter.ai/settings/privacy); no model is rested for it.
+- A reply cut at `max_tokens` before its JSON (a reasoning model thinking too long) is named as such.
 - 401/403: `KEY_REJECTED`. 402 (credits required): OpenRouter refused it, nothing is charged, and no other model
   is tried. 404 or "no endpoints": that model rests 6 hours and the next free one answers. A spent free daily
   quota: no call until the next UTC day.
@@ -172,6 +175,23 @@ The dashboard's DUAL AI DESK panel (`/api/dual_ai`, `/api/dual_ai/chart.png?symb
 status, the three models, the last analysis with both traders' answers and the debate, the risk engine's
 verdict, the open paper positions, AI trades, wins, losses, expectancy, profit factor and drawdown. The key is
 shown only as `…` and its last four characters, and is never logged, stored or returned.
+
+## Live check (the real services, on demand)
+
+`.github/workflows/dual-ai-check.yml` runs `scripts/dual_ai_check.py` on a GitHub runner with the
+`OPENROUTER_API_KEY` secret: Actions tab → "Dual-AI live check" → Run workflow (or push to the branch
+`dual-ai-check`). The report is committed to the branch `dual-ai-check-results` (`dai-check/REPORT.md`, the
+charts; never the key). It checks, in order: the live catalog and the three picks; the key (accepted, free
+tier, daily quota); one small JSON request to each model, and the vision model reading the chart; the chart
+from live Yahoo bars; a dry run of the whole desk on real prices with scripted traders (no request sent); and
+one complete decision per pair with the real models through the production runtime, on a temporary paper
+account that is discarded. On a closed-market day it replays the last full trading hour and says so. It uses
+about 10 of the key's free daily requests.
+
+Run 2026-10-10 (Saturday, no key yet): catalog OK (14 free of 458; the three picks above), charts OK on live
+M15/H4 bars for EURUSD, GBPUSD, USDJPY, and the dry run OK on Friday's last full hour: EURUSD AGREE → BUY, risk
+APPROVED; GBPUSD DEBATE → BUY, risk APPROVED; USDJPY refused by the risk engine's currency-exposure limit (two
+open positions already shared USD). Sections needing the key were skipped.
 
 ## Mocked end-to-end run
 

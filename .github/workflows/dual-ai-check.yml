@@ -1,0 +1,37 @@
+# The dual-AI desk's live check (docs/DUAL_AI.md, scripts/dual_ai_check.py): the real OpenRouter with the owner's
+# key (Actions secret OPENROUTER_API_KEY), real Yahoo prices, one complete decision per pair on a temporary paper
+# account that is discarded. Paper only. Run it from the Actions tab ("Run workflow"), or by pushing to the
+# branch dual-ai-check. The result (REPORT.md, check.json, charts; never the key) is committed to the branch
+# dual-ai-check-results.
+name: Dual-AI live check (on demand, paper only)
+on:
+  workflow_dispatch:
+  push:
+    branches: [dual-ai-check]
+permissions:
+  contents: write
+concurrency:
+  group: dual-ai-check
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt pytest  # the dry run's scripted traders live with the tests
+      - run: python scripts/dual_ai_check.py --out dai-check
+      - name: Publish the result
+        if: always()
+        run: |
+          git config user.name "dual-ai-check"; git config user.email "dual-ai-check@users.noreply.github.com"
+          git checkout --orphan dual-ai-check-results
+          git rm -rfq --cached .
+          git add -f dai-check
+          git commit -qm "dual-AI live check $(date -u +%Y-%m-%dT%H:%MZ)" || exit 0
+          git push -qf origin HEAD:dual-ai-check-results
