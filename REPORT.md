@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-11 12:00 UTC**, run 86, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
+Updated **2026-10-11 13:00 UTC**, run 87, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-11 12:00 UTC**, run 86, version `radar-1.0.0`. State from: cac
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 3.67
-- run_coverage: 0.9663
+- days: 3.71
+- run_coverage: 0.9667
 - closed_positions: 7
 - open_positions: 1
-- utilisation: 0.0209
+- utilisation: 0.0218
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.1202
-- book_excess_pct: -0.1294
-- ann_excess_deployed_pct: -666.873
-- ann_excess_deployed_costs_x1.5_pct: -1017.273
-- ann_excess_deployed_costs_x2_pct: -1367.673
+- book_pnl_pct: -0.1368
+- book_excess_pct: -0.1461
+- ann_excess_deployed_pct: -710.966
+- ann_excess_deployed_costs_x1.5_pct: -1041.899
+- ann_excess_deployed_costs_x2_pct: -1372.832
 - best_coin: MAGIC
-- book_excess_without_best_coin_pct: -0.1108
-- max_dd_pct: 0.1294
-- t_excess_daily: -1.2
+- book_excess_without_best_coin_pct: -0.1275
+- max_dd_pct: 0.1368
+- t_excess_daily: -1.173
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| RLC | mexc | gate | 2026-10-11 10:00 | 47.6% | 2.6 | 5.3 | 17.0 | **-9.1** |
+| RLC | mexc | gate | 2026-10-11 10:00 | 47.6% | 4.2 | -29.6 | 17.0 | **-42.3** |
 
 ## Closed positions (7)
 
@@ -55,6 +55,6 @@ Updated **2026-10-11 12:00 UTC**, run 86, version `radar-1.0.0`. State from: cac
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| RLC | mexc | gate | 49.4% | 218.8% |
+| RLC | mexc | gate | 49.1% | 68.8% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
