@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-11 07:00 UTC**, run 81, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
+Updated **2026-10-11 08:00 UTC**, run 82, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,19 +17,19 @@ Updated **2026-10-11 07:00 UTC**, run 81, version `radar-1.0.0`. State from: cac
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 3.46
-- run_coverage: 0.9643
-- closed_positions: 6
-- open_positions: 1
-- utilisation: 0.0185
+- days: 3.5
+- run_coverage: 0.9647
+- closed_positions: 7
+- open_positions: 0
+- utilisation: 0.0183
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.116
-- book_excess_pct: -0.1251
-- ann_excess_deployed_pct: -782.704
-- ann_excess_deployed_costs_x1.5_pct: -1155.004
-- ann_excess_deployed_costs_x2_pct: -1527.304
+- book_pnl_pct: -0.1156
+- book_excess_pct: -0.1163
+- ann_excess_deployed_pct: -679.089
+- ann_excess_deployed_costs_x1.5_pct: -1026.569
+- ann_excess_deployed_costs_x2_pct: -1374.049
 - best_coin: MAGIC
-- book_excess_without_best_coin_pct: -0.1065
+- book_excess_without_best_coin_pct: -0.0977
 - max_dd_pct: 0.116
 - t_excess_daily: -1.208
 
@@ -37,12 +37,12 @@ Updated **2026-10-11 07:00 UTC**, run 81, version `radar-1.0.0`. State from: cac
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| RLC | mexc | gate | 2026-10-11 07:00 | 50.0% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
-## Closed positions (6)
+## Closed positions (7)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| RLC | mexc | gate | 0.0 | spread_decayed | -16.3 |
 | RLC | mexc | gate | 0.0 | spread_decayed | -56.7 |
 | RLC | mexc | gate | 0.0 | spread_decayed | -19.4 |
 | RLC | mexc | gate | 0.0 | spread_decayed | -31.7 |
@@ -54,6 +54,5 @@ Updated **2026-10-11 07:00 UTC**, run 81, version `radar-1.0.0`. State from: cac
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| RLC | mexc | gate | 50.0% | 43.1% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
