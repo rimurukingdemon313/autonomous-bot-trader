@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 16:38 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
+Updated 2026-10-12 16:53 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,972.21 | $972.21 | $972.21 | $0.00 | 2 | 0 (none) | n/a | n/a | n/a | ACTIVE | RUNNING |
+| $200,000.00 | $200,984.21 | $984.21 | $984.21 | $0.00 | 1 | 1 (insufficient) | 100.0% | +1.540R | n/a | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -32,19 +32,19 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $204.03 |
-| EURUSD | SELL | 4.13 | 1.11875 | 1.11957 | 1.11682 | n/a |
+| USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $216.03 |
 
 ## Closed paper trades (latest 20)
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source |
 |---|---|---|---|---|---|---|---|
+| 10-12 15:38 | EURUSD | SELL | $768.18 | +1.54 | $66.08 | TARGET | DUAL_AI |
 
 ## Dual AI desk (two free OpenRouter traders; a debate when they disagree)
 
-OpenRouter `NO_FREE_MODEL` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `thinkingmachines/inkling-small:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-26b-a4b-it:free` · calls today 5/900
 
-AI trades 0 (none) · wins 0 · losses 0 · expectancy n/a · profit factor n/a
+AI trades 1 (insufficient) · wins 1 · losses 0 · expectancy +1.540R · profit factor n/a
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
