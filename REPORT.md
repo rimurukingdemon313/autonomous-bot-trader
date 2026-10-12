@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 23:29 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
+Updated 2026-10-12 23:44 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,191.08 | $-162.20 | $191.08 | $0.00 | 2 | 2 (insufficient) | 50.0% | +0.355R | 1.85 | ACTIVE | RUNNING |
+| $200,000.00 | $199,956.88 | $-396.40 | $-43.12 | $-43.12 | 2 | 2 (insufficient) | 50.0% | +0.355R | 1.85 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -34,8 +34,8 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURUSD | SELL | 5.14 | 1.1158499999999998 | 1.11655 | 1.11503 | $-149.06 |
-| GBPUSD | SELL | 4.38 | 1.32083 | 1.32138 | 1.31855 | $-13.14 |
+| EURUSD | SELL | 5.14 | 1.1158499999999998 | 1.11655 | 1.11503 | $-251.86 |
+| GBPUSD | SELL | 4.38 | 1.32083 | 1.32138 | 1.31855 | $-144.54 |
 
 ## Closed paper trades (latest 20)
 
