@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 21:13 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
+Updated 2026-10-12 21:13 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -44,7 +44,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a debate when they disagree)
 
-OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-31b-it:free` · calls today 15/900
+OpenRouter `NO_FREE_MODEL` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
 AI trades 1 (insufficient) · wins 1 · losses 0 · expectancy +1.540R · profit factor n/a
 
