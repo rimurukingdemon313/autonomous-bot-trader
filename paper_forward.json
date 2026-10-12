@@ -30,10 +30,10 @@
  },
  "bot_status": "RUNNING",
  "account": {
-  "equity": 200461.14,
+  "equity": 200658.34,
   "balance": 200000.0,
-  "total_pnl": 461.14,
-  "today_pnl": 461.14,
+  "total_pnl": 658.34,
+  "today_pnl": 658.34,
   "day_reference": 200000.0,
   "drawdown_from_start": 0.0,
   "max_loss_floor": 180000.0,
@@ -59,12 +59,12 @@
    "side": "BUY",
    "qty": 6.35,
    "entry": 158.641,
-   "current": 158.65200000000002,
+   "current": 158.66,
    "stop": 158.555,
    "target": 158.75,
-   "r_now": 0.128,
+   "r_now": 0.221,
    "opened": 1791810296.0,
-   "pnl": 44.01,
+   "pnl": 76.01,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -76,12 +76,12 @@
    "side": "SELL",
    "qty": 4.13,
    "entry": 1.11875,
-   "current": 1.11774,
+   "current": 1.11734,
    "stop": 1.11957,
    "target": 1.11682,
-   "r_now": 1.232,
+   "r_now": 1.72,
    "opened": 1791801183.0,
-   "pnl": 417.13,
+   "pnl": 582.33,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -126,6 +126,13 @@
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "AUDUSD",
+   "decision": "NO_TRADE",
+   "t": 1791814518,
+   "reason": "market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
   {
    "symbol": "USDJPY",
    "decision": "BUY",
@@ -286,16 +293,9 @@
    "t": 1791777707,
    "reason": "blocked: UNFAMILIAR_STATE (risk): familiarity distance inf",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1791777707,
-   "reason": "blocked: UNFAMILIAR_STATE (risk): familiarity distance inf",
-   "data_flags": []
   }
  ],
- "decisions_total": 327,
+ "decisions_total": 328,
  "shift": {
   "started": "2026-10-12 10:02 UTC",
   "decision_mode": "dual_ai",
@@ -597,122 +597,44 @@
    }
   },
   "last_analysis": {
-   "decision_id": "ea3d671b2daab0f128af67bc",
-   "symbol": "USDJPY",
-   "t": 1791810019,
-   "decision": "BUY",
-   "reason": "BUY USDJPY on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The price swept the highs at 158.641 with a bearish liquidity signal, indicating a stop hunt and distribution. Entering a SELL at the current price targets a pullback to the open FVG at 158.50-158.55, managing risk w",
+   "decision_id": "2da1d6bc28dc449ee4d9d274",
+   "symbol": "AUDUSD",
+   "t": 1791814518,
+   "decision": "NO_TRADE",
+   "reason": "market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
    "consensus": {
-    "desk_confidence": 0.65,
-    "direction": "BUY",
-    "levels_from": "trader2",
-    "loser": "trader1",
-    "outcome": "TRADE",
-    "rule": "DEBATE",
-    "stop_loss": 158.555,
-    "take_profit": 158.75
+    "outcome": "NO_TRADE",
+    "reason": "market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "rule": "MARKET_UNAVAILABLE"
    },
-   "models": {
-    "trader1": "dots-studio/dots-3-note-preview:free",
-    "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "verifier": "apodex/apodex-1.1-mini:free"
-   },
-   "trader1": {
-    "confidence": 65,
-    "direction": "SELL",
-    "entry": 158.632,
-    "invalidation": "A break above 158.71 would invalidate the bearish sweep thesis and confirm bullish continuation.",
-    "liquidity": "Bearish sweep of highs at 158.641 and 158.607, indicating a liquidity grab above recent highs followed by rejection; key support liquidity lies lower.",
-    "market_structure": "Bullish on H4 and M15 with higher highs and lows, but M15 shows a recent bearish liquidity sweep of the highs at 158.641, indicating short-term distribution.",
-    "momentum": "M1 momentum is weakening (negative short-term change_atr), showing a loss of bullish momentum after the sweep.",
-    "reason": "The price swept the highs at 158.641 with a bearish liquidity signal, indicating a stop hunt and distribution. Entering a SELL at the current price targets a pullback to the open FVG at 158.50-158.55, managing risk with a stop above the recent high.",
-    "reversal_probability": 35,
-    "risk_reward": 1.44,
-    "stop_loss": 158.71,
-    "take_profit": 158.52,
-    "trend": "UP on H4 and M15, but short-term pullback expected."
-   },
-   "trader2": {
-    "confidence": 70,
-    "direction": "BUY",
-    "entry": 158.642,
-    "invalidation": 158.555,
-    "liquidity": "Recent bearish sweeps at 158.641 and 158.607 appear as liquidity grabs for continuation, not reversal. No equal highs at current levels; key demand liquidity at 158.39-158.469 (H1 untested order block) and 157.751 (H1 equal lows).",
-    "market_structure": "H4 and M15 trends UP (HH+HL); H1 downtrend broken by bullish BOS at 158.512 three bars ago, confirming trend change. M5 shows bullish CHoCH at 158.636. Price holds above M15 swing low 158.555 and M5 swing low 158.605.",
-    "momentum": "M15 and H1 ATR change strongly positive (5-bar: +0.7, +1.6 ATR), indicating accelerating bullish momentum despite M1 short-term weakening. LOW volatility (5th percentile) favors trend persistence over reversal.",
-    "reason": "The bearish sweep at 158.641 is a liquidity grab to fuel the uptrend, not a reversal signal. H1 structure broke bullishly at previous week high 158.512. Entering long at current price targets the next resistance zone near 158.75-158.80 with stop below the M15 structural low at 158.555.",
-    "reversal_probability": 25,
-    "risk_reward": 1.24,
-    "stop_loss": 158.555,
-    "take_profit": 158.75,
-    "trend": "Bullish on H4, M15, M5; H1 structure flipped bullish. The 58-pip rally from 158.071 shows strong buying pressure with shallow pullbacks."
-   },
-   "verifier": {
-    "confidence": 65,
-    "direction": "BUY",
-    "reason": "Trader 2's BUY aligns with the dominant H4 and M15 uptrend and positive M15/H1 momentum, whereas Trader 1's SELL fades the higher timeframe trend on a single M15 sweep signal. Price holds above key structural lows (158.555 M15, 158.605 M5), and the H1 bullish BOS at 158.512 remains intact per the higher timeframe breaks. Low volatility (5th percentile) favors trend persistence over reversal in this transition regime. Both setups pass the risk engine, but the trend-following logic offers a higher probability path for the 8-hour hold."
-   },
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1791810019,
-    "bytes": 30387,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1791810000,
-    "last_bar_open": 1791809100,
-    "sha256": "9318f8d54d6a576fd864d9d25abf8c09c5dcb7540c0fe1dd7f73392b6c0f8073",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 88023.5,
-     "model": "dots-studio/dots-3-note-preview:free",
-     "ok": true,
-     "provider_id": "gen-1791810022-XHNrWpXno9YtkdR6nLsV",
-     "request_id": "8e3b7f0e1ac7414a8898bc2532fdb04a",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 14995
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 169851.3,
-     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-     "ok": true,
-     "provider_id": "gen-1791810110-fEdNZUvbyKPtpbSfqYSN",
-     "request_id": "58d61f5d23e14e7bae5c79fb3ad46d0c",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 16592
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 14835.4,
-     "model": "apodex/apodex-1.1-mini:free",
-     "ok": true,
-     "provider_id": "gen-1791810280-1lFr1kLaPr0IeVvrJSkC",
-     "request_id": "da4c4552c18949e4984b2046cedbebc1",
-     "role": "verifier",
-     "status": "OK",
-     "tokens": 17617
-    }
-   ],
-   "risk": {
-    "approved": true,
-    "reasons": [],
-    "qty": 6.35
-   }
+   "models": {},
+   "trader1": null,
+   "trader2": null,
+   "verifier": null,
+   "chart": null,
+   "calls": [],
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "2da1d6bc28dc449ee4d9d274",
+    "symbol": "AUDUSD",
+    "t": 1791814518,
+    "decision": "NO_TRADE",
+    "reason": "market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "MARKET_UNAVAILABLE"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "risk": null
+   },
    {
     "decision_id": "ea3d671b2daab0f128af67bc",
     "symbol": "USDJPY",
@@ -982,12 +904,12 @@
     "side": "BUY",
     "qty": 6.35,
     "entry": 158.641,
-    "current": 158.65200000000002,
+    "current": 158.66,
     "stop": 158.555,
     "target": 158.75,
-    "r_now": 0.128,
+    "r_now": 0.221,
     "opened": 1791810296.0,
-    "pnl": 44.01,
+    "pnl": 76.01,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -999,12 +921,12 @@
     "side": "SELL",
     "qty": 4.13,
     "entry": 1.11875,
-    "current": 1.11774,
+    "current": 1.11734,
     "stop": 1.11957,
     "target": 1.11682,
-    "r_now": 1.232,
+    "r_now": 1.72,
     "opened": 1791801183.0,
-    "pnl": 417.13,
+    "pnl": 582.33,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -1069,17 +991,18 @@
    "decisions_by_rule": {
     "AGREE": 1,
     "DEBATE": 1,
+    "MARKET_UNAVAILABLE": 1,
     "TRADER1_UNAVAILABLE": 1
    },
    "agreement_rate": 0.5,
    "decisions_with_both_traders": 2,
-   "unavailable": 1
+   "unavailable": 2
   },
   "recent_trades": []
  },
  "health": {
-  "last_cycle": 1791810019,
+  "last_cycle": 1791814518,
   "last_cycle_error": null,
-  "cycles": 3
+  "cycles": 4
  }
 }
