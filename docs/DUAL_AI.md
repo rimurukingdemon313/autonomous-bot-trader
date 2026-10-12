@@ -59,7 +59,10 @@ market (`market_structure`, `liquidity`, `momentum`, `trend`, `reversal_probabil
 given, text or number, and never prices, sizes or voids a trade (the live check found a model writing its
 invalidation as a sentence); a list, object or boolean there is still malformed. Rejected: NaN/Infinity, a stop or target on the wrong side of the executable price, an entry more than 1
 H1 ATR from the executable price (a market order fills at the current price: a farther entry is a misread
-price), a stop beyond 12 or a target beyond 15 H1 ATR. A malformed reply is never repaired.
+price), a stop beyond 12 or a target beyond 15 H1 ATR. A malformed reply is never repaired, and that model is
+not asked again for it: the next free model of the same role gives its own answer, inside the same deadline
+(openrouter 1.6.0; the live run of 2026-10-12 lost a whole decision to one vision model answering without JSON).
+Every model asked before the one that answered is recorded on the call with its status.
 
 ## The chart
 
@@ -121,7 +124,7 @@ The catalog changes; the selection is recomputed hourly and on failures. Optiona
 
 ## Limits, retries, duplicates
 
-- At most 3 requests per decision (2 when the traders agree). No loops, no second debate.
+- At most 3 roles asked per decision (2 when the traders agree). No loops, no second debate.
 - Per request: timeout `OPENROUTER_TIMEOUT_S` (180; free models took 30-170 s in the live check); up to
   `OPENROUTER_MAX_RETRIES` (3) retries on a timeout or 5xx with exponential backoff and jitter. A busy model (a 429
   without a short `Retry-After`, or a 200 carrying an upstream error such as "ResourceExhausted") rests and the
