@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-12 15:00 UTC**, run 113, version `radar-1.0.0`. State from: cache. Quotes this hour: 2387.
+Updated **2026-10-12 16:00 UTC**, run 114, version `radar-1.0.0`. State from: cache. Quotes this hour: 2387.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,33 +17,33 @@ Updated **2026-10-12 15:00 UTC**, run 113, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 4.79
-- run_coverage: 0.9741
-- closed_positions: 10
-- open_positions: 2
-- utilisation: 0.0628
+- days: 4.83
+- run_coverage: 0.9744
+- closed_positions: 12
+- open_positions: 0
+- utilisation: 0.0623
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.1182
-- book_excess_pct: -0.1407
-- ann_excess_deployed_pct: -178.666
-- ann_excess_deployed_costs_x1.5_pct: -311.336
-- ann_excess_deployed_costs_x2_pct: -444.006
+- book_pnl_pct: -0.1439
+- book_excess_pct: -0.147
+- ann_excess_deployed_pct: -181.366
+- ann_excess_deployed_costs_x1.5_pct: -310.298
+- ann_excess_deployed_costs_x2_pct: -439.23
 - best_coin: W
-- book_excess_without_best_coin_pct: -0.169
+- book_excess_without_best_coin_pct: -0.1638
 - max_dd_pct: 0.1703
-- t_excess_daily: -1.082
+- t_excess_daily: -1.39
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| STRK | hyperliquid | gate | 2026-10-11 17:00 | 25.6% | 6.4 | 1.6 | 19.5 | **-11.5** |
-| W | hyperliquid | gate | 2026-10-12 03:00 | 29.4% | 14.0 | 82.5 | 19.5 | **77.0** |
 
-## Closed positions (10)
+## Closed positions (12)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| W | hyperliquid | gate | 0.5 | spread_reversed | 34.7 |
+| STRK | hyperliquid | gate | 1.0 | rebalance | -20.5 |
 | RSR | mexc | gate | 0.0 | spread_reversed | 4.7 |
 | RLC | mexc | gate | 0.2 | spread_reversed | -49.3 |
 | RLC | mexc | gate | 0.6 | spread_reversed | -26.0 |
