@@ -182,6 +182,17 @@ class RiskEngine:
     def __init__(self, limits: RiskLimits = RiskLimits()) -> None:
         self.limits = limits
 
+    def trade_limits(self, instrument: str, spread: float) -> dict:
+        """The per-trade limits `evaluate` applies at this spread, as numbers a proposer can respect when it places its
+        levels. Information only: `evaluate` alone decides, with the live quote at the time."""
+        L = self.limits
+        cost = spread + (L.commission_pips_rt + 2 * L.slippage_pips) * pip_size(instrument)
+        min_stop = max(L.min_stop_spreads * spread, spread / L.max_spread_to_stop, cost / L.max_cost_to_risk)
+        return {"min_reward_risk": L.min_reward_risk, "min_stop_distance": round(min_stop, 8),
+                "round_trip_cost": round(cost, 8), "max_cost_share_of_stop": L.max_cost_to_risk,
+                "note": "the risk engine refuses a stop closer than min_stop_distance to the entry, or reward:risk below "
+                        "min_reward_risk; it also applies the account limits (daily loss, drawdown, exposure)"}
+
     # ── account-level checks: one definition, used by evaluate() and by account_gates() ──
 
     @staticmethod

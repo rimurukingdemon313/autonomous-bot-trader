@@ -61,7 +61,10 @@ from ..llm.openrouter import OPENROUTER_VERSION
 from .llm_trader import MAX_STOP_ATR, agent_digest, no_trade_decision, pre_model_block, trade_decision, with_ai
 from .types import MarketContext
 
-DUAL_AI_VERSION = "dual-ai-1.0.0"
+#: 1.1.0 (live check): the traders are told the risk engine's per-trade limits (minimum stop distance, minimum
+#:        reward:risk) so their levels can be executed; the analysis fields are recorded as given (text or number) and
+#:        never void a trade; the trade fields stay exact.
+DUAL_AI_VERSION = "dual-ai-1.1.0"
 FAMILY = "DUAL_AI"
 #: The side that lost a debate, followed forward under its own name: never mixed with the trades taken, in any
 #: statistic or lesson scope.
@@ -73,7 +76,7 @@ RR_ABS_TOL, RR_REL_TOL = 0.25, 0.20
 HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
 EXEC_ROWS, HTF_ROWS = 60, 30
-MAX_TOKENS = {"vision": 6000, "judge": 6000, "verifier": 5000}  # reasoning models think before they answer
+MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
 CHART_KEEP = 300  # chart files kept on disk
 
 _SCHEMA = """{{"direction": "BUY|SELL", "entry": <price>, "stop_loss": <price>, "take_profit": <price>,
@@ -100,6 +103,8 @@ a reversal, and place the trade as a professional would:
   the ENTRY ZONE;
 - the stop goes beyond the level that proves your side wrong; the target at a level price can reach within
   {hold} minutes given the volatility;
+- the risk engine refuses a stop closer to the entry than costs.risk_engine_limits.min_stop_distance and a
+  reward:risk below min_reward_risk: place levels that respect them, or the trade will not be executed;
 - you do not size the trade and you do not decide whether it may be taken: a second, independent trader gives
   his own view and a risk engine sizes the trade and may refuse it.
 
@@ -117,8 +122,9 @@ agree or disagree, but agreeing because Trader 1 said so is not analysis. Say wh
 
 Your job is to find the side with the higher probability. You MUST choose BUY or SELL. When the picture is
 mixed, choose the stronger side and let your confidence say how strong it is: a refusal is not an answer. The
-order is a market order (BUY at the ask, SELL at the bid); the stop goes beyond your invalidation; the target at
-a level reachable within {hold} minutes. A risk engine sizes the trade and may refuse it.
+order is a market order (BUY at the ask, SELL at the bid); the stop goes beyond your invalidation, and no closer to
+the entry than costs.risk_engine_limits.min_stop_distance; the target at a level reachable within {hold} minutes,
+with reward:risk at least min_reward_risk. A risk engine sizes the trade and may refuse it.
 
 Reply with ONE JSON object only, no other text:
 """ + _SCHEMA
@@ -177,21 +183,26 @@ def check_levels(direction: str, d: dict, px: dict) -> str | None:
     return None
 
 
+#: The fields that decide the trade: each must be exactly right, or the answer is unusable.
+TRADE_FIELDS = ("direction", "entry", "stop_loss", "take_profit", "confidence", "risk_reward", "reason")
+#: The trader's description of the market: recorded as given (text or number), never used to price, size or route
+#: a trade, so a model writing "below the 1.0850 low" where a bare price was asked does not void its trade
+#: (found by the live check). A list, an object or a boolean there is still a malformed answer.
+ANALYSIS_FIELDS = ("market_structure", "liquidity", "momentum", "trend", "reversal_probability", "invalidation")
+
+
 def validate_trader(d: dict, px: dict) -> str | None:
-    """One trader's answer: a side, levels, confidence and reasoning; the analysis fields typed when given."""
+    """One trader's answer: a side, levels, confidence and reasoning exactly; the analysis fields as text or number."""
     if d.get("direction") not in SIDES:
         return "direction must be BUY or SELL: the desk always chooses a side"
     if not _pct(d.get("confidence")):
         return "confidence must be a number from 0 to 100"
     if not _text(d.get("reason")):
         return "reason must be text"
-    if d.get("reversal_probability") is not None and not _pct(d["reversal_probability"]):
-        return "reversal_probability must be a number from 0 to 100"
-    if d.get("invalidation") is not None and not (_num(d["invalidation"]) and d["invalidation"] > 0):
-        return "invalidation must be a price"
-    for k in ("market_structure", "liquidity", "momentum", "trend"):
-        if d.get(k) is not None and not isinstance(d[k], str):
-            return f"{k} must be text"
+    for k in ANALYSIS_FIELDS:
+        v = d.get(k)
+        if v is not None and not isinstance(v, str) and not _num(v):
+            return f"{k} must be text or a number"
     return check_levels(d["direction"], d, px)
 
 
@@ -466,6 +477,7 @@ class DualAITrader:
              "stop": float(lead["stop_loss"]), "target": float(lead["take_profit"]), "max_hold_minutes": hold,
              "thesis": story[:500],
              "invalidation": (f"price trades through {lead['invalidation']}" if _num(lead.get("invalidation"))
+                              else str(lead["invalidation"])[:200] if _text(lead.get("invalidation"))
                               else f"price trades through the stop {float(lead['stop_loss'])}")}
         d = trade_decision(ctx, did, v, agents, reports, p,
                            [{"agent": "dual_ai", "claim": f"{res['rule']}: levels from {res['levels_from']}",

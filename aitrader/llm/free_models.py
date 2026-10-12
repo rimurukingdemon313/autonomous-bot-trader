@@ -11,6 +11,7 @@ The catalog (`GET /api/v1/models`) is read. A model is FREE only when all of the
   vectors and scores, not answers.
 - Its description states no price ("$0.04 per clip").
 - It is not a router (`openrouter/...`), a safety/guard classifier, an embedding, rerank or speech model.
+- It is not too weak to trade: a measured intelligence index of at least 10, or, unmeasured, not stated below 7B.
 
 Selection is an explicit, declared score computed from the catalog's own fields. It is never tuned on trading
 results:
@@ -50,7 +51,10 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-FREE_MODELS_VERSION = "free-models-1.2.0"
+#: 1.3.0 (live check): models too weak to trade or settle a debate are left out: a measured intelligence index
+#:        below 10, or, with no measurement, fewer than 7B parameters stated (a 2.6B model was picked as the debate).
+FREE_MODELS_VERSION = "free-models-1.3.0"
+MIN_INTELLIGENCE, MIN_PARAMS_B = 10.0, 7.0
 MIN_CONTEXT = 16_384
 EXCLUDED_PREFIXES = ("openrouter/",)
 FREE_SUFFIX = ":free"
@@ -142,6 +146,15 @@ def capability(model: dict) -> float:
     return min(12.0, 12.0 * max(0.0, math.log2(b) / math.log2(400)))
 
 
+def too_weak(model: dict) -> bool:
+    """Measured below MIN_INTELLIGENCE, or, unmeasured, fewer than MIN_PARAMS_B parameters stated. Unknown is kept."""
+    ii = intelligence(model)
+    if ii is not None:
+        return ii < MIN_INTELLIGENCE
+    b = params_b(model)
+    return b is not None and b < MIN_PARAMS_B
+
+
 def _ctx_score(model: dict) -> float:
     c = context_length(model)
     return 0.0 if c <= 8192 else 5.0 * min(1.0, math.log2(c / 8192) / 5)
@@ -211,7 +224,7 @@ def free_candidates(catalog: list[dict], now: float | None = None) -> dict[str, 
     """FREE models usable per role (unscored): vision needs image input; both need text output and context."""
     now = time.time() if now is None else now
     free = [m for m in catalog if isinstance(m, dict) and is_free(m) and context_length(m) >= MIN_CONTEXT
-            and (_expiry_days(m, now) is None or _expiry_days(m, now) > 7)]
+            and (_expiry_days(m, now) is None or _expiry_days(m, now) > 7) and not too_weak(m)]
     return {"vision": [m for m in free if supports_image(m)], "text": free}
 
 

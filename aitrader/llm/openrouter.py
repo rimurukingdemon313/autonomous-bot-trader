@@ -4,7 +4,7 @@ Configuration, environment only (a local `.env` file is read by `python -m aitra
 
     OPENROUTER_API_KEY              the one key ("PASTE_MY_KEY_HERE" and empty count as not configured)
     OPENROUTER_BASE_URL             default https://openrouter.ai/api/v1
-    OPENROUTER_TIMEOUT_S            per request, default 120 (vision and reasoning models can be slow)
+    OPENROUTER_TIMEOUT_S            per request, default 180 (free vision and reasoning models took 90-170 s)
     OPENROUTER_MAX_RETRIES          per request on a timeout / 429 / 5xx, default 3 (exponential backoff + jitter)
     OPENROUTER_DAILY_CALL_BUDGET    hard cap on requests per UTC day, default 900; never above the key's own free
                                     quota (OpenRouter: 50 a day on a key that never bought credits, 1000 after
@@ -55,10 +55,16 @@ from typing import Callable
 from .free_models import Selection, select, supports_image
 from .provider import extract_json
 
+#: 1.5.0 (live check): an upstream error inside a 200 reply (e.g. "ResourceExhausted") and a 429 without a short
+#:        Retry-After rest that model and move to the next FREE one at once (retrying the same busy model wasted the
+#:        role's time); reasoning models are asked for medium reasoning effort; up to 8 models per role; timeout
+#:        180 s, deadline 420 s per role.
+#: 1.4.0: a 403 about one model (e.g. "only available on agentic harnesses") excludes that model and the next FREE
+#:        one answers; only a 401, or a 403 about the key itself, is KEY_REJECTED (found by the live check).
 #: 1.3.0: an account whose privacy setting blocks free models is reported as DATA_POLICY (one setting fixes
 #:        it; no model is rested for it); a reply cut at max_tokens is named as such; GET /auth/key when /key is
 #:        not found; replies may take longer (timeout 120 s) and use more tokens (reasoning models think first).
-OPENROUTER_VERSION = "openrouter-1.3.0"
+OPENROUTER_VERSION = "openrouter-1.5.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -91,7 +97,7 @@ def _http(method: str, url: str, headers: dict, body: dict | None, timeout: floa
 class OpenRouterConfig:
     api_key: str = field(default="", repr=False)
     base_url: str = "https://openrouter.ai/api/v1"
-    timeout_s: float = 120.0
+    timeout_s: float = 180.0
     max_retries: int = 3
     daily_budget: int = 900
     vision_pin: str = ""
@@ -113,7 +119,7 @@ class OpenRouterConfig:
                 return default
         return cls(api_key=(e.get("OPENROUTER_API_KEY") or "").strip().strip('"').strip("'"),
                    base_url=(e.get("OPENROUTER_BASE_URL") or cls.base_url).rstrip("/"),
-                   timeout_s=max(5.0, num("OPENROUTER_TIMEOUT_S", 120.0)),
+                   timeout_s=max(5.0, num("OPENROUTER_TIMEOUT_S", 180.0)),
                    max_retries=max(0, min(6, num("OPENROUTER_MAX_RETRIES", 3, int))),
                    daily_budget=max(1, num("OPENROUTER_DAILY_CALL_BUDGET", 900, int)),
                    vision_pin=(e.get("OPENROUTER_VISION_MODEL") or "").strip(),
@@ -289,14 +295,19 @@ class OpenRouterClient:
         s = self._stats.setdefault(model, [0, 0])
         s[0 if ok else 1] += 1
 
+    def _supports(self, model: str, param: str) -> bool:
+        with self._lock:
+            m = next((x for x in self._catalog if isinstance(x, dict) and x.get("id") == model), None)
+            return bool(m) and param in (m.get("supported_parameters") or [])
+
     def sees_images(self, model: str) -> bool:
         with self._lock:
             m = next((x for x in self._catalog if isinstance(x, dict) and x.get("id") == model), None)
             return bool(m) and supports_image(m)
 
     def chat_json(self, role: str, messages: list[dict], validate: Callable[[dict], str | None],
-                  dedupe_key: str, max_models: int = 3, max_tokens: int = 3000, avoid: tuple = (),
-                  deadline_s: float = 300.0, avoid_soft: bool = False) -> CallResult:
+                  dedupe_key: str, max_models: int = 8, max_tokens: int = 3000, avoid: tuple = (),
+                  deadline_s: float = 420.0, avoid_soft: bool = False) -> CallResult:
         """One answer for `role`: the best FREE model first, the next FREE one when a model is unavailable.
         `validate(data)` returns None or why the reply is unusable (an unusable reply is not retried: NO_TRADE).
         `avoid`: models that must not answer (another agent's); `deadline_s`: wall clock for all attempts."""
@@ -326,7 +337,7 @@ class OpenRouterClient:
                 self.last = {"t": int(self.clock()), **res.record()}
             return res
 
-    def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=300.0,
+    def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=420.0,
               avoid_soft=False) -> CallResult:
         ranked = self.models_for(role)
         if self._paid_usage:  # the key check that refresh ran may have just found it
@@ -357,6 +368,8 @@ class OpenRouterClient:
             messages = _text_only(messages)
         body = {"model": model, "messages": messages, "temperature": 0.2, "max_tokens": max_tokens,
                 "usage": {"include": True}}
+        if self._supports(model, "reasoning"):  # bounded thinking, so the answer fits after it
+            body["reasoning"] = {"effort": "medium"}
         headers = {**self._headers(), "X-Request-Id": rid}
         t0 = time.perf_counter()
         attempts = 0
@@ -381,8 +394,17 @@ class OpenRouterClient:
             msg = _error_message(payload)
             if code == 200 and isinstance(payload, dict) and not payload.get("error"):
                 return self._parse(role, model, payload, validate, rid, attempts, lat)
-            if code in (401, 403):
+            if code == 200:  # the provider failed behind a 200 ("ResourceExhausted"...): this model is busy
+                status_txt, err = "UPSTREAM_ERROR", f"upstream error: {msg}"
+                break
+            if code == 401 or (code == 403 and _about_the_key(msg)):
                 return CallResult(False, "KEY_REJECTED", role, model, error=f"HTTP {code}: {msg}", request_id=rid,
+                                  attempts=attempts, latency_ms=lat)
+            if code == 403:  # this model is closed to this key or this use: never again in this process, next FREE one
+                with self._lock:
+                    self._excluded[model] = f"HTTP 403: {msg[:160]}"
+                    self._note(model, False)
+                return CallResult(False, "MODEL_RESTRICTED", role, model, error=f"HTTP 403: {msg}", request_id=rid,
                                   attempts=attempts, latency_ms=lat)
             if code == 402:
                 return CallResult(False, "BUDGET", role, model, error=f"HTTP 402 (credits): {msg}", request_id=rid,
@@ -408,6 +430,8 @@ class OpenRouterClient:
                                       attempts=attempts, latency_ms=lat)
                 status_txt, err = "RATE_LIMITED", f"HTTP 429: {msg}"
                 wait = _retry_after(hdrs)
+                if wait is None or wait > 10:  # busy for a while: the next FREE model, not this one again
+                    break
             elif code == -1:
                 status_txt = "TIMEOUT"
                 wait = None
@@ -426,7 +450,7 @@ class OpenRouterClient:
                 self.sleep(backoff)
         with self._lock:
             self._note(model, False)
-            self._rest(model, "rate_limited" if status_txt == "RATE_LIMITED" else "failing")
+            self._rest(model, "rate_limited" if status_txt in ("RATE_LIMITED", "UPSTREAM_ERROR") else "failing")
         return CallResult(False, status_txt, role, model, error=err, request_id=rid, attempts=attempts,
                           latency_ms=(time.perf_counter() - t0) * 1000)
 
@@ -498,6 +522,13 @@ class OpenRouterClient:
                     "verifier_model": sel["verifier"][0]["id"] if sel["verifier"] else None,
                     "selection": {k: (v[:5] if isinstance(v, list) else v) for k, v in sel.items()},
                     "model_stats": {m: {"ok": s[0], "failed": s[1]} for m, s in self._stats.items()}}
+
+
+def _about_the_key(msg: str) -> bool:
+    """A 403 that concerns the key itself (invalid, disabled, out of credit limit), not one model."""
+    m = msg.lower()
+    return any(w in m for w in ("api key", "invalid key", "key is disabled", "key disabled", "key limit", "unauthorized",
+                                "no auth", "authentication"))
 
 
 def _text_only(messages: list[dict]) -> list[dict]:

@@ -358,7 +358,8 @@ class Orchestrator:
                 ctx.costs = {"spread": round(quote.ask - quote.bid, 8), "slippage_round_trip": round(slip, 8),
                              "commission_round_trip": round(comm, 8),
                              "total": round(quote.ask - quote.bid + slip + comm, 8),
-                             "basis": "spread from the live quote; slippage and commission are declared approximations"}
+                             "basis": "spread from the live quote; slippage and commission are declared approximations",
+                             "risk_engine_limits": self.risk.trade_limits(symbol, quote.ask - quote.bid)}
             ctx.market_map = market_map(symbol, long, lower, t) if long is not None and len(long) else None
             ctx.strategy_desk = strategy_desk(symbol, {**{k: v for k, v in lower.items() if k in ("M5", "M15")},
                                                        "H1": long}, t) if long is not None and len(long) else None

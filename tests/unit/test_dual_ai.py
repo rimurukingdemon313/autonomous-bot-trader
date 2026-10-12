@@ -147,7 +147,8 @@ def good(**over):
     (good(stop_loss=ASK - 20 * ATR, risk_reward=0.1), "beyond"),
     (good(risk_reward=5.0), "contradicts"),              # 2.0 by its own levels
     (good(reason=""), "reason"),
-    (good(reversal_probability=-5), "reversal_probability"),
+    (good(reversal_probability=[20]), "reversal_probability"),
+    (good(invalidation={"price": 1.09}), "invalidation"),
     ({k: v for k, v in good().items() if k != "stop_loss"}, "stop_loss"),
 ])
 def test_a_malformed_or_impossible_answer_is_rejected_never_repaired(reply, why):
@@ -228,3 +229,24 @@ def test_the_record_keeps_answers_models_and_request_ids_never_the_key():
     assert KEY not in blob and "Bearer" not in blob
     calls = d.ai["dual_ai"]["calls"]
     assert all(c["request_id"] and c["model"] for c in calls) and d.ai["dual_ai"]["chart"]["sha256"]
+
+
+def test_the_traders_market_description_is_recorded_as_given_and_never_voids_the_trade():
+    # found by the live check: a model wrote its invalidation as a sentence where a price was asked
+    reply = good(invalidation="a close below the 1.0985 swing low", reversal_probability="about 25%")
+    assert validate_trader(reply, PX) is None
+    d, _ = think(scripted(trader1=reply, t2=("BUY", 70)))
+    assert d.decision == "BUY" and d.ai["dual_ai"]["trader1"]["invalidation"].startswith("a close below")
+    assert d.invalidation == "a close below the 1.0985 swing low"
+
+
+def test_the_traders_are_told_the_risk_engines_own_limits():
+    from aitrader.risk.engine import RiskEngine
+    lim = RiskEngine().trade_limits("EURUSD", 0.00012)
+    assert lim["min_reward_risk"] == 1.2 and lim["min_stop_distance"] > 0.00012 / 0.25 - 1e-12
+    c = desk_ctx()
+    c.costs = {"total": 0.0002, "risk_engine_limits": lim}
+    _, fake = think(scripted(), c)
+    for call in fake.calls:
+        assert packet_of(call["body"])["costs"]["risk_engine_limits"]["min_stop_distance"] == lim["min_stop_distance"]
+    assert "min_stop_distance" in fake.calls[0]["body"]["messages"][0]["content"]

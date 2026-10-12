@@ -53,8 +53,9 @@ def ping(client: OpenRouterClient, role: str, model: str, image_url: str | None 
         system = 'Reply with ONE JSON object only: {"ok": true}'
         check = (lambda d: None if d.get("ok") is True else "ok must be true")
     t0 = time.time()
-    res = client._one_model(role, model, [{"role": "system", "content": system}, {"role": "user", "content": user}],
-                            check, 800)
+    # through the client's own fallback, as the desk calls it: a restricted or busy model hands over to the next one
+    res = client.chat_json(role, [{"role": "system", "content": system}, {"role": "user", "content": user}], check,
+                           dedupe_key=f"ping|{role}|{bool(image_url)}", max_tokens=2000)
     out = {**res.record(), "seconds": round(time.time() - t0, 1)}
     if res.ok:
         out["answer"] = res.data
@@ -130,11 +131,10 @@ def main() -> int:
     if cfg.configured and rep["sections"]["key"]["ok"]:
         pings = {}
         url = next((c["_url"] for c in charts.values() if c.get("ok")), None)
-        for role, rows in (("vision", sel.vision), ("judge", sel.judge), ("verifier", sel.verifier)):
-            if rows:
-                pings[rows[0]["id"]] = guarded(ping, client, role, rows[0]["id"])
-        if url and sel.vision:
-            pings[sel.vision[0]["id"] + " (reads the chart)"] = guarded(ping, client, "vision", sel.vision[0]["id"], url)
+        for role, name in (("vision", "trader 1"), ("judge", "trader 2"), ("verifier", "debate")):
+            pings[name] = guarded(ping, client, role, None)
+        if url:
+            pings["trader 1 reads the chart"] = guarded(ping, client, "vision", None, url)
         rep["sections"]["models"] = {"ok": bool(pings) and all(p["ok"] for p in pings.values()), **pings}
     else:
         rep["sections"]["models"] = {"ok": False, "skipped": "no accepted key"}
@@ -263,7 +263,7 @@ def report_md(rep: dict) -> str:
              f"3. Models: {mark(s['models']['ok'])}"]
     for m, p in s["models"].items():
         if isinstance(p, dict):
-            lines.append(f"   - `{m}`: {p.get('status')} in {p.get('seconds')} s"
+            lines.append(f"   - {m} `{p.get('model')}`: {p.get('status')} in {p.get('seconds')} s"
                          + (f" — {p.get('error')}" if p.get("error") else f" — {json.dumps(p.get('answer'))}"))
     lines.append(f"4. Chart: {mark(s['chart']['ok'])} — " + "; ".join(
         f"{k} {v.get('execution_timeframe') or v.get('error')}" for k, v in s["chart"].items() if isinstance(v, dict)))

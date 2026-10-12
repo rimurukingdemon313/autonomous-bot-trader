@@ -269,3 +269,59 @@ def test_the_key_check_falls_back_to_the_older_path():
 
     c = client(Old(good))
     assert c.check_key(force=True)["is_free_tier"] is True and seen == ["/key", "/auth/key"]
+
+
+def test_a_model_closed_to_this_key_is_excluded_and_the_next_free_model_answers():
+    # found by the live check: OpenRouter answers 403 "only available on agentic harnesses" for one free model
+    def reply(role, body):
+        if body["model"] == VISION:
+            return 403, {}, {"error": {"message": f"{VISION} is only available on agentic harnesses."}}
+        return {"x": 1}
+    fake = FakeOpenRouter(reply)
+    c = client(fake)
+    res = c.chat_json("vision", MSG, accept, dedupe_key="a")
+    assert res.ok and res.model == DEBATE and [x["model"] for x in fake.calls] == [VISION, DEBATE]
+    assert VISION in c.selection()["excluded"]
+    c.chat_json("vision", MSG, accept, dedupe_key="b")
+    assert [x["model"] for x in fake.calls][2:] == [DEBATE]  # never asked again
+    assert c.health()["vision_model"] == DEBATE
+
+
+def test_only_a_401_or_a_403_about_the_key_stops_everything():
+    for code, msg in ((401, "User not found"), (403, "Invalid API key"), (403, "Key limit exceeded")):
+        fake = FakeOpenRouter(lambda r, b, code=code, msg=msg: (code, {}, {"error": {"message": msg}}))
+        res = client(fake).chat_json("vision", MSG, accept, dedupe_key="k")
+        assert res.status == "KEY_REJECTED" and len(fake.calls) == 1, (code, msg)
+
+
+def test_a_busy_model_hands_over_to_the_next_free_one_at_once():
+    # found by the live check: free models answer 429 "rate-limited upstream" or a 200 carrying "ResourceExhausted"
+    for busy in ((429, {}, {"error": {"message": "temporarily rate-limited upstream"}}),
+                 (200, {}, {"error": {"message": "Upstream error from Nvidia: ResourceExhausted", "code": 502}})):
+        def reply(role, body, busy=busy):
+            return busy if body["model"] == VISION else {"x": 1}
+        fake = FakeOpenRouter(reply)
+        c = client(fake, max_retries=3)
+        res = c.chat_json("vision", MSG, accept, dedupe_key="k")
+        assert res.ok and [x["model"] for x in fake.calls] == [VISION, DEBATE]  # one try, then the next model
+        assert VISION in c.selection()["cooldown"]
+
+
+def test_reasoning_models_are_asked_for_bounded_reasoning_and_others_are_not():
+    cat = [model(VISION, ii=30, params=("reasoning",)), model(DEBATE, ii=10, params=("temperature",)),
+           model(TRADER, image=False, ii=28)]
+    fake = FakeOpenRouter(good, catalog=cat)
+    c = client(fake)
+    c.chat_json("vision", MSG, accept, dedupe_key="a")
+    c.chat_json("verifier", MSG, accept, dedupe_key="b", avoid=(VISION, TRADER))
+    sent = {x["model"]: x["body"] for x in fake.calls}
+    assert sent[VISION]["reasoning"] == {"effort": "medium"} and "reasoning" not in sent[DEBATE]
+
+
+def test_models_too_weak_to_trade_or_debate_are_left_out():
+    cat = [model("x/v:free", ii=20), model("y/t:free", image=False, ii=25), model("z/tiny-2.6b:free", image=False, ii=8.4),
+           model("w/small-3b:free", image=False), model("u/unknown:free", image=False)]
+    sel = fm.select(cat, now=1_790_000_000)
+    ids = {r["id"] for role in (sel.vision, sel.judge, sel.verifier) for r in role}
+    assert "z/tiny-2.6b:free" not in ids and "w/small-3b:free" not in ids  # measured 8.4; stated 3B
+    assert "u/unknown:free" in ids  # nothing measured, nothing stated: kept, ranked low

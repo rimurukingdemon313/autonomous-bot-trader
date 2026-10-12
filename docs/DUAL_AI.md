@@ -52,10 +52,12 @@ No decision is made on one trader alone.
 
 ## Strict validation (a reply is used exactly as given, or not at all)
 
-One JSON object. `direction` BUY or SELL; `entry`, `stop_loss`, `take_profit` finite positive prices;
-`confidence` a number 0-100 (not a boolean); `risk_reward` a positive number consistent with its own levels
-(within 0.25 or 20%); `reason` non-empty text; `reversal_probability` 0-100 and `invalidation` a price when
-given. Rejected: NaN/Infinity, a stop or target on the wrong side of the executable price, an entry more than 1
+One JSON object. The fields that decide the trade are exact: `direction` BUY or SELL; `entry`, `stop_loss`,
+`take_profit` finite positive prices; `confidence` a number 0-100 (not a boolean); `risk_reward` a positive number
+consistent with its own levels (within 0.25 or 20%); `reason` non-empty text. The trader's description of the
+market (`market_structure`, `liquidity`, `momentum`, `trend`, `reversal_probability`, `invalidation`) is recorded as
+given, text or number, and never prices, sizes or voids a trade (the live check found a model writing its
+invalidation as a sentence); a list, object or boolean there is still malformed. Rejected: NaN/Infinity, a stop or target on the wrong side of the executable price, an entry more than 1
 H1 ATR from the executable price (a market order fills at the current price: a farther entry is a misread
 price), a stop beyond 12 or a target beyond 15 H1 ATR. A malformed reply is never repaired.
 
@@ -120,13 +122,19 @@ The catalog changes; the selection is recomputed hourly and on failures. Optiona
 ## Limits, retries, duplicates
 
 - At most 3 requests per decision (2 when the traders agree). No loops, no second debate.
-- Per request: timeout `OPENROUTER_TIMEOUT_S` (120); up to `OPENROUTER_MAX_RETRIES` (3) retries on timeout,
-  429 or 5xx with exponential backoff and jitter; a 429 honours `Retry-After`; a wall-clock deadline per role
-  (300 s) across retries and fallbacks; up to 3 free models per role.
+- Per request: timeout `OPENROUTER_TIMEOUT_S` (180; free models took 30-170 s in the live check); up to
+  `OPENROUTER_MAX_RETRIES` (3) retries on a timeout or 5xx with exponential backoff and jitter. A busy model (a 429
+  without a short `Retry-After`, or a 200 carrying an upstream error such as "ResourceExhausted") rests and the
+  next free model answers at once. A wall-clock deadline per role (420 s) across retries and fallbacks; up to 8
+  free models per role. Reasoning models are asked for medium reasoning effort and may write 12,000 tokens, so
+  the answer fits after the thinking.
+- The traders are told the risk engine's own per-trade limits (`RiskEngine.trade_limits`: minimum stop distance
+  at this spread, minimum reward:risk), so their levels can be executed; the risk engine still decides.
 - An account whose OpenRouter privacy setting excludes free endpoints gets `DATA_POLICY` on every free model:
   the dashboard says so and names the setting (https://openrouter.ai/settings/privacy); no model is rested for it.
 - A reply cut at `max_tokens` before its JSON (a reasoning model thinking too long) is named as such.
-- 401/403: `KEY_REJECTED`. 402 (credits required): OpenRouter refused it, nothing is charged, and no other model
+- 401, or a 403 about the key itself: `KEY_REJECTED`. A 403 about one model (OpenRouter: "only available on
+  agentic harnesses") excludes that model for the process and the next free one answers. 402 (credits required): OpenRouter refused it, nothing is charged, and no other model
   is tried. 404 or "no endpoints": that model rests 6 hours and the next free one answers. A spent free daily
   quota: no call until the next UTC day.
 - Daily budget: `OPENROUTER_DAILY_CALL_BUDGET` (900), never above the key's own free quota read from GET /key
@@ -187,6 +195,16 @@ from live Yahoo bars; a dry run of the whole desk on real prices with scripted t
 one complete decision per pair with the real models through the production runtime, on a temporary paper
 account that is discarded. On a closed-market day it replays the last full trading hour and says so. It uses
 about 10 of the key's free daily requests.
+
+Run 2026-10-12 06:21 UTC with the key (Sunday: replay of Friday's last full hour): key accepted (credits on the
+account: daily quota 998, spend 0.00); all three pairs decided by the real models and approved by the risk engine:
+USDJPY AGREE → BUY (Trader 1 `dots-3-note-preview` 65, Trader 2 `nemotron-3-ultra` 60), GBPUSD AGREE → SELL (68,
+65), EURUSD DEBATE → SELL (Trader 1 `nemotron-3-nano-omni` BUY 75, Trader 2 SELL 65, debate `dots-3-note-preview`
+SELL). In practice `inkling-small`/`inkling` are closed to API keys (403 "agentic harnesses") and `gemma-4-26b`
+was rate-limited upstream, so Trader 1 was served by the next free vision models; each request took 30-130 s.
+Earlier runs that day found and fixed: the 403 stopping all calls, busy models retried instead of replaced,
+replies cut at the token limit, an analysis field voiding a trade, a 2.6B model chosen for the debate, stops
+placed inside the risk engine's cost limit.
 
 Run 2026-10-10 (Saturday, no key yet): catalog OK (14 free of 458; the three picks above), charts OK on live
 M15/H4 bars for EURUSD, GBPUSD, USDJPY, and the dry run OK on Friday's last full hour: EURUSD AGREE → BUY, risk
