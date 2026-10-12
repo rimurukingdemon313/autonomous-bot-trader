@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 14:48 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 10:02 UTC · decision system `dual_ai`
+Updated 2026-10-12 15:03 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 10:02 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,527.85 | $527.85 | $527.85 | $0.00 | 2 | 0 (none) | n/a | n/a | n/a | ACTIVE | RUNNING |
+| $200,000.00 | $200,610.45 | $610.45 | $610.45 | $0.00 | 2 | 0 (none) | n/a | n/a | n/a | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -33,7 +33,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
 | USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $152.02 |
-| EURUSD | SELL | 4.13 | 1.11875 | 1.11957 | 1.11682 | $375.83 |
+| EURUSD | SELL | 4.13 | 1.11875 | 1.11957 | 1.11682 | $458.43 |
 
 ## Closed paper trades (latest 20)
 
