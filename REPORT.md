@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 10:02 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 04:27 UTC · decision system `evidence`
+Updated 2026-10-12 10:02 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 10:02 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -35,5 +35,16 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source |
 |---|---|---|---|---|---|---|---|
+
+## Dual AI desk (two free OpenRouter traders; a debate when they disagree)
+
+OpenRouter `NO_FREE_MODEL` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+
+AI trades 0 (none) · wins 0 · losses 0 · expectancy n/a · profit factor n/a
+
+| Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
+|---|---|---|---|---|---|---|---|
+
+The chart Agent 1 read last: `last_chart.png`.
 
 Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.
