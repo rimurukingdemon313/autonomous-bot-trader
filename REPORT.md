@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 17:38 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
+Updated 2026-10-12 17:53 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,712.17 | $712.17 | $712.17 | $0.00 | 1 | 1 (insufficient) | 100.0% | +1.540R | n/a | ACTIVE | RUNNING |
+| $200,000.00 | $200,836.19 | $836.19 | $836.19 | $0.00 | 1 | 1 (insufficient) | 100.0% | +1.540R | n/a | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -32,7 +32,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $-56.01 |
+| USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $68.01 |
 
 ## Closed paper trades (latest 20)
 
