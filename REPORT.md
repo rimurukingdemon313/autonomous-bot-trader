@@ -1,20 +1,21 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-12 16:53 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
+Updated 2026-10-12 17:08 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 15:38 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,984.21 | $984.21 | $984.21 | $0.00 | 1 | 1 (insufficient) | 100.0% | +1.540R | n/a | ACTIVE | RUNNING |
+| $200,000.00 | $200,840.19 | $840.19 | $840.19 | $0.00 | 1 | 1 (insufficient) | 100.0% | +1.540R | n/a | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (329 so far)
+## Latest decisions, NO TRADE included (330 so far)
 
+- 10-12 16:45 EURUSD NO_TRADE: Trader 1 (vision) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking))): no decision on
 - 10-12 15:30 USDCAD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-12 14:15 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-12 13:00 USDJPY BUY: BUY USDJPY on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The price swept the highs at 158.641 with a bearish liquidity signal, indicating a stop hunt and distribution. Enter
@@ -26,13 +27,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 08:01 EURJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
 - 10-12 08:01 EURGBP NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
 - 10-12 08:01 NZDUSD NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
-- 10-12 08:01 USDCHF NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $216.03 |
+| USDJPY | BUY | 6.35 | 158.641 | 158.555 | 158.75 | $72.01 |
 
 ## Closed paper trades (latest 20)
 
@@ -48,6 +48,7 @@ AI trades 1 (insufficient) · wins 1 · losses 0 · expectancy +1.540R · profit
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-12 16:45 | EURUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-12 15:30 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 14:15 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 13:00 | USDJPY | SELL 65 | BUY 70 | BUY | DEBATE | BUY | APPROVED |
