@@ -93,7 +93,7 @@ def report_md(v: dict, shift: dict) -> str:
                          f"{t2.get('direction', '-')} {t2.get('confidence', '')} | {vf.get('direction', '-')} | "
                          f"{(a.get('consensus') or {}).get('rule')} | "
                          f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} |")
-        lines += ["", "The chart Agent 1 read last: `last_chart.png`."]
+        lines += ["", "The chart Trader 1 read last: `last_chart.png`."]
     lines += ["", "Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.", ""]
     return "\n".join(lines)
 

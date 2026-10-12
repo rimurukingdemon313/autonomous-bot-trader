@@ -156,7 +156,8 @@ def test_a_malformed_or_impossible_answer_is_rejected_never_repaired(reply, why)
     assert problem and why in problem
     d, fake = think(scripted(trader1=reply))
     assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
-    assert len(fake.calls) == 1  # no decision on one trader alone: Trader 2 is not asked
+    # every free vision model gave the same unusable answer: each asked once, none repaired, Trader 2 never asked
+    assert {c["role"] for c in fake.calls} == {"trader1"} and len(fake.calls) == len({c["model"] for c in fake.calls})
 
 
 def test_malformed_json_from_trader_2_is_no_trade():
@@ -250,3 +251,14 @@ def test_the_traders_are_told_the_risk_engines_own_limits():
     for call in fake.calls:
         assert packet_of(call["body"])["costs"]["risk_engine_limits"]["min_stop_distance"] == lim["min_stop_distance"]
     assert "min_stop_distance" in fake.calls[0]["body"]["messages"][0]["content"]
+
+
+def test_when_one_vision_model_answers_badly_another_trader_1_model_is_asked():
+    # found in the live run (GBPUSD 11:45): the first vision model answered without JSON
+    def t1(body):
+        return "not json" if body["model"] == VISION else answer("SELL", BID, ASK, ATR, confidence=70)
+    d, fake = think(scripted(trader1=t1, t2=("SELL", 66)))
+    assert d.decision == "SELL" and d.ai["dual_ai"]["models"]["trader1"] == DEBATE
+    call = d.ai["dual_ai"]["calls"][0]
+    assert call["tried"][0]["model"] == VISION and call["tried"][0]["status"].startswith("INVALID")
+    assert d.ai["dual_ai"]["models"]["trader2"] not in (DEBATE,)  # still a different model from Trader 1

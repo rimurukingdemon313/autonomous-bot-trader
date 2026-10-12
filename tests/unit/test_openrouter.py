@@ -179,10 +179,21 @@ def test_timeouts_are_retried_with_backoff_then_stop_at_the_deadline():
     assert res.status == "TIMEOUT" and 1 <= len(fake.calls) <= 3
 
 
-def test_malformed_json_is_invalid_and_never_retried_or_repaired():
+def test_malformed_json_is_never_repaired_or_asked_twice_of_the_same_model():
     fake = FakeOpenRouter(lambda r, b: "I think BUY, maybe")
     res = client(fake).chat_json("vision", MSG, accept, dedupe_key="k")
-    assert res.status.startswith("INVALID") and len(fake.calls) == 1 and not res.ok
+    asked = [x["model"] for x in fake.calls]
+    assert res.status.startswith("INVALID") and not res.ok and res.data is None
+    assert asked == [VISION, DEBATE] and len(set(asked)) == len(asked)  # each free vision model once, then no answer
+    assert [t["model"] for t in res.record()["tried"]] == [VISION]
+
+
+def test_after_a_malformed_answer_the_next_free_model_gives_its_own():
+    # found in the live run: a free vision model answered without JSON and the whole decision was lost
+    fake = FakeOpenRouter(lambda r, b: "no json here" if b["model"] == VISION else {"x": 1})
+    res = client(fake).chat_json("vision", MSG, accept, dedupe_key="k")
+    assert res.ok and res.model == DEBATE and res.data == {"x": 1}
+    assert res.record()["tried"] == [{"model": VISION, "status": "INVALID: no JSON object in the reply"}]
 
 
 def test_a_reply_from_another_model_or_with_a_cost_is_discarded_and_that_model_excluded():

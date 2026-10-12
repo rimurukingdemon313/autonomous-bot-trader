@@ -55,6 +55,9 @@ from typing import Callable
 from .free_models import Selection, select, supports_image
 from .provider import extract_json
 
+#: 1.6.0 (live run): a malformed or impossible answer from one model is never repaired and that model is not asked
+#:        again for it, but the next FREE model of the role is asked for its own answer (one free vision model
+#:        answered without JSON and the whole decision was lost); every model tried is recorded on the call.
 #: 1.5.0 (live check): an upstream error inside a 200 reply (e.g. "ResourceExhausted") and a 429 without a short
 #:        Retry-After rest that model and move to the next FREE one at once (retrying the same busy model wasted the
 #:        role's time); reasoning models are asked for medium reasoning effort; up to 8 models per role; timeout
@@ -64,7 +67,7 @@ from .provider import extract_json
 #: 1.3.0: an account whose privacy setting blocks free models is reported as DATA_POLICY (one setting fixes
 #:        it; no model is rested for it); a reply cut at max_tokens is named as such; GET /auth/key when /key is
 #:        not found; replies may take longer (timeout 120 s) and use more tokens (reasoning models think first).
-OPENROUTER_VERSION = "openrouter-1.5.0"
+OPENROUTER_VERSION = "openrouter-1.6.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -148,12 +151,14 @@ class CallResult:
     latency_ms: float = 0.0
     cached: bool = False
     tokens: int | None = None
+    tried: list = field(default_factory=list)  # [(model, status)] for every model asked before this one
 
     def record(self) -> dict:
         """What a decision keeps of the call: never the key, never the prompt."""
         return {"role": self.role, "model": self.model, "status": self.status, "ok": self.ok, "error": self.error,
                 "request_id": self.request_id, "provider_id": self.provider_id, "attempts": self.attempts,
-                "latency_ms": round(self.latency_ms, 1), "cached": self.cached, "tokens": self.tokens}
+                "latency_ms": round(self.latency_ms, 1), "cached": self.cached, "tokens": self.tokens,
+                "tried": [{"model": m, "status": st} for m, st in self.tried]}
 
 
 def _base(model_id: str) -> str:
@@ -351,15 +356,20 @@ class OpenRouterClient:
             return CallResult(False, "NO_FREE_MODEL", role, error=why)
         deadline = self.clock() + deadline_s
         last = CallResult(False, "UNAVAILABLE", role, error="no model answered")
+        tried: list = []
         for model in models:
             if self.clock() >= deadline:
                 return CallResult(False, "TIMEOUT", role, last.model, error=f"no answer within {deadline_s:.0f} s "
-                                  f"(last: {last.status})", attempts=last.attempts)
+                                  f"(last: {last.status})", attempts=last.attempts, tried=tried)
             res = self._one_model(role, model, messages, validate, max_tokens, deadline)
-            if res.ok or res.status.startswith("INVALID") or res.status in (
+            res.tried = list(tried)
+            if res.ok or res.status in (
                     "NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "NOT_FREE", "WRONG_MODEL", "DATA_POLICY"):
-                return res  # an answer, an unusable answer, or a reason no other model would fix
-            last = res  # unavailable / rate-limited / timing out: the next FREE model may answer
+                return res  # an answer, or a reason no other model would fix
+            # unavailable / busy / timing out, or an unusable answer: that answer is never repaired and that model
+            # is not asked again for it; the next FREE model of the role gives its own answer
+            tried.append((model, res.status))
+            last = res
         return last
 
     def _one_model(self, role, model, messages, validate, max_tokens, deadline=float("inf")) -> CallResult:
