@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-12 19:00 UTC**, run 117, version `radar-1.0.0`. State from: cache. Quotes this hour: 2387.
+Updated **2026-10-12 20:00 UTC**, run 118, version `radar-1.0.0`. State from: cache. Quotes this hour: 2387.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,26 +17,27 @@ Updated **2026-10-12 19:00 UTC**, run 117, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 4.96
-- run_coverage: 0.975
+- days: 5.0
+- run_coverage: 0.9752
 - closed_positions: 12
-- open_positions: 0
-- utilisation: 0.0607
+- open_positions: 1
+- utilisation: 0.061
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.1439
-- book_excess_pct: -0.147
-- ann_excess_deployed_pct: -181.366
-- ann_excess_deployed_costs_x1.5_pct: -310.298
-- ann_excess_deployed_costs_x2_pct: -439.23
+- book_pnl_pct: -0.1524
+- book_excess_pct: -0.164
+- ann_excess_deployed_pct: -202.34
+- ann_excess_deployed_costs_x1.5_pct: -341.76
+- ann_excess_deployed_costs_x2_pct: -481.18
 - best_coin: W
-- book_excess_without_best_coin_pct: -0.1638
+- book_excess_without_best_coin_pct: -0.1808
 - max_dd_pct: 0.1703
-- t_excess_daily: -1.39
+- t_excess_daily: -1.481
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
+| RSR | mexc | gate | 2026-10-12 20:00 | 50.7% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (12)
 
@@ -59,5 +60,6 @@ Updated **2026-10-12 19:00 UTC**, run 117, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
+| RSR | mexc | gate | 50.7% | 665.5% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
