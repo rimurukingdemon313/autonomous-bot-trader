@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-12 07:00 UTC**, run 105, version `radar-1.0.0`. State from: cache. Quotes this hour: 2375.
+Updated **2026-10-12 08:00 UTC**, run 106, version `radar-1.0.0`. State from: cache. Quotes this hour: 2375.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-10-12 07:00 UTC**, run 105, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 4.46
-- run_coverage: 0.9722
+- days: 4.5
+- run_coverage: 0.9725
 - closed_positions: 9
 - open_positions: 2
-- utilisation: 0.0514
+- utilisation: 0.0528
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.148
-- book_excess_pct: -0.1698
-- ann_excess_deployed_pct: -286.094
-- ann_excess_deployed_costs_x1.5_pct: -447.817
-- ann_excess_deployed_costs_x2_pct: -609.54
+- book_pnl_pct: -0.1282
+- book_excess_pct: -0.15
+- ann_excess_deployed_pct: -243.406
+- ann_excess_deployed_costs_x1.5_pct: -399.139
+- ann_excess_deployed_costs_x2_pct: -554.872
 - best_coin: W
-- book_excess_without_best_coin_pct: -0.172
+- book_excess_without_best_coin_pct: -0.1685
 - max_dd_pct: 0.1703
-- t_excess_daily: -1.426
+- t_excess_daily: -1.196
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| STRK | hyperliquid | gate | 2026-10-11 17:00 | 25.6% | 4.2 | 1.6 | 19.5 | **-13.7** |
-| W | hyperliquid | gate | 2026-10-12 03:00 | 29.4% | 8.5 | 35.3 | 19.5 | **24.2** |
+| STRK | hyperliquid | gate | 2026-10-11 17:00 | 25.6% | 4.3 | 8.6 | 19.5 | **-6.5** |
+| W | hyperliquid | gate | 2026-10-12 03:00 | 29.4% | 10.6 | 65.7 | 19.5 | **56.8** |
 
 ## Closed positions (9)
 
@@ -58,6 +58,6 @@ Updated **2026-10-12 07:00 UTC**, run 105, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| W | hyperliquid | gate | 36.1% | 58.9% |
+| W | hyperliquid | gate | 39.8% | 312.9% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
