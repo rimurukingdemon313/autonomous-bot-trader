@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 01:44 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
+Updated 2026-10-13 01:59 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,613.52 | $-739.76 | $-386.48 | $-386.48 | 1 | 4 (insufficient) | 25.0% | -0.216R | 0.64 | ACTIVE | RUNNING |
+| $200,000.00 | $199,563.92 | $-789.36 | $-436.08 | $-436.08 | 1 | 4 (insufficient) | 25.0% | -0.216R | 0.64 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -35,7 +35,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDUSD | SELL | 2.48 | 0.69574 | 0.69651 | 0.6948 | $47.12 |
+| AUDUSD | SELL | 2.48 | 0.69574 | 0.69651 | 0.6948 | $-2.48 |
 
 ## Closed paper trades (latest 20)
 
