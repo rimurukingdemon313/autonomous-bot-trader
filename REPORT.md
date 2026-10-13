@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-13 10:00 UTC**, run 132, version `radar-1.0.0`. State from: cache. Quotes this hour: 2387.
+Updated **2026-10-13 11:00 UTC**, run 133, version `radar-1.0.0`. State from: cache. Quotes this hour: 2392.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,33 +17,33 @@ Updated **2026-10-13 10:00 UTC**, run 132, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 5.58
-- run_coverage: 0.9778
-- closed_positions: 14
-- open_positions: 2
-- utilisation: 0.0742
+- days: 5.62
+- run_coverage: 0.9779
+- closed_positions: 15
+- open_positions: 1
+- utilisation: 0.0744
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.1552
-- book_excess_pct: -0.1774
-- ann_excess_deployed_pct: -161.91
-- ann_excess_deployed_costs_x1.5_pct: -290.344
-- ann_excess_deployed_costs_x2_pct: -418.778
+- book_pnl_pct: -0.1668
+- book_excess_pct: -0.1809
+- ann_excess_deployed_pct: -161.67
+- ann_excess_deployed_costs_x1.5_pct: -287.483
+- ann_excess_deployed_costs_x2_pct: -413.297
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.2027
+- book_excess_without_best_coin_pct: -0.2013
 - max_dd_pct: 0.1943
-- t_excess_daily: -1.191
+- t_excess_daily: -1.343
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| RSR | gate | hyperliquid | 2026-10-13 01:00 | 46.5% | 26.8 | 51.7 | 19.5 | **58.9** |
-| W | hyperliquid | mexc | 2026-10-13 05:00 | 29.2% | 1.2 | -22.8 | 16.5 | **-38.1** |
+| RSR | gate | hyperliquid | 2026-10-13 01:00 | 46.5% | 27.3 | 41.5 | 19.5 | **49.3** |
 
-## Closed positions (14)
+## Closed positions (15)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| W | hyperliquid | mexc | 0.2 | spread_decayed | -51.6 |
 | W | hyperliquid | gate | 0.2 | spread_reversed | -51.2 |
 | RSR | mexc | gate | 0.2 | spread_reversed | 7.7 |
 | W | hyperliquid | gate | 0.5 | spread_reversed | 34.7 |
@@ -63,6 +63,5 @@ Updated **2026-10-13 10:00 UTC**, run 132, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| RSR | mexc | gate | 70.8% | 18.0% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
