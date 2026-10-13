@@ -30,12 +30,12 @@
  },
  "bot_status": "RUNNING",
  "account": {
-  "equity": 199341.97,
+  "equity": 199519.51,
   "balance": 199231.65,
-  "total_pnl": -658.03,
-  "today_pnl": -1011.31,
+  "total_pnl": -480.49,
+  "today_pnl": -833.78,
   "day_reference": 200353.28367049602,
-  "drawdown_from_start": -658.03,
+  "drawdown_from_start": -480.49,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -174,12 +174,12 @@
    "side": "BUY",
    "qty": 2.96,
    "entry": 0.9312,
-   "current": 0.93151,
+   "current": 0.93201,
    "stop": 0.9302,
    "target": 0.9327,
-   "r_now": 0.31,
+   "r_now": 0.81,
    "opened": 1791885981.0,
-   "pnl": 110.32,
+   "pnl": 287.86,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -962,6 +962,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "USDCHF",
+   "decision": "NO_TRADE",
+   "t": 1791899121,
+   "reason": "Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDCAD",
+   "decision": "NO_TRADE",
+   "t": 1791899121,
+   "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+   "data_flags": []
+  },
+  {
    "symbol": "AUDUSD",
    "decision": "NO_TRADE",
    "t": 1791898217,
@@ -1114,23 +1128,9 @@
    "t": 1791889215,
    "reason": "Trader 1 (vision) gave no usable answer (TIMEOUT: no answer within 420 s (last: UPSTREAM_ERROR)): no decision on one trader alone",
    "data_flags": []
-  },
-  {
-   "symbol": "USDCHF",
-   "decision": "NO_TRADE",
-   "t": 1791888318,
-   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "USDCAD",
-   "decision": "NO_TRADE",
-   "t": 1791888318,
-   "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open",
-   "data_flags": []
   }
  ],
- "decisions_total": 382,
+ "decisions_total": 384,
  "shift": {
   "started": "2026-10-13 08:24 UTC",
   "decision_mode": "dual_ai",
@@ -1154,24 +1154,24 @@
    "judge_pin": null,
    "version": "openrouter-1.6.0",
    "status": "READY",
-   "calls_today": 86,
+   "calls_today": 94,
    "last_call": {
-    "t": 1791898811,
+    "t": 1791899616,
     "role": "vision",
     "model": "dots-studio/dots-3-note-preview:free",
-    "status": "INVALID: no JSON object in the reply",
+    "status": "UPSTREAM_ERROR",
     "ok": false,
-    "error": null,
-    "request_id": "6ea194bce3b5481ca8e827b4a41704d6",
-    "provider_id": "gen-1791898499-bul2Yuq8MxK3L8ATFXgn",
+    "error": "upstream error: JSON error injected into SSE stream",
+    "request_id": "107b8e82a3764c77bdcc246ca6f6b373",
+    "provider_id": null,
     "attempts": 1,
-    "latency_ms": 311524.6,
+    "latency_ms": 15154.2,
     "cached": false,
-    "tokens": 4587,
+    "tokens": null,
     "tried": [
      {
       "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-      "status": "INVALID: stated risk_reward 1.2 contradicts its own levels (0.94)"
+      "status": "UPSTREAM_ERROR"
      },
      {
       "model": "google/gemma-4-26b-a4b-it:free",
@@ -1184,7 +1184,7 @@
     ]
    },
    "key": {
-    "checked": 1791897318,
+    "checked": 1791899122,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 0.0,
@@ -1202,7 +1202,7 @@
      {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
-      "score": 42.9,
+      "score": 43.12,
       "context": 256000,
       "image": true,
       "intelligence_index": 10.3,
@@ -1241,7 +1241,7 @@
      {
       "id": "dots-studio/dots-3-note-preview:free",
       "name": "Dots Studio: Dots3-Note Preview (free)",
-      "score": 34.0,
+      "score": 33.0,
       "context": 512000,
       "image": true,
       "intelligence_index": null,
@@ -1388,10 +1388,27 @@
     ],
     "free_total": 12,
     "catalog_total": 459,
-    "refreshed": 1791898441.1476195,
+    "refreshed": 1791899600.1364474,
     "error": null,
     "version": "free-models-1.3.0",
-    "cooldown": {},
+    "cooldown": {
+     "google/gemma-4-26b-a4b-it:free": {
+      "until": 1791899901,
+      "why": "rate_limited"
+     },
+     "google/gemma-4-31b-it:free": {
+      "until": 1791899901,
+      "why": "rate_limited"
+     },
+     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
+      "until": 1791899900,
+      "why": "rate_limited"
+     },
+     "dots-studio/dots-3-note-preview:free": {
+      "until": 1791899916,
+      "why": "rate_limited"
+     }
+    },
     "excluded": {
      "thinkingmachines/inkling-small:free": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter",
      "thinkingmachines/inkling:free": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/ap"
@@ -1408,19 +1425,19 @@
     },
     "google/gemma-4-26b-a4b-it:free": {
      "ok": 0,
-     "failed": 13
+     "failed": 15
     },
     "google/gemma-4-31b-it:free": {
      "ok": 0,
-     "failed": 12
+     "failed": 14
     },
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
      "ok": 9,
-     "failed": 11
+     "failed": 13
     },
     "dots-studio/dots-3-note-preview:free": {
      "ok": 6,
-     "failed": 13
+     "failed": 15
     },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
      "ok": 9,
@@ -1499,19 +1516,19 @@
     "last_bar_available": 1791898200
    },
    "USDCHF": {
-    "t": 1791893717,
-    "decision_id": "ba96fed9aaf8e4a42d4552a4",
+    "t": 1791899121,
+    "decision_id": "ddc66f0aafd6403bb00fefb3",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 30664,
-    "sha256": "8e1fb337859d1c64a413614e2895c5c477355cd1a3ef4a10b2456feb40f8dd31",
-    "as_of": 1791893717,
+    "bytes": 30975,
+    "sha256": "416ec94dafb9893942aab7224b3c958d7ef1bc7ef980358dd7a7e318306b58b5",
+    "as_of": 1791899121,
     "execution_timeframe": "M15",
     "higher_timeframe": "H4",
-    "last_bar_open": 1791892800,
-    "last_bar_available": 1791893700
+    "last_bar_open": 1791898200,
+    "last_bar_available": 1791899100
    },
    "EURJPY": {
     "t": 1791895517,
@@ -1589,19 +1606,19 @@
     "last_bar_available": 1791894600
    },
    "USDCAD": {
-    "t": 1791893717,
-    "decision_id": "76438dba7d60367922771369",
+    "t": 1791899121,
+    "decision_id": "dfc2c68ad4dbdfa6777cd489",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 29853,
-    "sha256": "9c30300a27f784d8e991375f1e4ea7b169fb89aac13a85ac1dd426dba3ddea32",
-    "as_of": 1791893717,
+    "bytes": 30118,
+    "sha256": "24da0b3237300d271279a3f466e394f108315caa92b3fca4aa594ce0298bdb28",
+    "as_of": 1791899121,
     "execution_timeframe": "M15",
     "higher_timeframe": "H4",
-    "last_bar_open": 1791892800,
-    "last_bar_available": 1791893700
+    "last_bar_open": 1791898200,
+    "last_bar_available": 1791899100
    },
    "EURGBP": {
     "t": 1791894615,
@@ -1620,14 +1637,14 @@
    }
   },
   "last_analysis": {
-   "decision_id": "dececc7f5fa97fc6efb8b9ca",
-   "symbol": "AUDUSD",
-   "t": 1791898217,
+   "decision_id": "ddc66f0aafd6403bb00fefb3",
+   "symbol": "USDCHF",
+   "t": 1791899121,
    "decision": "NO_TRADE",
-   "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+   "reason": "Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+    "reason": "Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone",
     "rule": "TRADER1_UNAVAILABLE"
    },
    "models": {
@@ -1638,14 +1655,14 @@
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1791898217,
-    "bytes": 29278,
+    "as_of": 1791899121,
+    "bytes": 30975,
     "execution_timeframe": "M15",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1791898200,
-    "last_bar_open": 1791897300,
-    "sha256": "b5fd61a967fc29a65923fed962084ee922b181a07b316ac77f12602c94058964",
+    "last_bar_available": 1791899100,
+    "last_bar_open": 1791898200,
+    "sha256": "416ec94dafb9893942aab7224b3c958d7ef1bc7ef980358dd7a7e318306b58b5",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -1653,19 +1670,19 @@
     {
      "attempts": 1,
      "cached": false,
-     "error": null,
-     "latency_ms": 311524.6,
+     "error": "upstream error: JSON error injected into SSE stream",
+     "latency_ms": 15154.2,
      "model": "dots-studio/dots-3-note-preview:free",
      "ok": false,
-     "provider_id": "gen-1791898499-bul2Yuq8MxK3L8ATFXgn",
-     "request_id": "6ea194bce3b5481ca8e827b4a41704d6",
+     "provider_id": null,
+     "request_id": "107b8e82a3764c77bdcc246ca6f6b373",
      "role": "vision",
-     "status": "INVALID: no JSON object in the reply",
-     "tokens": 4587,
+     "status": "UPSTREAM_ERROR",
+     "tokens": null,
      "tried": [
       {
        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-       "status": "INVALID: stated risk_reward 1.2 contradicts its own levels (0.94)"
+       "status": "UPSTREAM_ERROR"
       },
       {
        "model": "google/gemma-4-26b-a4b-it:free",
@@ -1681,6 +1698,128 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "ddc66f0aafd6403bb00fefb3",
+    "symbol": "USDCHF",
+    "t": 1791899121,
+    "decision": "NO_TRADE",
+    "reason": "Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone",
+     "rule": "TRADER1_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free"
+    },
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1791899121,
+     "bytes": 30975,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1791899100,
+     "last_bar_open": 1791898200,
+     "sha256": "416ec94dafb9893942aab7224b3c958d7ef1bc7ef980358dd7a7e318306b58b5",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": "upstream error: JSON error injected into SSE stream",
+      "latency_ms": 15154.2,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": "107b8e82a3764c77bdcc246ca6f6b373",
+      "role": "vision",
+      "status": "UPSTREAM_ERROR",
+      "tokens": null,
+      "tried": [
+       {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "status": "UPSTREAM_ERROR"
+       },
+       {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "status": "RATE_LIMITED"
+       },
+       {
+        "model": "google/gemma-4-31b-it:free",
+        "status": "RATE_LIMITED"
+       }
+      ]
+     }
+    ],
+    "risk": null
+   },
+   {
+    "decision_id": "dfc2c68ad4dbdfa6777cd489",
+    "symbol": "USDCAD",
+    "t": 1791899121,
+    "decision": "NO_TRADE",
+    "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+     "rule": "TRADER1_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free"
+    },
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1791899121,
+     "bytes": 30118,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1791899100,
+     "last_bar_open": 1791898200,
+     "sha256": "24da0b3237300d271279a3f466e394f108315caa92b3fca4aa594ce0298bdb28",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 475372.2,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": false,
+      "provider_id": "gen-1791899123-90wqW39fTCet1sNCKw4P",
+      "request_id": "ac71aa57a0ba4a83bbfa5974dd513284",
+      "role": "vision",
+      "status": "INVALID: no JSON object in the reply",
+      "tokens": 7165,
+      "tried": [
+       {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "status": "UPSTREAM_ERROR"
+       },
+       {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "status": "RATE_LIMITED"
+       },
+       {
+        "model": "google/gemma-4-31b-it:free",
+        "status": "RATE_LIMITED"
+       }
+      ]
+     }
+    ],
+    "risk": null
+   },
    {
     "decision_id": "dececc7f5fa97fc6efb8b9ca",
     "symbol": "AUDUSD",
@@ -2330,115 +2469,6 @@
      }
     ],
     "risk": null
-   },
-   {
-    "decision_id": "ba96fed9aaf8e4a42d4552a4",
-    "symbol": "USDCHF",
-    "t": 1791893717,
-    "decision": "NO_TRADE",
-    "reason": "Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone",
-     "rule": "TRADER1_UNAVAILABLE"
-    },
-    "models": {
-     "trader1": null
-    },
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1791893717,
-     "bytes": 30664,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1791893700,
-     "last_bar_open": 1791892800,
-     "sha256": "8e1fb337859d1c64a413614e2895c5c477355cd1a3ef4a10b2456feb40f8dd31",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 0,
-      "cached": false,
-      "error": "no FREE vision model in the catalog",
-      "latency_ms": 0.0,
-      "model": null,
-      "ok": false,
-      "provider_id": null,
-      "request_id": null,
-      "role": "vision",
-      "status": "NO_FREE_MODEL",
-      "tokens": null,
-      "tried": []
-     }
-    ],
-    "risk": null
-   },
-   {
-    "decision_id": "76438dba7d60367922771369",
-    "symbol": "USDCAD",
-    "t": 1791893717,
-    "decision": "NO_TRADE",
-    "reason": "Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations): no decision on one trader ",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations): no decision on one trader alone",
-     "rule": "TRADER1_UNAVAILABLE"
-    },
-    "models": {
-     "trader1": "google/gemma-4-31b-it:free"
-    },
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1791893717,
-     "bytes": 29853,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1791893700,
-     "last_bar_open": 1791892800,
-     "sha256": "9c30300a27f784d8e991375f1e4ea7b169fb89aac13a85ac1dd426dba3ddea32",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": "HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations",
-      "latency_ms": 225.7,
-      "model": "google/gemma-4-31b-it:free",
-      "ok": false,
-      "provider_id": null,
-      "request_id": "5a19dcf53f0e49a0b4e5f9a93328d948",
-      "role": "vision",
-      "status": "RATE_LIMITED",
-      "tokens": null,
-      "tried": [
-       {
-        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-        "status": "UPSTREAM_ERROR"
-       },
-       {
-        "model": "dots-studio/dots-3-note-preview:free",
-        "status": "UPSTREAM_ERROR"
-       },
-       {
-        "model": "google/gemma-4-26b-a4b-it:free",
-        "status": "RATE_LIMITED"
-       }
-      ]
-     }
-    ],
-    "risk": null
    }
   ],
   "open_positions": [
@@ -2448,12 +2478,12 @@
     "side": "BUY",
     "qty": 2.96,
     "entry": 0.9312,
-    "current": 0.93151,
+    "current": 0.93201,
     "stop": 0.9302,
     "target": 0.9327,
-    "r_now": 0.31,
+    "r_now": 0.81,
     "opened": 1791885981.0,
-    "pnl": 110.32,
+    "pnl": 287.86,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -2571,11 +2601,11 @@
     "DEBATE": 5,
     "DISAGREE": 7,
     "MARKET_UNAVAILABLE": 19,
-    "TRADER1_UNAVAILABLE": 19
+    "TRADER1_UNAVAILABLE": 21
    },
    "agreement_rate": 0.4,
    "decisions_with_both_traders": 20,
-   "unavailable": 38
+   "unavailable": 40
   },
   "recent_trades": [
    {
@@ -3145,8 +3175,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1791898217,
+  "last_cycle": 1791899121,
   "last_cycle_error": null,
-  "cycles": 20
+  "cycles": 21
  }
 }
