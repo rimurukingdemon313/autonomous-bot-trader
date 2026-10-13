@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 14:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 14:00 UTC · decision system `dual_ai`
+Updated 2026-10-13 14:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 14:00 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,448.39 | $-904.89 | $-551.61 | $-551.61 | 1 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
+| $200,000.00 | $199,448.50 | $-904.78 | $-551.50 | $-551.50 | 1 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -43,7 +43,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $216.74 |
+| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $216.85 |
 
 ## Closed paper trades (latest 20)
 
