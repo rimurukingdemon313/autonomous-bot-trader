@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-13 16:00 UTC**, run 138, version `radar-1.0.0`. State from: cache. Quotes this hour: 2392.
+Updated **2026-10-13 17:00 UTC**, run 139, version `radar-1.0.0`. State from: cache. Quotes this hour: 2392.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,26 +17,27 @@ Updated **2026-10-13 16:00 UTC**, run 138, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 5.83
-- run_coverage: 0.9787
+- days: 5.88
+- run_coverage: 0.9789
 - closed_positions: 16
-- open_positions: 0
-- utilisation: 0.0717
+- open_positions: 1
+- utilisation: 0.0719
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.1685
-- book_excess_pct: -0.1729
-- ann_excess_deployed_pct: -152.994
-- ann_excess_deployed_costs_x1.5_pct: -277.536
-- ann_excess_deployed_costs_x2_pct: -402.079
+- book_pnl_pct: -0.1783
+- book_excess_pct: -0.1924
+- ann_excess_deployed_pct: -170.248
+- ann_excess_deployed_costs_x1.5_pct: -303.418
+- ann_excess_deployed_costs_x2_pct: -436.588
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.2013
+- book_excess_without_best_coin_pct: -0.2208
 - max_dd_pct: 0.1943
-- t_excess_daily: -1.367
+- t_excess_daily: -1.499
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
+| W | hyperliquid | gate | 2026-10-13 17:00 | 29.7% | 0.0 | 0.0 | 19.5 | **-19.5** |
 
 ## Closed positions (16)
 
@@ -63,5 +64,6 @@ Updated **2026-10-13 16:00 UTC**, run 138, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
+| W | hyperliquid | gate | 29.7% | 15.1% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
