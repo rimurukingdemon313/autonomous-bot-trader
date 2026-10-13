@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 09:39 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
+Updated 2026-10-13 09:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -10,6 +10,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-13 09:45 EURJPY SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=FINANCING_EXCEEDS_RISK equity_conservative=199621.61 daily_pnl=-731.67 daily_limit=-10000.00 total_pnl=-378.39 total_limit=-20000.00 open_risk=299.96 max_loss
 - 10-13 09:15 USDCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 0.91 vs minimum 1.2
 - 10-13 07:45 AUDUSD SELL: AI DECISION → RISK REJECTED — quote: age 108s, bid 0.69685, ask 0.69695
 - 10-13 06:30 USDJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
@@ -20,8 +21,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (350 so far)
+## Latest decisions, NO TRADE included (351 so far)
 
+- 10-13 09:45 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 78: The M15 trend is clearly bearish with a structure of lower highs and lower lows, and the recent sharp drop shows str
 - 10-13 09:30 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 191s old
 - 10-13 09:30 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 289s old
 - 10-13 09:15 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 68: Bearish BOS and open FVG above current price, supply zone tested, and price near resistance at 0.83329
@@ -33,7 +35,6 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 07:45 AUDUSD SELL: SELL AUDUSD on M15: DEBATE: Trader 1 (google/gemma-4-26b-a4b-it:free) BUY 75: M15 structure has shifted bullish with a CHoCH and a recent BOS. Price is currently trading within an open bullish FVG and
 - 10-13 06:30 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 65: The M15 displays a bearish break of structure and a tested supply zone within the entry band, while th
 - 10-13 05:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-13 04:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
@@ -54,7 +55,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `apodex/apodex-1.1-mini:free` · calls today 20/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `apodex/apodex-1.1-mini:free` · calls today 28/900
 
 AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit factor 0.70
 
@@ -62,6 +63,7 @@ Disagreements (not traded; the debate runs in shadow): 2 · the debate's pick if
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 09:45 | EURJPY | SELL 78 | SELL 63 | - | AGREE | SELL | APPROVED |
 | 10-13 09:30 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 09:30 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 09:15 | USDCHF | SELL 68 | SELL 62 | - | AGREE | SELL | REJECTED |
@@ -73,7 +75,6 @@ Disagreements (not traded; the debate runs in shadow): 2 · the debate's pick if
 | 10-13 07:45 | AUDUSD | BUY 75 | SELL 60 | SELL | DEBATE | SELL | REJECTED |
 | 10-13 06:30 | USDJPY | SELL 65 | SELL 68 | - | AGREE | SELL | APPROVED |
 | 10-13 05:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 04:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
