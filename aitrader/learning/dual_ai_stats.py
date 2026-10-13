@@ -1,11 +1,12 @@
 """What the dual-AI desk's own record says: measured from the journal, never estimated.
 
 - `evaluate_trade`: one closed DUAL_AI trade scored per trader (was each trader's side right, was the target
-  reached, R, MFE/MAE), and which rule produced it (AGREE or DEBATE).
+  reached, R, MFE/MAE), and which rule produced it (AGREE; DEBATE for trades of dual-ai 1.1.0).
 - `record`: closed DUAL_AI trades (win rate, expectancy in R, profit factor), split by rule and by the desk's
-  confidence; each trader's hit rate on closed trades; the side that LOST each debate followed forward as if
-  taken (did the debate choose the better side?); how often each rule decided. Every figure carries its sample
-  size and label ("insufficient" below 30).
+  confidence; each trader's hit rate on closed trades; on each disagreement (no trade since dual-ai 1.2.0), the
+  side the shadow debate picked and the side it rejected, both followed forward as if taken (what did standing
+  aside skip? did the debate choose the better side?); how often each rule decided. Every figure carries its
+  sample size and label ("insufficient" below 30).
 
 Trader 2 and the debate read `record(..., partition_="LEARNING")`: outcomes of LEARNING weeks only, known before
 the decision, so forward evaluation is never learned from. Nothing here changes a rule, a size or a limit.
@@ -19,8 +20,10 @@ from collections import Counter
 from ..learning.forward import ForwardLedger, partition
 from ..learning.paper_metrics import MIN_SAMPLE
 
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.0.0"
-FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_LOSER"
+#: 1.1.0: the shadow debate's pick on a disagreement is measured beside the side it rejected; DISAGREE counts as a
+#:        decision with both traders.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.1.0"
+FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
 UNAVAILABLE = ("MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE", "TRADER2_UNAVAILABLE", "DEBATE_UNRESOLVED",
                "MODE")
@@ -86,13 +89,13 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         sel = [o["r"] for o, e in zip(trades, ev) if isinstance(e.get("desk_confidence"), (int, float))
                and lo <= 100 * e["desk_confidence"] < hi]
         bands[f"{lo}-{min(hi, 100)}"] = _r(sel)
-    losers = []
+    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: []}
     for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_):
-        if r.get("family") != LOSER_FAMILY:
+        if r.get("family") not in shadow:
             continue
         out = r.get("outcome") or {}
         if out.get("status") == "RESOLVED" and out.get("net_r") is not None:
-            losers.append(float(out["net_r"]))
+            shadow[r["family"]].append(float(out["net_r"]))
     rules: Counter = Counter()
     for row in db.query("SELECT payload FROM decisions ORDER BY seq"):
         p = json.loads(row["payload"])
@@ -101,16 +104,19 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         if partition_ and partition(int(p.get("timestamp") or 0)) != partition_:
             continue
         rules[(((p.get("ai") or {}).get("dual_ai") or {}).get("consensus") or {}).get("rule") or "?"] += 1
-    both = rules["AGREE"] + rules["DEBATE"] + rules["DEBATE_UNRESOLVED"]
+    both = rules["AGREE"] + rules["DISAGREE"] + rules["DEBATE"] + rules["DEBATE_UNRESOLVED"]
     return {"version": DUAL_AI_STATS_VERSION, "partition": partition_ or "ALL",
             "trades_taken": _r([o["r"] for o in trades]),
             "by_rule": {k: _r([o["r"] for o, e in zip(trades, ev) if e.get("rule") == k]) for k in ("AGREE", "DEBATE")},
             "by_desk_confidence": bands,
             "trader1_hit_rate": _rate([e.get("trader1_correct") for e in ev]),
             "trader2_hit_rate": _rate([e.get("trader2_correct") for e in ev]),
-            "debate_losing_side_if_taken": {**_r(losers), "note": "the side the debate rejected, followed forward as "
-                                            "if taken, after costs: if it does better than the side chosen, the "
-                                            "debate is choosing the wrong side"},
+            "debate_pick_if_taken": {**_r(shadow[PICK_FAMILY]), "note": "on a disagreement (not traded), the side "
+                                     "the shadow debate picked, followed forward as if taken, after costs: what "
+                                     "standing aside skipped"},
+            "debate_losing_side_if_taken": {**_r(shadow[LOSER_FAMILY]), "note": "the side the debate rejected, "
+                                            "followed forward as if taken, after costs: if it does better than the "
+                                            "side picked, the debate is choosing the wrong side"},
             "decisions_by_rule": dict(sorted(rules.items())),
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,

@@ -1,6 +1,7 @@
-"""The dual-AI desk, with OpenRouter mocked: each trader always chooses a side; the same side is an agreement,
-opposite sides are settled by ONE debate; a reply is used exactly as given or not at all; the desk never sizes
-anything, and NO_TRADE only ever means the decision could not be made."""
+"""The dual-AI desk, with OpenRouter mocked: each trader always chooses a side; the same side is an agreement and
+the only way to a trade; opposite sides are no trade, with ONE debate in shadow whose pick and rejected side are
+followed forward, never traded; a reply is used exactly as given or not at all; the desk never sizes anything,
+and otherwise NO_TRADE only means the decision could not be made."""
 
 from __future__ import annotations
 
@@ -11,7 +12,8 @@ import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.dual_ai import (
-    FAMILY, LOSER_FAMILY, check_levels, counterfactual_decision, resolve, validate_trader, validate_verifier,
+    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, validate_trader,
+    validate_verifier,
 )
 
 from tests.integration.test_pipeline import market
@@ -92,9 +94,9 @@ def test_trader_1_sees_the_chart_image_and_trader_2_gets_the_data_the_marks_and_
     assert "costs" in p2 and "volatility" in p2
 
 
-# ── disagreement and the debate ─────────────────────────────────────────
+# ── disagreement: no trade, the debate in shadow ────────────────────────
 
-def test_opposite_sides_start_one_debate_and_the_chosen_side_wins_with_its_traders_levels():
+def test_opposite_sides_are_no_trade_whatever_the_debate_says_and_both_sides_are_followed_in_shadow():
     d, fake = think(scripted(t1=("SELL", 82), t2=("BUY", 79), debate="BUY"))
     assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "debate"]
     assert fake.calls[2]["model"] == DEBATE  # a third model, neither trader's
@@ -102,23 +104,37 @@ def test_opposite_sides_start_one_debate_and_the_chosen_side_wins_with_its_trade
     assert p3["trader1_analysis"]["direction"] == "SELL" and p3["trader2_analysis"]["direction"] == "BUY"
     assert has_image(fake.calls[2]["body"])
     rec = d.ai["dual_ai"]
-    assert d.decision == "BUY" and rec["consensus"]["rule"] == "DEBATE" and rec["consensus"]["levels_from"] == "trader2"
-    assert d.stop_loss == pytest.approx(ASK - 1.2 * ATR) and "debate" in d.thesis
-    assert rec["verifier"]["reason"].startswith("BUY") and rec["debate_loser"]["direction"] == "SELL"
-    loser = counterfactual_decision(d)
+    assert d.decision == "NO_TRADE" and not d.is_trade and d.stop_loss is None and d.take_profit is None
+    assert rec["consensus"]["rule"] == "DISAGREE" and rec["consensus"]["outcome"] == "NO_TRADE"
+    assert rec["consensus"]["debate_pick"] == "BUY" and rec["consensus"]["pick_from"] == "trader2"
+    assert "disagree" in d.no_trade_reason and "would have chosen BUY" in d.no_trade_reason
+    assert rec["verifier"]["reason"].startswith("BUY")
+    pick, loser = counterfactual_decisions(d)
+    assert pick.family == PICK_FAMILY and pick.decision == "BUY" and pick.id.endswith(":debate-pick")
+    assert pick.stop_loss == pytest.approx(ASK - 1.2 * ATR) and pick.ai_verdict == "DEBATE_PICK_NOT_TRADED"
     assert loser.family == LOSER_FAMILY and loser.decision == "SELL" and loser.id.endswith(":debate-loser")
-    assert loser.stop_loss == pytest.approx(BID + 1.0 * ATR)
+    assert loser.stop_loss == pytest.approx(BID + 1.0 * ATR) and loser.ai_verdict == "LOST_THE_DEBATE"
+    assert all(cf.edge_status == "EXPERIMENTAL" and cf.max_hold_minutes for cf in (pick, loser))
 
 
-def test_the_debate_can_choose_trader_1():
+def test_a_shadow_debate_for_trader_1_is_still_no_trade():
     d, _ = think(scripted(t1=("SELL", 70), t2=("BUY", 95), debate="SELL"))
-    assert d.decision == "SELL" and d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["pick_from"] == "trader1"
+    assert [cf.decision for cf in counterfactual_decisions(d)] == ["SELL", "BUY"]
 
 
-def test_an_unusable_debate_leaves_the_disagreement_unresolved_no_second_round():
+def test_an_unusable_debate_is_the_same_no_trade_with_nothing_to_follow_and_no_second_round():
     d, fake = think(scripted(t1=("SELL", 80), t2=("BUY", 80), debate="HOLD"))
-    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "DEBATE_UNRESOLVED"
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "DISAGREE"
+    assert d.ai["dual_ai"]["consensus"]["debate_pick"] is None and counterfactual_decisions(d) == []
+    assert "no usable answer" in d.no_trade_reason
     assert len(fake.calls) == 3
+
+
+def test_an_agreement_is_a_trade_with_nothing_followed_in_shadow():
+    d, _ = think(scripted(t1=("BUY", 60), t2=("BUY", 99)))
+    assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["rule"] == "AGREE"
+    assert counterfactual_decisions(d) == [] and "shadow" not in d.ai["dual_ai"]
 
 
 def test_an_agreement_never_calls_the_debate_and_no_decision_makes_more_than_three_calls():
@@ -174,11 +190,15 @@ def test_validators_accept_a_well_formed_answer_and_check_the_debate():
 
 def test_resolve_is_the_desk_rule():
     a, b = answer("BUY", BID, ASK, ATR, confidence=70), answer("BUY", BID, ASK, ATR, confidence=71)
-    assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader2",
-                             "loser": None}
+    assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader2"}
+    assert resolve(b, a)["levels_from"] == "trader1"
     s = answer("SELL", BID, ASK, ATR)
-    assert resolve(a, s)["rule"] == "DEBATE_UNRESOLVED"
-    assert resolve(a, s, {"direction": "SELL"})["levels_from"] == "trader2"
+    for verdict in (None, {"direction": "SELL"}, {"direction": "BUY"}):
+        r = resolve(a, s, verdict)
+        assert r["outcome"] == "NO_TRADE" and r["rule"] == "DISAGREE" and r["direction"] is None
+        assert r["levels_from"] is None
+    assert resolve(a, s)["pick_from"] is None and resolve(a, s)["loser"] is None
+    assert resolve(a, s, {"direction": "SELL"})["pick_from"] == "trader2"
     assert resolve(a, s, {"direction": "BUY"})["loser"] == "trader2"
 
 

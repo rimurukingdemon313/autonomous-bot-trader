@@ -32,7 +32,7 @@ from typing import Callable
 import numpy as np
 
 from ..agents.brain import MODEL_MODES, Brain
-from ..agents.dual_ai import FAMILY as DUAL_FAMILY, counterfactual_decision
+from ..agents.dual_ai import FAMILY as DUAL_FAMILY, counterfactual_decisions
 from ..agents.llm_trader import FAMILY as LLM_FAMILY, multi_timeframe
 from ..agents.trading_room import member_records
 from ..agents.types import AccountView, MarketContext
@@ -84,7 +84,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.15.0: DECISION_MODE=dual_ai: model modes carry the completed bars (for the chart) and the declared cost
 #:         estimate; the dual-AI desk reads its own family's measured record; the side that lost a debate is
 #:         followed forward as DUAL_AI_DEBATE_LOSER; closed DUAL_AI trades are scored per trader.
-ORCHESTRATOR_VERSION = "orchestrator-1.15.0"
+#: 1.16.0: a decision may carry several counterfactual sides (dual-AI 1.2.0: on a disagreement, the shadow debate's
+#:         pick and the side it rejected), each followed forward as if taken, never executed.
+ORCHESTRATOR_VERSION = "orchestrator-1.16.0"
 
 
 class NullKnowledge:
@@ -460,8 +462,9 @@ class Orchestrator:
                     route=route if verdict.approved else "REJECTED", risk=verdict.as_dict(), executed=executed))
         else:
             self.counts["no_trade"] += 1
-        cf = counterfactual_decision(d) if self.cfg.journal == "full" else None
-        if cf is not None:  # the side that lost a debate, followed forward as if taken: did the debate choose well?
+        # the sides of a disagreement, followed forward as if taken: what did standing aside skip, did the debate
+        # choose well?
+        for cf in (counterfactual_decisions(d) if self.cfg.journal == "full" else []):
             self.forward.record(forward_proposal(
                 cf, t=t, bid=ctx.bid, ask=ctx.ask, atr=atr if np.isfinite(atr) else None, pip=pip_of(symbol),
                 costs=ForwardCosts(self.cfg.costs.slippage_pips, self.cfg.costs.commission_pips_rt),

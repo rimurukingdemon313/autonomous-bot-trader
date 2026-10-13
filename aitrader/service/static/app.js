@@ -656,7 +656,7 @@ function renderDualAI(D) {
   $("dai-sub").textContent = `OpenRouter ${O.status || "N/A"} · key ${O.configured ? `set (${O.key_hint || "…"})` : "NOT SET"} · free models only · calls today ${O.calls_today ?? 0}/${O.daily_budget ?? "?"}`;
   $("dai-tiles").innerHTML = [
     tile("OpenRouter", esc(O.status || "N/A")), tile("Trader 1 (vision)", esc(O.vision_model || "none")),
-    tile("Trader 2", esc(O.judge_model || "none")), tile("Debate", esc(O.verifier_model || "none")),
+    tile("Trader 2", esc(O.judge_model || "none")), tile("Debate (shadow)", esc(O.verifier_model || "none")),
     tile("Trader 1 says", L && L.trader1 ? `${esc(L.trader1.direction)} · ${conf(L.trader1)}` : NA),
     tile("Trader 2 says", L && L.trader2 ? `${esc(L.trader2.direction)} · ${conf(L.trader2)}` : NA),
     tile("Desk", L && L.consensus ? esc(L.consensus.rule) : NA),
@@ -666,13 +666,15 @@ function renderDualAI(D) {
     tile("Expectancy", P.expectancy_r === null || P.expectancy_r === undefined ? NA : `${signed(P.expectancy_r)}R`),
     tile("Profit factor", num(P.profit_factor)), tile("Max drawdown", P.max_drawdown_usd === undefined ? NA : `$${num(P.max_drawdown_usd, 2)}`),
     tile("Sample", esc(P.sample || "none")), tile("Agreement", R.agreement_rate === null || R.agreement_rate === undefined ? NA : pct(R.agreement_rate)),
+    tile("Disagreements (no trade)", String((R.decisions_by_rule || {}).DISAGREE ?? 0)),
+    tile("Debate pick if taken", (R.debate_pick_if_taken || {}).n ? `${signed(R.debate_pick_if_taken.expectancy_r)}R · n ${R.debate_pick_if_taken.n}` : NA),
   ].join("");
   $("dai-when").textContent = L ? `${ts(L.t)} · ${L.symbol}` : "none yet";
   if (L) {
     const m = L.models || {};
     const line = (name, a, model) => a ? `<div><b>${name}</b> <span class="muted">${esc(model || "")}</span>: ${esc(a.direction || "")} · confidence ${conf(a)}${a.entry ? ` · entry ${num(a.entry, 5)} SL ${num(a.stop_loss, 5)} TP ${num(a.take_profit, 5)} RR ${num(a.risk_reward)}` : ""}<br><span class="muted">${esc(String(a.reason || "").slice(0, 300))}</span></div>` : "";
     $("dai-last").innerHTML = line("Trader 1 (vision)", L.trader1, m.trader1) + line("Trader 2 (independent)", L.trader2, m.trader2)
-      + line("Debate", L.verifier, m.verifier)
+      + line("Debate (shadow, never traded)", L.verifier, m.verifier)
       + `<div><b>Final: ${esc(L.decision)}</b> <span class="muted">${esc(String(L.reason || "").slice(0, 300))}</span></div>`;
     const fig = $("dai-figure");
     fig.hidden = !L.chart;

@@ -76,14 +76,23 @@ def report_md(v: dict, shift: dict) -> str:
     dai = v.get("dual_ai")
     if dai and dai.get("active"):
         o, perf = dai.get("openrouter") or {}, dai.get("performance") or {}
-        lines += ["", "## Dual AI desk (two free OpenRouter traders; a debate when they disagree)", "",
+        rec = dai.get("record") or {}
+        pick, lose = rec.get("debate_pick_if_taken") or {}, rec.get("debate_losing_side_if_taken") or {}
+
+        def shadow(s):
+            return (f"{s.get('n', 0)} resolved ({s.get('sample', 'none')})"
+                    + (f", expectancy {fmt(s.get('expectancy_r'), '{:+.3f}R')}" if s.get("n") else ""))
+        lines += ["", "## Dual AI desk (two free OpenRouter traders; a trade only when they agree)", "",
                   f"OpenRouter `{o.get('status')}` · key {'set' if o.get('configured') else 'NOT SET'} · trader 1 "
                   f"`{o.get('vision_model')}` · trader 2 `{o.get('judge_model')}` · debate `{o.get('verifier_model')}` · "
                   f"calls today {o.get('calls_today')}/{o.get('daily_budget')}", "",
                   f"AI trades {perf.get('trades', 0)} ({perf.get('sample', 'none')}) · wins {perf.get('wins', 0)} · "
                   f"losses {perf.get('losses', 0)} · expectancy {fmt(perf.get('expectancy_r'), '{:+.3f}R')} · "
                   f"profit factor {fmt(perf.get('profit_factor'), '{:.2f}')}", "",
-                  "| Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |",
+                  f"Disagreements (not traded; the debate runs in shadow): "
+                  f"{(rec.get('decisions_by_rule') or {}).get('DISAGREE', 0)} · the debate's pick if taken: "
+                  f"{shadow(pick)} · the side it rejected if taken: {shadow(lose)}", "",
+                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |",
                   "|---|---|---|---|---|---|---|---|"]
         for a in dai.get("analyses") or []:
             when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"

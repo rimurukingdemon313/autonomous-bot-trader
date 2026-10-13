@@ -10,10 +10,11 @@ MARKET DATA (completed bars, live quote)
   -> TRADER 1  (vision)             reads the image + market data          -> BUY or SELL, entry, SL, TP, RR, confidence
   -> TRADER 2  (independent)        reads raw OHLC, both timeframes, costs,
                                     the chart and Trader 1's analysis      -> BUY or SELL, its own levels
-  -> same side?      AGREE          the more confident trader's levels (Trader 1 on a tie)
-     opposite side?  ONE DEBATE     a third model reads both analyses, the data and the chart, picks BUY or SELL
-                                    and says why; the winner's levels are used. Never a second round.
-  -> FINAL BUY or SELL with entry / stop / target
+  -> same side?      AGREE          a trade, on the more confident trader's levels (Trader 1 on a tie)
+     opposite side?  DISAGREE       NO TRADE. One debate still runs IN SHADOW: a third model reads both analyses,
+                                    the data and the chart and picks BUY or SELL; its pick and the side it rejected
+                                    are followed forward as if taken, never traded. Never a second round.
+  -> FINAL BUY or SELL with entry / stop / target (agreement only)
   -> RISK ENGINE                    sizes it, or refuses it (unchanged)
   -> HARD RISK GATE                 FTMO-style $200K limits (unchanged)
   -> PAPER BROKER                   simulated fill, costs, stop/target/time exit
@@ -23,7 +24,8 @@ MARKET DATA (completed bars, live quote)
 
 | | decides | may never |
 |---|---|---|
-| Traders 1 and 2, the debate | **direction**, entry, stop, target, the reasoning | size a trade, change a limit, reach the broker, bypass a check |
+| Traders 1 and 2 (together) | **direction**, entry, stop, target, the reasoning: a trade only when both choose the same side | size a trade, change a limit, reach the broker, bypass a check |
+| The debate (shadow) | nothing that is traded: its pick on a disagreement is followed forward and measured | create a trade |
 | Risk engine + hard gate | **capital safety**: size, and whether the trade may exist at all | — |
 
 Each trader **must** choose BUY or SELL. When the market is mixed, it chooses the stronger side and says how
@@ -33,18 +35,29 @@ outcomes.
 
 The risk engine still blocks whatever it blocks: impossible stop or target, invalid price or size, a spread or
 cost too large for the stop, reward:risk below its minimum (1.2), the daily loss limit, the maximum drawdown,
-exposure, an open position on the pair, every hard rule. The traders do not know these limits and cannot change
-them.
+exposure, an open position on the pair, every hard rule. The traders are told the per-trade limits (minimum stop
+distance at this spread, minimum reward:risk) so their levels can be executed; they cannot change them.
 
-## NO_TRADE means "no decision could be made", never a market opinion
+### Why a trade needs both traders (dual-ai 1.2.0, 2026-10-13)
+
+Until 1.1.0 the debate's pick was traded. The operator chose agreement-only after the first day: two independent
+traders on opposite sides is an unclear market, and standing aside there is capital preservation (rule 8). The
+first day's record does **not** prove it (4 debate trades: 3 stopped out, 1 open; 1 agreement trade, a winner):
+far too few to judge either way. That is why the debate still runs in shadow: the side it would have traded
+(`DUAL_AI_DEBATE_PICK`) and the side it rejected (`DUAL_AI_DEBATE_LOSER`) are both followed forward, so whether
+standing aside is right is measured, not assumed. The prompts are unchanged, so these picks are comparable with
+1.1.0's.
+
+## NO_TRADE: the traders disagree, or no decision could be made
 
 | rule | when | models asked |
 |---|---|---|
+| `DISAGREE` | the traders chose opposite sides: stand aside (the debate runs in shadow; if it gives no usable answer, nothing is followed) | 3 |
 | `MARKET_UNAVAILABLE` | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine's account checks already refuse any trade | none |
 | `AI_UNAVAILABLE` | `OPENROUTER_API_KEY` not set | none |
 | `NO_CHART` | not enough completed bars to draw the chart | none |
 | `TRADER1_UNAVAILABLE` / `TRADER2_UNAVAILABLE` | that trader's model gave no usable answer: unavailable, rate-limited, quota spent, malformed, impossible levels | 1 / 2 |
-| `DEBATE_UNRESOLVED` | the traders disagree and the debate gave no usable answer | 3 |
+| `DEBATE_UNRESOLVED` | (dual-ai 1.1.0 only) the traders disagreed and the debate gave no usable answer | 3 |
 | `LESSON` | a validated lesson (confirmed out of sample) matches this exact context | 2-3 |
 | `MODE` | not PAPER_FORWARD (the service refuses this configuration anyway) | none |
 
@@ -151,15 +164,17 @@ The catalog changes; the selection is recomputed hourly and on failures. Optiona
 
 Recorded on every decision (`decisions.payload.ai.dual_ai`): symbol, time, timeframes, regime and volatility,
 both traders' full answers (direction, levels, confidence, structure, liquidity, momentum, trend, reversal
-probability, invalidation, reason), the debate's answer, the rule (AGREE/DEBATE/...), whose levels were used,
+probability, invalidation, reason), the shadow debate's answer, the rule (AGREE/DISAGREE/...; DEBATE for
+dual-ai 1.1.0), whose levels were used,
 the desk confidence, every model used, every request's id, status, latency and tokens, the chart's hash.
 
 After a trade closes, `outcome.dual_ai` scores it: was each trader's side right (before costs), was the target
-reached, net R, MFE, MAE. The side that **lost a debate** is followed forward as if it had been taken
-(`forward_proposals`, family `DUAL_AI_DEBATE_LOSER`, never executed), so whether the debate picks the better
-side is measured. `learning/dual_ai_stats.record` gives: trades taken (win rate, expectancy R, profit factor),
-by rule and by desk confidence, each trader's hit rate, the debate's losing side as if taken, the agreement
-rate. Every figure carries its sample size; below 30 it is labelled `insufficient`.
+reached, net R, MFE, MAE. On a disagreement both sides are followed forward as if they had been taken
+(`forward_proposals`, route `COUNTERFACTUAL`, never executed, not checked by the risk engine): the side the
+shadow debate picked (family `DUAL_AI_DEBATE_PICK`: what standing aside skipped) and the side it rejected
+(family `DUAL_AI_DEBATE_LOSER`: did the debate choose the better side?). `learning/dual_ai_stats.record`
+gives: trades taken (win rate, expectancy R, profit factor), by rule and by desk confidence, each trader's hit
+rate, the debate's pick and its rejected side as if taken, the agreement rate. Every figure carries its sample size; below 30 it is labelled `insufficient`.
 
 Trader 2 and the debate are shown this record from LEARNING weeks only (every third ISO week is EVALUATION and
 is never learned from). Nothing moves a rule, a size or a limit; the desk's trades are never averaged with

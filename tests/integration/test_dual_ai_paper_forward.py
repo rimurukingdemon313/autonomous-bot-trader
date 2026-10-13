@@ -1,6 +1,7 @@
 """The dual-AI desk in the production runtime, PAPER_FORWARD, OpenRouter mocked (no request leaves the test):
 
-    MARKET DATA -> CHART -> TRADER 1 -> TRADER 2 -> AGREE | DEBATE -> RISK ENGINE -> HARD GATE -> PAPER BROKER
+    MARKET DATA -> CHART -> TRADER 1 -> TRADER 2 -> AGREE -> RISK ENGINE -> HARD GATE -> PAPER BROKER
+                                                  -> DISAGREE -> NO TRADE (the debate in shadow only)
 
 The market is a deterministic replay and the traders' answers are scripted, so the right result is known by
 construction. Everything else is the real service: orchestrator, risk engine, gate, execution engine, paper
@@ -86,17 +87,25 @@ def test_agreement_becomes_a_paper_position_through_the_risk_engine_and_the_gate
     assert dec["ai"]["dual_ai"]["consensus"]["rule"] == "AGREE"
 
 
-def test_a_disagreement_is_debated_once_and_the_losing_side_is_followed_forward(tmp_path, monkeypatch):
+def test_a_disagreement_is_no_trade_and_both_sides_are_followed_forward_never_executed(tmp_path, monkeypatch):
     rt, clock, fake = desk_runtime(tmp_path, monkeypatch, desk_reply(t1="SELL", t2="BUY", debate="SELL"))
     cycles(rt, clock)
-    (pos,) = rt.broker.positions()
-    assert pos.side == -1 and [c["role"] for c in fake.calls] == ["trader1", "trader2", "debate"]
+    assert rt.broker.positions() == [] and rt.db.one("SELECT * FROM positions") is None
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "debate"]  # the debate, once, in shadow
     assert fake.calls[2]["model"] == DEBATE
     rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    pick = [r for r in rows if r["family"] == "DUAL_AI_DEBATE_PICK"]
     loser = [r for r in rows if r["family"] == "DUAL_AI_DEBATE_LOSER"]
-    taken = [r for r in rows if r["family"] == "DUAL_AI"]
+    assert len(pick) == 1 and pick[0]["side"] == -1 and pick[0]["route"] == "COUNTERFACTUAL"
     assert len(loser) == 1 and loser[0]["side"] == 1 and loser[0]["route"] == "COUNTERFACTUAL"
-    assert len(taken) == 1 and taken[0]["side"] == -1 and taken[0]["route"] == "EXECUTE"
+    assert all(r["executed"] is False for r in pick + loser)
+    assert [r for r in rows if r["family"] == "DUAL_AI"] == []  # nothing proposed for execution
+    assert not [s for t in pipeline(rt) for s in t["stages"] if s == "PAPER EXECUTED"]
+    rec = dual_ai_stats.record(rt.db)
+    assert rec["decisions_by_rule"].get("DISAGREE") == 1 and rec["agreement_rate"] == 0.0
+    assert rec["trades_taken"]["n"] == 0 and "debate_pick_if_taken" in rec
+    last = rt.dual_ai()["last_analysis"]
+    assert last["decision"] == "NO_TRADE" and last["consensus"]["debate_pick"] == "SELL"
 
 
 def test_the_risk_engine_still_refuses_what_it_refuses(tmp_path, monkeypatch):

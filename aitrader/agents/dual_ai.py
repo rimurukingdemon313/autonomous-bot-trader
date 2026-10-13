@@ -1,8 +1,9 @@
 """The dual-AI trading desk: two professional traders on two different FREE OpenRouter models (docs/DUAL_AI.md).
 
     MARKET DATA -> CHART IMAGE -> TRADER 1 (vision) -> TRADER 2 (independent) -> SAME SIDE: AGREEMENT
-                                                                              -> DIFFERENT: ONE DEBATE (verifier)
-                -> FINAL BUY or SELL with entry / stop / target -> RISK ENGINE -> HARD RISK GATE -> PAPER BROKER
+                -> BUY or SELL with entry / stop / target -> RISK ENGINE -> HARD RISK GATE -> PAPER BROKER
+                                                                              -> DIFFERENT: NO TRADE
+                                                                                 (one debate, in shadow only)
 
 Selected with DECISION_MODE=dual_ai, and only with MODE=PAPER_FORWARD (the service refuses any other mode; a
 context in another mode is answered NO_TRADE here as well).
@@ -17,20 +18,23 @@ with a refusal.
   volatility, spread, costs, structure, calendar), the chart (the image when its model can read images, its
   marks as numbers always) and Trader 1's analysis, forms its own view and picks its own side.
   SAME SIDE -> AGREEMENT: the trade candidate takes the levels of the more confident trader (Trader 1 on a tie).
-  DIFFERENT SIDES -> ONE DEBATE: a third free model (another family when one exists) reads both analyses, the
-  data and the chart and must pick BUY or SELL, saying why; the winner's levels are used. No second round.
+  DIFFERENT SIDES -> NO TRADE (DISAGREE): two independent traders on opposite sides is an unclear market, and
+  the desk stands aside. One debate still runs, IN SHADOW: a third free model (another family when one exists)
+  reads both analyses, the data and the chart and must pick BUY or SELL; its pick and the side it rejected are
+  followed forward as if taken and never traded, so whether standing aside was right is measured. No second round.
 
 THE RISK ENGINE DECIDES SAFETY. The candidate goes to the SAME risk engine, hard risk gate and execution engine
 as every other decision. They size it and may refuse it (stop and target sanity, spread, costs, reward:risk,
 daily loss, drawdown, exposure, every hard rule). No AI sizes anything, changes a limit or reaches the broker,
 and a stated confidence never changes a size.
 
-NO_TRADE is never a market opinion here. It means the decision could not be made at all:
+NO_TRADE is a market opinion here in one case only: the traders disagree (DISAGREE). Otherwise it means the
+decision could not be made at all:
 - MARKET_UNAVAILABLE: stale or bad data, no quote, a position already open on the pair, trading paused, or the
   risk engine's account checks already refuse any trade (nothing is spent asking);
 - AI_UNAVAILABLE: no OpenRouter key configured;
-- NO_CHART, or a trader / the debate gave no usable answer (unavailable, quota spent, malformed): no decision
-  is made on one trader alone, and a reply is never repaired;
+- NO_CHART, or a trader gave no usable answer (unavailable, quota spent, malformed): no decision is made on one
+  trader alone, and a reply is never repaired;
 - a validated lesson (confirmed out of sample) matching this exact context.
 
 STRICT VALIDATION. A reply is one JSON object: a missing, wrongly typed, non-finite or out-of-range field, a side
@@ -39,9 +43,10 @@ it (a misread price), a stop beyond 12 or a target beyond 15 H1 ATR, or a stated
 contradict makes that reply unusable.
 
 LEARNING is statistical only: each decision records both traders' answers, models and confidences, the rule
-(AGREE / DEBATE) and the debate's choice; closed trades are scored per trader; the side that lost a debate is
-followed forward as if taken, so whether the debate picks the better side is measured. Trader 2 and the
-verifier are shown these measured records (LEARNING weeks only). No rule here moves with results.
+(AGREE / DISAGREE) and the shadow debate's choice; closed trades are scored per trader; on a disagreement the
+debate's pick and the side it rejected are both followed forward as if taken, so what standing aside skipped
+and whether the debate picks the better side are measured. Trader 2 and the verifier are shown these measured
+records (LEARNING weeks only). No rule here moves with results.
 """
 
 from __future__ import annotations
@@ -64,11 +69,16 @@ from .types import MarketContext
 #: 1.1.0 (live check): the traders are told the risk engine's per-trade limits (minimum stop distance, minimum
 #:        reward:risk) so their levels can be executed; the analysis fields are recorded as given (text or number) and
 #:        never void a trade; the trade fields stay exact.
-DUAL_AI_VERSION = "dual-ai-1.1.0"
+#: 1.2.0 (operator's choice, 2026-10-13): a trade only when both traders choose the same side. Opposite sides are
+#:        NO_TRADE (DISAGREE); the debate runs in shadow and its pick and the side it rejected are followed forward,
+#:        never traded. (1.1.0 traded the debate's pick: 4 debate trades so far, too few to judge either way.)
+DUAL_AI_VERSION = "dual-ai-1.2.0"
 FAMILY = "DUAL_AI"
-#: The side that lost a debate, followed forward under its own name: never mixed with the trades taken, in any
-#: statistic or lesson scope.
+#: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
+#: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
+PICK_FAMILY, PICK_SUFFIX = "DUAL_AI_DEBATE_PICK", ":debate-pick"
 LOSER_FAMILY, LOSER_SUFFIX = "DUAL_AI_DEBATE_LOSER", ":debate-loser"
+SHADOW = {PICK_FAMILY: (PICK_SUFFIX, "DEBATE_PICK_NOT_TRADED"), LOSER_FAMILY: (LOSER_SUFFIX, "LOST_THE_DEBATE")}
 SIDES = ("BUY", "SELL")
 ENTRY_TOL_ATR = 1.0       # a market order: a stated entry further than this from the executable price is a misread
 MAX_TARGET_ATR = 15.0
@@ -227,18 +237,21 @@ VERIFY_KEYS = ("direction", "confidence", "reason")
 
 
 def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
-    """The desk's rule, pure: whose side and whose levels. Same side: the more confident trader's levels (Trader 1
-    on a tie). Opposite sides: the side the debate chose, with that trader's levels; no verdict, no decision."""
+    """The desk's rule, pure: whose side and whose levels. Same side: a trade, on the more confident trader's levels
+    (Trader 1 on a tie). Opposite sides: no trade, whatever the debate says; the debate's pick (when it answered)
+    and the side it rejected are named for the shadow record only."""
     if t1["direction"] == t2["direction"]:
         lead = "trader1" if t1["confidence"] >= t2["confidence"] else "trader2"
-        return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": lead,
-                "loser": None}
-    if verdict is None:
-        return {"outcome": "NO_TRADE", "rule": "DEBATE_UNRESOLVED", "direction": None, "levels_from": None,
-                "loser": None}
-    lead = "trader1" if verdict["direction"] == t1["direction"] else "trader2"
-    return {"outcome": "TRADE", "rule": "DEBATE", "direction": verdict["direction"], "levels_from": lead,
-            "loser": "trader2" if lead == "trader1" else "trader1"}
+        return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": lead}
+    pick = None if verdict is None else "trader1" if verdict["direction"] == t1["direction"] else "trader2"
+    return {"outcome": "NO_TRADE", "rule": "DISAGREE", "direction": None, "levels_from": None,
+            "debate_pick": None if verdict is None else verdict["direction"], "pick_from": pick,
+            "loser": None if pick is None else "trader2" if pick == "trader1" else "trader1"}
+
+
+def _shadow_side(t: dict, who: str, family: str, hold: int) -> dict:
+    return {"family": family, "trader": who, "direction": t["direction"], "stop_loss": float(t["stop_loss"]),
+            "take_profit": float(t["take_profit"]), "hold_minutes": hold}
 
 
 # ── the data each trader reads ──────────────────────────────────────────
@@ -440,9 +453,9 @@ class DualAITrader:
                         "TRADER2_UNAVAILABLE")
         t2 = r2.data
 
-        verdict = None
         if t1["direction"] != t2["direction"]:
-            # one debate: a third model when one exists, never a second round
+            # opposite sides: no trade. One debate (a third model when one exists, never a second round) runs in
+            # shadow: its pick and the side it rejected are followed forward as if taken, never traded.
             r3 = client.chat_json("verifier", verify_messages(ctx, reports, chart, t1, t2, hold), validate_verifier,
                                   dedupe_key=key + "|verifier", max_tokens=MAX_TOKENS["verifier"],
                                   avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True)
@@ -450,29 +463,29 @@ class DualAITrader:
             rec["models"]["verifier"] = r3.model
             if r3.data is not None:
                 rec["verifier"] = _clean(r3.data, VERIFY_KEYS)
-            if not r3.ok:
-                return stop(f"the traders disagree (Trader 1 {t1['direction']}, Trader 2 {t2['direction']}) and the "
-                            f"debate gave no usable answer ({why(r3)})", "DEBATE_UNRESOLVED")
-            verdict = r3.data
-        res = resolve(t1, t2, verdict)
+            res = resolve(t1, t2, r3.data if r3.ok else None)
+            rec["consensus"] = res
+            if res["pick_from"]:
+                sides = {"trader1": t1, "trader2": t2}
+                rec["shadow"] = [_shadow_side(sides[res["pick_from"]], res["pick_from"], PICK_FAMILY, hold),
+                                 _shadow_side(sides[res["loser"]], res["loser"], LOSER_FAMILY, hold)]
+            seen = (f"the debate ({r3.model}) would have chosen {res['debate_pick']}: followed forward in shadow, "
+                    "not traded" if res["pick_from"] else f"the shadow debate gave no usable answer ({why(r3)})")
+            return stop(f"the traders disagree (Trader 1 {t1['direction']} {t1['confidence']}, Trader 2 "
+                        f"{t2['direction']} {t2['confidence']}): no trade unless both choose the same side; {seen}",
+                        "DISAGREE")
+        res = resolve(t1, t2)
+        if res["outcome"] != "TRADE":
+            return stop(f"the desk's rule gave no trade ({res['rule']})", res["rule"])
         lead = t1 if res["levels_from"] == "trader1" else t2
-        confs = [lead["confidence"]] + ([verdict["confidence"]] if verdict else
-                                        [t2["confidence"] if lead is t1 else t1["confidence"]])
-        rec["consensus"] = {**res, "desk_confidence": round(min(confs) / 100, 3),
+        rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3),
                             "stop_loss": float(lead["stop_loss"]), "take_profit": float(lead["take_profit"])}
-        if res["loser"]:
-            lose = t1 if res["loser"] == "trader1" else t2
-            rec["debate_loser"] = {"trader": res["loser"], "direction": lose["direction"],
-                                   "stop_loss": float(lose["stop_loss"]), "take_profit": float(lose["take_profit"]),
-                                   "hold_minutes": hold}
         hit = _lesson(ctx, 1 if res["direction"] == "BUY" else -1)
         if hit:
             return stop(f"validated lesson {hit['lesson_id']}: {hit['statement']}", "LESSON",
                         [{"code": "LESSON_MATCH", "severity": "BLOCKING", "message": hit["statement"]}])
         story = (f"{res['rule']}: Trader 1 ({r1.model}) {t1['direction']} {t1['confidence']}: {t1['reason']} | "
                  f"Trader 2 ({r2.model}) {t2['direction']} {t2['confidence']}: {t2['reason']}")
-        if verdict:
-            story += f" | debate ({rec['models'].get('verifier')}) {verdict['direction']}: {verdict['reason']}"
         p = {"action": res["direction"], "timeframe": chart.meta["execution_timeframe"],
              "stop": float(lead["stop_loss"]), "target": float(lead["take_profit"]), "max_hold_minutes": hold,
              "thesis": story[:500],
@@ -499,17 +512,19 @@ def _lesson(ctx: MarketContext, side: int) -> dict | None:
     return None
 
 
-def counterfactual_decision(d: Decision) -> Decision | None:
-    """The side that lost a debate, as a decision record for the forward ledger only: followed forward as if it
-    had been taken, so whether the debate chose the better side is measured. Never sent anywhere."""
-    lose = ((d.ai or {}).get("dual_ai") or {}).get("debate_loser")
-    if not lose:
-        return None
-    return dataclasses.replace(d, id=d.id + LOSER_SUFFIX, decision=lose["direction"], stop_loss=lose["stop_loss"],
-                               take_profit=lose["take_profit"], max_hold_minutes=lose["hold_minutes"],
-                               family=LOSER_FAMILY, template=LOSER_FAMILY, signal_class=LOSER_FAMILY,
-                               edge_status="EXPERIMENTAL", ai_verdict="LOST_THE_DEBATE")
+def counterfactual_decisions(d: Decision) -> list[Decision]:
+    """The two sides of a disagreement (the shadow debate's pick and the side it rejected), as decision records for
+    the forward ledger only: each followed forward as if it had been taken, so what standing aside skipped and
+    whether the debate chose the better side are measured. Never sent anywhere."""
+    out = []
+    for s in ((d.ai or {}).get("dual_ai") or {}).get("shadow") or []:
+        suffix, verdict = SHADOW[s["family"]]
+        out.append(dataclasses.replace(d, id=d.id + suffix, decision=s["direction"], stop_loss=s["stop_loss"],
+                                       take_profit=s["take_profit"], max_hold_minutes=s["hold_minutes"],
+                                       family=s["family"], template=s["family"], signal_class=s["family"],
+                                       edge_status="EXPERIMENTAL", ai_verdict=verdict))
+    return out
 
 
-__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LOSER_FAMILY", "LOSER_SUFFIX", "build_chart",
-           "check_levels", "counterfactual_decision", "resolve", "validate_trader", "validate_verifier"]
+__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LOSER_FAMILY", "LOSER_SUFFIX", "PICK_FAMILY", "PICK_SUFFIX",
+           "build_chart", "check_levels", "counterfactual_decisions", "resolve", "validate_trader", "validate_verifier"]
