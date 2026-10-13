@@ -98,11 +98,13 @@ def report_md(v: dict, shift: dict) -> str:
             when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"
             t1, t2, vf = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}
             risk = a.get("risk")
-            lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')} | "
+            read = " (numbers)" if t1 and a.get("trader1_input") == "numbers" else ""
+            lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')}{read} | "
                          f"{t2.get('direction', '-')} {t2.get('confidence', '')} | {vf.get('direction', '-')} | "
                          f"{(a.get('consensus') or {}).get('rule')} | "
                          f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} |")
-        lines += ["", "The chart Trader 1 read last: `last_chart.png`."]
+        lines += ["", "The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so "
+                  "Trader 1 read the same chart from its numbers."]
     lines += ["", "Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.", ""]
     return "\n".join(lines)
 

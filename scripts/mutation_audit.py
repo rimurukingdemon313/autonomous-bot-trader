@@ -630,6 +630,12 @@ MUTANTS = [
     ("dai-disagree-no-trade", "the desk's rule never trades opposite sides, whatever the debate says",
      "aitrader/agents/dual_ai.py", '    return {"outcome": "NO_TRADE", "rule": "DISAGREE",',
      '    return {"outcome": "TRADE", "rule": "DISAGREE",', ["tests/unit/test_dual_ai.py"]),
+    ("dai-numbers-not-after-a-stop", "Trader 1 reads the chart's numbers only when a vision model failed, never after a "
+     "key, budget, quota, spend or policy stop", "aitrader/agents/dual_ai.py",
+     "if not r1.ok and r1.status not in NO_FALLBACK:", "if not r1.ok:", ["tests/unit/test_dual_ai.py"]),
+    ("dai-numbers-new-model", "the numbers fallback never asks a model already asked for the decision",
+     "aitrader/agents/dual_ai.py", 'max_tokens=MAX_TOKENS["vision"], avoid=asked)',
+     'max_tokens=MAX_TOKENS["vision"], avoid=())', ["tests/unit/test_dual_ai.py"]),
     ("dai-shadow-not-executed", "the sides of a disagreement are followed forward as counterfactuals, never executed",
      "aitrader/orchestrator/core.py", 'route="COUNTERFACTUAL", risk=None, executed=False))',
      'route="EXECUTE", risk=None, executed=True))', ["tests/integration/test_dual_ai_paper_forward.py"]),

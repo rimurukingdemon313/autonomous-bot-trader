@@ -13,7 +13,8 @@ entry, stop, target, risk:reward, confidence and the reasoning (structure, liqui
 probability, invalidation). A mixed market is answered with the stronger side and a lower confidence, never
 with a refusal.
   TRADER 1 (VisionTradingAnalyst) reads the chart image drawn from the same completed bars (charts/render.py),
-  with the market data and every chart mark as numbers.
+  with the market data and every chart mark as numbers. When no free vision model gives a usable answer, it
+  reads the same chart from those numbers on a text model (recorded: trader1_input "numbers").
   TRADER 2 (IndependentTradingJudge) is a different model: it reads the raw data (OHLCV rows on both timeframes,
   volatility, spread, costs, structure, calendar), the chart (the image when its model can read images, its
   marks as numbers always) and Trader 1's analysis, forms its own view and picks its own side.
@@ -72,7 +73,11 @@ from .types import MarketContext
 #: 1.2.0 (operator's choice, 2026-10-13): a trade only when both traders choose the same side. Opposite sides are
 #:        NO_TRADE (DISAGREE); the debate runs in shadow and its pick and the side it rejected are followed forward,
 #:        never traded. (1.1.0 traded the debate's pick: 4 debate trades so far, too few to judge either way.)
-DUAL_AI_VERSION = "dual-ai-1.2.0"
+#: 1.3.0 (live, 2026-10-13: 23 of 40 decisions lost when every free vision model was busy at peak hours): when no
+#:        vision model gives a usable answer, Trader 1 reads the same chart from its numbers (every mark at its exact
+#:        price) on a text model of the third pool, never one already asked for the decision; recorded as
+#:        trader1_input "numbers" (else "image"). The image prompt is unchanged.
+DUAL_AI_VERSION = "dual-ai-1.3.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -87,6 +92,10 @@ HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
+#: Trader 1 reads the chart as numbers on a text model only when no vision model gave a usable answer, never after
+#: a stop that another model would not fix (no key, budget or quota spent, spend on the key, a policy block)
+NO_FALLBACK = frozenset({"NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "PAID_USAGE", "NOT_FREE",
+                         "WRONG_MODEL", "DATA_POLICY"})
 CHART_KEEP = 300  # chart files kept on disk
 
 _SCHEMA = """{{"direction": "BUY|SELL", "entry": <price>, "stop_loss": <price>, "take_profit": <price>,
@@ -95,7 +104,7 @@ _SCHEMA = """{{"direction": "BUY|SELL", "entry": <price>, "stop_loss": <price>, 
   "reversal_probability": <0-100>, "invalidation": <the price that proves this side wrong>,
   "reason": "at most 4 sentences"}}"""
 
-TRADER1_SYSTEM = """You are TRADER 1 on a professional trading desk: an experienced discretionary trader reading ONE
+_T1_IMAGE = """You are TRADER 1 on a professional trading desk: an experienced discretionary trader reading ONE
 chart image of one instrument, now. The time is {time} UTC; treat it as the present and use nothing you may know
 about prices or events after it.
 
@@ -105,7 +114,20 @@ value gaps, equal highs/lows (liquidity), sweeps, displacement candles, support/
 levels, the price and the ENTRY ZONE. Only completed bars are drawn. The JSON lists every mark with its exact
 price and the market data: use those numbers, not pixel estimates.
 
-Your job is to FIND THE SIDE WITH THE HIGHER PROBABILITY. You MUST choose BUY or SELL. When the picture is mixed,
+"""
+#: Trader 1 when no free vision model gives a usable answer: the same chart, read from its numbers
+_T1_NUMBERS = """You are TRADER 1 on a professional trading desk: an experienced discretionary trader reading ONE
+chart of one instrument, now. The time is {time} UTC; treat it as the present and use nothing you may know
+about prices or events after it.
+
+The chart image could not be read this time, so you read the same chart from its numbers. The JSON gives the
+quote, costs, volatility and timeframe summaries, and in "chart_marks" every mark of the chart with its exact
+price, on the execution and the higher timeframe: confirmed swings (HH/HL/LH/LL), BOS/CHoCH structure breaks, the
+order block, fair value gaps, equal highs/lows (liquidity), sweeps, displacement candles, support/resistance,
+previous day/week levels, the price and the ENTRY ZONE. Only completed bars are used.
+
+"""
+_T1_TASK = """Your job is to FIND THE SIDE WITH THE HIGHER PROBABILITY. You MUST choose BUY or SELL. When the picture is mixed,
 choose the stronger side and let your confidence say how strong it is: a low confidence is a valid answer, a
 refusal is not. Read the structure, the liquidity, the momentum, the trend on both timeframes and the chance of
 a reversal, and place the trade as a professional would:
@@ -120,6 +142,8 @@ a reversal, and place the trade as a professional would:
 
 Reply with ONE JSON object only, no other text:
 """ + _SCHEMA
+TRADER1_SYSTEM = _T1_IMAGE + _T1_TASK
+TRADER1_NUMBERS_SYSTEM = _T1_NUMBERS + _T1_TASK
 
 TRADER2_SYSTEM = """You are TRADER 2 on a professional trading desk: an independent, experienced trader. You analyse
 the same instrument, now, from the raw market data: completed OHLC bars on both timeframes (tick counts, not
@@ -333,6 +357,12 @@ def trader1_messages(ctx, chart, hold) -> list[dict]:
             {"role": "user", "content": _with_image(trader1_packet(ctx, chart, hold), chart)}]
 
 
+def trader1_numbers_messages(ctx, chart, hold) -> list[dict]:
+    """Trader 1 on a text model: the same packet (every chart mark at its exact price), no image."""
+    return [{"role": "system", "content": TRADER1_NUMBERS_SYSTEM.format(time=_iso(ctx.t), hold=hold)},
+            {"role": "user", "content": json.dumps(trader1_packet(ctx, chart, hold), default=str)}]
+
+
 def trader2_messages(ctx, reports, chart, t1, hold) -> list[dict]:
     packet = {**market_packet(ctx, reports, chart, hold), "trader1_analysis": _clean(t1, TRADER_KEYS)}
     return [{"role": "system", "content": TRADER2_SYSTEM.format(time=_iso(ctx.t), hold=hold)},
@@ -428,16 +458,29 @@ class DualAITrader:
         def why(r) -> str:
             return f"{r.status}{': ' + r.error if r.error else ''}"
 
-        # Trader 1: the chart
+        # Trader 1: the chart image
         r1 = client.chat_json("vision", trader1_messages(ctx, chart, hold), lambda d: validate_trader(d, px),
                               dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"])
         rec["calls"].append(r1.record())
         rec["models"]["trader1"] = r1.model
+        rec["trader1_input"] = "image"
+        failed = f"Trader 1 (vision) gave no usable answer ({why(r1)})"
+        if not r1.ok and r1.status not in NO_FALLBACK:
+            # no free vision model answered usably (busy, unavailable, an unusable reply): Trader 1 reads the same
+            # chart from its numbers on a text model of the third pool (Trader 2's best model stays Trader 2's),
+            # never one already asked for this decision; a reply is still used as given or not at all
+            asked = tuple(m for m in [*(m for m, _ in r1.tried), r1.model] if m)
+            r1 = client.chat_json("trader1_numbers", trader1_numbers_messages(ctx, chart, hold),
+                                  lambda d: validate_trader(d, px), dedupe_key=key + "|trader1-numbers",
+                                  max_tokens=MAX_TOKENS["vision"], avoid=asked)
+            rec["calls"].append(r1.record())
+            rec["models"]["trader1"] = r1.model
+            rec["trader1_input"] = "numbers"
+            failed += f"; on the chart's numbers: {why(r1)}"
         if r1.data is not None:
             rec["trader1"] = _clean(r1.data, TRADER_KEYS)
         if not r1.ok:
-            return stop(f"Trader 1 (vision) gave no usable answer ({why(r1)}): no decision on one trader alone",
-                        "TRADER1_UNAVAILABLE")
+            return stop(f"{failed}: no decision on one trader alone", "TRADER1_UNAVAILABLE")
         t1 = r1.data
 
         # Trader 2: independent, on a different model

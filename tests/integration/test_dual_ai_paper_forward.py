@@ -139,11 +139,13 @@ def test_a_closed_trade_is_scored_per_trader_and_joins_the_desks_record(tmp_path
     ev = outcome["dual_ai"]
     assert ev["rule"] == "AGREE" and ev["trader1_correct"] is True and ev["trader2_correct"] is True
     assert ev["target_reached"] is True and ev["trader1_confidence"] == 85 and ev["models"]["trader1"] == VISION
+    assert ev["trader1_input"] == "image"
     for k in ("net_r", "mfe_r", "mae_r", "regime", "desk_confidence"):
         assert k in ev
     rec = dual_ai_stats.record(rt.db)
     assert rec["trades_taken"]["n"] == 1 and rec["trades_taken"]["sample"] == "insufficient"
     assert rec["by_rule"]["AGREE"]["n"] == 1 and rec["trader1_hit_rate"]["rate"] == 1.0
+    assert rec["by_trader1_input"]["image"]["n"] == 1 and rec["by_trader1_input"]["numbers"]["n"] == 0
     view = rt.dual_ai()
     assert view["performance"]["trades"] == 1 and view["performance"]["wins"] == 1
 

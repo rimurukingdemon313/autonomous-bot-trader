@@ -8,6 +8,8 @@ no live path. Code: `aitrader/agents/dual_ai.py`, `aitrader/charts/`, `aitrader/
 MARKET DATA (completed bars, live quote)
   -> CHART IMAGE                    charts/render.py: the same bars, drawn and annotated, as a PNG
   -> TRADER 1  (vision)             reads the image + market data          -> BUY or SELL, entry, SL, TP, RR, confidence
+                                    (no vision model answers: the same chart's
+                                    numbers, on a text model)
   -> TRADER 2  (independent)        reads raw OHLC, both timeframes, costs,
                                     the chart and Trader 1's analysis      -> BUY or SELL, its own levels
   -> same side?      AGREE          a trade, on the more confident trader's levels (Trader 1 on a tie)
@@ -38,6 +40,17 @@ cost too large for the stop, reward:risk below its minimum (1.2), the daily loss
 exposure, an open position on the pair, every hard rule. The traders are told the per-trade limits (minimum stop
 distance at this spread, minimum reward:risk) so their levels can be executed; they cannot change them.
 
+### When no vision model answers (dual-ai 1.3.0, 2026-10-13)
+
+Only a handful of free models read images, and at peak hours (about 11:00-14:30 UTC) all of them can be busy at
+once: on 2026-10-13, 23 of 40 decisions were lost that way. When no free vision model gives a usable answer,
+Trader 1 reads the **same chart from its numbers** (the packet already lists every mark at its exact price) on a
+text model of the third pool, so Trader 2 keeps its own best model. It never follows a stop no other model would
+fix (no key, budget or quota spent, spend on the key, a policy block), never asks a model already asked for that
+decision, and its reply is validated exactly as any other. The decision records `trader1_input`: `image` or
+`numbers`, and `dual_ai_stats` splits the trades by it, so whether the picture adds anything is measured. The
+image prompt is unchanged.
+
 ### Why a trade needs both traders (dual-ai 1.2.0, 2026-10-13)
 
 Until 1.1.0 the debate's pick was traded. The operator chose agreement-only after the first day: two independent
@@ -56,7 +69,7 @@ standing aside is right is measured, not assumed. The prompts are unchanged, so 
 | `MARKET_UNAVAILABLE` | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine's account checks already refuse any trade | none |
 | `AI_UNAVAILABLE` | `OPENROUTER_API_KEY` not set | none |
 | `NO_CHART` | not enough completed bars to draw the chart | none |
-| `TRADER1_UNAVAILABLE` / `TRADER2_UNAVAILABLE` | that trader's model gave no usable answer: unavailable, rate-limited, quota spent, malformed, impossible levels | 1 / 2 |
+| `TRADER1_UNAVAILABLE` / `TRADER2_UNAVAILABLE` | that trader's model gave no usable answer: unavailable, rate-limited, quota spent, malformed, impossible levels (for Trader 1: no vision model, and then no text model reading the chart's numbers) | 1 / 2 |
 | `DEBATE_UNRESOLVED` | (dual-ai 1.1.0 only) the traders disagreed and the debate gave no usable answer | 3 |
 | `LESSON` | a validated lesson (confirmed out of sample) matches this exact context | 2-3 |
 | `MODE` | not PAPER_FORWARD (the service refuses this configuration anyway) | none |

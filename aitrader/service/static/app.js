@@ -673,7 +673,7 @@ function renderDualAI(D) {
   if (L) {
     const m = L.models || {};
     const line = (name, a, model) => a ? `<div><b>${name}</b> <span class="muted">${esc(model || "")}</span>: ${esc(a.direction || "")} · confidence ${conf(a)}${a.entry ? ` · entry ${num(a.entry, 5)} SL ${num(a.stop_loss, 5)} TP ${num(a.take_profit, 5)} RR ${num(a.risk_reward)}` : ""}<br><span class="muted">${esc(String(a.reason || "").slice(0, 300))}</span></div>` : "";
-    $("dai-last").innerHTML = line("Trader 1 (vision)", L.trader1, m.trader1) + line("Trader 2 (independent)", L.trader2, m.trader2)
+    $("dai-last").innerHTML = line(L.trader1_input === "numbers" ? "Trader 1 (chart as numbers: no vision model answered)" : "Trader 1 (vision)", L.trader1, m.trader1) + line("Trader 2 (independent)", L.trader2, m.trader2)
       + line("Debate (shadow, never traded)", L.verifier, m.verifier)
       + `<div><b>Final: ${esc(L.decision)}</b> <span class="muted">${esc(String(L.reason || "").slice(0, 300))}</span></div>`;
     const fig = $("dai-figure");

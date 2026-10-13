@@ -282,3 +282,61 @@ def test_when_one_vision_model_answers_badly_another_trader_1_model_is_asked():
     call = d.ai["dual_ai"]["calls"][0]
     assert call["tried"][0]["model"] == VISION and call["tried"][0]["status"].startswith("INVALID")
     assert d.ai["dual_ai"]["models"]["trader2"] not in (DEBATE,)  # still a different model from Trader 1
+
+
+# ── Trader 1 reads the chart's numbers when no vision model answers ─────
+
+TEXT3 = "plain/text-d:free"
+
+
+def numbers_desk(reply):
+    from tests.openrouter_kit import CATALOG, model
+    fake = FakeOpenRouter(reply, catalog=CATALOG + [model(TEXT3, image=False, ii=20)])
+    brain = Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=client(fake))
+    return brain, fake
+
+
+def busy_vision(t1=("BUY", 70), vision=None, numbers=None):
+    """Every request with the chart image fails; Trader 1 on the chart's numbers answers (or `numbers`)."""
+    def t1_reply(body):
+        if has_image(body):
+            return vision(body) if vision else (503, {}, {"error": {"message": "overloaded"}})
+        return numbers(body) if numbers else answer(t1[0], BID, ASK, ATR, confidence=t1[1])
+    return t1_reply
+
+
+def test_when_no_vision_model_answers_trader_1_reads_the_same_chart_as_numbers_on_a_text_model():
+    # found in the live run of 2026-10-13: 23 of 40 decisions lost while every free vision model was busy
+    brain, fake = numbers_desk(scripted(trader1=busy_vision(), t2=("BUY", 66)))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "BUY" and rec["consensus"]["rule"] == "AGREE" and rec["trader1_input"] == "numbers"
+    assert rec["models"] == {"trader1": TEXT3, "trader2": TRADER}  # still two different models
+    vision = {c["model"] for c in fake.calls if c["role"] == "trader1" and has_image(c["body"])}
+    numbers = [c for c in fake.calls if c["role"] == "trader1" and not has_image(c["body"])]
+    assert vision == {VISION, DEBATE} and [c["model"] for c in numbers] == [TEXT3]  # each asked; the new one once
+    body = numbers[0]["body"]
+    assert "could not be read" in body["messages"][0]["content"]
+    assert packet_of(body)["chart_marks"] == packet_of(fake.calls[0]["body"])["chart_marks"]  # the same chart
+    assert [c["role"] for c in rec["calls"]] == ["vision", "trader1_numbers", "judge"]
+    assert not rec["calls"][0]["ok"] and rec["calls"][1]["ok"]
+
+
+@pytest.mark.parametrize("status,payload,why", [
+    (401, {"error": {"message": "invalid api key"}}, "KEY_REJECTED"),
+    (429, {"error": {"message": "Rate limit exceeded: free-models-per-day"}}, "DAILY_QUOTA"),
+])
+def test_no_numbers_fallback_after_a_stop_another_model_would_not_fix(status, payload, why):
+    brain, fake = numbers_desk(scripted(trader1=busy_vision(vision=lambda b: (status, {}, payload))))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == "TRADER1_UNAVAILABLE" and why in d.no_trade_reason
+    assert rec["trader1_input"] == "image" and len(rec["calls"]) == 1
+    assert [c for c in fake.calls if not has_image(c["body"])] == []
+
+
+def test_when_the_numbers_reply_is_unusable_too_it_is_no_trade_naming_both():
+    brain, _ = numbers_desk(scripted(trader1=busy_vision(numbers=lambda b: "not json")))
+    d = brain.think(desk_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
+    assert "vision" in d.no_trade_reason and "on the chart's numbers: INVALID" in d.no_trade_reason

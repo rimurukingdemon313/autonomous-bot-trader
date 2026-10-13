@@ -22,7 +22,9 @@ from ..learning.paper_metrics import MIN_SAMPLE
 
 #: 1.1.0: the shadow debate's pick on a disagreement is measured beside the side it rejected; DISAGREE counts as a
 #:        decision with both traders.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.1.0"
+#: 1.2.0: each trade records how Trader 1 read the chart (image, or its numbers when no vision model answered);
+#:        trades are split by it.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.2.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
 UNAVAILABLE = ("MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE", "TRADER2_UNAVAILABLE", "DEBATE_UNRESOLVED",
@@ -64,6 +66,7 @@ def evaluate_trade(ai_record: dict, outcome: dict) -> dict:
             "trader1_direction": t1.get("direction"), "trader1_confidence": t1.get("confidence"),
             "trader2_direction": t2.get("direction"), "trader2_confidence": t2.get("confidence"),
             "verifier_direction": (ai_record.get("verifier") or {}).get("direction"),
+            "trader1_input": ai_record.get("trader1_input") or "image",
             "direction_correct": moved, "trader1_correct": right(t1), "trader2_correct": right(t2),
             "target_reached": reason == "TARGET", "stopped_out": reason == "STOP", "exit_reason": reason,
             "net_r": outcome.get("r"), "mfe_r": outcome.get("mfe_r"), "mae_r": outcome.get("mae_r"),
@@ -109,6 +112,8 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             "trades_taken": _r([o["r"] for o in trades]),
             "by_rule": {k: _r([o["r"] for o, e in zip(trades, ev) if e.get("rule") == k]) for k in ("AGREE", "DEBATE")},
             "by_desk_confidence": bands,
+            "by_trader1_input": {k: _r([o["r"] for o, e in zip(trades, ev) if (e.get("trader1_input") or "image") == k])
+                                 for k in ("image", "numbers")},
             "trader1_hit_rate": _rate([e.get("trader1_correct") for e in ev]),
             "trader2_hit_rate": _rate([e.get("trader2_correct") for e in ev]),
             "debate_pick_if_taken": {**_r(shadow[PICK_FAMILY]), "note": "on a disagreement (not traded), the side "
