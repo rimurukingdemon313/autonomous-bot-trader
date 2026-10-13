@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 05:49 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
+Updated 2026-10-13 06:04 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,341.40 | $-1,011.88 | $-658.60 | $-658.60 | 2 | 4 (insufficient) | 25.0% | -0.216R | 0.64 | ACTIVE | RUNNING |
+| $200,000.00 | $199,307.20 | $-1,046.08 | $-692.80 | $-692.80 | 2 | 4 (insufficient) | 25.0% | -0.216R | 0.64 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -36,7 +36,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $-10.26 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $-44.47 |
 | AUDUSD | SELL | 2.48 | 0.69574 | 0.69651 | 0.6948 | n/a |
 
 ## Closed paper trades (latest 20)
