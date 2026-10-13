@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 08:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
+Updated 2026-10-13 09:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,638.69 | $-714.59 | $-361.31 | $-361.31 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
+| $200,000.00 | $199,690.05 | $-663.23 | $-309.95 | $-309.95 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -19,8 +19,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (344 so far)
+## Latest decisions, NO TRADE included (346 so far)
 
+- 10-13 08:45 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 85, Trader 2 SELL 65): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not tr
+- 10-13 08:45 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 68, Trader 2 SELL 62): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 - 10-13 08:30 GBPUSD NO_TRADE: Trader 1 (vision) gave no usable answer (HTTP_400: HTTP 400: Provider returned error {"code":400,"msg":"bad request","request_id":"16af2ea9-a50b-4472-af44-b0803aace557"}): no decision on one trader al
 - 10-13 08:30 EURUSD NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone
 - 10-13 07:45 AUDUSD SELL: SELL AUDUSD on M15: DEBATE: Trader 1 (google/gemma-4-26b-a4b-it:free) BUY 75: M15 structure has shifted bullish with a CHoCH and a recent BOS. Price is currently trading within an open bullish FVG and
@@ -31,14 +33,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 01:30 AUDUSD SELL: SELL AUDUSD on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 75: The higher timeframe bias is bullish, and the price is testing a strong support zone at the previous day low (0.6957
 - 10-13 00:15 USDJPY NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-12 23:00 GBPUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 120 minutes ago; STALE_DATA: last closed bar is 120 minutes old; EXPOSURE: a GBPUSD position is  [data: latest bar closed 120 minutes ago]
-- 10-12 21:45 EURUSD SELL: SELL EURUSD on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 65: The price is at the bottom of the H4 range and major support confluence (PDL/PWL 1.11557) following a bullish liquid
-- 10-12 20:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $58.17 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $109.53 |
 
 ## Closed paper trades (latest 20)
 
@@ -53,14 +53,16 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 12/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `apodex/apodex-1.1-mini:free` · calls today 17/900
 
 AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit factor 0.70
 
-Disagreements (not traded; the debate runs in shadow): 0 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 3 resolved (insufficient), expectancy +0.640R
+Disagreements (not traded; the debate runs in shadow): 2 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 3 resolved (insufficient), expectancy +0.640R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 08:45 | AUDUSD | BUY 85 | SELL 65 | SELL | DISAGREE | NO_TRADE | - |
+| 10-13 08:45 | USDJPY | BUY 68 | SELL 62 | SELL | DISAGREE | NO_TRADE | - |
 | 10-13 08:30 | GBPUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 08:30 | EURUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 07:45 | AUDUSD | BUY 75 | SELL 60 | SELL | DEBATE | SELL | REJECTED |
@@ -71,8 +73,6 @@ Disagreements (not traded; the debate runs in shadow): 0 · the debate's pick if
 | 10-13 01:30 | AUDUSD | BUY 75 | SELL 70 | SELL | DEBATE | SELL | APPROVED |
 | 10-13 00:15 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 23:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-12 21:45 | EURUSD | BUY 65 | SELL 55 | SELL | DEBATE | SELL | APPROVED |
-| 10-12 20:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
