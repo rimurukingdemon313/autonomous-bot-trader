@@ -30,12 +30,12 @@
  },
  "bot_status": "RUNNING",
  "account": {
-  "equity": 199654.95,
+  "equity": 199695.54,
   "balance": 199679.94,
-  "total_pnl": -345.05,
-  "today_pnl": -267.03,
+  "total_pnl": -304.46,
+  "today_pnl": -226.45,
   "day_reference": 199921.98694143828,
-  "drawdown_from_start": -345.05,
+  "drawdown_from_start": -304.46,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -198,12 +198,12 @@
    "side": "SELL",
    "qty": 5.02,
    "entry": 110.55199999999999,
-   "current": 110.568,
+   "current": 110.581,
    "stop": 110.67,
    "target": 110.4,
-   "r_now": -0.136,
+   "r_now": -0.246,
    "opened": 1791930941.0,
-   "pnl": -50.6,
+   "pnl": -91.72,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -215,12 +215,12 @@
    "side": "SELL",
    "qty": 4.39,
    "entry": 1.12035,
-   "current": 1.1202400000000001,
+   "current": 1.1201400000000001,
    "stop": 1.1212,
    "target": 1.119,
-   "r_now": 0.129,
+   "r_now": 0.247,
    "opened": 1791926406.0,
-   "pnl": 48.29,
+   "pnl": 92.19,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -232,12 +232,12 @@
    "side": "SELL",
    "qty": 3.78,
    "entry": 0.561515,
-   "current": 0.561575,
+   "current": 0.5614750000000001,
    "stop": 0.5625,
    "target": 0.56,
-   "r_now": -0.061,
+   "r_now": 0.041,
    "opened": 1791903960.0,
-   "pnl": -22.68,
+   "pnl": 15.12,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -1335,6 +1335,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPUSD",
+   "decision": "NO_TRADE",
+   "t": 1791931516,
+   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1791931516,
+   "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURUSD position is already open",
+   "data_flags": []
+  },
+  {
    "symbol": "AUDJPY",
    "decision": "SELL",
    "t": 1791930618,
@@ -1487,23 +1501,9 @@
    "t": 1791921617,
    "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPUSD",
-   "decision": "NO_TRADE",
-   "t": 1791920717,
-   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURUSD",
-   "decision": "NO_TRADE",
-   "t": 1791920717,
-   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 452,
+ "decisions_total": 454,
  "shift": {
   "started": "2026-10-13 19:35 UTC",
   "decision_mode": "dual_ai",
@@ -1860,105 +1860,63 @@
    }
   },
   "last_analysis": {
-   "decision_id": "e659fbce4a0b3426171a2c48",
-   "symbol": "AUDJPY",
-   "t": 1791930618,
-   "decision": "SELL",
-   "reason": "SELL AUDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The price is rejecting the tested supply order block near the top of the range, accompanied by a recent bearish liquidity sweep of the highs at 110.57. The M15 structure shows lower highs and lower lows, pointing tow",
+   "decision_id": "7e89c46dc10934b2a0782df3",
+   "symbol": "GBPUSD",
+   "t": 1791931516,
+   "decision": "NO_TRADE",
+   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
    "consensus": {
-    "desk_confidence": 0.65,
-    "direction": "SELL",
-    "levels_from": "trader2",
-    "outcome": "TRADE",
-    "rule": "AGREE",
-    "stop_loss": 110.67,
-    "take_profit": 110.4
+    "outcome": "NO_TRADE",
+    "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "rule": "MARKET_UNAVAILABLE"
    },
-   "models": {
-    "trader1": "dots-studio/dots-3-note-preview:free",
-    "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
-   },
-   "trader1": {
-    "confidence": 65,
-    "direction": "SELL",
-    "entry": 110.556,
-    "invalidation": "A close above 110.67, which would break the supply zone, the liquidity sweep high, and the PDH, invalidating the bearish setup.",
-    "liquidity": "A bearish liquidity sweep on the highs at 110.57 occurred 0 bars ago, grabbing buy-side liquidity, with key equal lows sitting at 110.403 as the next target.",
-    "market_structure": "M15 structure shows lower highs and lower lows (LH 110.57, LL 110.389) after a HH at 110.602, indicating short-term bearish bias, while H4 remains in a range with a recent bullish BOS at 110.557.",
-    "momentum": "Price is rejecting the tested supply order block at 110.57-110.597, with recent candles showing inability to hold the breakout above 110.57.",
-    "reason": "The price is rejecting the tested supply order block near the top of the range, accompanied by a recent bearish liquidity sweep of the highs at 110.57. The M15 structure shows lower highs and lower lows, pointing towards the equal lows at 110.40 as the next target. Selling at the bid with a stop above the range top respects the risk limits while offering a reward-to-risk ratio of 1.37.",
-    "reversal_probability": 65,
-    "risk_reward": 1.37,
-    "stop_loss": 110.67,
-    "take_profit": 110.4,
-    "trend": "Both M15 and H4 are in a ranging regime with mixed swings, but price is trading near the upper boundary of the range (PDH 110.66, EQH 110.609), favoring a sell-the-top approach."
-   },
-   "trader2": {
-    "confidence": 70,
-    "direction": "SELL",
-    "entry": 110.556,
-    "invalidation": 110.67,
-    "liquidity": "Bearish sweep of highs at 110.57 completed on the 22:15 M15 bar, removing buy-side liquidity. Next targets are equal lows at 110.403 (2 touches) and 110.192 (2 touches). H1 equal highs at 110.609 (3 touches) define the range ceiling.",
-    "market_structure": "M15/H1 show clear bearish structure: lower highs (110.66\u2192110.602\u2192110.57) and lower lows (110.497\u2192110.389) with H1 CHoCH bearish at 110.497 and M15 BOS bearish at same level. Price is rejecting the tested supply order block (110.57-110.597) at the top of the daily range.",
-    "momentum": "Rejection from the supply zone is evident in the last 6 M15 bars: three failed tests of 110.57-110.58 with long upper wicks. The M5 bullish FVG at 110.54-110.55 offers minor support but is within the current consolidation.",
-    "reason": "Bearish structure (lower highs/lows), liquidity sweep of highs, and rejection from tested supply at range top align for a move toward equal lows at 110.40. Stop above PDH/EQH cluster respects risk-engine minimums; target reaches the first major liquidity pool within the 8-hour window.",
-    "reversal_probability": 30,
-    "risk_reward": 1.37,
-    "stop_loss": 110.67,
-    "take_profit": 110.4,
-    "trend": "Ranging on all timeframes (M15, H1, H4) per regime filter, but short-term structure has turned bearish within the range. Trading at the upper boundary (PDH 110.66, today's high 110.66) favors sell-the-rally."
-   },
+   "models": {},
+   "trader1": null,
+   "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1791930618,
-    "bytes": 31036,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1791930600,
-    "last_bar_open": 1791929700,
-    "sha256": "3f13510aa343066c0b343159583db2a4bff0756329a20daee26a310780f8c3b4",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 79581.0,
-     "model": "dots-studio/dots-3-note-preview:free",
-     "ok": true,
-     "provider_id": "gen-1791930828-dDAMt8lSGYBGN6gkh2FZ",
-     "request_id": "82c421c6e2c941b383daf0f7389d1c08",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 15048,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 32399.2,
-     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-     "ok": true,
-     "provider_id": "gen-1791930907-UQYF11TI6fp6gNMajjxS",
-     "request_id": "bdbbf71cae28495fbb508d433f1b03e6",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 16176,
-     "tried": []
-    }
-   ],
-   "risk": {
-    "approved": true,
-    "reasons": [],
-    "qty": 5.02
-   }
+   "chart": null,
+   "calls": [],
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "7e89c46dc10934b2a0782df3",
+    "symbol": "GBPUSD",
+    "t": 1791931516,
+    "decision": "NO_TRADE",
+    "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "MARKET_UNAVAILABLE"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "risk": null
+   },
+   {
+    "decision_id": "406185ace342c13e5ebefa6b",
+    "symbol": "EURUSD",
+    "t": 1791931516,
+    "decision": "NO_TRADE",
+    "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURUSD position is already open",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURUSD position is already open",
+     "rule": "MARKET_UNAVAILABLE"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "risk": null
+   },
    {
     "decision_id": "e659fbce4a0b3426171a2c48",
     "symbol": "AUDJPY",
@@ -2578,145 +2536,6 @@
     "chart": null,
     "calls": [],
     "risk": null
-   },
-   {
-    "decision_id": "aaa38cacf529636a0227a405",
-    "symbol": "GBPUSD",
-    "t": 1791926118,
-    "decision": "NO_TRADE",
-    "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "MARKET_UNAVAILABLE"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "risk": null
-   },
-   {
-    "decision_id": "03f3aaf69d204c64e0151a7d",
-    "symbol": "EURUSD",
-    "t": 1791926118,
-    "decision": "SELL",
-    "reason": "SELL EURUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 70: The higher timeframe (H4) is firmly bearish, and the M15 is testing a major resistance cluster at 1.12045\u20131.1207 (PDH, EQH, today's high) where a bearish sweep occurred. Selling the pullback here aligns with the domi",
-    "consensus": {
-     "desk_confidence": 0.65,
-     "direction": "SELL",
-     "levels_from": "trader1",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 1.1212,
-     "take_profit": 1.119
-    },
-    "models": {
-     "trader1": "dots-studio/dots-3-note-preview:free",
-     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
-    },
-    "trader1": {
-     "confidence": 70,
-     "direction": "SELL",
-     "entry": 1.12036,
-     "invalidation": 1.1212,
-     "liquidity": "Strong EQH liquidity pool sits at 1.1207 (4 touches) and 1.12196 above, while a very recent bullish sweep of lows at 1.12007 represents a minor local liquidity grab that is likely to be sold into.",
-     "market_structure": "H4 trend is DOWN (LH+LL) with a bearish CHoCH and BOS, while M15 is in a range but showing topping signs with a recent LL/LH sequence and a bearish sweep of highs at 1.12045.",
-     "momentum": "Momentum is overall bearish on the higher timeframes with recent bearish displacement, though a minor consolidation is occurring on the M1/M5 charts near the resistance.",
-     "reason": "The higher timeframe (H4) is firmly bearish, and the M15 is testing a major resistance cluster at 1.12045\u20131.1207 (PDH, EQH, today's high) where a bearish sweep occurred. Selling the pullback here aligns with the dominant down trend and offers a strong risk-reward targeting the 1.1190 support area.",
-     "reversal_probability": 70,
-     "risk_reward": 1.62,
-     "stop_loss": 1.1212,
-     "take_profit": 1.119,
-     "trend": "H4: DOWN (LH+LL); M15: RANGE (MIXED SWINGS, leaning bearish at resistance)"
-    },
-    "trader2": {
-     "confidence": 65,
-     "direction": "SELL",
-     "entry": 1.12036,
-     "invalidation": 1.1212,
-     "liquidity": "Major EQH liquidity at 1.1207 (4 touches) and 1.12196 above. Recent sweep of lows at 1.12007 (bullish grab) but no follow-through; price capped at 1.12057. Sell-side liquidity rests at 1.11919 and 1.11894.",
-     "market_structure": "H4 downtrend (LH/LL) intact with bearish CHoCH at 1.11919 and BOS at 1.11757. M15 ranging at resistance (position 0.83) with bullish pullback structure but failing to breach 1.1207 cluster (PDH, EQH 4 touches, daily high).",
-     "momentum": "Lower timeframes show loss of upside momentum: M15 high 1.12057 rejected, M1/M5 coiling under 1.1207. Bearish displacement on H1 (bars_ago 29, 50). Off-hours session favors range fade.",
-     "reason": "H4 downtrend is the dominant structure; price is testing a massive resistance cluster (PDH/EQH/daily high) for the third time with diminishing M15 momentum. The bullish M15 structure is a corrective pullback, not a reversal. Selling the resistance test aligns with the higher timeframe trend and offers 1.62 R:R to the 1.1190 support zone.",
-     "reversal_probability": 35,
-     "risk_reward": 1.62,
-     "stop_loss": 1.1212,
-     "take_profit": 1.119,
-     "trend": "H4: DOWN (LH+LL dominant). M15: RANGE (mixed swings) at resistance with bearish bias."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1791926118,
-     "bytes": 29754,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1791926100,
-     "last_bar_open": 1791925200,
-     "sha256": "ce06b68fd22052cadfa1b29b5d075d4b9b0bad418963db5701ff30935e5d3e66",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 91018.2,
-      "model": "dots-studio/dots-3-note-preview:free",
-      "ok": true,
-      "provider_id": "gen-1791926161-8naEqrEfBLIZ3n7oSq4a",
-      "request_id": "a37f5475bc3c4b4a9b0dfd6a82272bd6",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 15973,
-      "tried": [
-       {
-        "model": "thinkingmachines/inkling-small:free",
-        "status": "MODEL_RESTRICTED"
-       },
-       {
-        "model": "thinkingmachines/inkling:free",
-        "status": "MODEL_RESTRICTED"
-       },
-       {
-        "model": "google/gemma-4-26b-a4b-it:free",
-        "status": "RATE_LIMITED"
-       },
-       {
-        "model": "google/gemma-4-31b-it:free",
-        "status": "RATE_LIMITED"
-       },
-       {
-        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-        "status": "INVALID: no JSON object in the reply"
-       }
-      ]
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 153405.6,
-      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "ok": true,
-      "provider_id": "gen-1791926252-T0WbpjdRNzhh8k0TvrwG",
-      "request_id": "f8c7126d14ae4d6a8a134c2753367185",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 18572,
-      "tried": []
-     }
-    ],
-    "risk": {
-     "approved": true,
-     "reasons": [],
-     "qty": 4.39
-    }
    }
   ],
   "open_positions": [
@@ -2726,12 +2545,12 @@
     "side": "SELL",
     "qty": 5.02,
     "entry": 110.55199999999999,
-    "current": 110.568,
+    "current": 110.581,
     "stop": 110.67,
     "target": 110.4,
-    "r_now": -0.136,
+    "r_now": -0.246,
     "opened": 1791930941.0,
-    "pnl": -50.6,
+    "pnl": -91.72,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -2743,12 +2562,12 @@
     "side": "SELL",
     "qty": 4.39,
     "entry": 1.12035,
-    "current": 1.1202400000000001,
+    "current": 1.1201400000000001,
     "stop": 1.1212,
     "target": 1.119,
-    "r_now": 0.129,
+    "r_now": 0.247,
     "opened": 1791926406.0,
-    "pnl": 48.29,
+    "pnl": 92.19,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -2760,12 +2579,12 @@
     "side": "SELL",
     "qty": 3.78,
     "entry": 0.561515,
-    "current": 0.561575,
+    "current": 0.5614750000000001,
     "stop": 0.5625,
     "target": 0.56,
-    "r_now": -0.061,
+    "r_now": 0.041,
     "opened": 1791903960.0,
-    "pnl": -22.68,
+    "pnl": 15.12,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -2879,33 +2698,33 @@
     "rate": 0.455
    },
    "debate_pick_if_taken": {
-    "n": 7,
+    "n": 8,
     "sample": "insufficient",
-    "win_rate": 0.429,
-    "expectancy_r": -0.074,
-    "total_r": -0.52,
-    "profit_factor_r": 0.886,
+    "win_rate": 0.375,
+    "expectancy_r": -0.066,
+    "total_r": -0.53,
+    "profit_factor_r": 0.884,
     "note": "on a disagreement (not traded), the side the shadow debate picked, followed forward as if taken, after costs: what standing aside skipped"
    },
    "debate_losing_side_if_taken": {
-    "n": 12,
+    "n": 13,
     "sample": "insufficient",
-    "win_rate": 0.667,
-    "expectancy_r": 0.39,
-    "total_r": 4.68,
-    "profit_factor_r": 2.066,
+    "win_rate": 0.615,
+    "expectancy_r": 0.276,
+    "total_r": 3.59,
+    "profit_factor_r": 1.655,
     "note": "the side the debate rejected, followed forward as if taken, after costs: if it does better than the side picked, the debate is choosing the wrong side"
    },
    "decisions_by_rule": {
     "AGREE": 17,
     "DEBATE": 5,
     "DISAGREE": 8,
-    "MARKET_UNAVAILABLE": 72,
+    "MARKET_UNAVAILABLE": 74,
     "TRADER1_UNAVAILABLE": 26
    },
    "agreement_rate": 0.567,
    "decisions_with_both_traders": 30,
-   "unavailable": 98
+   "unavailable": 100
   },
   "recent_trades": [
    {
@@ -3617,8 +3436,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1791930618,
+  "last_cycle": 1791931516,
   "last_cycle_error": null,
-  "cycles": 12
+  "cycles": 13
  }
 }
