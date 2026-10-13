@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 08:24 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
+Updated 2026-10-13 08:24 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,690.05 | $-663.23 | $-309.95 | $-309.95 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
+| $200,000.00 | $199,655.81 | $-697.47 | $-344.19 | $-344.19 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -38,7 +38,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $109.53 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $75.29 |
 
 ## Closed paper trades (latest 20)
 
@@ -51,13 +51,15 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 | 10-12 21:01 | USDJPY | BUY | $-414.90 | -0.83 | $114.86 | STOP | DUAL_AI |
 | 10-12 15:38 | EURUSD | SELL | $768.18 | +1.54 | $66.08 | TARGET | DUAL_AI |
 
-## Dual AI desk (two free OpenRouter traders; a debate when they disagree)
+## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-31b-it:free` · calls today 12/900
+OpenRouter `NO_FREE_MODEL` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
 AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit factor 0.70
 
-| Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
+Disagreements (not traded; the debate runs in shadow): 0 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 3 resolved (insufficient), expectancy +0.640R
+
+| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
 | 10-13 07:45 | AUDUSD | BUY 75 | SELL 60 | SELL | DEBATE | SELL | REJECTED |
 | 10-13 06:30 | USDJPY | SELL 65 | SELL 68 | - | AGREE | SELL | APPROVED |
