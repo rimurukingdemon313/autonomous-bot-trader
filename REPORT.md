@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-13 11:00 UTC**, run 133, version `radar-1.0.0`. State from: cache. Quotes this hour: 2392.
+Updated **2026-10-13 12:00 UTC**, run 134, version `radar-1.0.0`. State from: cache. Quotes this hour: 2392.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,32 +17,32 @@ Updated **2026-10-13 11:00 UTC**, run 133, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 5.62
-- run_coverage: 0.9779
-- closed_positions: 15
-- open_positions: 1
-- utilisation: 0.0744
+- days: 5.67
+- run_coverage: 0.9781
+- closed_positions: 16
+- open_positions: 0
+- utilisation: 0.0739
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.1668
-- book_excess_pct: -0.1809
-- ann_excess_deployed_pct: -161.67
-- ann_excess_deployed_costs_x1.5_pct: -287.483
-- ann_excess_deployed_costs_x2_pct: -413.297
+- book_pnl_pct: -0.1685
+- book_excess_pct: -0.1729
+- ann_excess_deployed_pct: -152.994
+- ann_excess_deployed_costs_x1.5_pct: -277.536
+- ann_excess_deployed_costs_x2_pct: -402.079
 - best_coin: RSR
 - book_excess_without_best_coin_pct: -0.2013
 - max_dd_pct: 0.1943
-- t_excess_daily: -1.343
+- t_excess_daily: -1.367
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| RSR | gate | hyperliquid | 2026-10-13 01:00 | 46.5% | 27.3 | 41.5 | 19.5 | **49.3** |
 
-## Closed positions (15)
+## Closed positions (16)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| RSR | gate | hyperliquid | 0.5 | spread_reversed | 45.8 |
 | W | hyperliquid | mexc | 0.2 | spread_decayed | -51.6 |
 | W | hyperliquid | gate | 0.2 | spread_reversed | -51.2 |
 | RSR | mexc | gate | 0.2 | spread_reversed | 7.7 |
