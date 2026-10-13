@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 12:40 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
+Updated 2026-10-13 12:55 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,164.06 | $-1,189.22 | $-835.94 | $-835.94 | 1 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
+| $200,000.00 | $199,199.62 | $-1,153.67 | $-800.38 | $-800.38 | 1 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -24,8 +24,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (374 so far)
+## Latest decisions, NO TRADE included (376 so far)
 
+- 10-13 12:45 GBPJPY NO_TRADE: Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone
+- 10-13 12:45 EURJPY NO_TRADE: Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to a
 - 10-13 12:30 EURGBP NO_TRADE: Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone
 - 10-13 12:30 NZDUSD NO_TRADE: Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to a
 - 10-13 12:15 USDCHF NO_TRADE: Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone
@@ -36,14 +38,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 11:45 EURUSD NO_TRADE: Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to a
 - 10-13 11:30 AUDJPY BUY: BUY AUDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) BUY 70: The H4 uptrend and broken supply zone provide a strong bullish bias; price is above the broken supply an
 - 10-13 11:30 EURCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURCHF position is already open
-- 10-13 11:15 GBPJPY NO_TRADE: Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone
-- 10-13 11:15 EURJPY NO_TRADE: Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to a
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $-67.59 |
+| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $-32.03 |
 
 ## Closed paper trades (latest 20)
 
@@ -60,7 +60,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `NO_FREE_MODEL` · key set · trader 1 `None` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `apodex/apodex-1.1-mini:free` · calls today 65/900
+OpenRouter `NO_FREE_MODEL` · key set · trader 1 `None` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `apodex/apodex-1.1-mini:free` · calls today 69/900
 
 AI trades 8 (insufficient) · wins 3 · losses 5 · expectancy -0.170R · profit factor 0.58
 
@@ -68,6 +68,8 @@ Disagreements (not traded; the debate runs in shadow): 5 · the debate's pick if
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 12:45 | GBPJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
+| 10-13 12:45 | EURJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 12:30 | EURGBP | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 12:30 | NZDUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 12:15 | USDCHF | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
@@ -78,8 +80,6 @@ Disagreements (not traded; the debate runs in shadow): 5 · the debate's pick if
 | 10-13 11:45 | EURUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 11:30 | AUDJPY | BUY 70 | BUY 60 | - | AGREE | BUY | REJECTED |
 | 10-13 11:30 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 11:15 | GBPJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
-| 10-13 11:15 | EURJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
