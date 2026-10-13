@@ -84,6 +84,17 @@ def test_no_free_model_means_no_model_never_a_paid_fallback():
     assert res.status == "NO_FREE_MODEL" and fake.calls == []
 
 
+def test_before_the_first_request_the_status_says_the_catalog_is_not_read_yet_not_that_no_model_exists():
+    # found live (2026-10-13): a shift whose first pairs were blocked before any model was asked showed NO_FREE_MODEL
+    fake = FakeOpenRouter(good)
+    c = client(fake)
+    assert c.health()["status"] == "CATALOG_NOT_READ_YET" and fake.headers == []  # health asks nothing
+    assert c.chat_json("vision", MSG, accept, dedupe_key="k").ok and c.health()["status"] == "READY"
+    empty = client(FakeOpenRouter(good, catalog=[model("paid/x", price="0.00001", ii=90)]))
+    empty.chat_json("vision", MSG, accept, dedupe_key="k")
+    assert empty.health()["status"] == "NO_FREE_MODEL"  # read, and truly nothing free
+
+
 # ── connection, key, configuration ──────────────────────────────────────
 
 def test_the_placeholder_and_an_empty_key_are_not_configured_and_nothing_is_sent():

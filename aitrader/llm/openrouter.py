@@ -67,7 +67,10 @@ from .provider import extract_json
 #: 1.3.0: an account whose privacy setting blocks free models is reported as DATA_POLICY (one setting fixes
 #:        it; no model is rested for it); a reply cut at max_tokens is named as such; GET /auth/key when /key is
 #:        not found; replies may take longer (timeout 120 s) and use more tokens (reasoning models think first).
-OPENROUTER_VERSION = "openrouter-1.6.0"
+#: 1.6.1: the dashboard status before the first request of a process is CATALOG_NOT_READ_YET, never NO_FREE_MODEL
+#:        (the catalog is read on the first request; a shift whose first pairs were blocked before any model was
+#:        asked showed NO_FREE_MODEL, which looked like a failure that had not happened).
+OPENROUTER_VERSION = "openrouter-1.6.1"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -523,6 +526,7 @@ class OpenRouterClient:
                                "DATA_POLICY_BLOCKED" if self.data_policy else
                                "KEY_REJECTED" if self.key_info.get("status") == "KEY_REJECTED" else
                                "DAILY_QUOTA_SPENT" if self.clock() < self._quota_until else
+                               "CATALOG_NOT_READ_YET" if not sel.get("refreshed") else
                                "NO_FREE_MODEL" if not sel["vision"] or not sel["judge"] else "READY"),
                     "calls_today": self._calls, "daily_budget": self.daily_budget, "last_call": self.last,
                     "key": {k: v for k, v in self.key_info.items()}, "paid_usage": self._paid_usage,
