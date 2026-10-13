@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 07:34 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
+Updated 2026-10-13 07:49 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,690.05 | $-663.23 | $-309.95 | $-309.95 | 2 | 5 (insufficient) | 20.0% | -0.346R | 0.54 | ACTIVE | RUNNING |
+| $200,000.00 | $199,570.26 | $-783.03 | $-429.74 | $-429.74 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -37,13 +37,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDJPY | SELL | 3.03 | 158.281 | 158.365 | 158.15 | n/a |
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $109.53 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $-10.26 |
 
 ## Closed paper trades (latest 20)
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source |
 |---|---|---|---|---|---|---|---|
+| 10-13 06:48 | USDJPY | SELL | $228.86 | +0.92 | $42.21 | TARGET | DUAL_AI |
 | 10-13 05:42 | AUDUSD | SELL | $-214.73 | -0.86 | $47.12 | STOP | DUAL_AI |
 | 10-13 01:03 | EURUSD | SELL | $-431.70 | -0.86 | $87.38 | STOP | DUAL_AI |
 | 10-13 01:04 | GBPUSD | SELL | $-355.19 | -0.71 | $110.84 | STOP | DUAL_AI |
@@ -52,9 +52,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a debate when they disagree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 8/900
+OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-31b-it:free` · calls today 10/900
 
-AI trades 5 (insufficient) · wins 1 · losses 4 · expectancy -0.346R · profit factor 0.54
+AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit factor 0.70
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
