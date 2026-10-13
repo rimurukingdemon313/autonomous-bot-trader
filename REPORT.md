@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 07:19 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
+Updated 2026-10-13 07:34 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,621.58 | $-731.70 | $-378.42 | $-378.42 | 2 | 5 (insufficient) | 20.0% | -0.346R | 0.54 | ACTIVE | RUNNING |
+| $200,000.00 | $199,690.05 | $-663.23 | $-309.95 | $-309.95 | 2 | 5 (insufficient) | 20.0% | -0.346R | 0.54 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -38,7 +38,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
 | USDJPY | SELL | 3.03 | 158.281 | 158.365 | 158.15 | n/a |
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $41.06 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $109.53 |
 
 ## Closed paper trades (latest 20)
 
