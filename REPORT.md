@@ -1,15 +1,16 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 22:06 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 19:35 UTC · decision system `dual_ai`
+Updated 2026-10-13 22:21 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 19:35 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,912.85 | $-9.13 | $-87.15 | $-87.15 | 2 | 11 (insufficient) | 45.5% | -0.042R | 0.86 | ACTIVE | RUNNING |
+| $200,000.00 | $199,749.45 | $-172.53 | $-250.55 | $-250.55 | 2 | 11 (insufficient) | 45.5% | -0.042R | 0.86 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-13 22:15 EURJPY SELL: AI DECISION → RISK REJECTED — reward_risk: 0.91 vs minimum 1.2
 - 10-13 22:00 EURGBP SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 28.4% of the stop (max 25%): spread 0.00012 + commission and slippage
 - 10-13 21:15 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-13 18:15 EURJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
@@ -29,8 +30,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (448 so far)
+## Latest decisions, NO TRADE included (449 so far)
 
+- 10-13 22:15 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 78: The H4 downtrend and recent bearish CHOCH at 177.281, together with the tested supply zone 177.305‑331
 - 10-13 22:00 EURGBP SELL: SELL EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 structure is clearly bearish with a fresh sweep of highs at 0.84509 followed by consecutive bearish BOS brea
 - 10-13 22:00 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
 - 10-13 21:45 USDCHF NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
@@ -42,14 +44,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 21:00 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-13 21:00 EURCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-13 20:45 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-13 20:45 EURJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURJPY position is already open
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURUSD | SELL | 4.39 | 1.12035 | 1.1212 | 1.119 | $179.99 |
-| NZDUSD | SELL | 3.78 | 0.561515 | 0.5625 | 0.56 | $52.92 |
+| EURUSD | SELL | 4.39 | 1.12035 | 1.1212 | 1.119 | $92.19 |
+| NZDUSD | SELL | 3.78 | 0.561515 | 0.5625 | 0.56 | $-22.68 |
 
 ## Closed paper trades (latest 20)
 
@@ -69,7 +70,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 12/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 18/900
 
 AI trades 11 (insufficient) · wins 5 · losses 6 · expectancy -0.042R · profit factor 0.86
 
@@ -77,6 +78,7 @@ Disagreements (not traded; the debate runs in shadow): 8 · the debate's pick if
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 22:15 | EURJPY | SELL 78 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-13 22:00 | EURGBP | SELL 75 | SELL 70 | - | AGREE | SELL | REJECTED |
 | 10-13 22:00 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 21:45 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -88,7 +90,6 @@ Disagreements (not traded; the debate runs in shadow): 8 · the debate's pick if
 | 10-13 21:00 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 21:00 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 20:45 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 20:45 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
