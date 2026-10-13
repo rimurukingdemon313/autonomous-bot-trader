@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 09:24 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
+Updated 2026-10-13 09:39 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -20,8 +20,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (348 so far)
+## Latest decisions, NO TRADE included (350 so far)
 
+- 10-13 09:30 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 191s old
+- 10-13 09:30 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 289s old
 - 10-13 09:15 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 68: Bearish BOS and open FVG above current price, supply zone tested, and price near resistance at 0.83329
 - 10-13 09:15 USDCAD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
 - 10-13 08:45 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 85, Trader 2 SELL 65): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not tr
@@ -32,8 +34,6 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 06:30 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 65: The M15 displays a bearish break of structure and a tested supply zone within the entry band, while th
 - 10-13 05:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-13 04:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-13 02:45 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The M15 structure is bearish with a recent break of low, and price is reacting to a tested supply order block. Selli
-- 10-13 01:30 AUDUSD SELL: SELL AUDUSD on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 75: The higher timeframe bias is bullish, and the price is testing a strong support zone at the previous day low (0.6957
 
 ## Open paper positions
 
@@ -58,10 +58,12 @@ OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-r
 
 AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit factor 0.70
 
-Disagreements (not traded; the debate runs in shadow): 2 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 3 resolved (insufficient), expectancy +0.640R
+Disagreements (not traded; the debate runs in shadow): 2 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 4 resolved (insufficient), expectancy +0.942R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 09:30 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-13 09:30 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 09:15 | USDCHF | SELL 68 | SELL 62 | - | AGREE | SELL | REJECTED |
 | 10-13 09:15 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 08:45 | AUDUSD | BUY 85 | SELL 65 | SELL | DISAGREE | NO_TRADE | - |
@@ -72,8 +74,6 @@ Disagreements (not traded; the debate runs in shadow): 2 · the debate's pick if
 | 10-13 06:30 | USDJPY | SELL 65 | SELL 68 | - | AGREE | SELL | APPROVED |
 | 10-13 05:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 04:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 02:45 | USDCAD | SELL 65 | SELL 60 | - | AGREE | SELL | APPROVED |
-| 10-13 01:30 | AUDUSD | BUY 75 | SELL 70 | SELL | DEBATE | SELL | APPROVED |
 
 The chart Trader 1 read last: `last_chart.png`.
 
