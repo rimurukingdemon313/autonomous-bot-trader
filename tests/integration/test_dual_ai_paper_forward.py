@@ -108,6 +108,31 @@ def test_a_disagreement_is_no_trade_and_both_sides_are_followed_forward_never_ex
     assert last["decision"] == "NO_TRADE" and last["consensus"]["debate_pick"] == "SELL"
 
 
+def test_the_trade_is_sized_on_the_price_after_the_traders_answered_the_one_the_gate_verifies(tmp_path, monkeypatch):
+    # found live (2026-10-13, EURJPY): the size came from the quote read before the models answered (minutes
+    # earlier); the price had moved away from the stop, and the hard gate rightly refused $523 > $500
+    moved = {"by": 0.0}
+    base = desk_reply()
+
+    def reply(role, body):
+        out = base(role, body)
+        if role == "trader2":  # the market moves 0.1 ATR away from the stop while the traders think
+            moved["by"] = 0.1 * packet_of(body)["chart_marks"]["atr_h1"]
+        return out
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch, reply)
+    feed, orig = rt.broker.feed, rt.broker.feed.quote
+
+    def quote(symbol, now):
+        q = orig(symbol, now)
+        return None if q is None else type(q)(q.symbol, q.bid + moved["by"], q.ask + moved["by"], q.time)
+    monkeypatch.setattr(feed, "quote", quote)
+    cycles(rt, clock)
+    trail = pipeline(rt)[-1]
+    assert trail["stages"] == ["AI DECISION", "RISK APPROVED", "PAPER EXECUTED"], trail
+    p = json.loads(rt.db.one("SELECT payload FROM positions WHERE status='OPEN'")["payload"])
+    assert moved["by"] > 0 and p["max_loss"] <= 500 + 1e-6  # all-in, at the price it was sized and filled on
+
+
 def test_the_risk_engine_still_refuses_what_it_refuses(tmp_path, monkeypatch):
     # both traders agree, but reward:risk 0.8 is below the risk engine's minimum: blocked, never executed
     rt, clock, _ = desk_runtime(tmp_path, monkeypatch, desk_reply(target_atr=0.8))

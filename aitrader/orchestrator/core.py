@@ -86,7 +86,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         followed forward as DUAL_AI_DEBATE_LOSER; closed DUAL_AI trades are scored per trader.
 #: 1.16.0: a decision may carry several counterfactual sides (dual-AI 1.2.0: on a disagreement, the shadow debate's
 #:         pick and the side it rejected), each followed forward as if taken, never executed.
-ORCHESTRATOR_VERSION = "orchestrator-1.16.0"
+#: 1.17.0: a trade is sized from the quote read after the decision (the price the hard gate verifies), not the one
+#:         read before it; a model's answer can take minutes.
+ORCHESTRATOR_VERSION = "orchestrator-1.17.0"
 
 
 class NullKnowledge:
@@ -409,6 +411,12 @@ class Orchestrator:
             except BrokerError:
                 spec = None
             swap = self.cfg.costs.swap_atr_per_night * (atr if np.isfinite(atr) else 0.0)
+            # A model's answer takes minutes: the size comes from the price now, the one the hard gate verifies at
+            # submission, never from the quote read before the decision (live 2026-10-13, EURJPY: sized on the old
+            # price, refused by the gate at $523 > $500). A replay returns the same quote at t: nothing changes there.
+            fresh = self.feed.quote(symbol, t)
+            if fresh is not None:
+                quote = fresh
             verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags,
                                          swap_per_night=swap)
             if not self.db.one("SELECT 1 AS x FROM risk_verdicts WHERE decision_id=?", (d.id,)):
