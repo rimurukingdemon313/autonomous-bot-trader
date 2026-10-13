@@ -30,12 +30,12 @@
  },
  "bot_status": "RUNNING",
  "account": {
-  "equity": 199164.0,
+  "equity": 199341.97,
   "balance": 199231.65,
-  "total_pnl": -836.0,
-  "today_pnl": -1189.28,
+  "total_pnl": -658.03,
+  "today_pnl": -1011.31,
   "day_reference": 200353.28367049602,
-  "drawdown_from_start": -836.0,
+  "drawdown_from_start": -658.03,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -174,12 +174,12 @@
    "side": "BUY",
    "qty": 2.96,
    "entry": 0.9312,
-   "current": 0.93101,
+   "current": 0.93151,
    "stop": 0.9302,
    "target": 0.9327,
-   "r_now": -0.19,
+   "r_now": 0.31,
    "opened": 1791885981.0,
-   "pnl": -67.65,
+   "pnl": 110.32,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -962,6 +962,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "AUDUSD",
+   "decision": "NO_TRADE",
+   "t": 1791898217,
+   "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDJPY",
+   "decision": "NO_TRADE",
+   "t": 1791898217,
+   "reason": "the traders disagree (Trader 1 BUY 75, Trader 2 SELL 70): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not tr",
+   "data_flags": []
+  },
+  {
    "symbol": "GBPUSD",
    "decision": "NO_TRADE",
    "t": 1791897316,
@@ -1114,23 +1128,9 @@
    "t": 1791888318,
    "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1791887418,
-   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "USDJPY",
-   "decision": "NO_TRADE",
-   "t": 1791887418,
-   "reason": "market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 380,
+ "decisions_total": 382,
  "shift": {
   "started": "2026-10-13 08:24 UTC",
   "decision_mode": "dual_ai",
@@ -1154,24 +1154,24 @@
    "judge_pin": null,
    "version": "openrouter-1.6.0",
    "status": "READY",
-   "calls_today": 79,
+   "calls_today": 86,
    "last_call": {
-    "t": 1791897791,
+    "t": 1791898811,
     "role": "vision",
     "model": "dots-studio/dots-3-note-preview:free",
     "status": "INVALID: no JSON object in the reply",
     "ok": false,
     "error": null,
-    "request_id": "1423f56490974fbcb3cd093c280a4160",
-    "provider_id": "gen-1791897503-QIFtw5pL6MOapkE5on4e",
+    "request_id": "6ea194bce3b5481ca8e827b4a41704d6",
+    "provider_id": "gen-1791898499-bul2Yuq8MxK3L8ATFXgn",
     "attempts": 1,
-    "latency_ms": 288099.4,
+    "latency_ms": 311524.6,
     "cached": false,
-    "tokens": 4516,
+    "tokens": 4587,
     "tried": [
      {
       "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-      "status": "UPSTREAM_ERROR"
+      "status": "INVALID: stated risk_reward 1.2 contradicts its own levels (0.94)"
      },
      {
       "model": "google/gemma-4-26b-a4b-it:free",
@@ -1202,7 +1202,7 @@
      {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
-      "score": 42.62,
+      "score": 42.9,
       "context": 256000,
       "image": true,
       "intelligence_index": 10.3,
@@ -1241,7 +1241,7 @@
      {
       "id": "dots-studio/dots-3-note-preview:free",
       "name": "Dots Studio: Dots3-Note Preview (free)",
-      "score": 34.59,
+      "score": 34.0,
       "context": 512000,
       "image": true,
       "intelligence_index": null,
@@ -1256,7 +1256,7 @@
      {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "name": "NVIDIA: Nemotron 3 Ultra (free)",
-      "score": 29.9,
+      "score": 30.45,
       "context": 1000000,
       "image": false,
       "intelligence_index": 22.9,
@@ -1388,7 +1388,7 @@
     ],
     "free_total": 12,
     "catalog_total": 459,
-    "refreshed": 1791897502.1993616,
+    "refreshed": 1791898441.1476195,
     "error": null,
     "version": "free-models-1.3.0",
     "cooldown": {},
@@ -1408,26 +1408,26 @@
     },
     "google/gemma-4-26b-a4b-it:free": {
      "ok": 0,
-     "failed": 12
+     "failed": 13
     },
     "google/gemma-4-31b-it:free": {
      "ok": 0,
-     "failed": 11
+     "failed": 12
     },
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
-     "ok": 7,
+     "ok": 9,
      "failed": 11
     },
     "dots-studio/dots-3-note-preview:free": {
      "ok": 6,
-     "failed": 12
+     "failed": 13
     },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
-     "ok": 8,
+     "ok": 9,
      "failed": 2
     },
     "apodex/apodex-1.1-mini:free": {
-     "ok": 8,
+     "ok": 9,
      "failed": 0
     }
    }
@@ -1469,34 +1469,34 @@
     "last_bar_available": 1791897300
    },
    "USDJPY": {
-    "t": 1791892819,
-    "decision_id": "d73b50c426a8e352663dc1fc",
+    "t": 1791898217,
+    "decision_id": "ee7b52cd5784630e4cdc613e",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 29907,
-    "sha256": "6ca8c0cbf3de77cd5cadc8b93e76d649e6bc6156bd3abaad5f037f74a46b5d14",
-    "as_of": 1791892819,
+    "bytes": 30194,
+    "sha256": "02f64d74cdbafd1b31682fbf67719665f0f8fb6e2d7d4c2edcc4be1aa1aa64f3",
+    "as_of": 1791898217,
     "execution_timeframe": "M15",
     "higher_timeframe": "H4",
-    "last_bar_open": 1791891900,
-    "last_bar_available": 1791892800
+    "last_bar_open": 1791897300,
+    "last_bar_available": 1791898200
    },
    "AUDUSD": {
-    "t": 1791892819,
-    "decision_id": "3a3db3bbb7ac44de68372c80",
+    "t": 1791898217,
+    "decision_id": "dececc7f5fa97fc6efb8b9ca",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 29312,
-    "sha256": "fa438362972440d0f063cce9a49f2143c598d12be960f2d6d3713c36245b5571",
-    "as_of": 1791892819,
+    "bytes": 29278,
+    "sha256": "b5fd61a967fc29a65923fed962084ee922b181a07b316ac77f12602c94058964",
+    "as_of": 1791898217,
     "execution_timeframe": "M15",
     "higher_timeframe": "H4",
-    "last_bar_open": 1791891900,
-    "last_bar_available": 1791892800
+    "last_bar_open": 1791897300,
+    "last_bar_available": 1791898200
    },
    "USDCHF": {
     "t": 1791893717,
@@ -1620,9 +1620,9 @@
    }
   },
   "last_analysis": {
-   "decision_id": "b3771d3770cf4e0134def09e",
-   "symbol": "GBPUSD",
-   "t": 1791897316,
+   "decision_id": "dececc7f5fa97fc6efb8b9ca",
+   "symbol": "AUDUSD",
+   "t": 1791898217,
    "decision": "NO_TRADE",
    "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
    "consensus": {
@@ -1638,14 +1638,14 @@
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1791897316,
-    "bytes": 30808,
+    "as_of": 1791898217,
+    "bytes": 29278,
     "execution_timeframe": "M15",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1791897300,
-    "last_bar_open": 1791896400,
-    "sha256": "64ebd8097a7746265044eae34460389302954582d5eb7c1667b9869cf0a2ce3f",
+    "last_bar_available": 1791898200,
+    "last_bar_open": 1791897300,
+    "sha256": "b5fd61a967fc29a65923fed962084ee922b181a07b316ac77f12602c94058964",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -1654,18 +1654,18 @@
      "attempts": 1,
      "cached": false,
      "error": null,
-     "latency_ms": 288099.4,
+     "latency_ms": 311524.6,
      "model": "dots-studio/dots-3-note-preview:free",
      "ok": false,
-     "provider_id": "gen-1791897503-QIFtw5pL6MOapkE5on4e",
-     "request_id": "1423f56490974fbcb3cd093c280a4160",
+     "provider_id": "gen-1791898499-bul2Yuq8MxK3L8ATFXgn",
+     "request_id": "6ea194bce3b5481ca8e827b4a41704d6",
      "role": "vision",
      "status": "INVALID: no JSON object in the reply",
-     "tokens": 4516,
+     "tokens": 4587,
      "tried": [
       {
        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-       "status": "UPSTREAM_ERROR"
+       "status": "INVALID: stated risk_reward 1.2 contradicts its own levels (0.94)"
       },
       {
        "model": "google/gemma-4-26b-a4b-it:free",
@@ -1681,6 +1681,182 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "dececc7f5fa97fc6efb8b9ca",
+    "symbol": "AUDUSD",
+    "t": 1791898217,
+    "decision": "NO_TRADE",
+    "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone",
+     "rule": "TRADER1_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free"
+    },
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1791898217,
+     "bytes": 29278,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1791898200,
+     "last_bar_open": 1791897300,
+     "sha256": "b5fd61a967fc29a65923fed962084ee922b181a07b316ac77f12602c94058964",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 311524.6,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": false,
+      "provider_id": "gen-1791898499-bul2Yuq8MxK3L8ATFXgn",
+      "request_id": "6ea194bce3b5481ca8e827b4a41704d6",
+      "role": "vision",
+      "status": "INVALID: no JSON object in the reply",
+      "tokens": 4587,
+      "tried": [
+       {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "status": "INVALID: stated risk_reward 1.2 contradicts its own levels (0.94)"
+       },
+       {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "status": "RATE_LIMITED"
+       },
+       {
+        "model": "google/gemma-4-31b-it:free",
+        "status": "RATE_LIMITED"
+       }
+      ]
+     }
+    ],
+    "risk": null
+   },
+   {
+    "decision_id": "ee7b52cd5784630e4cdc613e",
+    "symbol": "USDJPY",
+    "t": 1791898217,
+    "decision": "NO_TRADE",
+    "reason": "the traders disagree (Trader 1 BUY 75, Trader 2 SELL 70): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not traded",
+    "consensus": {
+     "debate_pick": "SELL",
+     "direction": null,
+     "levels_from": null,
+     "loser": "trader1",
+     "outcome": "NO_TRADE",
+     "pick_from": "trader2",
+     "reason": "the traders disagree (Trader 1 BUY 75, Trader 2 SELL 70): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not traded",
+     "rule": "DISAGREE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free",
+     "verifier": "apodex/apodex-1.1-mini:free"
+    },
+    "trader1": {
+     "confidence": 75,
+     "direction": "BUY",
+     "entry": 158.28,
+     "invalidation": 158.09,
+     "liquidity": "EQH at 158.648 (3 touches) and EQL at 158.002 (2 touches) provide liquidity zones; swing highs/lows also present.",
+     "market_structure": "M15 range with mixed swings, recent bullish CHoCH at 158.173, prior bearish BOS, untapped demand order block, bullish fair value gap open, bearish highs sweeps indicating resistance, higher timeframe H4 up (HH+HL).",
+     "momentum": "Bullish momentum from the latest bullish CHoCH and upward displacement candle, despite mixed swings on the M15 chart.",
+     "reason": "The higher timeframe uptrend and bullish CHoCH suggest buying pressure, and the demand block with bullish fair value gap add support. A break below 158.09 would invalidate the bullish case, while a target at the EQH 158.648 yields a reward\u2011risk of about 1.9:1, meeting the minimum 1.2 requirement.",
+     "reversal_probability": 30,
+     "risk_reward": 1.94,
+     "stop_loss": 158.09,
+     "take_profit": 158.648,
+     "trend": "Higher timeframe H4 is up (HH+HL) while M15 remains range\u2011bound with mixed swings."
+    },
+    "trader2": {
+     "confidence": 70,
+     "direction": "SELL",
+     "entry": 158.28,
+     "invalidation": 158.356,
+     "liquidity": "EQH at 158.648 (3 touches) far above; EQL at 158.002 (2 touches) and 157.751 (2 touches) below; recent bearish high sweeps at 158.354 and 158.276 confirm resistance.",
+     "market_structure": "H4 downtrend (lower highs 158.75\u2192158.19, lower lows 158.58\u2192157.82) with bearish CHoCH at 158.071; M15 range but price stalled at 158.276/158.294 resistance cluster (4-5 touches) after brief bullish CHoCH, H1 bearish CHoCH at 158.184 and tested supply OB overhead.",
+     "momentum": "Bearish: H4 sequence of lower highs/lows, H1 bearish CHoCH, multiple high sweeps, price rejection at M15 resistance cluster despite M15 bullish CHoCH.",
+     "reason": "H4 structure is decisively bearish (lower highs/lows), not bullish as marked; price sits at a 4-5 touch M15 resistance cluster with tested H1 supply OB above. The recent M15 bullish CHoCH failed to follow through. Selling into resistance aligns with the higher timeframe trend; target at the untested demand OB / recent HL zone near 158.10 offers >2:1 reward:risk with a stop above resistance respecting the 0.076 minimum.",
+     "reversal_probability": 25,
+     "risk_reward": 2.37,
+     "stop_loss": 158.356,
+     "take_profit": 158.1,
+     "trend": "H4 down (lower highs/lows), H1 bearish CHoCH, M15 range with failed bullish breakout at resistance."
+    },
+    "verifier": {
+     "confidence": 75,
+     "direction": "SELL",
+     "reason": "The H4 bar data objectively confirms a downtrend (lower highs 158.752\u2192158.194, lower lows 157.825\u2192157.844), directly invalidating Trader 1's bullish higher-timeframe premise. Price is currently stalled at a 4-5 touch resistance cluster (158.276/158.294) with a bearish H1 CHoCH and tested supply zone overhead, favoring the sell. Trader 2's setup offers better risk-reward (2.37 vs 1.94) and complies with risk-engine stop/cost limits. The failed M15 bullish breakout at resistance confirms seller control in this ranging/downtrending regime."
+    },
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1791898217,
+     "bytes": 30194,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1791898200,
+     "last_bar_open": 1791897300,
+     "sha256": "02f64d74cdbafd1b31682fbf67719665f0f8fb6e2d7d4c2edcc4be1aa1aa64f3",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 49356.2,
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "ok": true,
+      "provider_id": "gen-1791898219-zy83jk2yYCt7skb4tQEX",
+      "request_id": "e55655b64d9e43389af89bf3452de2b6",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 11016,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 158903.3,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ok": true,
+      "provider_id": "gen-1791898268-EX3VY83vefO4ZD0BBHGz",
+      "request_id": "224fe81f3f8e439e8470ef356421fbe4",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 18754,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 12438.6,
+      "model": "apodex/apodex-1.1-mini:free",
+      "ok": true,
+      "provider_id": "gen-1791898427-mgvb0o2LmllAlo1WezV2",
+      "request_id": "4a0df8af6d4f49b1b56cec90e181d9e3",
+      "role": "verifier",
+      "status": "OK",
+      "tokens": 17479,
+      "tried": []
+     }
+    ],
+    "risk": null
+   },
    {
     "decision_id": "b3771d3770cf4e0134def09e",
     "symbol": "GBPUSD",
@@ -2263,182 +2439,6 @@
      }
     ],
     "risk": null
-   },
-   {
-    "decision_id": "3a3db3bbb7ac44de68372c80",
-    "symbol": "AUDUSD",
-    "t": 1791892819,
-    "decision": "NO_TRADE",
-    "reason": "the traders disagree (Trader 1 BUY 85, Trader 2 SELL 65): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not traded",
-    "consensus": {
-     "debate_pick": "SELL",
-     "direction": null,
-     "levels_from": null,
-     "loser": "trader1",
-     "outcome": "NO_TRADE",
-     "pick_from": "trader2",
-     "reason": "the traders disagree (Trader 1 BUY 85, Trader 2 SELL 65): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not traded",
-     "rule": "DISAGREE"
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free",
-     "verifier": "apodex/apodex-1.1-mini:free"
-    },
-    "trader1": {
-     "confidence": 85,
-     "direction": "BUY",
-     "entry": 0.69815,
-     "invalidation": 0.69725,
-     "liquidity": "EQL X2 LIQUIDITY at 0.69617",
-     "market_structure": "UP (HH+HL)",
-     "momentum": "bullish",
-     "reason": "The chart shows an uptrend on both M15 and H4 timeframes with recent bullish BOS and a tested demand block, indicating strong buying pressure. The current price sits within the defined entry zone and is above key support levels. A stop below the recent low of 0.69725 respects the minimum stop distance, while a target near 0.6995 offers a reward\u2011risk ratio above the required 1.2. Confidence is high given the aligned trends and clear structure.",
-     "reversal_probability": 15,
-     "risk_reward": 1.5,
-     "stop_loss": 0.69725,
-     "take_profit": 0.6995,
-     "trend": "upward"
-    },
-    "trader2": {
-     "confidence": 65,
-     "direction": "SELL",
-     "entry": 0.69805,
-     "invalidation": 0.69885,
-     "liquidity": "Equal highs at 0.69862 (H1, 2 touches); open bearish FVG 0.69832-0.69847; M15 swept highs at 0.69769 (bearish signal). Liquidity clusters above current price.",
-     "market_structure": "H1 downtrend (LH+LL) with recent bullish BOS at 0.69774; M15 uptrend but extended at session highs; H4 shows uptrend. Conflicting trends with regime RANGING/LOW_VOL.",
-     "momentum": "M15/M5 bullish but at daily/London highs; H1 structure bearish; LOW_VOL regime suggests momentum exhaustion at range extremes.",
-     "reason": "Price at London/today high (0.69808) with resistance cluster at 0.69832-0.69862 (bearish FVG, equal highs). H1 downtrend intact despite recent BOS; RANGING/LOW_VOL regime favors mean reversion to London low 0.69652. Sell at bid with stop above resistance cluster meets risk parameters.",
-     "reversal_probability": 30,
-     "risk_reward": 1.91,
-     "stop_loss": 0.69885,
-     "take_profit": 0.69652,
-     "trend": "Mixed: M15 UP, H1 DOWN, H4 UP, Regime RANGING"
-    },
-    "verifier": {
-     "confidence": 68,
-     "direction": "SELL",
-     "reason": "In a RANGING/LOW_VOL regime with price at today's and London session high (range20 position 1.0), mean reversion toward the London low (0.69652) has better statistical edge than chasing momentum at a range extreme. Trader 2's SELL aligns with the H1 downtrend structure, the resistance cluster above at 0.69832-0.69862 (equal highs + open bearish FVG), and superior risk-reward (1.91 vs 1.5). Buying at a range top in a ranging market risks buying into exhaustion where the H1 downtrend and liquidity above price dominate. Both trades meet risk-engine constraints, but the regime and price position f"
-    },
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1791892819,
-     "bytes": 29312,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1791892800,
-     "last_bar_open": 1791891900,
-     "sha256": "fa438362972440d0f063cce9a49f2143c598d12be960f2d6d3713c36245b5571",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 47632.3,
-      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-      "ok": true,
-      "provider_id": "gen-1791892968-Z5cOwP0dSZRFm412Rzqa",
-      "request_id": "dce7c6b3711d4d18b7902f5e50735e18",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 11055,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 143107.3,
-      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "ok": true,
-      "provider_id": "gen-1791893016-L0K5GCkRiJ1xiAYShOnI",
-      "request_id": "165c2b8be80a4b5398821be441d46add",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 17163,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 7397.7,
-      "model": "apodex/apodex-1.1-mini:free",
-      "ok": true,
-      "provider_id": "gen-1791893159-AkebjpoX2LyQTkzQ1zMz",
-      "request_id": "7d99f504a27248f4919ab3a239955d62",
-      "role": "verifier",
-      "status": "OK",
-      "tokens": 15167,
-      "tried": []
-     }
-    ],
-    "risk": null
-   },
-   {
-    "decision_id": "d73b50c426a8e352663dc1fc",
-    "symbol": "USDJPY",
-    "t": 1791892819,
-    "decision": "NO_TRADE",
-    "reason": "Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations): no decision on one trader ",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "Trader 1 (vision) gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations): no decision on one trader alone",
-     "rule": "TRADER1_UNAVAILABLE"
-    },
-    "models": {
-     "trader1": "google/gemma-4-31b-it:free"
-    },
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1791892819,
-     "bytes": 29907,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1791892800,
-     "last_bar_open": 1791891900,
-     "sha256": "6ca8c0cbf3de77cd5cadc8b93e76d649e6bc6156bd3abaad5f037f74a46b5d14",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": "HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations",
-      "latency_ms": 207.7,
-      "model": "google/gemma-4-31b-it:free",
-      "ok": false,
-      "provider_id": null,
-      "request_id": "8bb8b5a562fe44889a6273ba91e6f1b2",
-      "role": "vision",
-      "status": "RATE_LIMITED",
-      "tokens": null,
-      "tried": [
-       {
-        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-        "status": "INVALID: take_profit 158.395 is on the wrong side for SELL (entry 158.147, executable 158.137)"
-       },
-       {
-        "model": "dots-studio/dots-3-note-preview:free",
-        "status": "UPSTREAM_ERROR"
-       },
-       {
-        "model": "google/gemma-4-26b-a4b-it:free",
-        "status": "RATE_LIMITED"
-       }
-      ]
-     }
-    ],
-    "risk": null
    }
   ],
   "open_positions": [
@@ -2448,12 +2448,12 @@
     "side": "BUY",
     "qty": 2.96,
     "entry": 0.9312,
-    "current": 0.93101,
+    "current": 0.93151,
     "stop": 0.9302,
     "target": 0.9327,
-    "r_now": -0.19,
+    "r_now": 0.31,
     "opened": 1791885981.0,
-    "pnl": -67.65,
+    "pnl": 110.32,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -2569,13 +2569,13 @@
    "decisions_by_rule": {
     "AGREE": 8,
     "DEBATE": 5,
-    "DISAGREE": 6,
+    "DISAGREE": 7,
     "MARKET_UNAVAILABLE": 19,
-    "TRADER1_UNAVAILABLE": 18
+    "TRADER1_UNAVAILABLE": 19
    },
-   "agreement_rate": 0.421,
-   "decisions_with_both_traders": 19,
-   "unavailable": 37
+   "agreement_rate": 0.4,
+   "decisions_with_both_traders": 20,
+   "unavailable": 38
   },
   "recent_trades": [
    {
@@ -3145,8 +3145,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1791897316,
+  "last_cycle": 1791898217,
   "last_cycle_error": null,
-  "cycles": 19
+  "cycles": 20
  }
 }
