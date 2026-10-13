@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 10:39 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
+Updated 2026-10-13 10:55 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 08:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,448.91 | $-904.37 | $-551.09 | $-551.09 | 3 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
+| $200,000.00 | $199,519.94 | $-833.35 | $-480.06 | $-480.06 | 3 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -23,8 +23,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (358 so far)
+## Latest decisions, NO TRADE included (360 so far)
 
+- 10-13 10:45 USDCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
+- 10-13 10:45 USDCAD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
 - 10-13 10:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-13 10:30 USDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-13 10:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
@@ -35,16 +37,14 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 09:45 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 78: The M15 trend is clearly bearish with a structure of lower highs and lower lows, and the recent sharp drop shows str
 - 10-13 09:30 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 191s old
 - 10-13 09:30 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 289s old
-- 10-13 09:15 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 68: Bearish BOS and open FVG above current price, supply zone tested, and price near resistance at 0.83329
-- 10-13 09:15 USDCAD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURUSD | SELL | 4.75 | 1.11855 | 1.11932 | 1.11757 | $-280.25 |
-| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $39.11 |
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $109.53 |
+| EURUSD | SELL | 4.75 | 1.11855 | 1.11932 | 1.11757 | $-137.75 |
+| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $3.56 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | n/a |
 
 ## Closed paper trades (latest 20)
 
@@ -67,6 +67,8 @@ Disagreements (not traded; the debate runs in shadow): 4 · the debate's pick if
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 10:45 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-13 10:45 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 10:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 10:30 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 10:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -77,8 +79,6 @@ Disagreements (not traded; the debate runs in shadow): 4 · the debate's pick if
 | 10-13 09:45 | EURJPY | SELL 78 | SELL 63 | - | AGREE | SELL | APPROVED |
 | 10-13 09:30 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 09:30 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 09:15 | USDCHF | SELL 68 | SELL 62 | - | AGREE | SELL | REJECTED |
-| 10-13 09:15 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
