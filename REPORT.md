@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 00:14 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
+Updated 2026-10-13 00:29 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-12 21:13 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,293.88 | $-59.40 | $293.88 | $0.00 | 2 | 2 (insufficient) | 50.0% | +0.355R | 1.85 | ACTIVE | RUNNING |
+| $200,000.00 | $200,147.28 | $-206.00 | $147.28 | $0.00 | 2 | 2 (insufficient) | 50.0% | +0.355R | 1.85 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -15,8 +15,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (335 so far)
+## Latest decisions, NO TRADE included (336 so far)
 
+- 10-13 00:15 USDJPY NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-12 23:00 GBPUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 120 minutes ago; STALE_DATA: last closed bar is 120 minutes old; EXPOSURE: a GBPUSD position is  [data: latest bar closed 120 minutes ago]
 - 10-12 21:45 EURUSD SELL: SELL EURUSD on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 65: The price is at the bottom of the H4 range and major support confluence (PDL/PWL 1.11557) following a bullish liquid
 - 10-12 20:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
@@ -28,14 +29,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: BUY USDJPY on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The price swept the highs at 158.641 with a bearish liquidity signal, indicating a stop hunt and distribution. Enter
 - 10-12 11:45 GBPUSD NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone
 - 10-12 10:30 EURUSD SELL: SELL EURUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The M15 chart shows a well-established down trend with consecutive bearish BOS and lower lows, breaking key support 
-- 10-12 08:01 AUDJPY NO_TRADE: blocked: UNFAMILIAR_STATE (risk): familiarity distance inf
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURUSD | SELL | 5.14 | 1.1158499999999998 | 1.11655 | 1.11503 | $-46.26 |
-| GBPUSD | SELL | 4.38 | 1.32083 | 1.32138 | 1.31855 | $-13.14 |
+| EURUSD | SELL | 5.14 | 1.1158499999999998 | 1.11655 | 1.11503 | $-149.06 |
+| GBPUSD | SELL | 4.38 | 1.32083 | 1.32138 | 1.31855 | $-56.94 |
 
 ## Closed paper trades (latest 20)
 
@@ -52,6 +52,7 @@ AI trades 2 (insufficient) · wins 1 · losses 1 · expectancy +0.355R · profit
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 00:15 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 23:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 21:45 | EURUSD | BUY 65 | SELL 55 | SELL | DEBATE | SELL | APPROVED |
 | 10-12 20:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
