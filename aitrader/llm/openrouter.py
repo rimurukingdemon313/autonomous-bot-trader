@@ -70,11 +70,16 @@ from .provider import extract_json
 #: 1.6.1: the dashboard status before the first request of a process is CATALOG_NOT_READ_YET, never NO_FREE_MODEL
 #:        (the catalog is read on the first request; a shift whose first pairs were blocked before any model was
 #:        asked showed NO_FREE_MODEL, which looked like a failure that had not happened).
-OPENROUTER_VERSION = "openrouter-1.6.1"
+#: 1.7.0 (live, 2026-10-13: two free vision models rate-limited upstream nearly all day were asked every cycle): a
+#:        model that rests again before giving a usable reply rests twice as long each time (5 min doubling to 60;
+#:        failing 15 doubling to 60); its first usable reply resets it.
+OPENROUTER_VERSION = "openrouter-1.7.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
 COOLDOWN_S = {"unavailable": 6 * 3600, "rate_limited": 300, "failing": 900}
+#: a model busy or failing again and again rests twice as long each time, up to this; its first usable reply resets it
+COOLDOWN_MAX_S = 3600
 #: the free daily request quota per key tier (OpenRouter's published limits), less a safety margin
 FREE_TIER_DAILY, CREDIT_TIER_DAILY, QUOTA_MARGIN = 50, 1000, 2
 KEY_CHECK_S = 1800
@@ -180,6 +185,7 @@ class OpenRouterClient:
         self._catalog: list[dict] = []
         self._selection = Selection(error="catalog not read yet")
         self._cooldown: dict[str, tuple[float, str]] = {}  # model -> (until, why)
+        self._streak: dict[str, int] = {}  # model -> rests in a row without a usable reply in between
         self._excluded: dict[str, str] = {}  # model -> why (never used again in this process)
         self._stats: dict[str, list[int]] = {}  # model -> [ok, failed]
         self._cache: OrderedDict[str, CallResult] = OrderedDict()
@@ -284,7 +290,8 @@ class OpenRouterClient:
         with self._lock:
             d = self._selection.as_dict()
             now = self.clock()
-            d["cooldown"] = {m: {"until": int(u), "why": w} for m, (u, w) in self._cooldown.items() if u > now}
+            d["cooldown"] = {m: {"until": int(u), "why": w, "in_a_row": self._streak.get(m, 0)}
+                             for m, (u, w) in self._cooldown.items() if u > now}
             d["excluded"] = dict(self._excluded)
             return d
 
@@ -297,11 +304,17 @@ class OpenRouterClient:
         return self._calls < self.daily_budget
 
     def _rest(self, model: str, why: str) -> None:
-        self._cooldown[model] = (self.clock() + COOLDOWN_S[why], why)
+        # busy again and again (5, 10, 20, 40, 60 min; failing 15, 30, 60): a model that is busy all day is not asked
+        # every cycle only to say so, which spent the role's time and the daily budget (live, 2026-10-13)
+        n = self._streak[model] = self._streak.get(model, 0) + 1
+        secs = COOLDOWN_S[why] if why == "unavailable" else min(COOLDOWN_MAX_S, COOLDOWN_S[why] * 2 ** (n - 1))
+        self._cooldown[model] = (self.clock() + secs, why)
 
     def _note(self, model: str, ok: bool) -> None:
         s = self._stats.setdefault(model, [0, 0])
         s[0 if ok else 1] += 1
+        if ok:
+            self._streak.pop(model, None)
 
     def _supports(self, model: str, param: str) -> bool:
         with self._lock:

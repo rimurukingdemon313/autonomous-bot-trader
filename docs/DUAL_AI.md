@@ -154,7 +154,9 @@ The catalog changes; the selection is recomputed hourly and on failures. Optiona
 - Per request: timeout `OPENROUTER_TIMEOUT_S` (180; free models took 30-170 s in the live check); up to
   `OPENROUTER_MAX_RETRIES` (3) retries on a timeout or 5xx with exponential backoff and jitter. A busy model (a 429
   without a short `Retry-After`, or a 200 carrying an upstream error such as "ResourceExhausted") rests and the
-  next free model answers at once. A wall-clock deadline per role (420 s) across retries and fallbacks; up to 8
+  next free model answers at once. A model busy again before giving a usable reply rests twice as long each time
+  (5 minutes doubling to 60; a failing one 15 doubling to 60), and its first usable reply resets it: a model busy
+  all day is not asked every cycle only to say so (openrouter 1.7.0). A wall-clock deadline per role (420 s) across retries and fallbacks; up to 8
   free models per role. Reasoning models are asked for medium reasoning effort and may write 12,000 tokens, so
   the answer fits after the thinking.
 - The traders are told the risk engine's own per-trade limits (`RiskEngine.trade_limits`: minimum stop distance

@@ -329,6 +329,31 @@ def test_a_busy_model_hands_over_to_the_next_free_one_at_once():
         assert VISION in c.selection()["cooldown"]
 
 
+def test_a_model_busy_again_and_again_rests_longer_each_time_and_a_usable_reply_resets_it():
+    # found live (2026-10-13): two vision models rate-limited upstream nearly all day were asked every cycle
+    busy = {"on": True}
+
+    def reply(role, body):
+        if body["model"] == VISION and busy["on"]:
+            return 429, {}, {"error": {"message": "temporarily rate-limited upstream"}}
+        return {"x": 1}
+    now = {"t": 1_790_000_000.0}
+    fake = FakeOpenRouter(reply, catalog=[model(VISION, ii=30), model(TRADER, image=False, ii=28)])  # one vision model
+    c = client(fake, clock=lambda: now["t"], max_retries=0)
+    rests = []
+    for i in range(6):
+        c.chat_json("vision", MSG, accept, dedupe_key=f"k{i}")
+        until = c.selection()["cooldown"][VISION]["until"]
+        rests.append(int(until - now["t"]))
+        now["t"] = until + 1  # asked again only once it has rested
+    assert rests == [300, 600, 1200, 2400, 3600, 3600]  # doubling, capped at an hour
+    busy["on"] = False
+    assert c.chat_json("vision", MSG, accept, dedupe_key="ok").model == VISION  # it answers: the streak resets
+    busy["on"] = True
+    c.chat_json("vision", MSG, accept, dedupe_key="again")
+    assert int(c.selection()["cooldown"][VISION]["until"] - now["t"]) == 300
+
+
 def test_reasoning_models_are_asked_for_bounded_reasoning_and_others_are_not():
     cat = [model(VISION, ii=30, params=("reasoning",)), model(DEBATE, ii=10, params=("temperature",)),
            model(TRADER, image=False, ii=28)]
