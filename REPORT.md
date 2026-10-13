@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 14:45 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 14:00 UTC · decision system `dual_ai`
+Updated 2026-10-13 15:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 14:00 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,412.89 | $-940.39 | $-587.11 | $-587.11 | 1 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
+| $200,000.00 | $199,448.52 | $-904.76 | $-551.48 | $-551.48 | 1 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -24,8 +24,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (388 so far)
+## Latest decisions, NO TRADE included (390 so far)
 
+- 10-13 14:45 USDCHF NO_TRADE: the traders disagree (Trader 1 BUY 68, Trader 2 SELL 62): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not tr
+- 10-13 14:45 USDCAD NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: take_profit 1.4251 is on the wrong side for SELL (entry 1.42182, executable 1.421825)): no decision on one trader alone
 - 10-13 14:30 AUDUSD NO_TRADE: Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone
 - 10-13 14:30 USDJPY NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone
 - 10-13 14:15 GBPUSD NO_TRADE: Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone
@@ -36,14 +38,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 13:30 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 75, Trader 2 SELL 70): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen SELL: followed forward in shadow, not tr
 - 10-13 13:15 GBPUSD NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone
 - 10-13 13:15 EURUSD NO_TRADE: the traders disagree (Trader 1 BUY 75, Trader 2 SELL 70): no trade unless both choose the same side; the debate (apodex/apodex-1.1-mini:free) would have chosen BUY: followed forward in shadow, not tra
-- 10-13 13:00 AUDJPY NO_TRADE: Trader 1 (vision) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
-- 10-13 13:00 EURCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURCHF position is already open
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $181.24 |
+| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $216.87 |
 
 ## Closed paper trades (latest 20)
 
@@ -60,14 +60,16 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-31b-it:free` · calls today 14/900
+OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `apodex/apodex-1.1-mini:free` · calls today 25/900
 
 AI trades 8 (insufficient) · wins 3 · losses 5 · expectancy -0.170R · profit factor 0.58
 
-Disagreements (not traded; the debate runs in shadow): 7 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 4 resolved (insufficient), expectancy +0.942R
+Disagreements (not traded; the debate runs in shadow): 8 · the debate's pick if taken: 0 resolved (none) · the side it rejected if taken: 4 resolved (insufficient), expectancy +0.942R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 14:45 | USDCHF | BUY 68 | SELL 62 | SELL | DISAGREE | NO_TRADE | - |
+| 10-13 14:45 | USDCAD | SELL 68 | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 14:30 | AUDUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 14:30 | USDJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 14:15 | GBPUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
@@ -78,8 +80,6 @@ Disagreements (not traded; the debate runs in shadow): 7 · the debate's pick if
 | 10-13 13:30 | USDJPY | BUY 75 | SELL 70 | SELL | DISAGREE | NO_TRADE | - |
 | 10-13 13:15 | GBPUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 13:15 | EURUSD | BUY 75 | SELL 70 | BUY | DISAGREE | NO_TRADE | - |
-| 10-13 13:00 | AUDJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
-| 10-13 13:00 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
