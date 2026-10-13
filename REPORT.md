@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 15:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 14:00 UTC · decision system `dual_ai`
+Updated 2026-10-13 15:30 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 14:00 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,324.78 | $-1,028.50 | $-675.22 | $-675.22 | 3 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
+| $200,000.00 | $199,253.73 | $-1,099.56 | $-746.27 | $-746.27 | 3 | 8 (insufficient) | 37.5% | -0.170R | 0.58 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -26,8 +26,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (394 so far)
+## Latest decisions, NO TRADE included (396 so far)
 
+- 10-13 15:30 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
+- 10-13 15:30 EURCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURCHF position is already open
 - 10-13 15:15 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-13 15:15 EURJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-13 15:00 EURGBP BUY: BUY EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 65: The price is pulling back into a tested demand order block and a strong multi-touch support at 0.84480 within the entr
@@ -38,16 +40,14 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 14:30 USDJPY NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone
 - 10-13 14:15 GBPUSD NO_TRADE: Trader 1 (vision) gave no usable answer (NO_FREE_MODEL: no FREE vision model in the catalog): no decision on one trader alone
 - 10-13 14:15 EURUSD NO_TRADE: Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone
-- 10-13 13:45 USDCHF NO_TRADE: Trader 1 (vision) gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): no decision on one trader alone
-- 10-13 13:45 USDCAD NO_TRADE: Trader 1 (vision) gave no usable answer (INVALID: no JSON object in the reply): no decision on one trader alone
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | BUY | 3.54 | 0.8449699999999999 | 0.84412 | 0.84612 | $-60.97 |
+| EURGBP | BUY | 3.54 | 0.8449699999999999 | 0.84412 | 0.84612 | $-60.96 |
 | NZDUSD | SELL | 3.78 | 0.561515 | 0.5625 | 0.56 | $-98.28 |
-| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $252.38 |
+| EURCHF | BUY | 2.96 | 0.9312 | 0.9302 | 0.9327 | $181.32 |
 
 ## Closed paper trades (latest 20)
 
@@ -72,6 +72,8 @@ Disagreements (not traded; the debate runs in shadow): 8 · the debate's pick if
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 15:30 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-13 15:30 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 15:15 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 15:15 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 15:00 | EURGBP | BUY 65 | BUY 62 | - | AGREE | BUY | APPROVED |
@@ -82,8 +84,6 @@ Disagreements (not traded; the debate runs in shadow): 8 · the debate's pick if
 | 10-13 14:30 | USDJPY | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 14:15 | GBPUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 | 10-13 14:15 | EURUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
-| 10-13 13:45 | USDCHF | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
-| 10-13 13:45 | USDCAD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
