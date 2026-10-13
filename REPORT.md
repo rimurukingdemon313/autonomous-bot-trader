@@ -1,15 +1,16 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-13 07:49 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
+Updated 2026-10-13 08:04 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-13 02:49 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,570.26 | $-783.03 | $-429.74 | $-429.74 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
+| $200,000.00 | $199,587.36 | $-765.92 | $-412.64 | $-412.64 | 1 | 6 (insufficient) | 33.3% | -0.135R | 0.70 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-13 07:45 AUDUSD SELL: AI DECISION → RISK REJECTED — quote: age 108s, bid 0.69685, ask 0.69695
 - 10-13 06:30 USDJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-13 02:45 USDCAD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-13 01:30 AUDUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
@@ -18,8 +19,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 13:00 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 10:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (341 so far)
+## Latest decisions, NO TRADE included (342 so far)
 
+- 10-13 07:45 AUDUSD SELL: SELL AUDUSD on M15: DEBATE: Trader 1 (google/gemma-4-26b-a4b-it:free) BUY 75: M15 structure has shifted bullish with a CHoCH and a recent BOS. Price is currently trading within an open bullish FVG and
 - 10-13 06:30 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 65: The M15 displays a bearish break of structure and a tested supply zone within the entry band, while th
 - 10-13 05:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-13 04:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
@@ -31,13 +33,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-12 20:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-12 19:15 USDJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDJPY position is already open
 - 10-12 18:00 GBPUSD SELL: SELL GBPUSD on M15: DEBATE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 65: The H4 trend is bullish, and the price is testing a major support confluence at 1.3203 (EQL, HL, and multi-touch S/R
-- 10-12 16:45 EURUSD NO_TRADE: Trader 1 (vision) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking))): no decision on
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $-10.26 |
+| USDCAD | SELL | 2.44 | 1.426515 | 1.4276 | 1.4245 | $6.84 |
 
 ## Closed paper trades (latest 20)
 
@@ -52,12 +53,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a debate when they disagree)
 
-OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-31b-it:free` · calls today 10/900
+OpenRouter `READY` · key set · trader 1 `google/gemma-4-26b-a4b-it:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-31b-it:free` · calls today 12/900
 
 AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit factor 0.70
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-13 07:45 | AUDUSD | BUY 75 | SELL 60 | SELL | DEBATE | SELL | REJECTED |
 | 10-13 06:30 | USDJPY | SELL 65 | SELL 68 | - | AGREE | SELL | APPROVED |
 | 10-13 05:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 04:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -69,7 +71,6 @@ AI trades 6 (insufficient) · wins 2 · losses 4 · expectancy -0.135R · profit
 | 10-12 20:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 19:15 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-12 18:00 | GBPUSD | BUY 65 | SELL 60 | SELL | DEBATE | SELL | APPROVED |
-| 10-12 16:45 | EURUSD | -  | -  | - | TRADER1_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`.
 
