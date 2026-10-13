@@ -187,15 +187,19 @@ Local (`.env` is in `.gitignore`; the environment always wins over the file):
 ```
 cp .env.example .env          # then put your key between the quotes:
 OPENROUTER_API_KEY="PASTE_MY_KEY_HERE"
-MODE=PAPER_FORWARD DECISION_MODE=dual_ai DECISION_INTERVAL_MIN=75 SYMBOLS_PER_CYCLE=1 python -m aitrader
+MODE=PAPER_FORWARD DECISION_MODE=dual_ai DECISION_INTERVAL_MIN=15 SYMBOLS_PER_CYCLE=2 python -m aitrader
 ```
 
 The continuous paper run on GitHub (`.github/workflows/paper-forward.yml`): add the repository secret
 **`OPENROUTER_API_KEY`** (Settings → Secrets and variables → Actions → New repository secret). From the next
-shift the run uses `dual_ai`, deciding every 75 minutes on one pair in rotation (about 2.5 requests per decision:
-inside a free key's 50 a day). With credits on the key (1000 a day), set the variables
-`PF_DECISION_INTERVAL_MIN` and `PF_SYMBOLS_PER_CYCLE` to decide more often. `PF_DECISION_MODE`, when set,
-overrides the choice.
+shift the run uses `dual_ai`, deciding at every M15 close on two pairs in rotation, so each of the 12 pairs is
+looked at every 90 minutes (since 2026-10-13; 75 minutes and one pair before, sized for a key without credits). That
+is at most 192 decisions a day, about 2.5 requests each when both traders are asked and none when a pair is
+blocked first (open position, currency exposure, stale data): inside the 1000 a day of a key with credits. The
+client stops at its daily budget (900, never above the key's own quota read from GET /key), and a decision
+without a model is NO_TRADE, never a guess. A decision that runs past the next M15 close delays the next one;
+requests never pile up. On a key without credits (50 a day) set `PF_DECISION_INTERVAL_MIN=75` and
+`PF_SYMBOLS_PER_CYCLE=1`. `PF_DECISION_MODE`, when set, overrides the choice.
 
 The dashboard's DUAL AI DESK panel (`/api/dual_ai`, `/api/dual_ai/chart.png?symbol=`) shows the OpenRouter
 status, the three models, the last analysis with both traders' answers and the debate, the risk engine's

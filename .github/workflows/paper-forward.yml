@@ -5,8 +5,10 @@
 #
 # Decision system: the repository variable PF_DECISION_MODE when set. Otherwise `dual_ai` (docs/DUAL_AI.md: two
 # free OpenRouter models must agree) as soon as the owner adds the Actions secret OPENROUTER_API_KEY, deciding
-# every 75 minutes on one pair in rotation (2 or 3 requests each: inside a free key's 50 a day; PF_DECISION_INTERVAL_MIN and
-# PF_SYMBOLS_PER_CYCLE override), and `evidence` (deterministic) without it. The other model modes read the
+# at every M15 close on two pairs in rotation (each pair every 90 minutes; at most 192 decisions a day, 2 or 3
+# requests each when both traders are asked, fewer when a pair is blocked before any model is: inside the 1000 a
+# day of a key with credits, and the client stops at its daily budget, never above the key's own quota;
+# PF_DECISION_INTERVAL_MIN and PF_SYMBOLS_PER_CYCLE override), and `evidence` (deterministic) without it. The other model modes read the
 # secret AI_API_KEY with variables AI_PROVIDER, AI_BASE_URL, AI_MODEL. Keys are the owner's to add in the
 # repository settings; they are never written anywhere else.
 name: Paper forward test (continuous, paper only)
@@ -29,8 +31,8 @@ jobs:
       DATA_DIR: pf-state
       DATA_SOURCE: yahoo
       DECISION_MODE: ${{ vars.PF_DECISION_MODE || (secrets.OPENROUTER_API_KEY != '' && 'dual_ai' || 'evidence') }}
-      DECISION_INTERVAL_MIN: ${{ vars.PF_DECISION_INTERVAL_MIN || (secrets.OPENROUTER_API_KEY != '' && !vars.PF_DECISION_MODE && '75' || '0') }}
-      SYMBOLS_PER_CYCLE: ${{ vars.PF_SYMBOLS_PER_CYCLE || (secrets.OPENROUTER_API_KEY != '' && !vars.PF_DECISION_MODE && '1' || '0') }}
+      DECISION_INTERVAL_MIN: ${{ vars.PF_DECISION_INTERVAL_MIN || (secrets.OPENROUTER_API_KEY != '' && !vars.PF_DECISION_MODE && '15' || '0') }}
+      SYMBOLS_PER_CYCLE: ${{ vars.PF_SYMBOLS_PER_CYCLE || (secrets.OPENROUTER_API_KEY != '' && !vars.PF_DECISION_MODE && '2' || '0') }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'none' }}
       AI_BASE_URL: ${{ vars.AI_BASE_URL }}
