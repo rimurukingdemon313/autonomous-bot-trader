@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 19:55 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 19:09 UTC · decision system `dual_ai`
+Updated 2026-10-14 20:10 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 19:09 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,530.26 | $-1,391.73 | $-1,469.74 | $-1,469.74 | 2 | 17 (insufficient) | 41.2% | -0.162R | 0.61 | ACTIVE | RUNNING |
+| $200,000.00 | $198,562.34 | $-1,359.64 | $-1,437.66 | $-1,437.66 | 2 | 17 (insufficient) | 41.2% | -0.162R | 0.61 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 14 of the last 20 decisions: PROFILE_CHANGED x14.** A refusal by the gate after the risk engine approved is never routine.
 
@@ -33,8 +33,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 16:15 USDCHF BUY: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 15:45 GBPUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 
-## Latest decisions, NO TRADE included (613 so far)
+## Latest decisions, NO TRADE included (615 so far)
 
+- 10-14 20:00 EURGBP NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
+- 10-14 20:00 NZDUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 - 10-14 19:45 USDCHF NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-14 19:45 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The USDCAD exhibits a clear bearish structure on both the M15 and H4 charts, characterized by lower highs and lower 
 - 10-14 19:30 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 75, Trader 2 SELL 70): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen SELL: followed forward in shadow,
@@ -45,15 +47,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 19:00 EURJPY BUY: BUY EURJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 72: The price is trading near the bottom of a ranging market and has just executed a bullish liquidity sweep of the 176.38
 - 10-14 18:45 EURGBP BUY: BUY EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 72: The M15 chart displays a strong bullish structure break sequence (CHOCH and multiple BOSs) with price holding above th
 - 10-14 18:45 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The M15 chart shows a lower high at 0.5591 accompanied by a high sweep, while the H4 timeframe shows a bearish CHOCH
-- 10-14 18:30 USDCHF BUY: BUY USDCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 75: The H4 trend is UP, and the M15 has pulled back to a major S/R cluster (0.8334-0.8348) inside the mitigated bullish FV
-- 10-14 18:30 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The H4 trend is down, and the M15 has broken structure bearishly, currently pulling back to test strong resistance a
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 4.1 | 1.4242149999999998 | 1.4255 | 1.421 | $11.52 |
-| USDJPY | SELL | 1.94 | 158.294 | 158.654 | 157.851 | $-19.56 |
+| USDCAD | SELL | 4.1 | 1.4242149999999998 | 1.4255 | 1.421 | $126.71 |
+| USDJPY | SELL | 1.94 | 158.294 | 158.654 | 157.851 | $-102.66 |
 
 ## Closed paper trades (latest 20)
 
@@ -91,6 +91,8 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 20:00 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-14 20:00 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 19:45 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 19:45 | USDCAD | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-14 19:30 | AUDUSD | BUY 75 | SELL 70 | SELL | DISAGREE | NO_TRADE | - |
@@ -101,8 +103,6 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 | 10-14 19:00 | EURJPY | BUY 72 | BUY 60 | - | AGREE | BUY | APPROVED |
 | 10-14 18:45 | EURGBP | BUY 72 | BUY 75 | - | AGREE | BUY | REJECTED |
 | 10-14 18:45 | NZDUSD | SELL 72 | SELL 70 | - | AGREE | SELL | APPROVED |
-| 10-14 18:30 | USDCHF | BUY 75 | BUY 70 | - | AGREE | BUY | APPROVED |
-| 10-14 18:30 | USDCAD | SELL 75 | SELL 68 | - | AGREE | SELL | APPROVED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
