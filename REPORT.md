@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 06:46 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 01:11 UTC · decision system `dual_ai`
+Updated 2026-10-14 06:46 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 06:46 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,691.81 | $-1,230.18 | $-1,308.19 | $-1,308.19 | 3 | 14 (insufficient) | 42.9% | -0.151R | 0.63 | ACTIVE | RUNNING |
+| $200,000.00 | $198,608.02 | $-1,313.97 | $-1,391.98 | $-1,391.98 | 3 | 14 (insufficient) | 42.9% | -0.151R | 0.63 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -50,9 +50,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDJPY | BUY | 2.71 | 110.799 | 110.548 | 111.15 | $34.15 |
+| AUDJPY | BUY | 2.71 | 110.799 | 110.548 | 111.15 | $22.19 |
 | USDCAD | SELL | 5.1 | 1.4201149999999998 | 1.4211 | 1.4185 | $-129.25 |
-| EURCHF | SELL | 2.99 | 0.9326 | 0.9337 | 0.931 | $-68.29 |
+| EURCHF | SELL | 2.99 | 0.9326 | 0.9337 | 0.931 | $-140.13 |
 
 ## Closed paper trades (latest 20)
 
@@ -75,11 +75,15 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3-super-120b-a12b:free` · calls today 27/900
+OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
 AI trades 14 (insufficient) · wins 6 · losses 8 · expectancy -0.151R · profit factor 0.63
 
 Disagreements (not traded; the debate runs in shadow): 12 · the debate's pick if taken: 8 resolved (insufficient), expectancy -0.066R · the side it rejected if taken: 13 resolved (insufficient), expectancy +0.276R
+
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R none resolved yet · held 24 h none resolved yet · stop and target twice as far none resolved yet
+
+Trades taken by session (UTC): ASIA 3 resolved (insufficient), expectancy +0.268R · LONDON 3 resolved (insufficient), expectancy +0.542R · OVERLAP 3 resolved (insufficient), expectancy -0.479R · NEW_YORK 2 resolved (insufficient), expectancy +0.212R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
