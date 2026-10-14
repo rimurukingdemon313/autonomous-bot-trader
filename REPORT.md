@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 01:11 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 01:11 UTC · decision system `dual_ai`
+Updated 2026-10-14 01:26 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 01:11 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,078.32 | $-843.67 | $-921.68 | $-921.68 | 2 | 13 (insufficient) | 46.2% | -0.097R | 0.73 | ACTIVE | RUNNING |
+| $200,000.00 | $199,122.22 | $-799.76 | $-877.78 | $-877.78 | 2 | 13 (insufficient) | 46.2% | -0.097R | 0.73 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -31,8 +31,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 01:30 AUDUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-12 21:45 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (470 so far)
+## Latest decisions, NO TRADE included (472 so far)
 
+- 10-14 01:15 GBPUSD NO_TRADE: the traders disagree (Trader 1 BUY 78, Trader 2 SELL 60): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
+- 10-14 01:15 EURUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURUSD position is already open
 - 10-14 00:45 USDCHF NO_TRADE: the traders disagree (Trader 1 BUY 72, Trader 2 SELL 62): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
 - 10-14 00:45 USDCAD NO_TRADE: Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
 - 10-14 00:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
@@ -43,15 +45,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 00:00 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The price is at the EQH liquidity pool (0.93281) and PDH (0.9328) after bearish sweeps on highs, indicating distribu
 - 10-13 23:45 GBPJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 165 minutes ago; STALE_DATA: last closed bar is 165 minutes old [data: latest bar closed 165 minutes ago]
 - 10-13 23:45 EURJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 165 minutes ago; STALE_DATA: last closed bar is 165 minutes old [data: latest bar closed 165 minutes ago]
-- 10-13 23:30 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 150 minutes ago; STALE_DATA: last closed bar is 150 minutes old [data: latest bar closed 150 minutes ago]
-- 10-13 23:30 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 150 minutes ago; STALE_DATA: last closed bar is 150 minutes old [data: latest bar closed 150 minutes ago]
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURCHF | SELL | 2.99 | 0.9326 | 0.9337 | 0.931 | $-32.33 |
-| EURUSD | SELL | 4.39 | 1.12035 | 1.1212 | 1.119 | $-171.21 |
+| EURCHF | SELL | 2.99 | 0.9326 | 0.9337 | 0.931 | $-32.32 |
+| EURUSD | SELL | 4.39 | 1.12035 | 1.1212 | 1.119 | $-127.31 |
 
 ## Closed paper trades (latest 20)
 
@@ -73,14 +73,16 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 7/900
 
 AI trades 13 (insufficient) · wins 6 · losses 7 · expectancy -0.097R · profit factor 0.73
 
-Disagreements (not traded; the debate runs in shadow): 9 · the debate's pick if taken: 8 resolved (insufficient), expectancy -0.066R · the side it rejected if taken: 13 resolved (insufficient), expectancy +0.276R
+Disagreements (not traded; the debate runs in shadow): 10 · the debate's pick if taken: 8 resolved (insufficient), expectancy -0.066R · the side it rejected if taken: 13 resolved (insufficient), expectancy +0.276R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 01:15 | GBPUSD | BUY 78 | SELL 60 | SELL | DISAGREE | NO_TRADE | - |
+| 10-14 01:15 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 00:45 | USDCHF | BUY 72 | SELL 62 | BUY | DISAGREE | NO_TRADE | - |
 | 10-14 00:45 | USDCAD | BUY 65 | -  | - | TRADER2_UNAVAILABLE | NO_TRADE | - |
 | 10-14 00:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -91,8 +93,6 @@ Disagreements (not traded; the debate runs in shadow): 9 · the debate's pick if
 | 10-14 00:00 | EURCHF | SELL 72 | SELL 68 | - | AGREE | SELL | APPROVED |
 | 10-13 23:45 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-13 23:45 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 23:30 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-13 23:30 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
