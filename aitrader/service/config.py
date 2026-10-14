@@ -143,7 +143,7 @@ class ServiceConfig:
             funded=funded)
         if mode == "PAPER_FORWARD":  # the risk engine's own trading hours, not a field of the evaluation profile
             risk = dataclasses.replace(risk, quiet_ny_start_min=PAPER_FORWARD_QUIET_NY[0],
-                                       quiet_ny_end_min=PAPER_FORWARD_QUIET_NY[1])
+                                       quiet_ny_end_min=PAPER_FORWARD_QUIET_NY[1], no_weekend_carry=True)
         source = e.get("DATA_SOURCE", "yahoo").strip().lower() or "yahoo"
         if source == "auto":
             source = "yahoo"

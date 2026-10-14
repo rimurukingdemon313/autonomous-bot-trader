@@ -710,3 +710,35 @@ def test_the_paper_forward_service_has_the_quiet_hours_and_the_running_evaluatio
     assert (cfg.risk.quiet_ny_start_min, cfg.risk.quiet_ny_end_min) == PAPER_FORWARD_QUIET_NY == (960, 1200)
     paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
     assert (paper.risk.quiet_ny_start_min, paper.risk.quiet_ny_end_min) == (0, 0)
+    assert cfg.risk.no_weekend_carry is True and paper.risk.no_weekend_carry is False
+
+
+def _carry(when, hold_min=480, carry=True):
+    from datetime import datetime, timezone
+    t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="w", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040,
+                        max_hold_minutes=hold_min, max_hold_hours=None)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    return RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, no_weekend_carry=carry)).evaluate(
+        d, acct, spec, Quote("EURUSD", BID, ASK, t), t)
+
+
+@pytest.mark.parametrize("when,hold,ok", [
+    ((2026, 10, 16, 12, 59), 480, True),    # Friday 08:59 New York + 8 h = 16:59: closed by its time exit before 17:00
+    ((2026, 10, 16, 13, 1), 480, False),    # Friday 09:01 New York + 8 h would run past the close
+    ((2026, 10, 15, 14, 0), 480, True),     # Thursday: nothing near the close
+    ((2026, 10, 15, 14, 0), 48 * 60, False),  # Thursday, held up to 48 h: past the Friday close
+    ((2026, 10, 17, 12, 0), 480, False),    # Saturday: closed
+    ((2026, 10, 18, 22, 0), 480, True),     # Sunday 18:00 New York: the week has opened
+])
+def test_no_new_position_that_could_still_be_open_at_the_friday_close(when, hold, ok):
+    v = _carry(when, hold)
+    assert v.approved is ok, v.reasons
+    if not ok:
+        assert any("weekend_carry" in r for r in v.reasons)
+
+
+def test_weekend_carry_is_only_checked_when_the_limits_say_so():
+    assert _carry((2026, 10, 16, 13, 1), 480, carry=False).approved

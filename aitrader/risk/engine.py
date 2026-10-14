@@ -17,7 +17,7 @@ The AI proposes; this decides whether anything is sent, and at what size
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from math import floor
 from zoneinfo import ZoneInfo
 
@@ -50,7 +50,10 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   longer a field of the evaluation profile. As a profile field it changed the profile's hash, and the hard gate
 #:   (rightly: a profile cannot change during an evaluation) refused every new trade with PROFILE_CHANGED. Trading
 #:   hours are a choice of this engine, not a rule of the evaluation; the profile is back to the run's own.
-RISK_VERSION = "risk-1.6.0"
+#: 1.7.0: with no_weekend_carry (MODE=PAPER_FORWARD), no new position whose maximum holding time would run past the
+#:   Friday close (17:00 New York): the market shuts for two days and reopens where it likes. A decision without a
+#:   holding time is taken to hold 48 h. It only ever refuses an entry.
+RISK_VERSION = "risk-1.7.0"
 NEW_YORK = ZoneInfo("America/New_York")
 #: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
 PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
@@ -102,6 +105,8 @@ class RiskLimits:
     #: It only ever refuses an entry; open positions are managed. Not part of the evaluation profile (1.6.0).
     quiet_ny_start_min: int = 0
     quiet_ny_end_min: int = 0
+    #: no new position whose maximum holding time would run past the Friday close (17:00 New York)
+    no_weekend_carry: bool = False
 
     def __post_init__(self) -> None:
         for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
@@ -296,6 +301,20 @@ class RiskEngine:
                      f"{ny:%H:%M} New York: no new position from {a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} "
                      f"New York (the rollover to the Tokyo open: the thinnest liquidity of the day)")
 
+    def _c_weekend_carry(self, decision, now: int) -> Check | None:
+        """No new position that could still be open at the Friday close (17:00 New York), if the limits say so."""
+        if not self.limits.no_weekend_carry:
+            return None
+        hold_s = (int(getattr(decision, "max_hold_minutes", 0) or 0) * 60
+                  or int(getattr(decision, "max_hold_hours", 0) or 0) * 3600 or 48 * 3600)
+        ny = datetime.fromtimestamp(now, NEW_YORK)
+        close = (ny + timedelta(days=(4 - ny.weekday()) % 7)).replace(hour=17, minute=0, second=0, microsecond=0)
+        closed = ny.weekday() == 5 or (ny.weekday() == 4 and ny >= close) or (ny.weekday() == 6 and ny.hour < 17)
+        latest = datetime.fromtimestamp(now + hold_s, NEW_YORK)
+        return Check("weekend_carry", not closed and latest <= close,
+                     f"{ny:%a %H:%M} New York: the market is closed for the weekend" if closed else
+                     f"held up to {hold_s // 60} min it could still be open at the Friday close ({close:%a %H:%M} New York)")
+
     def _c_weekend(self, now: int) -> Check | None:
         if self.limits.funded and self.limits.funded.no_weekend_holding:
             wd = datetime.fromtimestamp(now, timezone.utc)
@@ -391,6 +410,7 @@ class RiskEngine:
             ok &= add(c)
         ok &= add(self._c_weekend(now))
         ok &= add(self._c_quiet_hours(now))
+        ok &= add(self._c_weekend_carry(decision, now))
         if not ok:
             return v
 
