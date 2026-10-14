@@ -77,7 +77,12 @@ from .types import MarketContext
 #:        vision model gives a usable answer, Trader 1 reads the same chart from its numbers (every mark at its exact
 #:        price) on a text model of the third pool, never one already asked for the decision; recorded as
 #:        trader1_input "numbers" (else "image"). The image prompt is unchanged.
-DUAL_AI_VERSION = "dual-ai-1.3.0"
+#: 1.4.0 (live, 2026-10-14: 27 of 51 agreements refused by the risk engine for their levels; in 13 the other
+#:        trader's own levels respected its limits): when both choose the same side and the more confident trader's
+#:        levels fall inside the risk engine's published per-trade limits (RiskEngine.trade_limits: minimum stop
+#:        distance, minimum reward:risk, at the executable price) while the other's respect them, the other's are
+#:        used. Both are the traders' own, never edited; the risk engine still decides.
+DUAL_AI_VERSION = "dual-ai-1.4.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -271,6 +276,19 @@ def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
     return {"outcome": "NO_TRADE", "rule": "DISAGREE", "direction": None, "levels_from": None,
             "debate_pick": None if verdict is None else verdict["direction"], "pick_from": pick,
             "loser": None if pick is None else "trader2" if pick == "trader1" else "trader1"}
+
+
+def fits_limits(t: dict, px: dict, lim: dict | None) -> bool:
+    """Whether a trader's own levels respect the risk engine's published per-trade limits at the executable price.
+    Used only to choose between the two traders' levels when both chose the same side: the risk engine still
+    decides, with the live quote at the time. Unknown limits give no preference."""
+    if not lim:
+        return True
+    side = 1 if t["direction"] == "BUY" else -1
+    e = px["ask"] if side > 0 else px["bid"]
+    stop = abs(e - float(t["stop_loss"]))
+    return stop > 0 and stop >= float(lim["min_stop_distance"]) and (
+        abs(float(t["take_profit"]) - e) / stop >= float(lim["min_reward_risk"]))
 
 
 def _shadow_side(t: dict, who: str, family: str, hold: int) -> dict:
@@ -520,7 +538,13 @@ class DualAITrader:
         res = resolve(t1, t2)
         if res["outcome"] != "TRADE":
             return stop(f"the desk's rule gave no trade ({res['rule']})", res["rule"])
-        lead = t1 if res["levels_from"] == "trader1" else t2
+        traders, lim = {"trader1": t1, "trader2": t2}, (ctx.costs or {}).get("risk_engine_limits")
+        other = "trader2" if res["levels_from"] == "trader1" else "trader1"
+        if not fits_limits(traders[res["levels_from"]], px, lim) and fits_limits(traders[other], px, lim):
+            res = {**res, "levels_from": other,
+                   "levels_reason": f"the more confident trader's levels are inside the risk engine's per-trade limits; "
+                                    f"{other}'s own levels respect them"}
+        lead = traders[res["levels_from"]]
         rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3),
                             "stop_loss": float(lead["stop_loss"]), "take_profit": float(lead["take_profit"])}
         hit = _lesson(ctx, 1 if res["direction"] == "BUY" else -1)

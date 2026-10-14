@@ -340,3 +340,44 @@ def test_when_the_numbers_reply_is_unusable_too_it_is_no_trade_naming_both():
     d = brain.think(desk_ctx(), V).decision
     assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
     assert "vision" in d.no_trade_reason and "on the chart's numbers: INVALID" in d.no_trade_reason
+
+
+
+# ── an agreement uses levels the risk engine can accept, when one trader has them ──
+
+LIM = {"min_reward_risk": 1.2, "min_stop_distance": 0.0003}
+
+
+def lim_ctx():
+    c = desk_ctx()
+    c.costs = {**c.costs, "risk_engine_limits": LIM}
+    return c
+
+
+def test_when_the_more_confident_traders_levels_are_inside_the_limits_the_other_traders_own_are_used():
+    # found live (2026-10-14): 27 of 51 agreements refused for their levels; in 13 the other trader's respected them
+    tight = answer("BUY", BID, ASK, ATR, confidence=90, stop_atr=1.0, target_atr=1.0)  # reward:risk 1.0 < 1.2
+    d, _ = think(scripted(trader1=tight, t2=("BUY", 70)), lim_ctx())
+    rec = d.ai["dual_ai"]
+    assert d.decision == "BUY" and rec["consensus"]["levels_from"] == "trader2" and "levels_reason" in rec["consensus"]
+    assert d.stop_loss == pytest.approx(ASK - 1.2 * ATR) and d.take_profit == pytest.approx(ASK + 2.4 * ATR)  # as given
+
+
+def test_the_more_confident_traders_levels_stay_when_they_fit_or_when_neither_does():
+    d, _ = think(scripted(t1=("BUY", 90), t2=("BUY", 70)), lim_ctx())
+    assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # both fit: confidence decides, as before
+    tight1 = answer("BUY", BID, ASK, ATR, confidence=90, stop_atr=1.0, target_atr=1.0)
+    tight2 = answer("BUY", BID, ASK, ATR, confidence=70, stop_atr=1.0, target_atr=1.1)
+    d, _ = think(scripted(trader1=tight1, trader2=tight2), lim_ctx())
+    assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # the risk engine decides
+    assert "levels_reason" not in d.ai["dual_ai"]["consensus"]
+    d, _ = think(scripted(trader1=tight1, t2=("BUY", 70)))  # no published limits: no preference
+    assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"
+
+
+def test_fits_limits_reads_the_published_limits_at_the_executable_price():
+    from aitrader.agents.dual_ai import fits_limits
+    ok = answer("SELL", BID, ASK, ATR, stop_atr=1.0, target_atr=1.5)
+    assert fits_limits(ok, PX, LIM) and fits_limits(ok, PX, None)
+    assert not fits_limits(answer("SELL", BID, ASK, ATR, stop_atr=1.0, target_atr=1.1), PX, LIM)  # reward:risk 1.1
+    assert not fits_limits(answer("SELL", BID, ASK, ATR, stop_atr=0.2, target_atr=0.5), PX, LIM)  # stop 0.0002 < 0.0003

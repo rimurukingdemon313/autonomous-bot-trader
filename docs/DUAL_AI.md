@@ -40,6 +40,15 @@ cost too large for the stop, reward:risk below its minimum (1.2), the daily loss
 exposure, an open position on the pair, every hard rule. The traders are told the per-trade limits (minimum stop
 distance at this spread, minimum reward:risk) so their levels can be executed; they cannot change them.
 
+### Levels the risk engine can accept (dual-ai 1.4.0, 2026-10-14)
+
+On 2026-10-14, 27 of 51 agreements were refused by the risk engine for their levels (reward:risk below 1.2, or
+costs above a quarter of the stop); in 13 of them the other trader's own levels respected those limits. When both
+traders choose the same side and the more confident one's levels fall inside the risk engine's published
+per-trade limits (`RiskEngine.trade_limits`: minimum stop distance and minimum reward:risk, at the executable
+price) while the other's respect them, the other's levels are used (`consensus.levels_reason` says so). Both
+sets are the traders' own and are never edited; the risk engine still decides with the live quote.
+
 ### What the losses showed, and what is measured now (2026-10-14)
 
 Fourteen closed trades: gross P&L +$36, costs $1,180. Before costs the desk was flat; each trade paid about 20% of
