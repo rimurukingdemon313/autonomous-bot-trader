@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 02:11 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 01:11 UTC · decision system `dual_ai`
+Updated 2026-10-14 02:26 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 01:11 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,889.22 | $-1,032.77 | $-1,110.78 | $-1,110.78 | 3 | 13 (insufficient) | 46.2% | -0.097R | 0.73 | ACTIVE | RUNNING |
+| $200,000.00 | $198,889.18 | $-1,032.81 | $-1,110.82 | $-1,110.82 | 3 | 13 (insufficient) | 46.2% | -0.097R | 0.73 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -31,8 +31,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 02:45 USDCAD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-13 01:30 AUDUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (476 so far)
+## Latest decisions, NO TRADE included (478 so far)
 
+- 10-14 02:15 EURGBP NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
+- 10-14 02:15 NZDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-14 02:00 USDCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-14 02:00 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 75: The M15 and H4 charts both show a downtrend (LH+LL) with recent bearish BOS and an untested supply blo
 - 10-14 01:30 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 70, Trader 2 SELL 55): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
@@ -43,15 +45,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 00:45 USDCAD NO_TRADE: Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
 - 10-14 00:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-14 00:30 USDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-14 00:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-14 00:15 EURUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURUSD position is already open
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 5.1 | 1.4201149999999998 | 1.4211 | 1.4185 | $-129.25 |
-| EURCHF | SELL | 2.99 | 0.9326 | 0.9337 | 0.931 | $39.52 |
+| USDCAD | SELL | 5.1 | 1.4201149999999998 | 1.4211 | 1.4185 | $-93.36 |
+| EURCHF | SELL | 2.99 | 0.9326 | 0.9337 | 0.931 | $3.59 |
 | EURUSD | SELL | 4.39 | 1.12035 | 1.1212 | 1.119 | $-302.91 |
 
 ## Closed paper trades (latest 20)
@@ -82,6 +82,8 @@ Disagreements (not traded; the debate runs in shadow): 12 · the debate's pick i
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 02:15 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-14 02:15 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 02:00 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 02:00 | USDCAD | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-14 01:30 | AUDUSD | BUY 70 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
@@ -92,8 +94,6 @@ Disagreements (not traded; the debate runs in shadow): 12 · the debate's pick i
 | 10-14 00:45 | USDCAD | BUY 65 | -  | - | TRADER2_UNAVAILABLE | NO_TRADE | - |
 | 10-14 00:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 00:30 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-14 00:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-14 00:15 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
