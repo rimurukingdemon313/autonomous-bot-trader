@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 22:10 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 19:09 UTC · decision system `dual_ai`
+Updated 2026-10-14 22:25 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 19:09 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,637.42 | $3.48 | $-1,362.58 | $-1,362.58 | 2 | 17 (insufficient) | 41.2% | -0.162R | 0.61 | ACTIVE | RUNNING |
+| $200,000.00 | $198,954.56 | $320.62 | $-1,045.44 | $-1,045.44 | 2 | 17 (insufficient) | 41.2% | -0.162R | 0.61 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 14 of the last 20 decisions: PROFILE_CHANGED x14.** A refusal by the gate after the risk engine approved is never routine.
 
@@ -33,8 +33,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 16:15 USDCHF BUY: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 15:45 GBPUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 
-## Latest decisions, NO TRADE included (631 so far)
+## Latest decisions, NO TRADE included (633 so far)
 
+- 10-14 22:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (18:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
+- 10-14 22:15 EURUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (18:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 - 10-14 22:00 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (18:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
 - 10-14 22:00 EURCHF NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (18:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
 - 10-14 21:45 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
@@ -45,15 +47,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 21:15 USDCAD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
 - 10-14 21:00 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 - 10-14 21:00 USDJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDJPY position is already open
-- 10-14 20:45 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
-- 10-14 20:45 EURUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 4.1 | 1.4242149999999998 | 1.4255 | 1.421 | $97.90 |
-| USDJPY | SELL | 1.94 | 158.294 | 158.654 | 157.851 | $1.22 |
+| USDCAD | SELL | 4.1 | 1.4242149999999998 | 1.4255 | 1.421 | $270.82 |
+| USDJPY | SELL | 1.94 | 158.294 | 158.654 | 157.851 | $145.44 |
 
 ## Closed paper trades (latest 20)
 
@@ -91,6 +91,8 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 22:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-14 22:15 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 22:00 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 22:00 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 21:45 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -101,8 +103,6 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 | 10-14 21:15 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 21:00 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 21:00 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-14 20:45 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-14 20:45 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
