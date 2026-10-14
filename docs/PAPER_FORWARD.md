@@ -48,7 +48,7 @@ kill switch, or override a rejection:
 | Maximum loss | $20,000: equity at or below $180,000 locks the run, permanently |
 | Risk per trade | at most $500 all-in: stop distance from the executable price, commission $7/lot round trip, 0.5 pip slippage on each fill, 3 nights of financing. Never more after a loss, a win or a confident model |
 | Total open risk | $2,000 |
-| Quiet hours | no new position from 16:00 to 20:00 New York (DST-aware), an hour before the 17:00 rollover to the Tokyo open: liquidity is thinnest and spreads widest then. Open positions are kept and managed |
+| Quiet hours | no new position from 16:00 to 20:00 New York (DST-aware), an hour before the 17:00 rollover to the Tokyo open: liquidity is thinnest and spreads widest then. Open positions are kept and managed. The risk engine's own limit for MODE=PAPER_FORWARD, not a field of the evaluation profile (a profile cannot change during an evaluation) |
 | Targets | $20,000 / $10,000, reported; they never force a trade |
 
 ## 3. A position's life

@@ -16,12 +16,14 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import re
 import shutil
 import signal
 import sqlite3
 import subprocess
 import sys
 import time
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -52,8 +54,18 @@ def report_md(v: dict, shift: dict) -> str:
         f"{money(a.get('total_pnl'))} | {money(a.get('drawdown_from_start'))} | {len(v.get('open_positions') or [])} | "
         f"{o.get('trades', 0)} ({o.get('sample', 'none')}) | {fmt(o.get('win_rate'), '{:.1%}')} | "
         f"{fmt(o.get('expectancy_r'), '{:+.3f}R')} | {fmt(o.get('profit_factor'), '{:.2f}')} | "
-        f"{v.get('risk_status')} | {v.get('bot_status')} |", "",
-        "## Last decisions (decision → risk → paper execution)", ""]
+        f"{v.get('risk_status')} | {v.get('bot_status')} |", ""]
+    # found live (2026-10-14): the gate refused every approved trade for twelve hours, one line among many below
+    def gate_code(reason: str) -> str:
+        m = re.search(r"reason=([A-Z_]+)", reason)
+        return m.group(1) if m else "?"
+    gate = Counter(gate_code(e["reason"]) for e in v.get("pipeline") or []
+                   if "RISK_GATE_REJECTED" in (e.get("reason") or ""))
+    if gate:
+        lines += [f"**WARNING: the hard risk gate refused {sum(gate.values())} of the last "
+                  f"{len(v.get('pipeline') or [])} decisions: " + ", ".join(f"{k} x{n}" for k, n in gate.most_common())
+                  + ".** A refusal by the gate after the risk engine approved is never routine.", ""]
+    lines += ["## Last decisions (decision → risk → paper execution)", ""]
     for e in v.get("pipeline") or []:
         when = datetime.fromtimestamp(e["t"], timezone.utc).strftime("%m-%d %H:%M")
         lines.append(f"- {when} {e['symbol']} {e['decision']}: {' → '.join(e['stages'])}"

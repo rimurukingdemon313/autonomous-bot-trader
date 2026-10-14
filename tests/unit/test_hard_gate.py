@@ -22,6 +22,7 @@ from aitrader.memory.db import Database
 from aitrader.risk.engine import AccountState, InstrumentSpec, Quote, RiskEngine, RiskLimits, RiskVerdict
 from aitrader.risk.hard_gate import (CLEAR_KILL_CONFIRMATION, RESET_CONFIRMATION, HardRiskGate, Permit,
                                      TradeProposal)
+from aitrader.risk.engine import PAPER_FORWARD_QUIET_NY
 from aitrader.risk.profile import FTMO_200K, PAPER_FORWARD_200K, HardRiskProfile, ProfileError, loss_per_lot
 
 T0 = 1_768_298_400  # Tuesday 2026-01-13 10:00 UTC (11:00 in Prague, winter time)
@@ -648,14 +649,15 @@ def test_the_service_profile_follows_the_data_source_quote_tolerance_and_refuses
 
 # ── quiet hours: the New York close to the Tokyo open (PAPER-FORWARD-200K) ──
 
-def _at(when, profile=PAPER_FORWARD_200K):
+def _at(when, quiet=PAPER_FORWARD_QUIET_NY):
     from datetime import datetime, timezone
     t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
     spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
     d = SimpleNamespace(id="r", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
     acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
                         start_balance=200_000, week_start_equity=200_000, closed_r=[])
-    eng = RiskEngine(RiskLimits(hard=profile, max_drawdown_pct=50))
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, quiet_ny_start_min=quiet[0],
+                                quiet_ny_end_min=quiet[1]))
     return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t), eng.account_gates(acct, "EURUSD", t)
 
 
@@ -681,17 +683,30 @@ def test_no_new_position_from_the_new_york_close_to_the_tokyo_open(when, blocked
 
 
 def test_a_quiet_window_may_run_past_midnight_new_york():
-    p = dataclasses.replace(FTMO_200K, name="NIGHT", quiet_ny_start_min=23 * 60, quiet_ny_end_min=60)
-    assert not _at((2026, 10, 14, 4, 30), p)[0].approved   # 00:30 New York
-    assert not _at((2026, 10, 14, 3, 30), p)[0].approved   # 23:30 New York
-    assert _at((2026, 10, 14, 5, 30), p)[0].approved       # 01:30 New York
+    night = (23 * 60, 60)
+    assert not _at((2026, 10, 14, 4, 30), night)[0].approved   # 00:30 New York
+    assert not _at((2026, 10, 14, 3, 30), night)[0].approved   # 23:30 New York
+    assert _at((2026, 10, 14, 5, 30), night)[0].approved       # 01:30 New York
 
 
-def test_a_profile_without_quiet_hours_never_checks_them_and_the_window_is_validated():
-    v, gates = _at((2026, 10, 13, 21, 0), FTMO_200K)
+def test_limits_without_quiet_hours_never_check_them_and_the_window_is_validated():
+    v, gates = _at((2026, 10, 13, 21, 0), (0, 0))
     assert v.approved and not [c for c in gates if c.name == "quiet_hours"]
     for bad in (-1, 1440, True, 1.5):
-        with pytest.raises(ProfileError):
-            dataclasses.replace(FTMO_200K, quiet_ny_start_min=bad)
-        with pytest.raises(ProfileError):
-            dataclasses.replace(FTMO_200K, quiet_ny_end_min=bad)
+        with pytest.raises(ValueError):
+            RiskLimits(quiet_ny_start_min=bad)
+        with pytest.raises(ValueError):
+            RiskLimits(quiet_ny_end_min=bad)
+
+
+def test_the_paper_forward_service_has_the_quiet_hours_and_the_running_evaluations_own_profile():
+    # found live (2026-10-14): the quiet hours, added as a field of the evaluation profile, changed its hash; the hard
+    # gate refused every new trade (PROFILE_CHANGED) for twelve hours. The window is the risk engine's limit, and the
+    # profile stays the one the running evaluation was started under. A change here is an evaluation reset.
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-hash-test", "DASHBOARD_TOKEN": "t"}
+    cfg = ServiceConfig.from_env(env)
+    assert cfg.hard_profile.sha256().startswith("98db6393b13e")
+    assert (cfg.risk.quiet_ny_start_min, cfg.risk.quiet_ny_end_min) == PAPER_FORWARD_QUIET_NY == (960, 1200)
+    paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
+    assert (paper.risk.quiet_ny_start_min, paper.risk.quiet_ny_end_min) == (0, 0)

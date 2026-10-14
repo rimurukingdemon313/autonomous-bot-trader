@@ -54,11 +54,15 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison.
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
-- **Quiet hours** (risk 1.5.0, profile PAPER-FORWARD-200K): no new position from 16:00 to 20:00 New York
+- **Quiet hours** (risk 1.6.0, the risk engine's own limit for MODE=PAPER_FORWARD): no new position from 16:00 to 20:00 New York
   (DST-aware; 23:00-03:00 Baghdad in summer), an hour before the 17:00 rollover to the Tokyo open, when
   liquidity is thinnest and spreads widest. Split by session, the first 14 trades were: Asia +$88 (3), London
   +$716 (3), the London/New York overlap -$841 (3), New York +$162 (2), late evening -$1,270 (3, all stopped
-  out). Only the last has a known market reason behind it; the others are three trades each and stay open. This is a known property of the
+  out). Only the last has a known market reason behind it; the others are three trades each and stay open.
+  Risk 1.4.0/1.5.0 put the window in the evaluation profile; that changed the profile's hash and the hard gate
+  refused every new trade with PROFILE_CHANGED from 2026-10-14 06:46 to 19:30 UTC (28 approved trades). A profile
+  cannot change during an evaluation, so the window moved to the risk engine (1.6.0), the profile is back to the
+  run's own (pinned by a test), and the shift report now opens with a warning whenever the gate refuses. This is a known property of the
   market, not a fit to three trades, and it can only refuse an entry. The risk engine applies it, and the
   desk is not asked inside the window.
 

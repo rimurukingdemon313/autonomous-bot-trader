@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import json
 import os
+import dataclasses
 from dataclasses import dataclass, field
 
-from ..risk.engine import HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits
+from ..risk.engine import HARD_MAX_RISK_PCT, PAPER_FORWARD_QUIET_NY, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits
 from ..decision.edge_status import PAPER_MODES
 from ..risk.profile import FTMO_200K, PAPER_FORWARD_200K, PROFILES, HardRiskProfile, ProfileError
 
@@ -140,6 +141,9 @@ class ServiceConfig:
             max_quote_age_s=int(_f(e, "RISK_MAX_QUOTE_AGE_S",
                                    90 if e.get("DATA_SOURCE", "yahoo").strip().lower() in ("yahoo", "auto", "") else 30)),
             funded=funded)
+        if mode == "PAPER_FORWARD":  # the risk engine's own trading hours, not a field of the evaluation profile
+            risk = dataclasses.replace(risk, quiet_ny_start_min=PAPER_FORWARD_QUIET_NY[0],
+                                       quiet_ny_end_min=PAPER_FORWARD_QUIET_NY[1])
         source = e.get("DATA_SOURCE", "yahoo").strip().lower() or "yahoo"
         if source == "auto":
             source = "yahoo"

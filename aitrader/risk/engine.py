@@ -44,10 +44,16 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   unchanged.
 #: 1.4.0: a profile may set a window either side of the daily rollover (17:00 New York) in which no new position is
 #:   opened (PAPER-FORWARD-200K: 60 min). It only ever refuses an entry; sizes and every other check unchanged.
-#: 1.5.0: the window is set in New York time from a start to an end (PAPER-FORWARD-200K: 16:00-20:00, an hour before
-#:   the rollover to the Tokyo open); 1.4.0's 60 min after the rollover left 18:00-20:00 open.
-RISK_VERSION = "risk-1.5.0"
+#: 1.5.0: the window is set in New York time from a start to an end (16:00-20:00, an hour before the rollover to the
+#:   Tokyo open); 1.4.0's 60 min after the rollover left 18:00-20:00 open.
+#: 1.6.0 (live, 2026-10-14): the window is the risk engine's own limit (RiskLimits), set for MODE=PAPER_FORWARD, no
+#:   longer a field of the evaluation profile. As a profile field it changed the profile's hash, and the hard gate
+#:   (rightly: a profile cannot change during an evaluation) refused every new trade with PROFILE_CHANGED. Trading
+#:   hours are a choice of this engine, not a rule of the evaluation; the profile is back to the run's own.
+RISK_VERSION = "risk-1.6.0"
 NEW_YORK = ZoneInfo("America/New_York")
+#: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
+PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -92,6 +98,16 @@ class RiskLimits:
     funded: FundedRules | None = None
     #: the hard risk gate's profile: sizing then budgets the all-in maximum loss (see RISK_VERSION 1.3.0)
     hard: HardRiskProfile | None = None
+    #: no NEW position from the start to the end, minutes after midnight New York (DST-aware); equal: no window.
+    #: It only ever refuses an entry; open positions are managed. Not part of the evaluation profile (1.6.0).
+    quiet_ny_start_min: int = 0
+    quiet_ny_end_min: int = 0
+
+    def __post_init__(self) -> None:
+        for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
+            v = getattr(self, k)
+            if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v < 1440:
+                raise ValueError(f"{k} must be an integer 0..1439, minutes after midnight New York (got {v!r})")
 
     def effective_risk_pct(self) -> float:
         pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
@@ -270,10 +286,9 @@ class RiskEngine:
 
     def _c_quiet_hours(self, now: int) -> Check | None:
         """No new position in the profile's New York window (the New York close to the Tokyo open), if it sets one."""
-        h = self.limits.hard
-        if h is None or h.quiet_ny_start_min == h.quiet_ny_end_min:
+        a, b = self.limits.quiet_ny_start_min, self.limits.quiet_ny_end_min
+        if a == b:
             return None
-        a, b = h.quiet_ny_start_min, h.quiet_ny_end_min
         ny = datetime.fromtimestamp(now, NEW_YORK)
         m = ny.hour * 60 + ny.minute
         inside = a <= m < b if a < b else (m >= a or m < b)  # a window may run past midnight
