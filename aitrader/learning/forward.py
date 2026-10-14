@@ -25,6 +25,12 @@ calendar-week blocks (every third ISO week is EVALUATION). Lessons and the model
 LEARNING outcomes only; forward eligibility is judged on EVALUATION outcomes only. A whole week
 per block keeps neighbouring, correlated decisions on the same side of the split.
 
+SHADOW EXITS. A trade taken can be followed forward a second time under another exit, never traded:
+the stop moved to the entry once +1R is reached (from the bar after the one that reached it: within a bar the
+order of its high and low is unknown), a longer holding time, or the stop and target twice as far (costs then
+a smaller share of the risk). Each is its own proposal, beside the trade as taken, so the two are compared on
+the same entries.
+
 Nothing here sizes, approves or sends anything. A missing price is "not resolved yet", never a
 guess; after 30 days without data the outcome is recorded UNRESOLVED with no R.
 """
@@ -39,7 +45,9 @@ from typing import Callable
 
 import numpy as np
 
-FORWARD_VERSION = "forward-1.0.0"
+#: 1.1.0: shadow exits (break-even at +1R, a longer hold, twice as wide) of a trade taken; walk() honours
+#:        `breakeven_at_r`. A proposal without it resolves exactly as before.
+FORWARD_VERSION = "forward-1.1.0"
 EVALUATION_WEEK_MOD = 3  # ISO week % 3 == 2 -> EVALUATION
 PERIODS = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600}
 MAX_BARS = 1500
@@ -119,6 +127,8 @@ def walk(p: dict, bars, now: int) -> dict | None:
     t0, hold = p["t"], p["hold_s"]
     slip, comm = p["slippage_px"], p["commission_px"]
     fill = entry + side * slip
+    be_r = p.get("breakeven_at_r")
+    armed = False  # the stop has moved to the fill price
     end = t0 + hold
     post_end = min(end, t0 + POST_WINDOW_MAX_S) if hold > POST_WINDOW_MAX_S else end
     ot, at = bars.open_time, bars.available_at
@@ -143,11 +153,12 @@ def walk(p: dict, bars, now: int) -> dict | None:
                 best, t_best = float(fav), int(at[i])
             if adv < worst:
                 worst, t_worst = float(adv), int(at[i])
-            stop_hit = lo <= stop if side > 0 else hi >= stop
+            eff = fill if armed else stop
+            stop_hit = lo <= eff if side > 0 else hi >= eff
             tgt_hit = hi >= target if side > 0 else lo <= target
             if stop_hit:
-                exit_px = (min(op, stop) - slip) if side > 0 else (max(op, stop) + slip)
-                reason = "STOP"
+                exit_px = (min(op, eff) - slip) if side > 0 else (max(op, eff) + slip)
+                reason = "BREAKEVEN" if armed else "STOP"
             elif tgt_hit:
                 exit_px, reason = target, "TARGET"
             elif int(at[i]) >= end:
@@ -155,6 +166,8 @@ def walk(p: dict, bars, now: int) -> dict | None:
             if exit_px is not None:
                 exit_t = int(at[i])
                 continue
+            if be_r is not None and best >= be_r:
+                armed = True  # from the next bar: within this one the order of its high and low is unknown
         else:  # after the exit: the rest of the holding window, for the post-mortem only
             if int(ot[i]) >= post_end:
                 break
@@ -177,6 +190,38 @@ def walk(p: dict, bars, now: int) -> dict | None:
             "t_mfe": t_best, "t_mae": t_worst, "held_s": exit_t - t0,
             "post_exit_best_r": None if post_best is None else round(float(post_best), 4),
             "target_after_exit": target_after, "partition": p["partition"], "version": FORWARD_VERSION}
+
+
+#: Shadow exits of a trade taken: followed forward beside it, never traded.
+EXIT_VARIANTS = {
+    "BE1R": {"breakeven_at_r": 1.0},                 # the stop moves to the entry once +1R is reached
+    "HOLD24H": {"hold_s": 24 * 3600},                # held up to 24 h instead of its own holding time
+    "WIDE2X": {"scale": 2.0, "hold_s": 24 * 3600},   # stop and target twice as far, held up to 24 h
+}
+
+
+def exit_variants(rec: dict | None, family: str) -> list[dict]:
+    """The shadow exits of the proposal `rec` of a trade taken, each its own COUNTERFACTUAL proposal."""
+    if rec is None:
+        return []
+    out = []
+    side, e = rec["side"], rec["entry"]
+    for name, v in EXIT_VARIANTS.items():
+        r = {**rec, "decision_id": f"{rec['decision_id']}:exit-{name.lower()}", "family": f"{family}_EXIT_{name}",
+             "route": "COUNTERFACTUAL", "executed": False, "risk_approved": None, "risk_reasons": [],
+             "exit_variant": name, "base_decision_id": rec["decision_id"]}
+        if "breakeven_at_r" in v:
+            r["breakeven_at_r"] = v["breakeven_at_r"]
+        if "hold_s" in v:
+            r["hold_s"] = min(max(int(rec["hold_s"]), v["hold_s"]), MAX_HOLD_S)
+        if "scale" in v:
+            k = v["scale"]
+            r["stop"] = e - side * k * abs(e - rec["stop"])
+            r["target"] = e + side * k * abs(rec["target"] - e)
+            r["risk_px"] = abs(e - r["stop"])
+            r["stop_atr"] = (r["risk_px"] / rec["atr"]) if rec.get("atr") else None
+        out.append(r)
+    return out
 
 
 class ForwardLedger:

@@ -14,7 +14,7 @@ import pytest
 from aitrader.data.bars import BarSeries
 from aitrader.decision.edge_status import classify, execution_route
 from aitrader.learning import metrics, taxonomy
-from aitrader.learning.forward import EXPIRE_S, ForwardLedger, partition, walk
+from aitrader.learning.forward import EXPIRE_S, ForwardLedger, exit_variants, partition, walk
 from aitrader.memory.db import Database
 
 T0 = 1_700_000_000 // 3600 * 3600  # a Tuesday
@@ -97,6 +97,48 @@ def test_the_walk_is_pure():
 
 
 # ── partitions ──────────────────────────────────────────────────────────
+
+# ── shadow exits of a trade taken ───────────────────────────────────────
+
+UP_THEN_BACK = [(1.1000, 1.1013, 1.0998, 1.1010),   # +1.09R at its high (bid), never below the stop
+                (1.1010, 1.1011, 1.0999, 1.1000),   # back through the entry
+                (1.1000, 1.1030, 1.0999, 1.1025)] + [(1.1025, 1.1026, 1.1024, 1.1025)] * 12  # then the target
+
+
+def test_break_even_at_1r_moves_the_stop_to_the_entry_from_the_next_bar():
+    b = bars(UP_THEN_BACK)
+    as_taken = walk(prop(), b, T0 + 3 * 86400)
+    be = walk(prop(breakeven_at_r=1.0), b, T0 + 3 * 86400)
+    assert as_taken["reason"] == "TARGET"  # the stop was never hit: the trade as taken reached its target
+    assert be["reason"] == "BREAKEVEN" and be["exit_time"] == T0 + 600  # the second bar came back to the entry
+    fill = 1.1001 + 0.00001
+    assert be["net_r"] == pytest.approx(((fill - 0.00001 - fill) - 0.00007) / 0.0010, abs=1e-6)  # costs only
+
+
+def test_within_the_bar_that_reached_1r_the_order_of_its_high_and_low_is_unknown():
+    # the first bar reached +1.09R and also traded below the entry: break-even is not assumed to have come first
+    b = bars([(1.1000, 1.1013, 1.0995, 1.1010)] + [(1.1010, 1.1030, 1.1009, 1.1025)] + [(1.1025, 1.1026, 1.1024, 1.1025)] * 12)
+    assert walk(prop(breakeven_at_r=1.0), b, T0 + 3 * 86400)["reason"] == "TARGET"
+
+
+def test_the_shadow_exits_are_counterfactual_copies_never_executed_and_the_trade_is_unchanged():
+    rec = prop(atr=0.0010, route="EXECUTE", executed=True, family="DUAL_AI")
+    before = dict(rec)
+    be, hold, wide = exit_variants(rec, "DUAL_AI")
+    assert rec == before  # the trade's own record is never edited
+    for v, name in ((be, "be1r"), (hold, "hold24h"), (wide, "wide2x")):
+        assert v["decision_id"] == f"d1:exit-{name}" and v["family"] == f"DUAL_AI_EXIT_{name.upper()}"
+        assert v["route"] == "COUNTERFACTUAL" and v["executed"] is False and v["base_decision_id"] == "d1"
+        assert v["entry"] == rec["entry"] and v["t"] == rec["t"]  # the same entry, the same moment
+    assert be["breakeven_at_r"] == 1.0 and be["hold_s"] == 3600 and "breakeven_at_r" not in hold
+    assert hold["hold_s"] == 24 * 3600 and hold["stop"] == rec["stop"]
+    assert wide["stop"] == pytest.approx(1.1001 - 0.0020) and wide["target"] == pytest.approx(1.1001 + 0.0040)
+    assert wide["risk_px"] == pytest.approx(0.0020) and wide["stop_atr"] == pytest.approx(2.0)
+    b = bars(UP_THEN_BACK + [(1.1025, 1.1045, 1.1024, 1.1040)] * 300)
+    base_o, wide_o = walk(rec, b, T0 + 9 * 86400), walk(wide, b, T0 + 9 * 86400)
+    assert wide_o["cost_r"] == pytest.approx(base_o["cost_r"] / 2, abs=1e-6)  # twice as wide: costs half the share
+    assert exit_variants(None, "DUAL_AI") == []
+
 
 def test_partition_is_fixed_by_decision_time_in_week_blocks():
     weeks = {}

@@ -24,8 +24,12 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:        decision with both traders.
 #: 1.2.0: each trade records how Trader 1 read the chart (image, or its numbers when no vision model answered);
 #:        trades are split by it.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.2.0"
+#: 1.3.0: the trades taken beside their shadow exits (break-even at +1R, held 24 h, twice as wide), paired on the
+#:        same entries; the trades taken by session.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.3.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
+EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X")}
+SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
 UNAVAILABLE = ("MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE", "TRADER2_UNAVAILABLE", "DEBATE_UNRESOLVED",
                "MODE")
@@ -93,12 +97,27 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
                and lo <= 100 * e["desk_confidence"] < hi]
         bands[f"{lo}-{min(hi, 100)}"] = _r(sel)
     shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: []}
+    taken: dict = {}                                   # decision id -> (net R as taken, session)
+    exits: dict = {n: {} for n in EXIT_FAMILIES.values()}  # variant -> {base decision id: net R}
     for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_):
-        if r.get("family") not in shadow:
-            continue
         out = r.get("outcome") or {}
-        if out.get("status") == "RESOLVED" and out.get("net_r") is not None:
-            shadow[r["family"]].append(float(out["net_r"]))
+        if out.get("status") != "RESOLVED" or out.get("net_r") is None:
+            continue
+        fam = r.get("family")
+        if fam in shadow:
+            shadow[fam].append(float(out["net_r"]))
+        elif fam == FAMILY and r.get("route") == "EXECUTE" and r.get("executed"):
+            taken[r["decision_id"]] = (float(out["net_r"]), r.get("session"))
+        elif fam in EXIT_FAMILIES and r.get("base_decision_id"):
+            exits[EXIT_FAMILIES[fam]][r["base_decision_id"]] = float(out["net_r"])
+
+    def against_taken(variant: dict) -> dict:
+        pairs = [(taken[k][0], v) for k, v in variant.items() if k in taken]
+        st = _r([v for _, v in pairs])
+        if pairs:
+            st["as_taken_expectancy_r"] = round(sum(a for a, _ in pairs) / len(pairs), 3)
+            st["difference_r"] = round(sum(v - a for a, v in pairs) / len(pairs), 3)
+        return st
     rules: Counter = Counter()
     for row in db.query("SELECT payload FROM decisions ORDER BY seq"):
         p = json.loads(row["payload"])
@@ -122,6 +141,11 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             "debate_losing_side_if_taken": {**_r(shadow[LOSER_FAMILY]), "note": "the side the debate rejected, "
                                             "followed forward as if taken, after costs: if it does better than the "
                                             "side picked, the debate is choosing the wrong side"},
+            "exits_in_shadow": {**{n: against_taken(v) for n, v in exits.items()},
+                                "note": "each trade taken, followed again under another exit on the same entry, "
+                                        "after costs; difference_r > 0 means that exit would have done better "
+                                        "on these trades. Measured, never traded"},
+            "taken_by_session": {s: _r([r for r, ss in taken.values() if ss == s]) for s in SESSIONS},
             "decisions_by_rule": dict(sorted(rules.items())),
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,

@@ -79,6 +79,12 @@ def report_md(v: dict, shift: dict) -> str:
         rec = dai.get("record") or {}
         pick, lose = rec.get("debate_pick_if_taken") or {}, rec.get("debate_losing_side_if_taken") or {}
 
+        def exit_line(s):
+            if not s.get("n"):
+                return "none resolved yet"
+            return (f"{fmt(s.get('expectancy_r'), '{:+.3f}R')} vs {fmt(s.get('as_taken_expectancy_r'), '{:+.3f}R')} "
+                    f"as taken ({s['n']}, {s.get('sample')})")
+
         def shadow(s):
             return (f"{s.get('n', 0)} resolved ({s.get('sample', 'none')})"
                     + (f", expectancy {fmt(s.get('expectancy_r'), '{:+.3f}R')}" if s.get("n") else ""))
@@ -92,6 +98,12 @@ def report_md(v: dict, shift: dict) -> str:
                   f"Disagreements (not traded; the debate runs in shadow): "
                   f"{(rec.get('decisions_by_rule') or {}).get('DISAGREE', 0)} · the debate's pick if taken: "
                   f"{shadow(pick)} · the side it rejected if taken: {shadow(lose)}", "",
+                  "Exits in shadow (the same trades, followed again; measured, never traded): " + " · ".join(
+                      f"{label} {exit_line((rec.get('exits_in_shadow') or {}).get(k) or {})}"
+                      for k, label in (("BE1R", "break-even at +1R"), ("HOLD24H", "held 24 h"),
+                                       ("WIDE2X", "stop and target twice as far"))), "",
+                  "Trades taken by session (UTC): " + " · ".join(
+                      f"{s} {shadow(st)}" for s, st in (rec.get("taken_by_session") or {}).items()), "",
                   "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |",
                   "|---|---|---|---|---|---|---|---|"]
         for a in dai.get("analyses") or []:

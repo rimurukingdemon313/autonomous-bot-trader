@@ -45,7 +45,7 @@ from ..execution.engine import ExecutionEngine
 from ..features.store import LOOKBACK, compute_at
 from ..learning.experience import Evaluation, ExperienceView, session_of
 from ..learning import dual_ai_stats
-from ..learning.forward import Costs as ForwardCosts, ForwardLedger, partition, proposal as forward_proposal
+from ..learning.forward import Costs as ForwardCosts, ForwardLedger, exit_variants, partition, proposal as forward_proposal
 from ..learning.taxonomy import LessonBook
 from ..learning.proposals import proposals_from_reflection
 from ..learning.review import postmortem, reflect
@@ -88,7 +88,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         pick and the side it rejected), each followed forward as if taken, never executed.
 #: 1.17.0: a trade is sized from the quote read after the decision (the price the hard gate verifies), not the one
 #:         read before it; a model's answer can take minutes.
-ORCHESTRATOR_VERSION = "orchestrator-1.17.0"
+#: 1.18.0: a dual-AI trade taken is also followed forward under shadow exits (break-even at +1R, held 24 h, twice
+#:         as wide), never traded.
+ORCHESTRATOR_VERSION = "orchestrator-1.18.0"
 
 
 class NullKnowledge:
@@ -464,10 +466,14 @@ class Orchestrator:
             self._event("PIPELINE", trail, ref=d.id, key=True)
             if self.cfg.journal == "full":
                 pip = pip_of(symbol)
-                self.forward.record(forward_proposal(
+                rec = forward_proposal(
                     d, t=t, bid=ctx.bid, ask=ctx.ask, atr=atr if np.isfinite(atr) else None, pip=pip,
                     costs=ForwardCosts(self.cfg.costs.slippage_pips, self.cfg.costs.commission_pips_rt),
-                    route=route if verdict.approved else "REJECTED", risk=verdict.as_dict(), executed=executed))
+                    route=route if verdict.approved else "REJECTED", risk=verdict.as_dict(), executed=executed)
+                self.forward.record(rec)
+                if executed and d.family == DUAL_FAMILY:  # the same trade under other exits, measured, never traded
+                    for shadow in exit_variants(rec, DUAL_FAMILY):
+                        self.forward.record(shadow)
         else:
             self.counts["no_trade"] += 1
         # the sides of a disagreement, followed forward as if taken: what did standing aside skip, did the debate

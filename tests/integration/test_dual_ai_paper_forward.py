@@ -133,6 +133,21 @@ def test_the_trade_is_sized_on_the_price_after_the_traders_answered_the_one_the_
     assert moved["by"] > 0 and p["max_loss"] <= 500 + 1e-6  # all-in, at the price it was sized and filled on
 
 
+def test_a_trade_taken_is_followed_forward_under_shadow_exits_never_executed(tmp_path, monkeypatch):
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
+    cycles(rt, clock)
+    (pos,) = rt.broker.positions()
+    rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    (taken,) = [r for r in rows if r["family"] == "DUAL_AI"]
+    shadows = sorted((r for r in rows if r["family"].startswith("DUAL_AI_EXIT_")), key=lambda r: r["family"])
+    assert [r["exit_variant"] for r in shadows] == ["BE1R", "HOLD24H", "WIDE2X"]
+    assert all(r["base_decision_id"] == taken["decision_id"] and r["route"] == "COUNTERFACTUAL"
+               and r["executed"] is False for r in shadows)
+    assert len(rt.broker.positions()) == 1  # nothing more was traded
+    rec = dual_ai_stats.record(rt.db)
+    assert set(rec["exits_in_shadow"]) >= {"BE1R", "HOLD24H", "WIDE2X"} and "LATE" in rec["taken_by_session"]
+
+
 def test_the_risk_engine_still_refuses_what_it_refuses(tmp_path, monkeypatch):
     # both traders agree, but reward:risk 0.8 is below the risk engine's minimum: blocked, never executed
     rt, clock, _ = desk_runtime(tmp_path, monkeypatch, desk_reply(target_atr=0.8))
