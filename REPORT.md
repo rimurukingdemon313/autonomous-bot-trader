@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 16:23 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 12:22 UTC · decision system `dual_ai`
+Updated 2026-10-14 16:38 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 12:22 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -10,6 +10,8 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-14 16:30 EURGBP SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
+- 10-14 16:30 NZDUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 16:15 USDCHF BUY: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 15:45 GBPUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 15:45 EURUSD SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 43.6% of the stop (max 25%): spread 8e-05 + commission and slippage
@@ -28,11 +30,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 13:30 EURGBP SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 27.6% of the stop (max 25%): spread 0.00012 + commission and slippage
 - 10-14 13:30 NZDUSD BUY: AI DECISION → RISK REJECTED — reward_risk: 1.18 vs minimum 1.2
 - 10-14 12:45 USDJPY SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
-- 10-14 12:30 GBPUSD BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 37.5% of the stop (max 25%): spread 0.00012 + commission and slippage
-- 10-14 12:00 USDCHF SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 35.6% of the stop (max 25%): spread 0.00015 + commission and slippage
 
-## Latest decisions, NO TRADE included (587 so far)
+## Latest decisions, NO TRADE included (589 so far)
 
+- 10-14 16:30 EURGBP SELL: SELL EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The price is testing the top of the range and the EQH liquidity zone, where a bearish sweep is highly likely. The H4
+- 10-14 16:30 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 structure remains strongly bearish with lower highs and lower lows, and the recent liquidity sweep is typica
 - 10-14 16:15 USDCHF BUY: BUY USDCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 72: The overall trend is strongly bullish on both M15 and H4, showing a pattern of higher highs and higher lows. The price
 - 10-14 16:15 USDCAD NO_TRADE: the traders disagree (Trader 1 BUY 75, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen BUY: followed forward in shad
 - 10-14 16:00 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 70, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen SELL: followed forward in sha
@@ -43,8 +45,6 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 15:30 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The price is testing a major resistance confluence at the PDH 0.9328, which also has 4 touches as S/R and a recent b
 - 10-14 15:15 GBPJPY SELL: SELL GBPJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 78: The M15 timeframe shows a strong, clean bearish trend with multiple BOS breaks and powerful downward momentum, recen
 - 10-14 15:15 EURJPY NO_TRADE: the traders disagree (Trader 1 SELL 68, Trader 2 BUY 58): no trade unless both choose the same side; the debate (poolside/laguna-s-2.1:free) would have chosen SELL: followed forward in shadow, not tra
-- 10-14 15:00 EURGBP SELL: SELL EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 trend is down (LH+LL), and the current upward move is a pullback testing the key EQH liquidity pool at 0.845
-- 10-14 15:00 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 chart displays a clear lower high and lower low structure with multiple bearish BOS breaks, indicating stron
 
 ## Open paper positions
 
@@ -75,11 +75,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3-super-120b-a12b:free` · calls today 99/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3-super-120b-a12b:free` · calls today 103/900
 
 AI trades 17 (insufficient) · wins 7 · losses 10 · expectancy -0.162R · profit factor 0.61
 
-Disagreements (not traded; the debate runs in shadow): 37 · the debate's pick if taken: 16 resolved (insufficient), expectancy -0.153R · the side it rejected if taken: 21 resolved (insufficient), expectancy +0.172R
+Disagreements (not traded; the debate runs in shadow): 37 · the debate's pick if taken: 17 resolved (insufficient), expectancy -0.264R · the side it rejected if taken: 22 resolved (insufficient), expectancy +0.242R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R none resolved yet · held 24 h none resolved yet · stop and target twice as far none resolved yet
 
@@ -87,6 +87,8 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 16:30 | EURGBP | SELL 72 | SELL 70 | - | AGREE | SELL | APPROVED |
+| 10-14 16:30 | NZDUSD | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-14 16:15 | USDCHF | BUY 72 | BUY 68 | - | AGREE | BUY | APPROVED |
 | 10-14 16:15 | USDCAD | BUY 75 | SELL 65 | BUY | DISAGREE | NO_TRADE | - |
 | 10-14 16:00 | AUDUSD | BUY 70 | SELL 65 | SELL | DISAGREE | NO_TRADE | - |
@@ -97,8 +99,6 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 | 10-14 15:30 | EURCHF | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-14 15:15 | GBPJPY | SELL 78 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-14 15:15 | EURJPY | SELL 68 | BUY 58 | SELL | DISAGREE | NO_TRADE | - |
-| 10-14 15:00 | EURGBP | SELL 75 | SELL 66 | - | AGREE | SELL | APPROVED |
-| 10-14 15:00 | NZDUSD | SELL 75 | SELL 65 | - | AGREE | SELL | REJECTED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
