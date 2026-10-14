@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from math import floor
+from zoneinfo import ZoneInfo
 
 from .profile import HardRiskProfile, loss_per_lot
 
@@ -41,7 +42,11 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   on both fills, financing allowance - within min(equity x risk%, the profile's fixed risk per trade). So risk
 #:   never grows with a winning account, and the size is the one the hard gate will verify. Without a profile,
 #:   unchanged.
-RISK_VERSION = "risk-1.3.0"
+#: 1.4.0: a profile may set a window either side of the daily rollover (17:00 New York) in which no new position is
+#:   opened (PAPER-FORWARD-200K: 60 min). It only ever refuses an entry; sizes and every other check unchanged.
+RISK_VERSION = "risk-1.4.0"
+NEW_YORK = ZoneInfo("America/New_York")
+ROLLOVER_NY_MIN = 17 * 60
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -262,6 +267,18 @@ class RiskEngine:
                          f"{per_ccy} open positions share a currency, max {L.max_positions_per_currency}"))
         return out
 
+    def _c_rollover(self, now: int) -> Check | None:
+        """No new position near the daily rollover (17:00 New York), when the profile sets a window."""
+        mins = self.limits.hard.rollover_blackout_min if self.limits.hard is not None else 0
+        if not mins:
+            return None
+        ny = datetime.fromtimestamp(now, NEW_YORK)
+        off = ny.hour * 60 + ny.minute - ROLLOVER_NY_MIN
+        off = (off + 720) % 1440 - 720  # minutes from the nearest rollover, -720..719
+        return Check("rollover", not -mins <= off < mins,
+                     f"{ny:%H:%M} New York: no new position within {mins} min of the 17:00 New York rollover "
+                     f"(thin liquidity, wide spreads)")
+
     def _c_weekend(self, now: int) -> Check | None:
         if self.limits.funded and self.limits.funded.no_weekend_holding:
             wd = datetime.fromtimestamp(now, timezone.utc)
@@ -276,7 +293,7 @@ class RiskEngine:
         if not out[-1].passed:
             return out
         out += [self._c_daily(account), self._c_weekly(account), self._c_drawdown(account)[0]]
-        out += [c for c in (self._c_funded_total(account), self._c_weekend(now)) if c is not None]
+        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_rollover(now)) if c is not None]
         out += self._c_positions(account, instrument)
         return out
 
@@ -356,6 +373,7 @@ class RiskEngine:
         for c in self._c_positions(account, decision.instrument):
             ok &= add(c)
         ok &= add(self._c_weekend(now))
+        ok &= add(self._c_rollover(now))
         if not ok:
             return v
 

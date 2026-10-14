@@ -22,7 +22,7 @@ from aitrader.memory.db import Database
 from aitrader.risk.engine import AccountState, InstrumentSpec, Quote, RiskEngine, RiskLimits, RiskVerdict
 from aitrader.risk.hard_gate import (CLEAR_KILL_CONFIRMATION, RESET_CONFIRMATION, HardRiskGate, Permit,
                                      TradeProposal)
-from aitrader.risk.profile import FTMO_200K, HardRiskProfile, ProfileError, loss_per_lot
+from aitrader.risk.profile import FTMO_200K, PAPER_FORWARD_200K, HardRiskProfile, ProfileError, loss_per_lot
 
 T0 = 1_768_298_400  # Tuesday 2026-01-13 10:00 UTC (11:00 in Prague, winter time)
 BID, ASK = 1.09995, 1.10005  # EURUSD, 1 pip spread
@@ -644,3 +644,42 @@ def test_the_service_profile_follows_the_data_source_quote_tolerance_and_refuses
         ServiceConfig.from_env({"RISK_PROFILE": "FTMO-1M"})  # unknown: refused, never the default
     with pytest.raises(ServiceConfigError, match="PAPER_START_BALANCE"):
         ServiceConfig.from_env({"PAPER_START_BALANCE": "20000"})
+
+
+# ── the daily rollover (PAPER-FORWARD-200K) ────────────────────────────
+
+def _at(when, profile=PAPER_FORWARD_200K):
+    from datetime import datetime, timezone
+    t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="r", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    eng = RiskEngine(RiskLimits(hard=profile, max_drawdown_pct=50))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t), eng.account_gates(acct, "EURUSD", t)
+
+
+@pytest.mark.parametrize("when,blocked", [
+    ((2026, 10, 13, 21, 0), True),    # 17:00 New York (EDT): the rollover
+    ((2026, 10, 13, 20, 0), True),    # 16:00 New York: an hour before
+    ((2026, 10, 13, 21, 59), True),   # 17:59 New York
+    ((2026, 10, 13, 19, 59), False),  # 15:59 New York
+    ((2026, 10, 13, 22, 0), False),   # 18:00 New York
+    ((2026, 12, 1, 22, 0), True),     # 17:00 New York in winter (EST): the window follows New York time
+    ((2026, 12, 1, 20, 30), False),   # 15:30 New York in winter
+])
+def test_no_new_position_within_an_hour_of_the_new_york_rollover(when, blocked):
+    v, gates = _at(when)
+    assert v.approved is (not blocked), v.reasons
+    roll = [c for c in gates if c.name == "rollover"]
+    assert len(roll) == 1 and roll[0].passed is (not blocked)  # the model is not even asked inside the window
+    if blocked:
+        assert any("rollover" in r for r in v.reasons)
+
+
+def test_a_profile_without_a_rollover_window_never_checks_it_and_the_window_is_validated():
+    v, gates = _at((2026, 10, 13, 21, 0), FTMO_200K)
+    assert v.approved and not [c for c in gates if c.name == "rollover"]
+    for bad in (-1, 181, True, 1.5):
+        with pytest.raises(ProfileError):
+            dataclasses.replace(FTMO_200K, rollover_blackout_min=bad)

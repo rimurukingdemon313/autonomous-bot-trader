@@ -40,6 +40,25 @@ cost too large for the stop, reward:risk below its minimum (1.2), the daily loss
 exposure, an open position on the pair, every hard rule. The traders are told the per-trade limits (minimum stop
 distance at this spread, minimum reward:risk) so their levels can be executed; they cannot change them.
 
+### What the losses showed, and what is measured now (2026-10-14)
+
+Fourteen closed trades: gross P&L +$36, costs $1,180. Before costs the desk was flat; each trade paid about 20% of
+its risk in spread, commission and slippage, because the stops are about one H1 ATR. The losers went wrong at
+once (their best point was at most +0.16R); the winners all reached +1.2R or more, and two gave much of it back
+before their time exit (USDCAD +1.24R to +0.30R, EURCHF +1.21R to +0.74R). All three entries in the late
+evening (UTC) were stopped out. Too few trades to change a rule on, so:
+
+- **Exits in shadow** (forward 1.1.0): every trade taken is followed forward again, never traded, with the stop
+  moved to the entry once +1R is reached (`DUAL_AI_EXIT_BE1R`, from the bar after the one that reached it), held
+  24 h (`..._HOLD24H`), and with stop and target twice as far, held 24 h (`..._WIDE2X`: costs half the share
+  of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
+  entries; the report prints the comparison.
+- **By session**: `taken_by_session` splits the trades taken by UTC session.
+- **The rollover** (risk 1.4.0, profile PAPER-FORWARD-200K): no new position within 60 minutes either side of
+  17:00 New York (DST-aware), when liquidity is thinnest and spreads widest. This is a known property of the
+  market, not a fit to three trades, and it can only refuse an entry. The risk engine applies it, and the
+  desk is not asked inside the window.
+
 ### When no vision model answers (dual-ai 1.3.0, 2026-10-13)
 
 Only a handful of free models read images, and at peak hours (about 11:00-14:30 UTC) all of them can be busy at
