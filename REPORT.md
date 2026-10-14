@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 08:16 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 06:46 UTC · decision system `dual_ai`
+Updated 2026-10-14 08:31 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 06:46 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,547.02 | $-1,374.96 | $-1,452.98 | $-1,452.98 | 1 | 16 (insufficient) | 37.5% | -0.216R | 0.52 | ACTIVE | RUNNING |
+| $200,000.00 | $198,582.88 | $-1,339.11 | $-1,417.12 | $-1,417.12 | 1 | 16 (insufficient) | 37.5% | -0.216R | 0.52 | ACTIVE | RUNNING |
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -31,8 +31,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-13 10:15 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-13 10:00 EURCHF BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (524 so far)
+## Latest decisions, NO TRADE included (526 so far)
 
+- 10-14 08:15 AUDJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a AUDJPY position is already open
+- 10-14 08:15 EURCHF NO_TRADE: the traders disagree (Trader 1 BUY 75, Trader 2 SELL 55): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
 - 10-14 08:00 GBPJPY NO_TRADE: the traders disagree (Trader 1 BUY 65, Trader 2 SELL 55): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
 - 10-14 08:00 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The H4 trend is down with bearish breaks, and the M15 shows a bearish CHOCH, lower low, and bearish displacement. Li
 - 10-14 07:45 EURGBP SELL: SELL EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The recent sweep of highs at 0.8449 represents a classic bearish liquidity grab above the EQH levels, signaling a hi
@@ -43,14 +45,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 07:15 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 75: The higher timeframe is bearish and price is near a key resistance (158.279) with sell-side liquidity 
 - 10-14 07:00 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-14 07:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-14 06:45 EURGBP NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-14 06:45 NZDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDJPY | BUY | 2.71 | 110.799 | 110.548 | 111.15 | $356.83 |
+| AUDJPY | BUY | 2.71 | 110.799 | 110.548 | 111.15 | $392.68 |
 
 ## Closed paper trades (latest 20)
 
@@ -75,11 +75,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 30/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 32/900
 
 AI trades 16 (insufficient) · wins 6 · losses 10 · expectancy -0.216R · profit factor 0.52
 
-Disagreements (not traded; the debate runs in shadow): 15 · the debate's pick if taken: 8 resolved (insufficient), expectancy -0.066R · the side it rejected if taken: 13 resolved (insufficient), expectancy +0.276R
+Disagreements (not traded; the debate runs in shadow): 16 · the debate's pick if taken: 8 resolved (insufficient), expectancy -0.066R · the side it rejected if taken: 13 resolved (insufficient), expectancy +0.276R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R none resolved yet · held 24 h none resolved yet · stop and target twice as far none resolved yet
 
@@ -87,6 +87,8 @@ Trades taken by session (UTC): ASIA 4 resolved (insufficient), expectancy +0.107
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 08:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-14 08:15 | EURCHF | BUY 75 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
 | 10-14 08:00 | GBPJPY | BUY 65 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
 | 10-14 08:00 | EURJPY | SELL 72 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-14 07:45 | EURGBP | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
@@ -97,8 +99,6 @@ Trades taken by session (UTC): ASIA 4 resolved (insufficient), expectancy +0.107
 | 10-14 07:15 | USDJPY | SELL 75 | SELL 68 | - | AGREE | SELL | REJECTED |
 | 10-14 07:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-14 07:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-14 06:45 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-14 06:45 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
