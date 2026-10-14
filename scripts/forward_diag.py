@@ -46,5 +46,16 @@ for r in rows[:40]:
                  f"outcome={None if not r['outcome'] else (r['outcome'].get('reason'), r['outcome'].get('net_r'))} "
                  + " ".join(f"{x['tf']}:{x['bars']}/{x['n']}{'' if x['reaches'] else '!'}" for x in r["tried"]))
 (out / "REPORT.md").write_text("\n".join(lines) + "\n\nerrors: " + json.dumps({f"{k[0]} {k[1]}": v for k, v in feed.errors.items()})[:3000] + "\n")
+import traceback
+from aitrader.memory.db import Database
+try:
+    led = ForwardLedger(Database(out / "db.sqlite"), lambda: int(time.time()))
+    t0 = time.time()
+    done = led.resolve(feed, now, limit=20)
+    lines.append(f"\nresolve(): {len(done)} resolved in {time.time() - t0:.1f}s; stats {led.stats}")
+except Exception:
+    lines.append("\nresolve() RAISED:\n" + traceback.format_exc())
+(out / "REPORT.md").write_text("\n".join(lines) + "\n\nerrors: " + json.dumps({f"{k[0]} {k[1]}": v for k, v in feed.errors.items()})[:3000] + "\n")
+print("\n".join(lines[-12:]))
 (out / "db.sqlite").unlink()
 print("\n".join(lines[:50]))
