@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-14 17:53 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 12:22 UTC · decision system `dual_ai`
+Updated 2026-10-14 17:57 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 12:22 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -31,8 +31,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 14:15 EURUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 14:00 AUDJPY SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 
-## Latest decisions, NO TRADE included (596 so far)
+## Latest decisions, NO TRADE included (597 so far)
 
+- 10-14 17:45 AUDUSD NO_TRADE: the traders disagree (Trader 1 SELL 70, Trader 2 BUY 62): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen SELL: followed forward in shadow,
 - 10-14 17:45 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 70: The M15 trend is clearly down with a sequence of lower highs and lower lows, and the recent bearish BOS at 158.654 c
 - 10-14 17:30 GBPUSD SELL: SELL GBPUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The larger bearish structure on M15 and H4 suggests that the current upward retracement is a selling opportunity wit
 - 10-14 17:30 EURUSD SELL: SELL EURUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The overall trend is bearish on both H4 and M15, and the current pullback into the entry zone offers a high-probabil
@@ -44,7 +45,6 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 16:30 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 structure remains strongly bearish with lower highs and lower lows, and the recent liquidity sweep is typica
 - 10-14 16:15 USDCHF BUY: BUY USDCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 72: The overall trend is strongly bullish on both M15 and H4, showing a pattern of higher highs and higher lows. The price
 - 10-14 16:15 USDCAD NO_TRADE: the traders disagree (Trader 1 BUY 75, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen BUY: followed forward in shad
-- 10-14 16:00 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 70, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen SELL: followed forward in sha
 
 ## Open paper positions
 
@@ -79,7 +79,7 @@ OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free`
 
 AI trades 17 (insufficient) · wins 7 · losses 10 · expectancy -0.162R · profit factor 0.61
 
-Disagreements (not traded; the debate runs in shadow): 39 · the debate's pick if taken: 21 resolved (insufficient), expectancy -0.090R · the side it rejected if taken: 26 resolved (insufficient), expectancy +0.072R
+Disagreements (not traded; the debate runs in shadow): 40 · the debate's pick if taken: 22 resolved (insufficient), expectancy -0.135R · the side it rejected if taken: 27 resolved (insufficient), expectancy +0.124R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R none resolved yet · held 24 h none resolved yet · stop and target twice as far none resolved yet
 
@@ -87,6 +87,7 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-14 17:45 | AUDUSD | SELL 70 | BUY 62 | SELL | DISAGREE | NO_TRADE | - |
 | 10-14 17:45 | USDJPY | SELL 70 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-14 17:30 | GBPUSD | SELL 65 | SELL 53 | - | AGREE | SELL | APPROVED |
 | 10-14 17:30 | EURUSD | SELL 72 | SELL 65 | - | AGREE | SELL | APPROVED |
@@ -98,7 +99,6 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 | 10-14 16:30 | NZDUSD | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-14 16:15 | USDCHF | BUY 72 | BUY 68 | - | AGREE | BUY | APPROVED |
 | 10-14 16:15 | USDCAD | BUY 75 | SELL 65 | BUY | DISAGREE | NO_TRADE | - |
-| 10-14 16:00 | AUDUSD | BUY 70 | SELL 65 | SELL | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
