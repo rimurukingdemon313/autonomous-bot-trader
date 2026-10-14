@@ -646,7 +646,7 @@ def test_the_service_profile_follows_the_data_source_quote_tolerance_and_refuses
         ServiceConfig.from_env({"PAPER_START_BALANCE": "20000"})
 
 
-# ── the daily rollover (PAPER-FORWARD-200K) ────────────────────────────
+# ── quiet hours: the New York close to the Tokyo open (PAPER-FORWARD-200K) ──
 
 def _at(when, profile=PAPER_FORWARD_200K):
     from datetime import datetime, timezone
@@ -662,24 +662,36 @@ def _at(when, profile=PAPER_FORWARD_200K):
 @pytest.mark.parametrize("when,blocked", [
     ((2026, 10, 13, 21, 0), True),    # 17:00 New York (EDT): the rollover
     ((2026, 10, 13, 20, 0), True),    # 16:00 New York: an hour before
-    ((2026, 10, 13, 21, 59), True),   # 17:59 New York
+    ((2026, 10, 13, 22, 35), True),   # 18:35 New York: the AUDJPY entry of 2026-10-13, stopped out
+    ((2026, 10, 13, 23, 59), True),   # 19:59 New York
     ((2026, 10, 13, 19, 59), False),  # 15:59 New York
-    ((2026, 10, 13, 22, 0), False),   # 18:00 New York
+    ((2026, 10, 14, 0, 0), False),    # 20:00 New York: the Tokyo open
     ((2026, 12, 1, 22, 0), True),     # 17:00 New York in winter (EST): the window follows New York time
+    ((2026, 12, 2, 0, 30), True),     # 19:30 New York in winter
+    ((2026, 12, 2, 1, 0), False),     # 20:00 New York in winter
     ((2026, 12, 1, 20, 30), False),   # 15:30 New York in winter
 ])
-def test_no_new_position_within_an_hour_of_the_new_york_rollover(when, blocked):
+def test_no_new_position_from_the_new_york_close_to_the_tokyo_open(when, blocked):
     v, gates = _at(when)
     assert v.approved is (not blocked), v.reasons
-    roll = [c for c in gates if c.name == "rollover"]
-    assert len(roll) == 1 and roll[0].passed is (not blocked)  # the model is not even asked inside the window
+    quiet = [c for c in gates if c.name == "quiet_hours"]
+    assert len(quiet) == 1 and quiet[0].passed is (not blocked)  # the model is not even asked inside the window
     if blocked:
-        assert any("rollover" in r for r in v.reasons)
+        assert any("quiet_hours" in r for r in v.reasons)
 
 
-def test_a_profile_without_a_rollover_window_never_checks_it_and_the_window_is_validated():
+def test_a_quiet_window_may_run_past_midnight_new_york():
+    p = dataclasses.replace(FTMO_200K, name="NIGHT", quiet_ny_start_min=23 * 60, quiet_ny_end_min=60)
+    assert not _at((2026, 10, 14, 4, 30), p)[0].approved   # 00:30 New York
+    assert not _at((2026, 10, 14, 3, 30), p)[0].approved   # 23:30 New York
+    assert _at((2026, 10, 14, 5, 30), p)[0].approved       # 01:30 New York
+
+
+def test_a_profile_without_quiet_hours_never_checks_them_and_the_window_is_validated():
     v, gates = _at((2026, 10, 13, 21, 0), FTMO_200K)
-    assert v.approved and not [c for c in gates if c.name == "rollover"]
-    for bad in (-1, 181, True, 1.5):
+    assert v.approved and not [c for c in gates if c.name == "quiet_hours"]
+    for bad in (-1, 1440, True, 1.5):
         with pytest.raises(ProfileError):
-            dataclasses.replace(FTMO_200K, rollover_blackout_min=bad)
+            dataclasses.replace(FTMO_200K, quiet_ny_start_min=bad)
+        with pytest.raises(ProfileError):
+            dataclasses.replace(FTMO_200K, quiet_ny_end_min=bad)

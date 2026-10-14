@@ -44,9 +44,10 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   unchanged.
 #: 1.4.0: a profile may set a window either side of the daily rollover (17:00 New York) in which no new position is
 #:   opened (PAPER-FORWARD-200K: 60 min). It only ever refuses an entry; sizes and every other check unchanged.
-RISK_VERSION = "risk-1.4.0"
+#: 1.5.0: the window is set in New York time from a start to an end (PAPER-FORWARD-200K: 16:00-20:00, an hour before
+#:   the rollover to the Tokyo open); 1.4.0's 60 min after the rollover left 18:00-20:00 open.
+RISK_VERSION = "risk-1.5.0"
 NEW_YORK = ZoneInfo("America/New_York")
-ROLLOVER_NY_MIN = 17 * 60
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -267,17 +268,18 @@ class RiskEngine:
                          f"{per_ccy} open positions share a currency, max {L.max_positions_per_currency}"))
         return out
 
-    def _c_rollover(self, now: int) -> Check | None:
-        """No new position near the daily rollover (17:00 New York), when the profile sets a window."""
-        mins = self.limits.hard.rollover_blackout_min if self.limits.hard is not None else 0
-        if not mins:
+    def _c_quiet_hours(self, now: int) -> Check | None:
+        """No new position in the profile's New York window (the New York close to the Tokyo open), if it sets one."""
+        h = self.limits.hard
+        if h is None or h.quiet_ny_start_min == h.quiet_ny_end_min:
             return None
+        a, b = h.quiet_ny_start_min, h.quiet_ny_end_min
         ny = datetime.fromtimestamp(now, NEW_YORK)
-        off = ny.hour * 60 + ny.minute - ROLLOVER_NY_MIN
-        off = (off + 720) % 1440 - 720  # minutes from the nearest rollover, -720..719
-        return Check("rollover", not -mins <= off < mins,
-                     f"{ny:%H:%M} New York: no new position within {mins} min of the 17:00 New York rollover "
-                     f"(thin liquidity, wide spreads)")
+        m = ny.hour * 60 + ny.minute
+        inside = a <= m < b if a < b else (m >= a or m < b)  # a window may run past midnight
+        return Check("quiet_hours", not inside,
+                     f"{ny:%H:%M} New York: no new position from {a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} "
+                     f"New York (the rollover to the Tokyo open: the thinnest liquidity of the day)")
 
     def _c_weekend(self, now: int) -> Check | None:
         if self.limits.funded and self.limits.funded.no_weekend_holding:
@@ -293,7 +295,7 @@ class RiskEngine:
         if not out[-1].passed:
             return out
         out += [self._c_daily(account), self._c_weekly(account), self._c_drawdown(account)[0]]
-        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_rollover(now)) if c is not None]
+        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_quiet_hours(now)) if c is not None]
         out += self._c_positions(account, instrument)
         return out
 
@@ -373,7 +375,7 @@ class RiskEngine:
         for c in self._c_positions(account, decision.instrument):
             ok &= add(c)
         ok &= add(self._c_weekend(now))
-        ok &= add(self._c_rollover(now))
+        ok &= add(self._c_quiet_hours(now))
         if not ok:
             return v
 

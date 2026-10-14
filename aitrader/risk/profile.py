@@ -67,9 +67,10 @@ class HardRiskProfile:
     max_lots: float = 50.0
     max_open_positions: int = 5
     permit_ttl_s: int = 10  # an execution permit is single-use and expires
-    #: no NEW position within this many minutes either side of the daily rollover (17:00 New York, DST-aware):
-    #: liquidity is thinnest and spreads widest then. 0: no such window. It only ever refuses an entry.
-    rollover_blackout_min: int = 0
+    #: no NEW position from `quiet_ny_start_min` to `quiet_ny_end_min` (minutes after midnight, New York time,
+    #: DST-aware); equal values: no such window. It only ever refuses an entry; open positions are managed.
+    quiet_ny_start_min: int = 0
+    quiet_ny_end_min: int = 0
     #: LOCK_RUN: a daily breach locks the evaluation run (FTMO fails the account). LOCK_DAY: no new trade until
     #: the next daily reset, and the breach is recorded as an FTMO-rule violation. A maximum-loss breach always
     #: locks the run.
@@ -94,9 +95,10 @@ class HardRiskProfile:
             v = getattr(self, k)
             if not isinstance(v, int) or isinstance(v, bool) or v < 1:
                 p.append(f"{k} must be an integer >= 1 (got {v!r})")
-        if (not isinstance(self.rollover_blackout_min, int) or isinstance(self.rollover_blackout_min, bool)
-                or not 0 <= self.rollover_blackout_min <= 180):
-            p.append(f"rollover_blackout_min must be an integer 0..180 (got {self.rollover_blackout_min!r})")
+        for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
+            v = getattr(self, k)
+            if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v < 1440:
+                p.append(f"{k} must be an integer 0..1439, minutes after midnight New York (got {v!r})")
         if not isinstance(self.swap_nights_allowance, int) or self.swap_nights_allowance < 0:
             p.append(f"swap_nights_allowance must be an integer >= 0 (got {self.swap_nights_allowance!r})")
         if not isinstance(self.reset_hour, int) or isinstance(self.reset_hour, bool) or not 0 <= self.reset_hour <= 23:
@@ -161,9 +163,10 @@ class HardRiskProfile:
 FTMO_200K = HardRiskProfile()
 #: The PAPER_FORWARD account: the same limits; a daily breach stops new trades for the day and is recorded as a
 #: violation, so the forward measurement continues. The maximum loss still ends the run.
-#: The paper forward test: no new entry within an hour either side of the 17:00 New York rollover (2026-10-13:
-#: all three entries in that window were stopped out; thin liquidity there is a known property of the market)
-PAPER_FORWARD_200K = replace(FTMO_200K, name="PAPER-FORWARD-200K", daily_breach="LOCK_DAY", rollover_blackout_min=60)
+#: The paper forward test: no new entry from 16:00 to 20:00 New York, an hour before the 17:00 rollover to the Tokyo
+#: open: the thinnest liquidity of the FX day (2026-10-12/13: all three entries in it were stopped out)
+PAPER_FORWARD_200K = replace(FTMO_200K, name="PAPER-FORWARD-200K", daily_breach="LOCK_DAY",
+                             quiet_ny_start_min=16 * 60, quiet_ny_end_min=20 * 60)
 PROFILES = {FTMO_200K.name: FTMO_200K, PAPER_FORWARD_200K.name: PAPER_FORWARD_200K}
 
 
