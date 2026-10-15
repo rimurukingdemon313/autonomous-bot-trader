@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-15 10:00 UTC**, run 180, version `radar-1.0.0`. State from: cache. Quotes this hour: 2384.
+Updated **2026-10-15 11:00 UTC**, run 181, version `radar-1.0.0`. State from: cache. Quotes this hour: 2388.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-15 10:00 UTC**, run 180, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 7.58
-- run_coverage: 0.9836
+- days: 7.62
+- run_coverage: 0.9837
 - closed_positions: 21
 - open_positions: 1
-- utilisation: 0.0678
+- utilisation: 0.068
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.268
-- book_excess_pct: -0.2818
-- ann_excess_deployed_pct: -204.037
-- ann_excess_deployed_costs_x1.5_pct: -344.668
-- ann_excess_deployed_costs_x2_pct: -485.299
+- book_pnl_pct: -0.2686
+- book_excess_pct: -0.2825
+- ann_excess_deployed_pct: -202.85
+- ann_excess_deployed_costs_x1.5_pct: -342.328
+- ann_excess_deployed_costs_x2_pct: -481.806
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.3102
+- book_excess_without_best_coin_pct: -0.3109
 - max_dd_pct: 0.277
-- t_excess_daily: -2.451
+- t_excess_daily: -2.46
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 8.2 | -11.5 | 17.0 | **-20.2** |
+| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 8.5 | -13.0 | 17.0 | **-21.5** |
 
 ## Closed positions (21)
 
@@ -69,6 +69,6 @@ Updated **2026-10-15 10:00 UTC**, run 180, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| KORU | mexc | gate | 31.3% | 32.5% |
+| KORU | mexc | gate | 31.4% | 20.1% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
