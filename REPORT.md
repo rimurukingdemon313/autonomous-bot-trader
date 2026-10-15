@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-15 02:00 UTC**, run 172, version `radar-1.0.0`. State from: cache. Quotes this hour: 2384.
+Updated **2026-10-15 03:00 UTC**, run 173, version `radar-1.0.0`. State from: cache. Quotes this hour: 2384.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-10-15 02:00 UTC**, run 172, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 7.25
-- run_coverage: 0.9829
+- days: 7.29
+- run_coverage: 0.983
 - closed_positions: 19
 - open_positions: 2
-- utilisation: 0.064
+- utilisation: 0.0647
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.277
-- book_excess_pct: -0.2988
-- ann_excess_deployed_pct: -242.38
-- ann_excess_deployed_costs_x1.5_pct: -393.044
-- ann_excess_deployed_costs_x2_pct: -543.708
+- book_pnl_pct: -0.2438
+- book_excess_pct: -0.2656
+- ann_excess_deployed_pct: -211.528
+- ann_excess_deployed_costs_x1.5_pct: -359.452
+- ann_excess_deployed_costs_x2_pct: -507.377
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.3272
+- book_excess_without_best_coin_pct: -0.294
 - max_dd_pct: 0.277
-- t_excess_daily: -2.567
+- t_excess_daily: -2.073
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| WAL | mexc | gate | 2026-10-14 22:00 | 53.1% | 9.6 | -30.7 | 17.0 | **-38.1** |
-| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 1.7 | -21.2 | 17.0 | **-36.5** |
+| WAL | mexc | gate | 2026-10-14 22:00 | 53.1% | 10.4 | 4.9 | 17.0 | **-1.7** |
+| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 2.8 | 7.9 | 17.0 | **-6.2** |
 
 ## Closed positions (19)
 
@@ -68,7 +68,7 @@ Updated **2026-10-15 02:00 UTC**, run 172, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| WAL | mexc | gate | 57.8% | 53.0% |
-| KORU | mexc | gate | 27.4% | 90.9% |
+| WAL | mexc | gate | 58.6% | 78.6% |
+| KORU | mexc | gate | 28.3% | 104.9% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
