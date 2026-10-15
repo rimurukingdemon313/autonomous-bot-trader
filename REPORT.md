@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 02:45 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
+Updated 2026-10-15 03:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,326.25 | $1,692.31 | $326.25 | $0.00 | 3 | 20 (insufficient) | 50.0% | +0.059R | 1.13 | ACTIVE | RUNNING |
+| $200,000.00 | $200,226.27 | $1,592.33 | $226.27 | $0.00 | 0 | 23 (insufficient) | 47.8% | +0.028R | 1.05 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 7 of the last 20 decisions: PROFILE_CHANGED x7.** A refusal by the gate after the risk engine approved is never routine.
 
@@ -52,14 +52,14 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURUSD | SELL | 4.09 | 1.12225 | 1.1231 | 1.119 | $-364.01 |
-| GBPJPY | SELL | 3.14 | 208.82850000000002 | 209.02 | 208.528 | $-263.10 |
-| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $460.04 |
 
 ## Closed paper trades (latest 20)
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source |
 |---|---|---|---|---|---|---|---|
+| 10-15 02:46 | EURUSD | SELL | $-392.94 | -0.79 | $69.53 | STOP | DUAL_AI |
+| 10-15 02:55 | GBPJPY | SELL | $-402.78 | -0.81 | $75.39 | STOP | DUAL_AI |
+| 10-15 02:52 | NZDUSD | BUY | $528.67 | +1.06 | $85.33 | TARGET | DUAL_AI |
 | 10-15 01:06 | USDCHF | SELL | $631.35 | +1.27 | $83.09 | TARGET | DUAL_AI |
 | 10-15 00:13 | USDJPY | SELL | $496.41 | +1.00 | $58.47 | TARGET | DUAL_AI |
 | 10-14 23:46 | USDCAD | SELL | $827.26 | +1.67 | $146.34 | TARGET | DUAL_AI |
@@ -77,15 +77,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 | 10-13 06:48 | USDJPY | SELL | $228.86 | +0.92 | $42.21 | TARGET | DUAL_AI |
 | 10-13 05:42 | AUDUSD | SELL | $-214.73 | -0.86 | $47.12 | STOP | DUAL_AI |
 | 10-13 01:03 | EURUSD | SELL | $-431.70 | -0.86 | $87.38 | STOP | DUAL_AI |
-| 10-13 01:04 | GBPUSD | SELL | $-355.19 | -0.71 | $110.84 | STOP | DUAL_AI |
-| 10-12 21:01 | USDJPY | BUY | $-414.90 | -0.83 | $114.86 | STOP | DUAL_AI |
-| 10-12 15:38 | EURUSD | SELL | $768.18 | +1.54 | $66.08 | TARGET | DUAL_AI |
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 37/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 38/900
 
-AI trades 20 (insufficient) · wins 10 · losses 10 · expectancy +0.059R · profit factor 1.13
+AI trades 23 (insufficient) · wins 11 · losses 12 · expectancy +0.028R · profit factor 1.05
 
 Disagreements (not traded; the debate runs in shadow): 51 · the debate's pick if taken: 42 resolved (adequate), expectancy -0.010R · the side it rejected if taken: 47 resolved (adequate), expectancy -0.172R
 
