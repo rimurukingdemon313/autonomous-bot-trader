@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-15 11:00 UTC**, run 181, version `radar-1.0.0`. State from: cache. Quotes this hour: 2388.
+Updated **2026-10-15 12:00 UTC**, run 182, version `radar-1.0.0`. State from: cache. Quotes this hour: 2389.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,28 @@ Updated **2026-10-15 11:00 UTC**, run 181, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 7.62
-- run_coverage: 0.9837
+- days: 7.67
+- run_coverage: 0.9838
 - closed_positions: 21
-- open_positions: 1
-- utilisation: 0.068
+- open_positions: 2
+- utilisation: 0.0687
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.2686
-- book_excess_pct: -0.2825
-- ann_excess_deployed_pct: -202.85
-- ann_excess_deployed_costs_x1.5_pct: -342.328
-- ann_excess_deployed_costs_x2_pct: -481.806
+- book_pnl_pct: -0.2757
+- book_excess_pct: -0.2981
+- ann_excess_deployed_pct: -212.312
+- ann_excess_deployed_costs_x1.5_pct: -356.71
+- ann_excess_deployed_costs_x2_pct: -501.108
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.3109
+- book_excess_without_best_coin_pct: -0.3265
 - max_dd_pct: 0.277
-- t_excess_daily: -2.46
+- t_excess_daily: -2.558
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 8.5 | -13.0 | 17.0 | **-21.5** |
+| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 8.8 | -10.4 | 17.0 | **-18.6** |
+| WAL | mexc | gate | 2026-10-15 12:00 | 52.9% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (21)
 
@@ -69,6 +70,7 @@ Updated **2026-10-15 11:00 UTC**, run 181, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| KORU | mexc | gate | 31.4% | 20.1% |
+| WAL | mexc | gate | 52.9% | 15.3% |
+| KORU | mexc | gate | 31.5% | 22.3% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
