@@ -59,12 +59,17 @@ def report_md(v: dict, shift: dict) -> str:
     def gate_code(reason: str) -> str:
         m = re.search(r"reason=([A-Z_]+)", reason)
         return m.group(1) if m else "?"
-    gate = Counter(gate_code(e["reason"]) for e in v.get("pipeline") or []
-                   if "RISK_GATE_REJECTED" in (e.get("reason") or ""))
+    pipe = v.get("pipeline") or []
+    refused = [e for e in pipe if "RISK_GATE_REJECTED" in (e.get("reason") or "")]
+    gate = Counter(gate_code(e["reason"]) for e in refused)
     if gate:
-        lines += [f"**WARNING: the hard risk gate refused {sum(gate.values())} of the last "
-                  f"{len(v.get('pipeline') or [])} decisions: " + ", ".join(f"{k} x{n}" for k, n in gate.most_common())
-                  + ".** A refusal by the gate after the risk engine approved is never routine.", ""]
+        last = max(int(e["t"]) for e in refused)
+        since = [e for e in pipe if int(e["t"]) > last]
+        when = (f" The latest at {datetime.fromtimestamp(last, timezone.utc):%m-%d %H:%M} UTC; "
+                + (f"{len(since)} decision(s) since, none refused by the gate." if since else "none after it yet."))
+        lines += [f"**WARNING: the hard risk gate refused {sum(gate.values())} of the last {len(pipe)} decisions: "
+                  + ", ".join(f"{k} x{n}" for k, n in gate.most_common())
+                  + ".** A refusal by the gate after the risk engine approved is never routine." + when, ""]
     lines += ["## Last decisions (decision → risk → paper execution)", ""]
     for e in v.get("pipeline") or []:
         when = datetime.fromtimestamp(e["t"], timezone.utc).strftime("%m-%d %H:%M")
