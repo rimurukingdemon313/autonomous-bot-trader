@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 09:36 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
+Updated 2026-10-15 09:51 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,288.64 | $654.70 | $-711.36 | $-711.36 | 3 | 26 (insufficient) | 42.3% | -0.070R | 0.86 | ACTIVE | RUNNING |
+| $200,000.00 | $199,220.35 | $586.41 | $-779.65 | $-779.65 | 3 | 26 (insufficient) | 42.3% | -0.070R | 0.86 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 06:15 UTC; 5 decision(s) since, none refused by the gate.
 
@@ -33,8 +33,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 00:15 USDCAD SELL: AI DECISION → RISK REJECTED — reward_risk: 1.12 vs minimum 1.2
 - 10-14 19:45 USDCAD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (720 so far)
+## Latest decisions, NO TRADE included (722 so far)
 
+- 10-15 09:45 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
+- 10-15 09:45 USDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-15 09:30 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-15 09:30 EURUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-15 09:15 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
@@ -45,16 +47,14 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 08:45 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
 - 10-15 08:30 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 70: The M15 structure is clearly bearish with a recent CHoCH and lower lows, while the H4 shows a corrective pullback. S
 - 10-15 08:30 USDCAD BUY: BUY USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 65: The price is trading at the bottom of the established range near strong support (1.4192 - 1.4196). In a range regime, 
-- 10-15 08:15 AUDUSD SELL: SELL AUDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 68: The M15 chart shows a clear bearish structure with recent BOS and CHOCH downwards, while the H4 remain
-- 10-15 08:15 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 68, Trader 2 SELL 70): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $-6.61 |
-| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $40.32 |
-| EURJPY | BUY | 1.86 | 177.0055 | 176.635 | 177.562 | $42.18 |
+| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $59.47 |
+| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $57.12 |
+| EURJPY | BUY | 1.86 | 177.0055 | 176.635 | 177.562 | $-108.98 |
 
 ## Closed paper trades (latest 20)
 
@@ -87,7 +87,7 @@ OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free`
 
 AI trades 26 (insufficient) · wins 11 · losses 15 · expectancy -0.070R · profit factor 0.86
 
-Disagreements (not traded; the debate runs in shadow): 52 · the debate's pick if taken: 48 resolved (adequate), expectancy -0.141R · the side it rejected if taken: 53 resolved (adequate), expectancy -0.112R
+Disagreements (not traded; the debate runs in shadow): 52 · the debate's pick if taken: 49 resolved (adequate), expectancy -0.160R · the side it rejected if taken: 54 resolved (adequate), expectancy -0.131R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +1.743R vs +1.743R as taken (4, insufficient) · held 24 h none resolved yet · stop and target twice as far none resolved yet
 
@@ -95,6 +95,8 @@ Trades taken by session (UTC): ASIA 8 resolved (insufficient), expectancy +0.383
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-15 09:45 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-15 09:45 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 09:30 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 09:30 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 09:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -105,8 +107,6 @@ Trades taken by session (UTC): ASIA 8 resolved (insufficient), expectancy +0.383
 | 10-15 08:45 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 08:30 | USDCHF | SELL 70 | SELL 68 | - | AGREE | SELL | REJECTED |
 | 10-15 08:30 | USDCAD | BUY 65 | BUY 55 | - | AGREE | BUY | REJECTED |
-| 10-15 08:15 | AUDUSD | SELL 68 | SELL 62 | - | AGREE | SELL | REJECTED |
-| 10-15 08:15 | USDJPY | BUY 68 | SELL 70 | SELL | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
