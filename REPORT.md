@@ -1,17 +1,18 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 14:11 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 11:56 UTC · decision system `dual_ai`
+Updated 2026-10-15 14:26 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 11:56 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,412.44 | $778.50 | $-587.56 | $-587.56 | 3 | 29 (insufficient) | 48.3% | +0.016R | 1.02 | ACTIVE | RUNNING |
+| $200,000.00 | $199,368.40 | $734.45 | $-631.60 | $-631.60 | 1 | 31 (adequate) | 45.2% | -0.040R | 0.89 | ACTIVE | RUNNING |
 
-**WARNING: the hard risk gate refused 2 of the last 20 decisions: MARKET_DATA_STALE x2.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 12:15 UTC; 6 decision(s) since, none refused by the gate.
+**WARNING: the hard risk gate refused 2 of the last 20 decisions: MARKET_DATA_STALE x2.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 12:15 UTC; 7 decision(s) since, none refused by the gate.
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-15 14:15 NZDUSD SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 31.8% of the stop (max 25%): spread 0.00015 + commission and slippage
 - 10-15 14:00 USDCAD BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-15 13:30 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-15 13:15 EURCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 0.87 vs minimum 1.2
@@ -31,10 +32,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 04:45 NZDUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-15 04:30 USDCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 1.13 vs minimum 1.2
 - 10-15 03:30 EURJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
-- 10-15 03:15 EURGBP SELL: AI DECISION → RISK REJECTED — reward_risk: 1.08 vs minimum 1.2
 
-## Latest decisions, NO TRADE included (756 so far)
+## Latest decisions, NO TRADE included (758 so far)
 
+- 10-15 14:15 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
+- 10-15 14:15 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 trend is clearly down with lower highs and lower lows, and the recent bearish sweep of highs suggests contin
 - 10-15 14:00 USDCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-15 14:00 USDCAD BUY: BUY USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 72: The price is testing a key demand order block (1.4189-1.41974) and support at 1.41908 after a bullish liquidity sweep 
 - 10-15 13:45 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
@@ -45,21 +47,19 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 13:15 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3-ultra-550b-a55b:free) SELL 65: Bearish CHoCH and supply block define downside bias; stop above 0.93036 respects structure and risk-engine minimum
 - 10-15 13:00 GBPJPY NO_TRADE: the traders disagree (Trader 1 BUY 70, Trader 2 SELL 60): no trade unless both choose the same side; the debate (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) would have chosen BUY: followed for
 - 10-15 13:00 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The M15 chart shows a bearish structure break (CHOCH at 176.891 and BOS at 176.908), shifting the short-term trend d
-- 10-15 12:45 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
-- 10-15 12:45 NZDUSD NO_TRADE: the traders disagree (Trader 1 SELL 65, Trader 2 BUY 55): no trade unless both choose the same side; the debate (nvidia/nemotron-3-ultra-550b-a55b:free) would have chosen BUY: followed forward in shad
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | BUY | 4.07 | 1.419485 | 1.4182 | 1.422 | n/a |
-| EURUSD | SELL | 3.23 | 1.1210499999999999 | 1.1222 | 1.1194 | n/a |
-| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $147.50 |
+| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $103.45 |
 
 ## Closed paper trades (latest 20)
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source |
 |---|---|---|---|---|---|---|---|
+| 10-15 14:11 | USDCAD | BUY | $-399.97 | -0.80 | $77.26 | STOP | DUAL_AI |
+| 10-15 14:01 | EURUSD | SELL | $-453.65 | -0.91 | $54.91 | STOP | DUAL_AI |
 | 10-15 13:59 | USDCAD | SELL | $650.69 | +1.31 | $88.09 | TARGET | DUAL_AI |
 | 10-15 12:02 | NZDUSD | SELL | $225.96 | +0.91 | $38.64 | TARGET | DUAL_AI |
 | 10-15 11:34 | EURJPY | BUY | $29.16 | +0.06 | $32.94 | TIME | DUAL_AI |
@@ -78,14 +78,12 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 | 10-14 02:42 | EURUSD | SELL | $-426.65 | -0.86 | $74.63 | STOP | DUAL_AI |
 | 10-14 00:34 | AUDJPY | SELL | $-411.49 | -0.83 | $98.39 | STOP | DUAL_AI |
 | 10-13 23:06 | NZDUSD | SELL | $13.40 | +0.03 | $100.00 | TIME | DUAL_AI |
-| 10-13 21:26 | EURGBP | BUY | $-439.21 | -0.88 | $101.27 | STOP | DUAL_AI |
-| 10-13 21:01 | EURJPY | SELL | $517.15 | +1.04 | $118.81 | TARGET | DUAL_AI |
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-super-120b-a12b:free` · debate `nvidia/nemotron-3-ultra-550b-a55b:free` · calls today 48/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-super-120b-a12b:free` · debate `nvidia/nemotron-3-ultra-550b-a55b:free` · calls today 50/900
 
-AI trades 29 (insufficient) · wins 14 · losses 15 · expectancy +0.016R · profit factor 1.02
+AI trades 31 (adequate) · wins 14 · losses 17 · expectancy -0.040R · profit factor 0.89
 
 Disagreements (not traded; the debate runs in shadow): 55 · the debate's pick if taken: 51 resolved (adequate), expectancy -0.146R · the side it rejected if taken: 56 resolved (adequate), expectancy -0.164R
 
@@ -95,6 +93,8 @@ Trades taken by session (UTC): ASIA 14 resolved (insufficient), expectancy +0.00
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-15 14:15 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-15 14:15 | NZDUSD | SELL 75 | SELL 75 | - | AGREE | SELL | REJECTED |
 | 10-15 14:00 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 14:00 | USDCAD | BUY 72 | BUY 62 | - | AGREE | BUY | APPROVED |
 | 10-15 13:45 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -105,8 +105,6 @@ Trades taken by session (UTC): ASIA 14 resolved (insufficient), expectancy +0.00
 | 10-15 13:15 | EURCHF | SELL 65 (numbers) | SELL 62 | - | AGREE | SELL | REJECTED |
 | 10-15 13:00 | GBPJPY | BUY 70 | SELL 60 | BUY | DISAGREE | NO_TRADE | - |
 | 10-15 13:00 | EURJPY | SELL 65 | SELL 68 | - | AGREE | SELL | REJECTED |
-| 10-15 12:45 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-15 12:45 | NZDUSD | SELL 65 | BUY 55 | BUY | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
