@@ -190,6 +190,58 @@ def test_a_closed_trade_is_scored_per_trader_and_joins_the_desks_record(tmp_path
     assert view["performance"]["trades"] == 1 and view["performance"]["wins"] == 1
 
 
+def journal_trade_as(rt, template: dict, *, rule, net_pnl, r, closed):
+    """A closed desk trade booked in the journal as an earlier desk version recorded it (dual-ai 1.1.0 traded a
+    debate's pick), or with no rule at all: the same append-only call the orchestrator makes."""
+    o = {**template["outcome"], "net_pnl": net_pnl, "r": r, "closed": closed,
+         "decision_id": f"old-{rule}-{closed}"}
+    if rule is None:
+        o.pop("dual_ai", None)
+    else:
+        o["dual_ai"] = {**o["dual_ai"], "rule": rule, "net_r": r}
+    rt.db.append("trades", {"position_id": f"pos-{rule}-{closed}", "decision_id": o["decision_id"],
+                            "symbol": o["symbol"], "r": r, "pnl": net_pnl, "payload": {**template, "outcome": o}})
+
+
+def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_never_deleted(tmp_path, monkeypatch):
+    import sqlite3
+
+    from scripts.paper_forward_shift import report_md
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
+    cycles(rt, clock)
+    won, _ = close_one(rt, clock, "TARGET")  # the agreement rule, through the real pipeline: a win
+    template = json.loads(rt.db.query("SELECT payload FROM trades")[-1]["payload"])
+    journal_trade_as(rt, template, rule="DEBATE", net_pnl=-400.0, r=-0.8, closed=won["closed"] - 7200)
+    journal_trade_as(rt, template, rule=None, net_pnl=-50.0, r=-0.1, closed=won["closed"] + 60)
+    view = rt.dual_ai()
+    perf, rules = view["performance"], view["performance_by_rule"]
+    assert perf["rule"] == "AGREE" and perf["trades"] == 1 and perf["wins"] == 1 and perf["net_pnl"] == round(won["net_pnl"], 2)
+    assert rules["DEBATE"]["trades"] == 1 and rules["DEBATE"]["net_pnl"] == -400.0 and rules["DEBATE"]["wins"] == 0
+    assert rules["UNKNOWN"]["trades"] == 1 and set(rules) == {"AGREE", "DEBATE", "UNKNOWN"}  # never read as agreement
+    assert view["performance_all_rules"]["trades"] == 3  # every desk trade is still counted somewhere
+    assert [t["decision_id"] for t in view["recent_trades"]] == [won["decision_id"]]
+    old = view["retired_rules"]["DEBATE"]
+    assert old["stopped_in"] == "dual-ai-1.2.0" and old["performance"]["trades"] == 1
+    assert [t["rule"] for t in old["trades"]] == ["DEBATE"] and old["trades"][0]["net_pnl"] == -400.0
+    assert "NO TRADE" in view["rules"]["desk"] and "DEBATE picks" not in view["rules"]["desk"]
+    pf = rt.paper_forward()
+    assert pf["performance"]["overall"]["trades"] == 3  # the account's own figures keep every trade
+    assert {k: b["trades"] for k, b in pf["performance"]["by_rule"].items()} == {"AGREE": 1, "DEBATE": 1, "UNKNOWN": 1}
+    assert sorted(t["rule"] for t in pf["recent_trades"]) == ["AGREE", "DEBATE", "UNKNOWN"]
+    md = report_md({**pf, "dual_ai": view}, {"started": "now", "decision_mode": "dual_ai"})
+    head = md.split("## Paper account (every trade)")[0]
+    assert "## The rule that trades: a trade only when both AIs agree" in head and "| 1 (insufficient) | 1 | 0 |" in head
+    assert "the old DEBATE rule, stopped in dual-ai-1.2.0" in head and "net $-400.00, 0 won" in head
+    assert "rule could not be read: 1, net $-50.00" in head
+    total = f"| ${pf['account']['total_pnl']:,.2f} |"  # the real account, as it is, after the rule that trades
+    assert "| Account | Equity |" not in head and "| Account | Equity |" in md and total in md.split(head)[1]
+    assert "| DEBATE |" in md and "| AGREE |" in md  # each closed trade carries its rule
+    with pytest.raises(sqlite3.DatabaseError, match="immutable"):  # and the old rule's trades cannot be deleted
+        with rt.db.tx() as c:
+            c.execute("DELETE FROM trades WHERE decision_id LIKE 'old-DEBATE-%'")
+    assert rt.db.verify_chain("trades")[0] and len(rt.db.query("SELECT 1 FROM trades")) == 3
+
+
 def test_the_dashboard_shows_the_desk_and_never_the_key(tmp_path, monkeypatch):
     rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
     cycles(rt, clock)

@@ -253,8 +253,17 @@ requests never pile up. On a key without credits (50 a day) set `PF_DECISION_INT
 
 The dashboard's DUAL AI DESK panel (`/api/dual_ai`, `/api/dual_ai/chart.png?symbol=`) shows the OpenRouter
 status, the three models, the last analysis with both traders' answers and the debate, the risk engine's
-verdict, the open paper positions, AI trades, wins, losses, expectancy, profit factor and drawdown. The key is
-shown only as `…` and its last four characters, and is never logged, stored or returned.
+verdict, the open paper positions, and the desk's trades: wins, losses, net P&L, expectancy, profit factor and
+drawdown. The key is shown only as `…` and its last four characters, and is never logged, stored or returned.
+
+**One figure per rule.** Two rules are never averaged into one number ([VERSIONING.md](VERSIONING.md)). The
+desk's figures (`performance`, `recent_trades`, and the head of `REPORT.md`) are those of the rule it trades:
+AGREE. The trades of the debate rule, which traded on a disagreement until dual-ai 1.2.0 stopped it, are shown
+apart under `retired_rules` with their own figures; `performance_by_rule` has every rule, and
+`performance_all_rules` every desk trade, nothing left out. Every closed trade carries its `rule`
+(`paper_metrics.rule_of`, from `outcome.dual_ai.rule`); a desk trade whose rule cannot be read is `UNKNOWN`,
+never counted as agreement. The account (equity, total P&L) is the real paper account and holds every trade of
+both rules: the journal is append-only, so a trade is never deleted and its money never put back.
 
 ## Live check (the real services, on demand)
 

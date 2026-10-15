@@ -96,7 +96,15 @@ def storage_state(data_dir: str, env=None) -> dict:
 #: and lists journal positions the broker no longer holds; the forward ledger resolves every 5 minutes;
 #: /readyz, /metrics, /api/evidence, /api/lessons.
 #: 1.8.0: /api/dual_ai and /api/dual_ai/chart.png (DECISION_MODE=dual_ai, PAPER_FORWARD only); OpenRouter status.
-SERVICE_VERSION = "service-1.8.0"
+#: 1.9.0: the desk's figures are those of the rule it trades (AGREE); the trades of the debate rule it no longer
+#: trades (retired in dual-ai 1.2.0) are shown apart, never averaged in; every closed trade carries its rule;
+#: the desk's rule text says what runs (a disagreement is NO TRADE).
+SERVICE_VERSION = "service-1.9.0"
+#: the desk's rules that no longer trade: the version that stopped each, what it did, what decides instead. Their
+#: trades stay in the journal (append-only) and are shown as theirs, never as the current rule's.
+RETIRED_DUAL_AI_RULES = {"DEBATE": {"stopped_in": "dual-ai-1.2.0",
+                                    "was": "opposite sides: one debate picked the side and the trade was taken",
+                                    "now": "opposite sides: NO TRADE; the debate runs in shadow, measured, never traded"}}
 #: modes that may decide more often than the evidence system's tested H1 cadence
 FLEX_MODES = MODEL_MODES + ("edges",)
 FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
@@ -805,7 +813,7 @@ class Runtime:
                 outcomes.append(o)
         out["performance"] = paper_metrics.report(outcomes)
         out["open_positions"] = self._live_positions()
-        out["recent_trades"] = outcomes[-20:][::-1]
+        out["recent_trades"] = [{**o, "rule": paper_metrics.rule_of(o)} for o in outcomes[-20:][::-1]]
         out["pipeline"] = [json.loads(e["payload"]) for e in
                            self.db.query("SELECT payload FROM events WHERE type='PIPELINE' ORDER BY seq DESC LIMIT 20")]
         # every decision, NO_TRADE included, with its reason: shows the system is reading the market at all
@@ -827,10 +835,10 @@ class Runtime:
                      "mode": self.cfg.mode, "live_trading": False, "money": "NOT REAL MONEY",
                      "openrouter": self.openrouter.health(),
                      "rules": {"max_calls_per_decision": 3, "free_models_only": True,
-                               "desk": "each trader chooses BUY or SELL; same side -> AGREE (the more confident "
-                                       "trader's levels); opposite sides -> one DEBATE picks the side; the risk "
-                                       "engine sizes and may refuse; NO_TRADE only when the market or an AI is "
-                                       "unavailable"}}
+                               "desk": "each trader chooses BUY or SELL; same side -> AGREE, a trade (the more "
+                                       "confident trader's levels, or the other's when only those fit the risk "
+                                       "limits); opposite sides -> NO TRADE (the debate runs in shadow: measured, "
+                                       "never traded); the risk engine sizes and may refuse"}}
         trader = getattr(self.orch.brain, "dual_ai", None)
         out["charts"] = {s: {"t": c["t"], "decision_id": c["decision_id"], **c["meta"]}
                          for s, c in (dict(trader.charts) if trader is not None else {}).items()}
@@ -860,9 +868,19 @@ class Runtime:
             rec = json.loads(row["payload"]) or {}
             if (rec.get("decision") or {}).get("family") == "DUAL_AI" and rec.get("outcome"):
                 outcomes.append(rec["outcome"])
-        out["performance"] = paper_metrics.summary(outcomes)
+        # two rules are never averaged into one number (docs/VERSIONING.md): the desk's figures are the rule it
+        # trades; a retired rule's trades are listed as theirs; a trade whose rule cannot be read is UNKNOWN
+        by_rule: dict[str, list[dict]] = {}
+        for o in outcomes:
+            by_rule.setdefault(paper_metrics.rule_of(o), []).append({**o, "rule": paper_metrics.rule_of(o)})
+        agree = by_rule.get("AGREE", [])
+        out["performance"] = {**paper_metrics.summary(agree), "rule": "AGREE"}
+        out["performance_by_rule"] = {k: paper_metrics.summary(v) for k, v in sorted(by_rule.items())}
+        out["performance_all_rules"] = paper_metrics.summary(outcomes)  # every desk trade, nothing left out
+        out["retired_rules"] = {k: {**v, "performance": paper_metrics.summary(by_rule.get(k, [])),
+                                    "trades": by_rule.get(k, [])[::-1]} for k, v in RETIRED_DUAL_AI_RULES.items()}
         out["record"] = dual_ai_stats.record(self.db)
-        out["recent_trades"] = outcomes[-10:][::-1]
+        out["recent_trades"] = agree[-10:][::-1]
         return out
 
     def _family_of_position(self, position_id) -> str | None:

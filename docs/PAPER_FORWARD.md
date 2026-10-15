@@ -137,6 +137,10 @@ broker other than the paper broker exists.
 - The deterministic system's history is already known. PR-001 C, 2010–2016, ran bar by bar with real bid/ask
   and costs: −0.072 R per trade over 2,928 trades, t −2.9, negative in 5 of 7 years.
 - A model trader can only be judged here, forward. It cannot be judged on history it may have memorised.
+- Each rule is judged on its own trades. With the dual-AI desk, `REPORT.md` opens with the rule that trades
+  (both AIs agree) and says, under it, how many trades of a retired rule the account also holds and what they
+  made; every closed trade carries its `rule`, and `performance.by_rule` has each rule's figures. The account
+  itself is never adjusted: the journal is append-only, so no trade is removed and no money is put back.
 
 ## Decision systems
 

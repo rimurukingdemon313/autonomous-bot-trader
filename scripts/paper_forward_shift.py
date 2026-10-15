@@ -47,7 +47,31 @@ def report_md(v: dict, shift: dict) -> str:
         f"Updated {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC · mode `{v['mode']}` · profile `{v['profile']}` · "
         f"shift started {shift['started']} · decision system `{shift['decision_mode']}`", "",
         f"Research status (historical, unchanged): **{v['research_status']}**. This run measures the system forward; "
-        "it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.", "",
+        "it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.", ""]
+    dai = v.get("dual_ai") or {}
+    if dai.get("active"):  # the rule that trades first; two rules are never averaged into one number
+        g = dai.get("performance") or {}
+        lines += ["## The rule that trades: a trade only when both AIs agree", "",
+                  "| Trades | Wins | Losses | Win rate | Net P&L | Expectancy | Profit factor | Max drawdown |",
+                  "|---|---|---|---|---|---|---|---|",
+                  f"| {g.get('trades', 0)} ({g.get('sample', 'none')}) | {g.get('wins', 0)} | {g.get('losses', 0)} | "
+                  f"{fmt(g.get('win_rate'), '{:.1%}')} | {money(g.get('net_pnl'))} | "
+                  f"{fmt(g.get('expectancy_r'), '{:+.3f}R')} | {fmt(g.get('profit_factor'), '{:.2f}')} | "
+                  f"{money(g.get('max_drawdown_usd'))} |", ""]
+        for name, r in (dai.get("retired_rules") or {}).items():
+            rp = r.get("performance") or {}
+            if rp.get("trades"):
+                lines += [f"The account below is the real paper account. It also holds the {rp['trades']} trade(s) of "
+                          f"the old {name} rule, stopped in {r.get('stopped_in')} ({r.get('was')}): net "
+                          f"{money(rp.get('net_pnl'))}, {rp.get('wins', 0)} won, expectancy "
+                          f"{fmt(rp.get('expectancy_r'), '{:+.3f}R')}. They stay in the journal, listed as theirs, and "
+                          "are never averaged with the agreement figures.", ""]
+        unknown = (dai.get("performance_by_rule") or {}).get("UNKNOWN") or {}
+        if unknown.get("trades"):
+            lines += [f"Desk trades whose rule could not be read: {unknown['trades']}, net "
+                      f"{money(unknown.get('net_pnl'))}: in the account, in neither rule's figures.", ""]
+        lines += ["## Paper account (every trade)", ""]
+    lines += [
         "| Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |",
         "|---|---|---|---|---|---|---|---|---|---|---|---|",
         f"| {money(v.get('start_balance'))} | {money(a.get('equity'))} | {money(a.get('today_pnl'))} | "
@@ -84,14 +108,13 @@ def report_md(v: dict, shift: dict) -> str:
     for p in v.get("open_positions") or []:
         lines.append(f"| {p['symbol']} | {p['side']} | {p['qty']} | {p['entry']} | {p['stop']} | {p['target']} | {money(p.get('pnl'))} |")
     lines += ["", "## Closed paper trades (latest 20)", "",
-              "| Closed | Symbol | Side | Net | R | Costs | Exit | Source |", "|---|---|---|---|---|---|---|---|"]
+              "| Closed | Symbol | Side | Net | R | Costs | Exit | Source | Rule |", "|---|---|---|---|---|---|---|---|---|"]
     for t in v.get("recent_trades") or []:
         when = datetime.fromtimestamp(t["closed"], timezone.utc).strftime("%m-%d %H:%M")
         lines.append(f"| {when} | {t['symbol']} | {t['direction']} | {money(t.get('net_pnl'))} | "
                      f"{fmt(t.get('r'), '{:+.2f}')} | {money(t.get('costs_total'))} | "
-                     f"{t.get('exit_reason')} | {t.get('source') or t.get('agent')} |")
-    dai = v.get("dual_ai")
-    if dai and dai.get("active"):
+                     f"{t.get('exit_reason')} | {t.get('source') or t.get('agent')} | {t.get('rule') or '-'} |")
+    if dai.get("active"):
         o, perf = dai.get("openrouter") or {}, dai.get("performance") or {}
         rec = dai.get("record") or {}
         pick, lose = rec.get("debate_pick_if_taken") or {}, rec.get("debate_losing_side_if_taken") or {}
@@ -109,9 +132,13 @@ def report_md(v: dict, shift: dict) -> str:
                   f"OpenRouter `{o.get('status')}` · key {'set' if o.get('configured') else 'NOT SET'} · trader 1 "
                   f"`{o.get('vision_model')}` · trader 2 `{o.get('judge_model')}` · debate `{o.get('verifier_model')}` · "
                   f"calls today {o.get('calls_today')}/{o.get('daily_budget')}", "",
-                  f"AI trades {perf.get('trades', 0)} ({perf.get('sample', 'none')}) · wins {perf.get('wins', 0)} · "
-                  f"losses {perf.get('losses', 0)} · expectancy {fmt(perf.get('expectancy_r'), '{:+.3f}R')} · "
-                  f"profit factor {fmt(perf.get('profit_factor'), '{:.2f}')}", "",
+                  f"Agreement trades {perf.get('trades', 0)} ({perf.get('sample', 'none')}) · wins {perf.get('wins', 0)} · "
+                  f"losses {perf.get('losses', 0)} · net {money(perf.get('net_pnl'))} · expectancy "
+                  f"{fmt(perf.get('expectancy_r'), '{:+.3f}R')} · profit factor {fmt(perf.get('profit_factor'), '{:.2f}')}"
+                  + "".join(f" · old {k} rule (stopped in {r.get('stopped_in')}): {(r.get('performance') or {}).get('trades', 0)} "
+                            f"trade(s), net {money((r.get('performance') or {}).get('net_pnl'))}, apart"
+                            for k, r in (dai.get("retired_rules") or {}).items()
+                            if (r.get("performance") or {}).get("trades")), "",
                   f"Disagreements (not traded; the debate runs in shadow): "
                   f"{(rec.get('decisions_by_rule') or {}).get('DISAGREE', 0)} · the debate's pick if taken: "
                   f"{shadow(pick)} · the side it rejected if taken: {shadow(lose)}", "",

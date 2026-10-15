@@ -634,6 +634,10 @@ function renderPaperForward(P) {
     tile("Expectancy", O.expectancy_r === null || O.expectancy_r === undefined ? NA : `${signed(O.expectancy_r)}R`),
     tile("Profit factor", num(O.profit_factor)), tile("Risk status", esc(P.risk_status || "N/A")),
     tile("Bot status", esc(P.bot_status || "N/A")),
+    // the desk's rules, each its own figure: never averaged into one number
+    ...[["AGREE", "Agreement rule (trading)"], ["DEBATE", "Old debate rule (stopped)"], ["UNKNOWN", "Rule unreadable"]]
+      .filter(([k]) => ((P.performance || {}).by_rule || {})[k])
+      .map(([k, label]) => { const b = P.performance.by_rule[k]; return tile(label, `${b.trades} · ${money(b.net_pnl)}`); }),
   ].join("");
   $("pf-sample").textContent = O.trades ? `${O.trades} trades · sample ${O.sample}` : "none yet";
   $("pf-pipeline").innerHTML = (P.pipeline || []).map((e) => {
@@ -642,7 +646,7 @@ function renderPaperForward(P) {
   }).join("") || '<li class="muted">No trade decision yet.</li>';
   $("pf-trades").querySelector("tbody").innerHTML = (P.recent_trades || []).map((t) => `<tr><td>${ts(t.closed)}</td>
     <td>${esc(t.symbol)}</td><td>${esc(t.direction)}</td><td>${signed(t.net_pnl, 2)}</td><td>${signed(t.r, 2)}</td>
-    <td>${num(t.costs_total)}</td><td>${esc(t.exit_reason)}</td><td>${esc(t.agent || t.source || "")}</td></tr>`).join("");
+    <td>${num(t.costs_total)}</td><td>${esc(t.exit_reason)}</td><td>${esc(t.agent || t.source || "")}</td><td>${esc(t.rule || "—")}</td></tr>`).join("");
 }
 async function refreshPaperForward() { await safe(async () => renderPaperForward(await api("/api/paper_forward"))); }
 
@@ -662,12 +666,16 @@ function renderDualAI(D) {
     tile("Desk", L && L.consensus ? esc(L.consensus.rule) : NA),
     tile("Risk engine", L && L.risk ? (L.risk.approved ? "APPROVED" : "REJECTED") : NA),
     tile("Open positions", String((D.open_positions || []).length)),
-    tile("AI trades", String(P.trades ?? 0)), tile("Wins", String(P.wins ?? 0)), tile("Losses", String(P.losses ?? 0)),
+    tile("Agreement trades", String(P.trades ?? 0)), tile("Wins", String(P.wins ?? 0)), tile("Losses", String(P.losses ?? 0)),
+    tile("Net P&L (agreement)", P.net_pnl === null || P.net_pnl === undefined ? NA : `$${num(P.net_pnl, 2)}`),
     tile("Expectancy", P.expectancy_r === null || P.expectancy_r === undefined ? NA : `${signed(P.expectancy_r)}R`),
     tile("Profit factor", num(P.profit_factor)), tile("Max drawdown", P.max_drawdown_usd === undefined ? NA : `$${num(P.max_drawdown_usd, 2)}`),
     tile("Sample", esc(P.sample || "none")), tile("Agreement", R.agreement_rate === null || R.agreement_rate === undefined ? NA : pct(R.agreement_rate)),
     tile("Disagreements (no trade)", String((R.decisions_by_rule || {}).DISAGREE ?? 0)),
     tile("Debate pick if taken", (R.debate_pick_if_taken || {}).n ? `${signed(R.debate_pick_if_taken.expectancy_r)}R · n ${R.debate_pick_if_taken.n}` : NA),
+    // a rule the desk no longer trades: its trades stay in the record, shown as theirs, never in the figures above
+    ...Object.entries(D.retired_rules || {}).filter(([, r]) => (r.performance || {}).trades).map(([k, r]) =>
+      tile(`Old ${k.toLowerCase()} rule (stopped in ${esc(r.stopped_in || "?")})`, `${r.performance.trades} · $${num(r.performance.net_pnl, 2)}`)),
   ].join("");
   $("dai-when").textContent = L ? `${ts(L.t)} · ${L.symbol}` : "none yet";
   if (L) {

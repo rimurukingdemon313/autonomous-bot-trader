@@ -688,6 +688,20 @@ MUTANTS = [
      'MODEL_SIGNAL_CLASSES = frozenset({"LLM_TRADER", "TRADING_ROOM", "EXPERIMENTAL_AI"})', ["tests/integration/test_dual_ai_paper_forward.py"]),
     ("dai-chart-completed", "the chart draws completed bars only",
      "aitrader/charts/render.py", "n = int((bars.available_at <= as_of).sum())", "n = len(bars)", ["tests/unit/test_charts.py"]),
+    ("view-agree-only", "the desk's figures are the rule it trades: a retired rule's trades are never averaged in",
+     "aitrader/service/runtime.py", '        out["performance"] = {**paper_metrics.summary(agree), "rule": "AGREE"}',
+     '        out["performance"] = {**paper_metrics.summary(outcomes), "rule": "AGREE"}',
+     ["tests/integration/test_dual_ai_paper_forward.py"]),
+    ("view-recent-agree-only", "the desk's recent trades are the rule it trades, the retired rule's listed apart",
+     "aitrader/service/runtime.py", '        out["recent_trades"] = agree[-10:][::-1]',
+     '        out["recent_trades"] = outcomes[-10:][::-1]', ["tests/integration/test_dual_ai_paper_forward.py"]),
+    ("rule-unknown-not-agree", "a desk trade whose rule cannot be read is UNKNOWN, never counted as agreement",
+     "aitrader/learning/paper_metrics.py", '    return "UNKNOWN" if outcome.get("agent") == "DUAL_AI" else "NOT_DUAL_AI"',
+     '    return "AGREE" if outcome.get("agent") == "DUAL_AI" else "NOT_DUAL_AI"',
+     ["tests/integration/test_dual_ai_paper_forward.py"]),
+    ("report-agree-first", "the report opens with the rule that trades, the account after it, unchanged",
+     "scripts/paper_forward_shift.py", '        g = dai.get("performance") or {}',
+     '        g = (v.get("performance") or {}).get("overall") or {}', ["tests/integration/test_dual_ai_paper_forward.py"]),
 ]
 
 
