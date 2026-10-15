@@ -1,17 +1,18 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 02:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
+Updated 2026-10-15 02:30 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,989.98 | $2,356.04 | $989.98 | $0.00 | 2 | 20 (insufficient) | 50.0% | +0.059R | 1.13 | ACTIVE | RUNNING |
+| $200,000.00 | $200,773.31 | $2,139.37 | $773.31 | $0.00 | 2 | 20 (insufficient) | 50.0% | +0.059R | 1.13 | ACTIVE | RUNNING |
 
-**WARNING: the hard risk gate refused 9 of the last 20 decisions: PROFILE_CHANGED x9.** A refusal by the gate after the risk engine approved is never routine.
+**WARNING: the hard risk gate refused 8 of the last 20 decisions: PROFILE_CHANGED x8.** A refusal by the gate after the risk engine approved is never routine.
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-15 02:15 EURCHF SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 27.3% of the stop (max 25%): spread 0.00018 + commission and slippage
 - 10-15 02:00 GBPJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-15 01:30 USDCAD SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 27.4% of the stop (max 25%): spread 0.00015 + commission and slippage
 - 10-15 00:30 NZDUSD BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
@@ -31,10 +32,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 17:45 USDJPY SELL: AI DECISION → RISK REJECTED — spread: spread is 28.6% of the stop (max 25%); cost_to_risk: round-trip cost is 54.3% of the stop (max 25%): spread 0.01 + commission and slippage
 - 10-14 17:30 GBPUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 17:30 EURUSD SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
-- 10-14 17:00 AUDJPY SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 
-## Latest decisions, NO TRADE included (660 so far)
+## Latest decisions, NO TRADE included (662 so far)
 
+- 10-15 02:15 AUDJPY NO_TRADE: the traders disagree (Trader 1 SELL 75, Trader 2 BUY 60): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
+- 10-15 02:15 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 chart shows a clear bearish structure with lower lows and multiple bearish BOS, while the H4 timeframe shows
 - 10-15 02:00 GBPJPY SELL: SELL GBPJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 chart shows a bearish structure with a lower high and a tested supply order block, while H4 shows a bearish 
 - 10-15 02:00 EURJPY NO_TRADE: the traders disagree (Trader 1 BUY 72, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
 - 10-15 01:45 EURGBP NO_TRADE: the traders disagree (Trader 1 BUY 65, Trader 2 SELL 55): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
@@ -45,15 +47,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 01:15 USDJPY NO_TRADE: the traders disagree (Trader 1 SELL 75, Trader 2 BUY 60): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen SELL: followed forward in shadow,
 - 10-15 01:00 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-15 01:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-15 00:30 NZDUSD BUY: BUY NZDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-lightning:free) BUY 75: M15 trend UP with confirmed BOS bullish break at 0.56 and recent HH at 0.56117 above current ask 0.56108. Entry zone 0.5
-- 10-15 00:15 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The M15 structure is heavily bearish with multiple lower highs, lower lows, and consecutive bearish BOS breaks, show
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| GBPJPY | SELL | 3.14 | 208.82850000000002 | 209.02 | 208.528 | $-37.59 |
-| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $534.24 |
+| GBPJPY | SELL | 3.14 | 208.82850000000002 | 209.02 | 208.528 | $-31.65 |
+| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $311.64 |
 
 ## Closed paper trades (latest 20)
 
@@ -82,11 +82,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 31/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 36/900
 
 AI trades 20 (insufficient) · wins 10 · losses 10 · expectancy +0.059R · profit factor 1.13
 
-Disagreements (not traded; the debate runs in shadow): 50 · the debate's pick if taken: 41 resolved (adequate), expectancy -0.037R · the side it rejected if taken: 46 resolved (adequate), expectancy -0.152R
+Disagreements (not traded; the debate runs in shadow): 51 · the debate's pick if taken: 42 resolved (adequate), expectancy -0.010R · the side it rejected if taken: 47 resolved (adequate), expectancy -0.172R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R none resolved yet · held 24 h none resolved yet · stop and target twice as far none resolved yet
 
@@ -94,6 +94,8 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-15 02:15 | AUDJPY | SELL 75 | BUY 60 | BUY | DISAGREE | NO_TRADE | - |
+| 10-15 02:15 | EURCHF | SELL 75 | SELL 70 | - | AGREE | SELL | REJECTED |
 | 10-15 02:00 | GBPJPY | SELL 75 | SELL 65 | - | AGREE | SELL | APPROVED |
 | 10-15 02:00 | EURJPY | BUY 72 | SELL 65 | BUY | DISAGREE | NO_TRADE | - |
 | 10-15 01:45 | EURGBP | BUY 65 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
@@ -104,8 +106,6 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 | 10-15 01:15 | USDJPY | SELL 75 | BUY 60 | SELL | DISAGREE | NO_TRADE | - |
 | 10-15 01:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 01:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-15 00:30 | NZDUSD | BUY 75 | BUY 65 | - | AGREE | BUY | APPROVED |
-| 10-15 00:15 | USDCHF | SELL 72 | SELL 65 | - | AGREE | SELL | APPROVED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
