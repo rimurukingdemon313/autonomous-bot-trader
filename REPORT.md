@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 01:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
+Updated 2026-10-15 01:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,897.73 | $1,263.79 | $-102.27 | $-102.27 | 2 | 19 (insufficient) | 47.4% | -0.004R | 0.96 | ACTIVE | RUNNING |
+| $200,000.00 | $200,433.96 | $1,800.02 | $433.96 | $0.00 | 1 | 20 (insufficient) | 50.0% | +0.059R | 1.13 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 11 of the last 20 decisions: PROFILE_CHANGED x11.** A refusal by the gate after the risk engine approved is never routine.
 
@@ -52,13 +52,13 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $-207.76 |
-| USDCHF | SELL | 3.16 | 0.831215 | 0.8322 | 0.8295 | $243.52 |
+| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $-59.36 |
 
 ## Closed paper trades (latest 20)
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source |
 |---|---|---|---|---|---|---|---|
+| 10-15 01:06 | USDCHF | SELL | $631.35 | +1.27 | $83.09 | TARGET | DUAL_AI |
 | 10-15 00:13 | USDJPY | SELL | $496.41 | +1.00 | $58.47 | TARGET | DUAL_AI |
 | 10-14 23:46 | USDCAD | SELL | $827.26 | +1.67 | $146.34 | TARGET | DUAL_AI |
 | 10-14 10:59 | AUDJPY | BUY | $348.10 | +0.70 | $53.12 | TIME | DUAL_AI |
@@ -81,11 +81,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `thinkingmachines/inkling-small:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `google/gemma-4-26b-a4b-it:free` · calls today 6/900
 
-AI trades 19 (insufficient) · wins 9 · losses 10 · expectancy -0.004R · profit factor 0.96
+AI trades 20 (insufficient) · wins 10 · losses 10 · expectancy +0.059R · profit factor 1.13
 
-Disagreements (not traded; the debate runs in shadow): 45 · the debate's pick if taken: 38 resolved (adequate), expectancy +0.046R · the side it rejected if taken: 43 resolved (adequate), expectancy -0.193R
+Disagreements (not traded; the debate runs in shadow): 45 · the debate's pick if taken: 39 resolved (adequate), expectancy +0.017R · the side it rejected if taken: 44 resolved (adequate), expectancy -0.161R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R none resolved yet · held 24 h none resolved yet · stop and target twice as far none resolved yet
 
