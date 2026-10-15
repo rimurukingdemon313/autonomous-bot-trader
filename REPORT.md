@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 11:51 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
+Updated 2026-10-15 11:56 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,393.23 | $759.28 | $-606.77 | $-606.77 | 2 | 27 (insufficient) | 44.4% | -0.065R | 0.86 | ACTIVE | RUNNING |
+| $200,000.00 | $199,448.83 | $814.88 | $-551.17 | $-551.17 | 2 | 27 (insufficient) | 44.4% | -0.065R | 0.86 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 06:15 UTC; 5 decision(s) since, none refused by the gate.
 
@@ -52,8 +52,8 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $-6.60 |
-| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $157.92 |
+| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $15.40 |
+| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $191.52 |
 
 ## Closed paper trades (latest 20)
 
