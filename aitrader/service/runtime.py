@@ -167,7 +167,8 @@ class Runtime:
         self.execution = ExecutionEngine(self.db, self.broker, self.clock, gate=self.gate,
                                          allow_unvalidated=cfg.mode in PAPER_MODES or cfg.experimental_execute,
                                          max_decision_age_s=cfg.max_decision_age_s,
-                                         paper_forward=cfg.mode == "PAPER_FORWARD")
+                                         paper_forward=cfg.mode == "PAPER_FORWARD",
+                                         quote_wait=bool(getattr(self.feed, "LIVE", False)))
         self.orch = Orchestrator(
             OrchestratorConfig(list(cfg.symbols), mode=cfg.mode, journal="full", events="all",
                                start_balance=cfg.start_balance, experimental_execute=cfg.experimental_execute),

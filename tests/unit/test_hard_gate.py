@@ -742,3 +742,73 @@ def test_no_new_position_that_could_still_be_open_at_the_friday_close(when, hold
 
 def test_weekend_carry_is_only_checked_when_the_limits_say_so():
     assert _carry((2026, 10, 16, 13, 1), 480, carry=False).approved
+
+
+
+# ── a lagging public quote is waited for, bounded, before the gate decides ──
+
+def _lagging(e, fresh_after=None):
+    """The feed stamps EURUSD 200 s ago (stale for the gate's 30 s); its next price arrives after `fresh_after`
+    waits, or never."""
+    e.gate.observe(e.broker)
+    e.feed.q["EURUSD"][2] = T0 - 200
+    waits = []
+
+    def sleep(s):
+        waits.append(s)
+        e.clock.t += s
+        if fresh_after is not None and len(waits) == fresh_after:
+            e.feed.q["EURUSD"][2] = None  # stamped now
+    e.ex.quote_wait, e.ex.sleep = True, sleep
+    return waits
+
+
+def test_a_quote_that_lags_the_gate_is_waited_for_and_the_trade_goes_through_when_the_next_price_arrives():
+    # found live (2026-10-15): Yahoo stamped AUDUSD 97 s and EURGBP 257 s old; the gate refused two approved trades
+    e = env()
+    waits = _lagging(e, fresh_after=2)
+    r = execute(e, "lag")
+    assert r.status == "FILLED", r.detail
+    assert waits == [15, 15] and len(e.broker.positions()) == 1
+    assert e.db.one("SELECT 1 AS x FROM events WHERE type='QUOTE_WAIT'") is not None
+
+
+def test_a_quote_that_never_refreshes_is_waited_for_a_bounded_time_and_the_gate_refuses():
+    e = env()
+    waits = _lagging(e)
+    r = execute(e, "never")
+    assert r.status == "BLOCKED" and "MARKET_DATA_STALE" in r.detail
+    assert waits == [15] * 6 and e.broker.positions() == []  # bounded: 90 s, then the gate decides
+
+
+def test_a_fresh_quote_is_not_waited_for():
+    e = env()
+    e.gate.observe(e.broker)
+    waits = []
+    e.ex.quote_wait, e.ex.sleep = True, waits.append
+    assert execute(e, "fresh").status == "FILLED" and waits == []
+
+
+def test_only_a_live_feed_is_waited_for_a_replay_or_a_backtest_has_no_next_price():
+    e = env()  # a replay-like feed: quote_wait is off unless the feed is live
+    e.gate.observe(e.broker)
+    e.feed.q["EURUSD"][2] = T0 - 200
+    waits = []
+    e.ex.sleep = waits.append
+    r = execute(e, "replay")
+    assert r.status == "BLOCKED" and "MARKET_DATA_STALE" in r.detail and waits == []
+    import inspect
+    from aitrader.data.yahoo import YahooFeed
+    assert YahooFeed.LIVE is True and inspect.signature(ExecutionEngine).parameters["quote_wait"].default is False
+
+
+def test_the_service_waits_for_quotes_only_on_a_live_feed(tmp_path, monkeypatch):
+    from tests.integration.test_cadence import LiveLikeFeed
+    from tests.integration.test_paper_forward import pf_runtime
+    for d in ("replay", "live"):
+        (tmp_path / d).mkdir()
+    rt, _, _ = pf_runtime(tmp_path / "replay", monkeypatch)  # a replay feed: no next price to wait for
+    assert rt.execution.quote_wait is False
+    monkeypatch.setattr(LiveLikeFeed, "LIVE", True, raising=False)  # the same service on a feed that is live
+    rt, _, _ = pf_runtime(tmp_path / "live", monkeypatch)
+    assert rt.execution.quote_wait is True
