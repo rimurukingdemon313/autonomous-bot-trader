@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 06:20 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 00:45 UTC · decision system `dual_ai`
+Updated 2026-10-15 06:21 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | $200,000.00 | $199,603.35 | $969.41 | $-396.65 | $-396.65 | 2 | 25 (insufficient) | 44.0% | -0.038R | 0.89 | ACTIVE | RUNNING |
 
-**WARNING: the hard risk gate refused 3 of the last 20 decisions: PROFILE_CHANGED x2, MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine.
+**WARNING: the hard risk gate refused 3 of the last 20 decisions: PROFILE_CHANGED x2, MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 06:15 UTC; none after it yet.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -82,7 +82,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 52/900
+OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
 AI trades 25 (insufficient) · wins 11 · losses 14 · expectancy -0.038R · profit factor 0.89
 
