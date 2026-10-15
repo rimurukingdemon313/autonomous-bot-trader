@@ -846,7 +846,7 @@ class Runtime:
                 "reason": str(p.get("no_trade_reason") or p.get("thesis") or "")[:300],
                 "consensus": rec.get("consensus"), "models": rec.get("models"), "trader1": rec.get("trader1"),
                 "trader2": rec.get("trader2"), "verifier": rec.get("verifier"), "chart": rec.get("chart"),
-                "calls": rec.get("calls"),
+                "calls": rec.get("calls"), "trader1_input": rec.get("trader1_input"), "version": rec.get("version"),
                 "risk": (None if v is None else {"approved": bool(v["approved"]), "reasons": (vp or {}).get("reasons"),
                                                  "qty": (vp or {}).get("qty")})})
             if len(analyses) >= 12:

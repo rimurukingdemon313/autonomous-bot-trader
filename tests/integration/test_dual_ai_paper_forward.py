@@ -200,6 +200,7 @@ def test_the_dashboard_shows_the_desk_and_never_the_key(tmp_path, monkeypatch):
     assert o["verifier_model"] == DEBATE and o["key_hint"] == "…" + KEY[-4:]
     last = view["last_analysis"]
     assert last["trader1"]["direction"] == "BUY" and last["trader2"]["confidence"] == 80 and last["risk"]["approved"]
+    assert last["trader1_input"] == "image" and last["version"].startswith("dual-ai-")  # the report's "(numbers)" mark
     assert view["open_positions"] and rt.dual_ai_chart("EURUSD")[:4] == b"\x89PNG"
     everything = json.dumps([view, rt.status(), rt.paper_forward(), rt.logs(), rt.events(0, 500)], default=str)
     assert KEY not in everything and KEY[:-4] not in everything
