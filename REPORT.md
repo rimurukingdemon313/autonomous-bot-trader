@@ -1,17 +1,18 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 06:36 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
+Updated 2026-10-15 06:51 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,572.12 | $938.18 | $-427.88 | $-427.88 | 2 | 25 (insufficient) | 44.0% | -0.038R | 0.89 | ACTIVE | RUNNING |
+| $200,000.00 | $199,543.85 | $909.91 | $-456.15 | $-456.15 | 3 | 25 (insufficient) | 44.0% | -0.038R | 0.89 | ACTIVE | RUNNING |
 
-**WARNING: the hard risk gate refused 3 of the last 20 decisions: PROFILE_CHANGED x2, MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 06:15 UTC; none after it yet.
+**WARNING: the hard risk gate refused 3 of the last 20 decisions: PROFILE_CHANGED x2, MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 06:15 UTC; 1 decision(s) since, none refused by the gate.
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-15 06:45 USDJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-15 06:15 EURGBP SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=MARKET_DATA_STALE equity_conservative=199578.57 daily_pnl=944.63 daily_limit=-10000.00 total_pnl=-421.43 total_limit=-20000.00 open_risk=910.95 detail='quote 
 - 10-15 04:45 NZDUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-15 04:30 USDCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 1.13 vs minimum 1.2
@@ -31,10 +32,11 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-14 19:15 EURUSD BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 25.0% of the stop (max 25%): spread 8e-05 + commission and slippage
 - 10-14 19:00 GBPJPY SELL: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
 - 10-14 19:00 EURJPY BUY: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=PROFILE_CHANGED  detail='this evaluation run was started under profile PAPER-FORWARD-200K (98db6393b13e); the gate now holds PAPER-FORWARD-200K (3ceb1c2bcf85)
-- 10-14 18:45 EURGBP BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 28.4% of the stop (max 25%): spread 0.00012 + commission and slippage
 
-## Latest decisions, NO TRADE included (696 so far)
+## Latest decisions, NO TRADE included (698 so far)
 
+- 10-15 06:45 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
+- 10-15 06:45 USDJPY BUY: BUY USDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 72: The higher timeframe H4 trend is bullish, and the M15 chart shows a recent bullish structure break and a higher low, i
 - 10-15 06:30 GBPUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 1007s old
 - 10-15 06:30 EURUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: STALE_DATA: quote is 1007s old
 - 10-15 06:15 EURGBP SELL: SELL EURGBP on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The H4 trend is DOWN and the M15 shows a bearish CHoCH and lower high after a sweep of the 0.8475 liquidity pool, su
@@ -45,15 +47,14 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 05:45 USDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-15 05:30 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-15 05:30 EURUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-15 05:15 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-15 05:15 EURCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $124.32 |
-| EURJPY | BUY | 1.86 | 177.0055 | 176.635 | 177.562 | $18.75 |
+| USDJPY | BUY | 1.3 | 158.032 | 157.78 | 158.35 | $-28.66 |
+| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $141.12 |
+| EURJPY | BUY | 1.86 | 177.0055 | 176.635 | 177.562 | $2.34 |
 
 ## Closed paper trades (latest 20)
 
@@ -82,7 +83,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 7/900
 
 AI trades 25 (insufficient) · wins 11 · losses 14 · expectancy -0.038R · profit factor 0.89
 
@@ -94,6 +95,8 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-15 06:45 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-15 06:45 | USDJPY | BUY 72 | BUY 65 | - | AGREE | BUY | APPROVED |
 | 10-15 06:30 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 06:30 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 06:15 | EURGBP | SELL 65 | SELL 70 | - | AGREE | SELL | APPROVED |
@@ -104,8 +107,6 @@ Trades taken by session (UTC): ASIA 6 resolved (insufficient), expectancy +0.005
 | 10-15 05:45 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 05:30 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 05:30 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-15 05:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-15 05:15 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
