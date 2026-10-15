@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 00:40 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 19:09 UTC · decision system `dual_ai`
+Updated 2026-10-15 00:45 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-14 19:09 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,855.85 | $1,221.91 | $-144.15 | $-144.15 | 2 | 19 (insufficient) | 47.4% | -0.004R | 0.96 | ACTIVE | RUNNING |
+| $200,000.00 | $199,858.67 | $1,224.73 | $-141.33 | $-141.33 | 2 | 19 (insufficient) | 47.4% | -0.004R | 0.96 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 11 of the last 20 decisions: PROFILE_CHANGED x11.** A refusal by the gate after the risk engine approved is never routine.
 
@@ -52,8 +52,8 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $-59.36 |
-| USDCHF | SELL | 3.16 | 0.831215 | 0.8322 | 0.8295 | $53.24 |
+| NZDUSD | BUY | 3.71 | 0.561185 | 0.56012 | 0.56268 | $-170.66 |
+| USDCHF | SELL | 3.16 | 0.831215 | 0.8322 | 0.8295 | $167.36 |
 
 ## Closed paper trades (latest 20)
 
@@ -81,7 +81,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 15/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 17/900
 
 AI trades 19 (insufficient) · wins 9 · losses 10 · expectancy -0.004R · profit factor 0.96
 
