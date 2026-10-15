@@ -1,12 +1,12 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 10:36 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
+Updated 2026-10-15 10:51 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 06:21 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,300.38 | $666.44 | $-699.62 | $-699.62 | 3 | 26 (insufficient) | 42.3% | -0.070R | 0.86 | ACTIVE | RUNNING |
+| $200,000.00 | $199,222.01 | $588.07 | $-777.99 | $-777.99 | 3 | 26 (insufficient) | 42.3% | -0.070R | 0.86 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 06:15 UTC; 5 decision(s) since, none refused by the gate.
 
@@ -33,8 +33,10 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 00:15 USDCAD SELL: AI DECISION → RISK REJECTED — reward_risk: 1.12 vs minimum 1.2
 - 10-14 19:45 USDCAD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (728 so far)
+## Latest decisions, NO TRADE included (730 so far)
 
+- 10-15 10:45 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
+- 10-15 10:45 EURCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-15 10:30 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-15 10:30 EURJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURJPY position is already open
 - 10-15 10:15 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
@@ -45,16 +47,14 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - 10-15 09:45 USDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-15 09:30 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-15 09:30 EURUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-15 09:15 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-15 09:15 EURCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $59.40 |
-| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $174.72 |
-| EURJPY | BUY | 1.86 | 177.0055 | 176.635 | 177.562 | $-146.47 |
+| EURGBP | SELL | 1.66 | 0.8460300000000001 | 0.8469 | 0.84469 | $15.40 |
+| NZDUSD | SELL | 1.68 | 0.561915 | 0.5631 | 0.5605 | $157.92 |
+| EURJPY | BUY | 1.86 | 177.0055 | 176.635 | 177.562 | $-164.05 |
 
 ## Closed paper trades (latest 20)
 
@@ -95,6 +95,8 @@ Trades taken by session (UTC): ASIA 10 resolved (insufficient), expectancy +0.08
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-15 10:45 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-15 10:45 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 10:30 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 10:30 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 10:15 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -105,8 +107,6 @@ Trades taken by session (UTC): ASIA 10 resolved (insufficient), expectancy +0.08
 | 10-15 09:45 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 09:30 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-15 09:30 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-15 09:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-15 09:15 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
