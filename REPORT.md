@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-15 23:03 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 17:32 UTC · decision system `dual_ai`
+Updated 2026-10-15 23:07 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 17:32 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,7 +16,7 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,294.18 | $-62.88 | $-705.82 | $-705.82 | 2 | 34 (adequate) | 47.1% | -0.033R | 0.88 | ACTIVE | RUNNING |
+| $200,000.00 | $199,475.86 | $118.80 | $-524.14 | $-524.14 | 2 | 34 (adequate) | 47.1% | -0.033R | 0.88 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 12:15 UTC; 13 decision(s) since, none refused by the gate.
 
@@ -62,8 +62,8 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 3.15 | 1.4198149999999998 | 1.4216 | 1.4174 | $119.85 |
-| USDJPY | SELL | 1.75 | 158.094 | 158.26 | 157.84 | $5.51 |
+| USDCAD | SELL | 3.15 | 1.4198149999999998 | 1.4216 | 1.4174 | $253.02 |
+| USDJPY | SELL | 1.75 | 158.094 | 158.26 | 157.84 | $54.02 |
 
 ## Closed paper trades (latest 20)
 
