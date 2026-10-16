@@ -1990,6 +1990,32 @@
  ],
  "pipeline": [
   {
+   "decision": "SELL",
+   "edge_status": "EXPERIMENTAL",
+   "id": "3cf2642338c39e4bfdb291b9",
+   "mode": "PAPER_FORWARD",
+   "reason": "reward_risk: 0.97 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)",
+   "stages": [
+    "AI DECISION",
+    "RISK REJECTED"
+   ],
+   "symbol": "GBPUSD",
+   "t": 1792174516
+  },
+  {
+   "decision": "SELL",
+   "edge_status": "EXPERIMENTAL",
+   "id": "9e83d30f5ba8639100221355",
+   "mode": "PAPER_FORWARD",
+   "reason": "weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)",
+   "stages": [
+    "AI DECISION",
+    "RISK REJECTED"
+   ],
+   "symbol": "EURUSD",
+   "t": 1792174516
+  },
+  {
    "decision": "BUY",
    "edge_status": "EXPERIMENTAL",
    "id": "a80e23f17f55134900f03e47",
@@ -2222,35 +2248,23 @@
    ],
    "symbol": "AUDUSD",
    "t": 1792159219
-  },
-  {
-   "decision": "SELL",
-   "edge_status": "EXPERIMENTAL",
-   "id": "f013f555a9d9dac2ba6ed792",
-   "mode": "PAPER_FORWARD",
-   "reason": "weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "USDJPY",
-   "t": 1792159219
-  },
-  {
-   "decision": "BUY",
-   "edge_status": "EXPERIMENTAL",
-   "id": "59f42d7df4d4f21091ba163b",
-   "mode": "PAPER_FORWARD",
-   "reason": "reward_risk: 0.65 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "GBPUSD",
-   "t": 1792158315
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "GBPUSD",
+   "decision": "SELL",
+   "t": 1792174516,
+   "reason": "SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with LH at 1.33221 and LL at 1.3311; most recent CHoCH is bearish at 1.33291. Open bearish FVG",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "SELL",
+   "t": 1792174516,
+   "reason": "SELL EURUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with confirmed CHoCH and BOS; price is below the 1.1236 LH and supply remains untested above. ",
+   "data_flags": []
+  },
   {
    "symbol": "AUDJPY",
    "decision": "BUY",
@@ -2404,23 +2418,9 @@
    "t": 1792160117,
    "reason": "SELL USDCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 65: H4 is in a confirmed downtrend (LH+LL) and M15 has printed a bearish BOS sequence with bearish displacement on the last",
    "data_flags": []
-  },
-  {
-   "symbol": "USDCAD",
-   "decision": "BUY",
-   "t": 1792160117,
-   "reason": "BUY USDCAD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 58: Price is testing the tested demand order block (1.4142\u20131.41517) immediately after bullish sweeps of the 1.4141/1.4144 low",
-   "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "SELL",
-   "t": 1792159219,
-   "reason": "SELL AUDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 58: Both timeframes show bearish structure with a fresh bearish BOS at 0.69575 and an untested supply order block above at ",
-   "data_flags": []
   }
  ],
- "decisions_total": 958,
+ "decisions_total": 960,
  "shift": {
   "started": "2026-10-16 15:54 UTC",
   "decision_mode": "dual_ai",
@@ -2444,24 +2444,24 @@
    "judge_pin": null,
    "version": "openrouter-1.7.0",
    "status": "READY",
-   "calls_today": 43,
+   "calls_today": 47,
    "last_call": {
-    "t": 1792173689,
+    "t": 1792174880,
     "role": "judge",
     "model": "dots-studio/dots-3-note-preview:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "e5ff78a6017b4faaa92510600ece8185",
-    "provider_id": "gen-1792173613-jrc8jFmWMcJeh6JqZ3EA",
+    "request_id": "8e784afb761e40f89d9c5fba05bff3cf",
+    "provider_id": "gen-1792174759-PwdFvrdxVVbeG308yrMl",
     "attempts": 1,
-    "latency_ms": 76150.8,
+    "latency_ms": 120216.2,
     "cached": false,
-    "tokens": 20824,
+    "tokens": 24853,
     "tried": []
    },
    "key": {
-    "checked": 1792172924,
+    "checked": 1792174759,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 0.0,
@@ -2479,7 +2479,7 @@
      {
       "id": "nvidia/nemotron-3.5-super-vl:free",
       "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
-      "score": 69.0,
+      "score": 70.07,
       "context": 1000000,
       "image": true,
       "intelligence_index": 26.5,
@@ -2678,7 +2678,7 @@
     ],
     "free_total": 12,
     "catalog_total": 466,
-    "refreshed": 1792173613.2412531,
+    "refreshed": 1792174759.8156922,
     "error": null,
     "version": "free-models-1.3.0",
     "cooldown": {},
@@ -2689,7 +2689,7 @@
    },
    "model_stats": {
     "nvidia/nemotron-3.5-super-vl:free": {
-     "ok": 9,
+     "ok": 11,
      "failed": 3
     },
     "thinkingmachines/inkling-small:free": {
@@ -2713,7 +2713,7 @@
      "failed": 3
     },
     "dots-studio/dots-3-note-preview:free": {
-     "ok": 12,
+     "ok": 14,
      "failed": 0
     },
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
@@ -2737,34 +2737,34 @@
   },
   "charts": {
    "EURUSD": {
-    "t": 1792166415,
-    "decision_id": "7640ab0a2831583212b9d4b1",
+    "t": 1792174516,
+    "decision_id": "9e83d30f5ba8639100221355",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 29700,
-    "sha256": "412c591e6592e24661df2559459836643ada0311dcf16c7551a3c8a70a15e7f2",
-    "as_of": 1792166415,
+    "bytes": 29759,
+    "sha256": "8fcd8017e10bc815f326ce27b0c2023ddd457ae55bfc0f392e3611114e0e432a",
+    "as_of": 1792174516,
     "execution_timeframe": "M15",
     "higher_timeframe": "H4",
-    "last_bar_open": 1792165500,
-    "last_bar_available": 1792166400
+    "last_bar_open": 1792173600,
+    "last_bar_available": 1792174500
    },
    "GBPUSD": {
-    "t": 1792166415,
-    "decision_id": "526710fce654008f213da740",
+    "t": 1792174516,
+    "decision_id": "3cf2642338c39e4bfdb291b9",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 29766,
-    "sha256": "1faade58e27e5d7c62e93ab4817893aeb8eb78226e71552a579ecf637d4d0e30",
-    "as_of": 1792166415,
+    "bytes": 29873,
+    "sha256": "915564f74d61e98f0d4e69f60dcdfd78195de17b884c43a8197afdcba9378515",
+    "as_of": 1792174516,
     "execution_timeframe": "M15",
     "higher_timeframe": "H4",
-    "last_bar_open": 1792165500,
-    "last_bar_available": 1792166400
+    "last_bar_open": 1792173600,
+    "last_bar_available": 1792174500
    },
    "USDJPY": {
     "t": 1792168219,
@@ -2918,19 +2918,19 @@
    }
   },
   "last_analysis": {
-   "decision_id": "a80e23f17f55134900f03e47",
-   "symbol": "AUDJPY",
-   "t": 1792172715,
-   "decision": "BUY",
-   "reason": "BUY AUDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 60: Price is pulling back into the 109.72 higher-low/support after a one-bar-ago bullish sweep of lows, so demand is being tested at the M15 HL. M15/H4 are both ranged with mixed swings, and H4 bearish BOS at 109.615 caps the",
+   "decision_id": "3cf2642338c39e4bfdb291b9",
+   "symbol": "GBPUSD",
+   "t": 1792174516,
+   "decision": "SELL",
+   "reason": "SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with LH at 1.33221 and LL at 1.3311; most recent CHoCH is bearish at 1.33291. Open bearish FVGs above cap upside. Price at bottom of M15 range favors breakdown below LL. Stop above LH protects s",
    "consensus": {
     "desk_confidence": 0.6,
-    "direction": "BUY",
+    "direction": "SELL",
     "levels_from": "trader2",
     "outcome": "TRADE",
     "rule": "AGREE",
-    "stop_loss": 109.63,
-    "take_profit": 109.893
+    "stop_loss": 1.33238,
+    "take_profit": 1.33053
    },
    "models": {
     "trader1": "nvidia/nemotron-3.5-super-vl:free",
@@ -2938,45 +2938,45 @@
    },
    "trader1": {
     "confidence": 60,
-    "direction": "BUY",
-    "entry": 109.741,
-    "invalidation": 109.63,
-    "liquidity": "Fresh bullish lows sweep at 109.72 (1 bar ago) signals demand; EQH above at 110.013 and 110.396; key support 109.683 (3 touches) and 109.538 (2 touches).",
-    "market_structure": "M15 and H4 both ranged with mixed swings; recent LH 109.933 with price retesting the HL 109.72 after a one-bar-ago bullish sweep of lows; H4 bearish BOS at 109.615/109.034 caps the bias.",
-    "momentum": "Bearish displacement 10 bars ago, but the latest sweep is bullish and price bounced off 109.729 support; M15 close 109.803 vs current bid 109.723 shows an intraday pullback into demand.",
-    "reason": "Price is pulling back into the 109.72 higher-low/support after a one-bar-ago bullish sweep of lows, so demand is being tested at the M15 HL. M15/H4 are both ranged with mixed swings, and H4 bearish BOS at 109.615 caps the upside bias, making this a mean-reversion long rather than a trend trade. A break below 109.683 support toward the 109.615 prior-week low invalidates the buy. Target is the 109.893 three-touch resistance/former BOS, reachable within one H1 ATR.",
+    "direction": "SELL",
+    "entry": 1.33154,
+    "invalidation": 1.33238,
+    "liquidity": "EQL at 1.33104 (2t) just below price; deeper EQL at 1.32686/1.32654; untested supply OB 1.33609-1.33699 above",
+    "market_structure": "M15 downtrend (LH+LL); most recent bearish CHoCH at 1.33291; LH 1.33221 and LL 1.3311 confirm bearish bias",
+    "momentum": "Bearish displacement into LL; M15 range position 0.09 near bottom; 20-bar change_atr -2.81 shows extended bearish move",
+    "reason": "M15 structure is bearish with LH at 1.33221 and LL at 1.3311; most recent CHoCH is bearish at 1.33291. Open bearish FVGs above cap upside. Price at bottom of M15 range favors breakdown below LL. Stop above LH protects structure; target below 1.3311 targets continuation.",
     "reversal_probability": 40,
-    "risk_reward": 1.37,
-    "stop_loss": 109.63,
-    "take_profit": 109.893,
-    "trend": "Range/mixed on both timeframes (trend_direction 0); no established trend, so this is a mean-reversion long off support rather than a trend trade."
+    "risk_reward": 1.2,
+    "stop_loss": 1.33238,
+    "take_profit": 1.33053,
+    "trend": "M15 DOWN; H4 RANGE mixed with bullish BOS at 1.32852/1.33101"
    },
    "trader2": {
-    "confidence": 62,
-    "direction": "BUY",
-    "entry": 109.741,
-    "invalidation": 109.63,
-    "liquidity": "The sweep below 109.72 trapped bearish stops; key resistance is at the 109.893 former BOS and 110.013 equal highs, with support holding at 109.683.",
-    "market_structure": "M15 and H4 are range-bound with mixed swings; a fresh bullish liquidity sweep at 109.72 (1 bar ago) indicates a stop-hunt below the M15 swing low, suggesting a reversal.",
-    "momentum": "Bullish momentum is emerging from the liquidity sweep, though overall market momentum remains mixed due to H4 range conditions.",
-    "reason": "Price executed a textbook bullish liquidity sweep below the 109.72 M15 swing low, trapping late sellers and setting up a mean-reversion rally. Key resistance at 109.893 offers a 1.37 reward-to-risk target, while the stop below 109.63 support invalidates the sweep thesis. The range-bound structure on M15 and H4 supports buying the dip, despite the unfamiliar market state.",
+    "confidence": 65,
+    "direction": "SELL",
+    "entry": 1.33154,
+    "invalidation": 1.33238,
+    "liquidity": "Equal lows at 1.33104 just below price; deeper liquidity at 1.32686/1.32654; untested supply OB at 1.33609-1.33699 above.",
+    "market_structure": "M15 downtrend (LH+LL) with a bearish CHoCH at 1.33291; H1 uptrend showing a bearish CHoCH, indicating a pullback/correction.",
+    "momentum": "Bearish displacement on M15 with price near the bottom of the range (position 0.09); short-term M5 shows a counter-trend bullish BOS.",
+    "reason": "The M15 structure is bearish with a lower high at 1.33221 and a lower low at 1.3311, confirming a downtrend. The recent bearish CHoCH at 1.33291 and open bearish FVGs above cap the upside, favoring a continuation lower. Price is near the bottom of the M15 range, targeting a breakdown towards the equal lows at 1.33104 and the support zone at 1.33053. Stop above the LH at 1.33238 protects against a false breakout.",
     "reversal_probability": 40,
-    "risk_reward": 1.37,
-    "stop_loss": 109.63,
-    "take_profit": 109.893,
-    "trend": "Range-bound on both M15 and H4 with no established trend, favoring a mean-reversion long after the liquidity sweep."
+    "risk_reward": 1.2,
+    "stop_loss": 1.33238,
+    "take_profit": 1.33053,
+    "trend": "M15 DOWN, H1 UP (pullback), H4 RANGE"
    },
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1792172715,
-    "bytes": 30343,
+    "as_of": 1792174516,
+    "bytes": 29873,
     "execution_timeframe": "M15",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1792172700,
-    "last_bar_open": 1792171800,
-    "sha256": "18836b38b0f06b021931bbc134edada6e16c1689015358e035531f4d2f21a9c1",
+    "last_bar_available": 1792174500,
+    "last_bar_open": 1792173600,
+    "sha256": "915564f74d61e98f0d4e69f60dcdfd78195de17b884c43a8197afdcba9378515",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -2985,28 +2985,28 @@
      "attempts": 1,
      "cached": false,
      "error": null,
-     "latency_ms": 87948.7,
+     "latency_ms": 74951.3,
      "model": "nvidia/nemotron-3.5-super-vl:free",
      "ok": true,
-     "provider_id": "gen-1792173525-xSNXnC5o0liu0xctsPpJ",
-     "request_id": "eff119b97e814e9c9586aa3b4c7f7e81",
+     "provider_id": "gen-1792174684-CXOVWFYhGgJB62nLrHmZ",
+     "request_id": "b3e44b6227b5471f8cf434f8dc2a76f7",
      "role": "vision",
      "status": "OK",
-     "tokens": 17469,
+     "tokens": 17205,
      "tried": []
     },
     {
      "attempts": 1,
      "cached": false,
      "error": null,
-     "latency_ms": 76150.8,
+     "latency_ms": 120216.2,
      "model": "dots-studio/dots-3-note-preview:free",
      "ok": true,
-     "provider_id": "gen-1792173613-jrc8jFmWMcJeh6JqZ3EA",
-     "request_id": "e5ff78a6017b4faaa92510600ece8185",
+     "provider_id": "gen-1792174759-PwdFvrdxVVbeG308yrMl",
+     "request_id": "8e784afb761e40f89d9c5fba05bff3cf",
      "role": "judge",
      "status": "OK",
-     "tokens": 20824,
+     "tokens": 24853,
      "tried": []
     }
    ],
@@ -3015,15 +3015,220 @@
    "risk": {
     "approved": false,
     "reasons": [
-     "stop_distance: stop 0.046 vs 3.0 x spread 0.018",
-     "spread: spread is 39.1% of the stop (max 25%)",
-     "cost_to_risk: round-trip cost is 58.7% of the stop (max 25%): spread 0.018 + commission and slippage",
+     "reward_risk: 0.97 vs minimum 1.2",
      "weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)"
     ],
     "qty": 0.0
    }
   },
   "analyses": [
+   {
+    "decision_id": "3cf2642338c39e4bfdb291b9",
+    "symbol": "GBPUSD",
+    "t": 1792174516,
+    "decision": "SELL",
+    "reason": "SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with LH at 1.33221 and LL at 1.3311; most recent CHoCH is bearish at 1.33291. Open bearish FVGs above cap upside. Price at bottom of M15 range favors breakdown below LL. Stop above LH protects s",
+    "consensus": {
+     "desk_confidence": 0.6,
+     "direction": "SELL",
+     "levels_from": "trader2",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 1.33238,
+     "take_profit": 1.33053
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "dots-studio/dots-3-note-preview:free"
+    },
+    "trader1": {
+     "confidence": 60,
+     "direction": "SELL",
+     "entry": 1.33154,
+     "invalidation": 1.33238,
+     "liquidity": "EQL at 1.33104 (2t) just below price; deeper EQL at 1.32686/1.32654; untested supply OB 1.33609-1.33699 above",
+     "market_structure": "M15 downtrend (LH+LL); most recent bearish CHoCH at 1.33291; LH 1.33221 and LL 1.3311 confirm bearish bias",
+     "momentum": "Bearish displacement into LL; M15 range position 0.09 near bottom; 20-bar change_atr -2.81 shows extended bearish move",
+     "reason": "M15 structure is bearish with LH at 1.33221 and LL at 1.3311; most recent CHoCH is bearish at 1.33291. Open bearish FVGs above cap upside. Price at bottom of M15 range favors breakdown below LL. Stop above LH protects structure; target below 1.3311 targets continuation.",
+     "reversal_probability": 40,
+     "risk_reward": 1.2,
+     "stop_loss": 1.33238,
+     "take_profit": 1.33053,
+     "trend": "M15 DOWN; H4 RANGE mixed with bullish BOS at 1.32852/1.33101"
+    },
+    "trader2": {
+     "confidence": 65,
+     "direction": "SELL",
+     "entry": 1.33154,
+     "invalidation": 1.33238,
+     "liquidity": "Equal lows at 1.33104 just below price; deeper liquidity at 1.32686/1.32654; untested supply OB at 1.33609-1.33699 above.",
+     "market_structure": "M15 downtrend (LH+LL) with a bearish CHoCH at 1.33291; H1 uptrend showing a bearish CHoCH, indicating a pullback/correction.",
+     "momentum": "Bearish displacement on M15 with price near the bottom of the range (position 0.09); short-term M5 shows a counter-trend bullish BOS.",
+     "reason": "The M15 structure is bearish with a lower high at 1.33221 and a lower low at 1.3311, confirming a downtrend. The recent bearish CHoCH at 1.33291 and open bearish FVGs above cap the upside, favoring a continuation lower. Price is near the bottom of the M15 range, targeting a breakdown towards the equal lows at 1.33104 and the support zone at 1.33053. Stop above the LH at 1.33238 protects against a false breakout.",
+     "reversal_probability": 40,
+     "risk_reward": 1.2,
+     "stop_loss": 1.33238,
+     "take_profit": 1.33053,
+     "trend": "M15 DOWN, H1 UP (pullback), H4 RANGE"
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792174516,
+     "bytes": 29873,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792174500,
+     "last_bar_open": 1792173600,
+     "sha256": "915564f74d61e98f0d4e69f60dcdfd78195de17b884c43a8197afdcba9378515",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 74951.3,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792174684-CXOVWFYhGgJB62nLrHmZ",
+      "request_id": "b3e44b6227b5471f8cf434f8dc2a76f7",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 17205,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 120216.2,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1792174759-PwdFvrdxVVbeG308yrMl",
+      "request_id": "8e784afb761e40f89d9c5fba05bff3cf",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 24853,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.4.0",
+    "risk": {
+     "approved": false,
+     "reasons": [
+      "reward_risk: 0.97 vs minimum 1.2",
+      "weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)"
+     ],
+     "qty": 0.0
+    }
+   },
+   {
+    "decision_id": "9e83d30f5ba8639100221355",
+    "symbol": "EURUSD",
+    "t": 1792174516,
+    "decision": "SELL",
+    "reason": "SELL EURUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with confirmed CHoCH and BOS; price is below the 1.1236 LH and supply remains untested above. Downside liquidity at 1.1212 offers a clear target with acceptable R:R. H4 uptrend caps conviction, ",
+    "consensus": {
+     "desk_confidence": 0.6,
+     "direction": "SELL",
+     "levels_from": "trader2",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 1.12385,
+     "take_profit": 1.1212
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "dots-studio/dots-3-note-preview:free"
+    },
+    "trader1": {
+     "confidence": 60,
+     "direction": "SELL",
+     "entry": 1.12316,
+     "invalidation": 1.1236,
+     "liquidity": "Downside EQL at 1.1212 (3 touches, today's low) is the target; nearby EQH at 1.1236 (2 touches) acts as resistance/invalidation",
+     "market_structure": "M15 bearish (LH+LL) with bearish CHoCH at 1.12435 and BOS at 1.12233; H4 bullish but price is below the 1.1236 LH and under untested supply OB",
+     "momentum": "Bearish displacement 9 bars ago; price rejected from LH 1.1236 and remains below the mitigated bearish FVG 1.12347-1.12473",
+     "reason": "M15 structure is bearish with confirmed CHoCH and BOS; price is below the 1.1236 LH and supply remains untested above. Downside liquidity at 1.1212 offers a clear target with acceptable R:R. H4 uptrend caps conviction, so confidence is moderate.",
+     "reversal_probability": 40,
+     "risk_reward": 2.84,
+     "stop_loss": 1.12385,
+     "take_profit": 1.1212,
+     "trend": "M15 DOWN, H4 UP; execution timeframe structure favors sells on the retracement to the LH"
+    },
+    "trader2": {
+     "confidence": 65,
+     "direction": "SELL",
+     "entry": 1.12316,
+     "invalidation": 1.1236,
+     "liquidity": "Key downside liquidity sits at the EQL of 1.1212 (3 touches, today's low), while nearby resistance is the EQH at 1.1236.",
+     "market_structure": "M15 bearish structure (LH+LL) with a confirmed bearish CHoCH at 1.12435 and BOS at 1.12233; price remains below the key 1.1236 LH/EQH resistance.",
+     "momentum": "Bearish displacement is active as price rejected the 1.1236 level and stays below the mitigated bearish FVG zone.",
+     "reason": "The M15 chart shows a well-defined bearish structure (LH+LL) with price rejected at the 1.1236 resistance level. A market sell entry at 1.12316 targets the 1.1212 equal low liquidity pool, offering a 2.84 reward-to-risk ratio with a stop at 1.12385. Although the H4 trend remains bullish, the intraday momentum is bearish, and the statistical desk record favors consensus trades. The trade is invalidated if price breaks and closes above 1.1236.",
+     "reversal_probability": 40,
+     "risk_reward": 2.84,
+     "stop_loss": 1.12385,
+     "take_profit": 1.1212,
+     "trend": "M15 is DOWN (LH+LL) while H4 is UP (HH+HL); execution timeframe structure favors selling the pullback."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792174516,
+     "bytes": 29759,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792174500,
+     "last_bar_open": 1792173600,
+     "sha256": "8fcd8017e10bc815f326ce27b0c2023ddd457ae55bfc0f392e3611114e0e432a",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 94487.6,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792174518-IPVJEhulDzd1zpajytJX",
+      "request_id": "a9833669d95747d2b6d78a9cb0de776a",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 14403,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 70850.8,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1792174613-pYr1ZWeXsqDQfhCTPYwn",
+      "request_id": "6820e993384c49869ad5c1edd1436b81",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 20874,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.4.0",
+    "risk": {
+     "approved": false,
+     "reasons": [
+      "weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)"
+     ],
+     "qty": 0.0
+    }
+   },
    {
     "decision_id": "a80e23f17f55134900f03e47",
     "symbol": "AUDJPY",
@@ -4089,266 +4294,6 @@
      ],
      "qty": 0.0
     }
-   },
-   {
-    "decision_id": "526710fce654008f213da740",
-    "symbol": "GBPUSD",
-    "t": 1792166415,
-    "decision": "NO_TRADE",
-    "reason": "the traders disagree (Trader 1 BUY 58, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen BUY: followed forward in shadow, not traded",
-    "consensus": {
-     "debate_pick": "BUY",
-     "direction": null,
-     "levels_from": null,
-     "loser": "trader2",
-     "outcome": "NO_TRADE",
-     "pick_from": "trader1",
-     "reason": "the traders disagree (Trader 1 BUY 58, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen BUY: followed forward in shadow, not traded",
-     "rule": "DISAGREE"
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "dots-studio/dots-3-note-preview:free",
-     "verifier": "nvidia/nemotron-3-super-120b-a12b:free"
-    },
-    "trader1": {
-     "confidence": 58,
-     "direction": "BUY",
-     "entry": 1.33246,
-     "invalidation": 1.33162,
-     "liquidity": "Bullish sweep of lows at 1.33291 just occurred (0 bars ago); EQL liquidity rests below at 1.32686 and 1.32654",
-     "market_structure": "M15/H4 range with mixed swings; recent HH at 1.33710 followed by pullback; bullish CHoCH at 1.3344; price testing open bullish FVG at 1.33236-1.33259",
-     "momentum": "Bullish displacement on last three swings; M15 at bottom of 20-bar range (position 0.04); change_atr negative suggesting downside exhaustion",
-     "reason": "Price swept the 1.33291 lows (bullish trap) and is testing an open bullish FVG at 1.33236-1.33259. M15 is at the bottom of its 20-bar range with bullish displacement, favoring a mean-reversion bounce into the broken demand OB. A break below 1.33162 invalidates the bullish FVG setup. H4 range resistance caps upside but the microstructure favors buyers here.",
-     "reversal_probability": 45,
-     "risk_reward": 1.27,
-     "stop_loss": 1.33162,
-     "take_profit": 1.33353,
-     "trend": "Range/mixed on both timeframes; H4 near top of 20-bar range (0.93), M15 near bottom (0.04)"
-    },
-    "trader2": {
-     "confidence": 65,
-     "direction": "SELL",
-     "entry": 1.33234,
-     "invalidation": 1.3335,
-     "liquidity": "Equal lows liquidity pools lie much lower at 1.32686 and 1.32654; the recent sweep of 1.33291 failed to hold, indicating distribution.",
-     "market_structure": "M15/H4 range breaking down; price below H1 swing low 1.33291 and H4 bar low 1.33259, showing bearish breakout.",
-     "momentum": "Strong bearish momentum on M1, M5, and M15 with negative change_atr across all horizons, showing no exhaustion.",
-     "reason": "Price is in a strong intraday downtrend, breaking key supports like the H1 swing low and H4 bar low. Bearish momentum is accelerating with negative change_atr across M1, M5, and M15, showing no signs of exhaustion. The failed sweep at 1.33291 and the break of the bullish FVG suggest a continuation lower towards the equal lows liquidity at 1.32686. A sell entry at 1.33234 targets the 1.3280 support with a stop above the broken demand block at 1.3335.",
-     "reversal_probability": 35,
-     "risk_reward": 3.74,
-     "stop_loss": 1.3335,
-     "take_profit": 1.328,
-     "trend": "Bearish on intraday timeframes (M5/M15); H1 uptrend under threat as price breaks the last swing low; H4 range breaking lower."
-    },
-    "verifier": {
-     "confidence": 70,
-     "direction": "BUY",
-     "reason": "The market shows a bullish sweep of the 1.33291 lows, price is inside an open bullish FVG (1.33236\u20111.33259), M15 is at the bottom of its 20\u2011bar range with bullish displacement, and H4 is near the top of its range, all favoring a mean\u2011reversion bounce. H1 structure stays bullish with a recent BOS, undermining the bearish breakout argument."
-    },
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1792166415,
-     "bytes": 29766,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1792166400,
-     "last_bar_open": 1792165500,
-     "sha256": "1faade58e27e5d7c62e93ab4817893aeb8eb78226e71552a579ecf637d4d0e30",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 120199.1,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1792166950-otlklZyfuYQCvTsJqUej",
-      "request_id": "cdfde99fbd56415380ea00d4f4d5dabc",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 17856,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 116998.0,
-      "model": "dots-studio/dots-3-note-preview:free",
-      "ok": true,
-      "provider_id": "gen-1792167071-holYuX64ooceKZyJxcHq",
-      "request_id": "7b696e48b9404689bb31db70a8c991ed",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 25746,
-      "tried": [
-       {
-        "model": "google/gemma-4-26b-a4b-it:free",
-        "status": "RATE_LIMITED"
-       },
-       {
-        "model": "google/gemma-4-31b-it:free",
-        "status": "RATE_LIMITED"
-       }
-      ]
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 41467.7,
-      "model": "nvidia/nemotron-3-super-120b-a12b:free",
-      "ok": true,
-      "provider_id": "gen-1792167309-JtPhmHOfhOb31Q8Kb3Pv",
-      "request_id": "a27e32c07f95423bb24ef9f1301310d6",
-      "role": "verifier",
-      "status": "OK",
-      "tokens": 16327,
-      "tried": [
-       {
-        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-        "status": "UPSTREAM_ERROR"
-       },
-       {
-        "model": "nvidia/nemotron-3.5-lightning:free",
-        "status": "UPSTREAM_ERROR"
-       }
-      ]
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.4.0",
-    "risk": null
-   },
-   {
-    "decision_id": "7640ab0a2831583212b9d4b1",
-    "symbol": "EURUSD",
-    "t": 1792166415,
-    "decision": "SELL",
-    "reason": "SELL EURUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 58: Fresh bearish CHoCH at 1.12435 on M15 shifts structure to lower highs with bearish displacement; H4 uptrend remains but price is near H4 range top with open bearish FVGs and untested supply above; targeting 5-touch supp",
-    "consensus": {
-     "desk_confidence": 0.58,
-     "direction": "SELL",
-     "levels_from": "trader2",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 1.12445,
-     "take_profit": 1.12236
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "dots-studio/dots-3-note-preview:free"
-    },
-    "trader1": {
-     "confidence": 58,
-     "direction": "SELL",
-     "entry": 1.12356,
-     "invalidation": 1.12435,
-     "liquidity": "Sell-side liquidity below at 1.12236 (5 touches), 1.12271 (3 touches), and 1.1212 EQL (3 touches)",
-     "market_structure": "M15 just printed bearish CHoCH at 1.12435 with LH/LH sequence; H4 uptrend intact but price at top of H4 range",
-     "momentum": "Bearish displacement on current bar; M15 20-bar range position at 0.0 with close at range low",
-     "reason": "Fresh bearish CHoCH at 1.12435 on M15 shifts structure to lower highs with bearish displacement; H4 uptrend remains but price is near H4 range top with open bearish FVGs and untested supply above; targeting 5-touch support at 1.12236, stop above CHoCH level.",
-     "reversal_probability": 42,
-     "risk_reward": 1.35,
-     "stop_loss": 1.12445,
-     "take_profit": 1.12236,
-     "trend": "H4 UP (HH+HL); M15 RANGE/MIXED now bearish after fresh CHoCH"
-    },
-    "trader2": {
-     "confidence": 65,
-     "direction": "SELL",
-     "entry": 1.12356,
-     "invalidation": 1.12435,
-     "liquidity": "Strong sell-side liquidity targets below at 1.12236 (5 touches) and 1.1212 EQL (3 touches); PDH at 1.12435 acts as key resistance.",
-     "market_structure": "M15 bearish CHoCH at 1.12435 with lower highs; H4 uptrend intact but price consolidating below H4 range top; untested supply OB and open bearish FVGs favor selling.",
-     "momentum": "Bearish displacement on M15/H1; price closed at the low of the 20-bar range (position 0.0), showing strong downward momentum.",
-     "reason": "Fresh bearish CHoCH at 1.12435 on M15 confirms a shift to lower highs with bearish displacement, closing at the range low. Strong sell-side liquidity sits below at the 5-touch support of 1.12236 and 1.1212 EQL, while PDH at 1.12435 and open bearish FVGs cap any upward moves. The H4 uptrend remains intact but is currently consolidating, making a sell-the-rally approach within the range the higher probability path.",
-     "reversal_probability": 40,
-     "risk_reward": 1.35,
-     "stop_loss": 1.12445,
-     "take_profit": 1.12236,
-     "trend": "H4 UP (HH+HL); M15 RANGE/MIXED, currently bearish after CHoCH."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1792166415,
-     "bytes": 29700,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1792166400,
-     "last_bar_open": 1792165500,
-     "sha256": "412c591e6592e24661df2559459836643ada0311dcf16c7551a3c8a70a15e7f2",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 2,
-      "cached": false,
-      "error": null,
-      "latency_ms": 173793.6,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1792166490-jKSV15t220vZ1wIaCUF0",
-      "request_id": "4b8c70d80d214e469105133cdd4abc1b",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 12801,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 56445.1,
-      "model": "dots-studio/dots-3-note-preview:free",
-      "ok": true,
-      "provider_id": "gen-1792166892-1ZbweH0kjePDK7oiHnY9",
-      "request_id": "4f820a3b2b17447d89cffab8be86a0d2",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 20052,
-      "tried": [
-       {
-        "model": "thinkingmachines/inkling-small:free",
-        "status": "MODEL_RESTRICTED"
-       },
-       {
-        "model": "thinkingmachines/inkling:free",
-        "status": "MODEL_RESTRICTED"
-       },
-       {
-        "model": "google/gemma-4-26b-a4b-it:free",
-        "status": "RATE_LIMITED"
-       },
-       {
-        "model": "google/gemma-4-31b-it:free",
-        "status": "RATE_LIMITED"
-       },
-       {
-        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-        "status": "UPSTREAM_ERROR"
-       }
-      ]
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.4.0",
-    "risk": {
-     "approved": false,
-     "reasons": [
-      "reward_risk: 0.40 vs minimum 1.2",
-      "weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)"
-     ],
-     "qty": 0.0
-    }
    }
   ],
   "open_positions": [],
@@ -4984,15 +4929,15 @@
     }
    },
    "decisions_by_rule": {
-    "AGREE": 176,
+    "AGREE": 178,
     "DEBATE": 5,
     "DISAGREE": 61,
     "MARKET_UNAVAILABLE": 358,
     "TRADER1_UNAVAILABLE": 26,
     "TRADER2_UNAVAILABLE": 8
    },
-   "agreement_rate": 0.727,
-   "decisions_with_both_traders": 242,
+   "agreement_rate": 0.73,
+   "decisions_with_both_traders": 244,
    "unavailable": 392
   },
   "recent_trades": [
@@ -5719,8 +5664,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1792172715,
+  "last_cycle": 1792174516,
   "last_cycle_error": null,
-  "cycles": 6
+  "cycles": 7
  }
 }
