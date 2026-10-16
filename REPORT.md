@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 04:58 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 04:43 UTC · decision system `dual_ai`
+Updated 2026-10-16 05:13 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 04:43 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,7 +16,7 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $201,017.83 | $1,660.77 | $1,017.83 | $0.00 | 2 | 38 (adequate) | 47.4% | +0.012R | 1.00 | ACTIVE | RUNNING |
+| $200,000.00 | $200,888.47 | $1,531.40 | $888.47 | $0.00 | 2 | 38 (adequate) | 47.4% | +0.012R | 1.00 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 5 of the last 20 decisions: OPEN_RISK_LIMIT x5.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-16 04:45 UTC; none after it yet.
 
@@ -62,8 +62,8 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDUSD | BUY | 4.31 | 0.69326 | 0.69238 | 0.69528 | $728.39 |
-| EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | $281.63 |
+| AUDUSD | BUY | 4.31 | 0.69326 | 0.69238 | 0.69528 | $599.09 |
+| EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | $281.57 |
 
 ## Closed paper trades (latest 20)
 
@@ -92,7 +92,7 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-26b-a4b-it:free` · debate `google/gemma-4-31b-it:free` · calls today 11/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 16/900
 
 Agreement trades 34 (adequate) · wins 18 · losses 16 · net $1,424.33 · expectancy +0.110R · profit factor 1.26 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, apart
 
