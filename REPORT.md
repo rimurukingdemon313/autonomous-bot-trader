@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 19:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 15:54 UTC · decision system `dual_ai`
+Updated 2026-10-16 20:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 15:54 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 16:00 EURUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 0.40 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 15:45 USDJPY SELL: AI DECISION → RISK REJECTED — stop_distance: stop 0.002 vs 3.0 x spread 0.01; spread: spread is 500.0% of the stop (max 25%); cost_to_risk: round-trip cost is 950.0% of the stop (max 25%): spread 0.01 + commission and slippage; we
 
-## Latest decisions, NO TRADE included (970 so far)
+## Latest decisions, NO TRADE included (972 so far)
 
+- 10-16 20:00 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
+- 10-16 20:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
 - 10-16 19:45 AUDJPY BUY: BUY AUDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 56: Multiple sweeps of the 109.66 lows with price holding and forming a higher low favor a bullish mean-reversion off taken l
 - 10-16 19:45 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: H4 structure is decisively down (LH+LL) with bearish BOS at 0.92653, while M15 shows repeated bearish sweeps of highs a
 - 10-16 19:15 GBPJPY NO_TRADE: the traders disagree (Trader 1 BUY 62, Trader 2 SELL 62): no trade unless both choose the same side; the shadow debate gave no usable answer (INVALID: no JSON object in the reply)
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 18:45 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 65: Both M15 and H4 are trending down with lower highs and lower lows, and the most recent CHOCH at 1.4152 is bearish. Pric
 - 10-16 18:30 AUDUSD SELL: SELL AUDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: Both timeframes show bearish structure with the most recent BOS at 0.69411 and LH at 0.69464. Price is at the top of a 
 - 10-16 18:30 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 62: Price is at 158.041 five-touch resistance with open bearish FVGs above and H4 bearish CHoCH at 158.106; recent bullish 
-- 10-16 18:15 GBPUSD SELL: SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with LH at 1.33221 and LL at 1.3311; most recent CHoCH is bearish at 1.33291. Open bearish FVG
-- 10-16 18:15 EURUSD SELL: SELL EURUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: M15 structure is bearish with confirmed CHoCH and BOS; price is below the 1.1236 LH and supply remains untested above. 
 
 ## Open paper positions
 
@@ -102,6 +102,8 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-16 20:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-16 20:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-16 19:45 | AUDJPY | BUY 56 | BUY 62 | - | AGREE | BUY | REJECTED |
 | 10-16 19:45 | EURCHF | SELL 60 | SELL 62 | - | AGREE | SELL | REJECTED |
 | 10-16 19:15 | GBPJPY | BUY 62 (numbers) | SELL 62 | - | DISAGREE | NO_TRADE | - |
@@ -112,8 +114,6 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 | 10-16 18:45 | USDCAD | SELL 65 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-16 18:30 | AUDUSD | SELL 60 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-16 18:30 | USDJPY | SELL 62 | SELL 65 | - | AGREE | SELL | REJECTED |
-| 10-16 18:15 | GBPUSD | SELL 60 | SELL 65 | - | AGREE | SELL | REJECTED |
-| 10-16 18:15 | EURUSD | SELL 60 | SELL 65 | - | AGREE | SELL | REJECTED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
