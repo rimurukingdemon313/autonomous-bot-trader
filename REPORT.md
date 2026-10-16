@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 16:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 15:54 UTC · decision system `dual_ai`
+Updated 2026-10-16 17:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 15:54 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -22,6 +22,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-16 16:45 USDCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 0.72 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 16:30 AUDUSD SELL: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 16:30 USDJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 0.25 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 16:00 EURUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 0.40 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
@@ -41,10 +42,11 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 13:30 EURCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 1.10 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 13:00 GBPJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.04 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 12:45 EURGBP BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 28.4% of the stop (max 25%): spread 0.00012 + commission and slippage
-- 10-16 11:30 EURJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (950 so far)
+## Latest decisions, NO TRADE included (952 so far)
 
+- 10-16 16:45 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: Both M15 and H4 structure are down (LH+LL) with H4 bearish CHoCH/BOS intact below 0.82776, so the dominant bias is bear
+- 10-16 16:45 USDCAD NO_TRADE: the traders disagree (Trader 1 BUY 70, Trader 2 SELL 72): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen SELL: followed forward in shadow,
 - 10-16 16:30 AUDUSD SELL: SELL AUDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 75: The H4 chart is in a downtrend with an untouched supply zone above the current price, and recent beari
 - 10-16 16:30 USDJPY BUY: BUY USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 62: Fresh bullish BOS at 158.094 with CHoCH at 157.953 shifts M15 structure upward; price holds above the break with a strong
 - 10-16 16:00 GBPUSD NO_TRADE: the traders disagree (Trader 1 BUY 58, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen BUY: followed forward in shad
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 15:15 AUDJPY SELL: SELL AUDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: Fresh bearish BOS at 109.86 with lower lows and bearish current-bar displacement favor downside; H4 bearish BOS breaks 
 - 10-16 15:15 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: H4 downtrend and recent bearish CHoCH favor continuation lower. Price is below the untested supply OB and open bearish 
 - 10-16 14:45 GBPJPY NO_TRADE: Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
-- 10-16 14:45 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 65: M15 structure is bearish: LH+LL trend, a bearish CHoCH at 177.763 and a fresh bearish BOS at 177.586 (1 bar ago) confir
-- 10-16 14:30 EURGBP NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 68): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen SELL: followed forward in shadow,
 
 ## Open paper positions
 
@@ -90,18 +90,20 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 27/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 30/900
 
 Agreement trades 41 (adequate) · wins 22 · losses 19 · net $1,912.63 · expectancy +0.115R · profit factor 1.28 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 60 · the debate's pick if taken: 57 resolved (adequate), expectancy -0.184R · the side it rejected if taken: 62 resolved (adequate), expectancy -0.219R
+Disagreements (not traded; the debate runs in shadow): 61 · the debate's pick if taken: 57 resolved (adequate), expectancy -0.184R · the side it rejected if taken: 62 resolved (adequate), expectancy -0.219R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +0.154R vs +0.374R as taken (25, insufficient) · held 24 h +0.271R vs +0.127R as taken (17, insufficient) · stop and target twice as far +0.143R vs +0.127R as taken (17, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +0.194R vs +0.406R as taken (26, insufficient) · held 24 h +0.390R vs +0.134R as taken (19, insufficient) · stop and target twice as far +0.159R vs +0.134R as taken (19, insufficient)
 
-Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.279R · LONDON 6 resolved (insufficient), expectancy +0.497R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 6 resolved (insufficient), expectancy +0.792R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.279R · LONDON 7 resolved (insufficient), expectancy +0.599R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 6 resolved (insufficient), expectancy +0.792R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-16 16:45 | USDCHF | SELL 60 | SELL 62 | - | AGREE | SELL | REJECTED |
+| 10-16 16:45 | USDCAD | BUY 70 | SELL 72 | SELL | DISAGREE | NO_TRADE | - |
 | 10-16 16:30 | AUDUSD | SELL 75 | SELL 70 | - | AGREE | SELL | REJECTED |
 | 10-16 16:30 | USDJPY | BUY 62 | BUY 68 | - | AGREE | BUY | REJECTED |
 | 10-16 16:00 | GBPUSD | BUY 58 | SELL 65 | BUY | DISAGREE | NO_TRADE | - |
@@ -112,8 +114,6 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 | 10-16 15:15 | AUDJPY | SELL 60 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-16 15:15 | EURCHF | SELL 60 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-16 14:45 | GBPJPY | BUY 75 | -  | - | TRADER2_UNAVAILABLE | NO_TRADE | - |
-| 10-16 14:45 | EURJPY | SELL 65 | SELL 68 | - | AGREE | SELL | REJECTED |
-| 10-16 14:30 | EURGBP | BUY 55 | SELL 68 | SELL | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
