@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 02:23 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 23:07 UTC · decision system `dual_ai`
+Updated 2026-10-16 02:38 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 23:07 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,7 +16,7 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,585.57 | $228.51 | $-414.43 | $-414.43 | 2 | 37 (adequate) | 46.0% | -0.012R | 0.94 | ACTIVE | RUNNING |
+| $200,000.00 | $199,632.85 | $275.79 | $-367.15 | $-367.15 | 2 | 37 (adequate) | 46.0% | -0.012R | 0.94 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 12:15 UTC; 16 decision(s) since, none refused by the gate.
 
@@ -43,8 +43,9 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 - 10-15 12:00 GBPUSD BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 31.8% of the stop (max 25%): spread 0.00012 + commission and slippage
 - 10-15 12:00 EURUSD SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 25.4% of the stop (max 25%): spread 8e-05 + commission and slippage
 
-## Latest decisions, NO TRADE included (852 so far)
+## Latest decisions, NO TRADE included (853 so far)
 
+- 10-16 02:15 EURUSD NO_TRADE: Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
 - 10-16 02:00 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-16 02:00 EURCHF NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-16 01:45 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3): the model was not consulted
@@ -56,14 +57,13 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 - 10-16 01:00 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-16 01:00 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The H4 trend is down (LH+LL) and the M15 price is pulling back into a tested supply zone at 158.117-158.215, offerin
 - 10-16 00:45 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-16 00:45 EURUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 4.22 | 1.4194149999999999 | 1.42065 | 1.4178 | $41.63 |
-| EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | $-12.59 |
+| USDCAD | SELL | 4.22 | 1.4194149999999999 | 1.42065 | 1.4178 | $130.87 |
+| EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | $-54.55 |
 
 ## Closed paper trades (latest 20)
 
@@ -92,7 +92,7 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 22/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3.5-lightning:free` · debate `nvidia/nemotron-3-super-120b-a12b:free` · calls today 25/900
 
 Agreement trades 33 (adequate) · wins 17 · losses 16 · net $973.05 · expectancy +0.086R · profit factor 1.18 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, apart
 
@@ -104,6 +104,7 @@ Trades taken by session (UTC): ASIA 15 resolved (insufficient), expectancy -0.06
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-16 02:15 | EURUSD | SELL 70 | -  | - | TRADER2_UNAVAILABLE | NO_TRADE | - |
 | 10-16 02:00 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-16 02:00 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-16 01:45 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -115,7 +116,6 @@ Trades taken by session (UTC): ASIA 15 resolved (insufficient), expectancy -0.06
 | 10-16 01:00 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-16 01:00 | USDJPY | SELL 75 | SELL 70 | - | AGREE | SELL | APPROVED |
 | 10-16 00:45 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-16 00:45 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
