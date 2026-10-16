@@ -13,11 +13,15 @@
 - No order fills without a single-use permit from the hard risk gate (aitrader/risk/hard_gate.py) that
   authorises exactly that order. A broker without a gate refuses every order: calling it directly is not a
   way around the gate.
+- The balance moves by a closed trade's P/L, or by an operator adjustment declared in code
+  (aitrader/broker/adjustments.py): applied once by its id, kept in the account with the balance before and
+  after, journaled in the same transaction. No request, dashboard control or model can make one.
 """
 
 from __future__ import annotations
 
 import json
+import math
 import threading
 import time
 from typing import Callable
@@ -33,7 +37,9 @@ from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, 
 #:        client id; without one it is rejected before any state changes. Fills themselves are unchanged.
 #: 1.3.0: every close records its cost decomposition (commission, financing, slippage on both fills, the spread
 #:        paid at entry) next to the net P/L; prices, fills and P/L themselves are unchanged.
-PAPER_VERSION = "paper-1.3.0"
+#: 1.4.0: a declared operator adjustment of the balance (`adjust`), once per id, kept in the account state and
+#:        journaled atomically (PAPER_ADJUSTMENT); fills, closes and their P/L are unchanged.
+PAPER_VERSION = "paper-1.4.0"
 ROLLOVER_HOUR_UTC = 21
 
 
@@ -90,9 +96,41 @@ class PaperBroker:
         if self.db is None:
             return
         with self.db.tx() as c:
-            c.execute("INSERT INTO paper_account(key, value, updated) VALUES ('state', ?, ?) "
-                      "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated=excluded.updated",
-                      (json.dumps(self.state), time.time()))
+            self._write(c, self.state)
+
+    @staticmethod
+    def _write(c, state: dict) -> None:
+        c.execute("INSERT INTO paper_account(key, value, updated) VALUES ('state', ?, ?) "
+                  "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated=excluded.updated",
+                  (json.dumps(state), time.time()))
+
+    # ── declared operator adjustments (aitrader/broker/adjustments.py) ───
+
+    def adjust(self, adj_id: str, amount: float, reason: str, detail: dict | None = None) -> bool:
+        """Move the balance by a declared operator adjustment, once per id: False when already applied. The account
+        state (balance and the adjustment) and its journal event are written in one transaction; the account in
+        memory changes only after it commits."""
+        if not adj_id or not reason or isinstance(amount, bool) or not isinstance(amount, (int, float)) \
+                or not math.isfinite(amount):
+            raise ValueError(f"an adjustment needs an id, a finite amount and a reason: {adj_id!r}, {amount!r}")
+        with self._lock:
+            done = list(self.state.get("adjustments", []))
+            if any(a["id"] == adj_id for a in done):
+                return False
+            before = self.state["balance"]
+            entry = {**(detail or {}), "id": adj_id, "amount": amount, "reason": reason, "t": self.clock(),
+                     "balance_before": before, "balance_after": before + amount}
+            new = {**self.state, "balance": before + amount, "adjustments": done + [entry]}
+            if self.db is not None:
+                with self.db.tx() as c:
+                    self._write(c, new)
+                    self.db.event("PAPER_ADJUSTMENT", entry, ref=adj_id, conn=c)
+            self.state = new
+            return True
+
+    def adjustments(self) -> list[dict]:
+        with self._lock:
+            return [dict(a) for a in self.state.get("adjustments", [])]
 
     # ── market facts ────────────────────────────────────────────────────
 

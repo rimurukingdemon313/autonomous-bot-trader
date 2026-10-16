@@ -262,8 +262,15 @@ AGREE. The trades of the debate rule, which traded on a disagreement until dual-
 apart under `retired_rules` with their own figures; `performance_by_rule` has every rule, and
 `performance_all_rules` every desk trade, nothing left out. Every closed trade carries its `rule`
 (`paper_metrics.rule_of`, from `outcome.dual_ai.rule`); a desk trade whose rule cannot be read is `UNKNOWN`,
-never counted as agreement. The account (equity, total P&L) is the real paper account and holds every trade of
-both rules: the journal is append-only, so a trade is never deleted and its money never put back.
+never counted as agreement.
+
+**The retired rule's trades removed from the account (operator's request, 2026-10-15).** The journal is
+append-only: no trade is ever deleted from it. The 4 debate-rule trades were taken out of the paper account by a
+declared adjustment (`aitrader/broker/adjustments.py`): their net P/L as the broker booked it (−$1,416.51) is
+put back once, journaled (`PAPER_ADJUSTMENT`), and every report shows it beside the equity, with the equity it
+replaced. They are listed apart (`removed_trades`, `retired_rules.DEBATE.removed_from_account`) and are in none
+of the account's figures. The desk's own learning record still holds them: what the debate did is a fact the
+traders are shown.
 
 ## Live check (the real services, on demand)
 

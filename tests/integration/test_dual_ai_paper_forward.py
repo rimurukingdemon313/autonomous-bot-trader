@@ -44,14 +44,14 @@ def desk_reply(t1="BUY", t2="BUY", debate="BUY", target_atr=2.0, c1=80, c2=80):
     return reply
 
 
-def desk_runtime(tmp_path, monkeypatch, reply=None, mode="PAPER_FORWARD"):
+def desk_runtime(tmp_path, monkeypatch, reply=None, mode="PAPER_FORWARD", clock=None):
     fake = FakeOpenRouter(reply or desk_reply())
     monkeypatch.setattr(runtime_mod, "OpenRouterClient", lambda cfg: client(fake))
     monkeypatch.setenv("DECISION_MODE", "dual_ai")
     if not (tmp_path / "kb").exists():
         _write_kb(tmp_path / "kb")
     data = {s: market(s, START, 24 * 7 * 20, i + 1, 1.30 if "JPY" not in s else 110.0) for i, s in enumerate(SYMS)}
-    clock = Clock(int(data["EURUSD"].available_at[2000]))
+    clock = clock or Clock(int(data["EURUSD"].available_at[2000]))
     lower = {}
     for s, h1 in data.items():
         mid = float(h1.mid_close[2000])
@@ -229,7 +229,7 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert {k: b["trades"] for k, b in pf["performance"]["by_rule"].items()} == {"AGREE": 1, "DEBATE": 1, "UNKNOWN": 1}
     assert sorted(t["rule"] for t in pf["recent_trades"]) == ["AGREE", "DEBATE", "UNKNOWN"]
     md = report_md({**pf, "dual_ai": view}, {"started": "now", "decision_mode": "dual_ai"})
-    head = md.split("## Paper account (every trade)")[0]
+    head = md.split("## Paper account")[0]
     assert "## The rule that trades: a trade only when both AIs agree" in head and "| 1 (insufficient) | 1 | 0 |" in head
     assert "the old DEBATE rule, stopped in dual-ai-1.2.0" in head and "net $-400.00, 0 won" in head
     assert "rule could not be read: 1, net $-50.00" in head
@@ -240,6 +240,54 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
         with rt.db.tx() as c:
             c.execute("DELETE FROM trades WHERE decision_id LIKE 'old-DEBATE-%'")
     assert rt.db.verify_chain("trades")[0] and len(rt.db.query("SELECT 1 FROM trades")) == 3
+
+
+def test_a_declared_adjustment_takes_the_retired_rules_trades_out_of_the_account_once_and_says_so(tmp_path,
+                                                                                                  monkeypatch):
+    from aitrader.broker import adjustments
+    from scripts.paper_forward_shift import report_md
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
+    assert rt.health["paper_adjustments"][0]["status"] == "NOT_APPLICABLE"  # the declared trades: another journal
+    cycles(rt, clock)
+    won, _ = close_one(rt, clock, "TARGET")  # an agreement trade, through the real pipeline
+    template = json.loads(rt.db.query("SELECT payload FROM trades")[-1]["payload"])
+    journal_trade_as(rt, template, rule="DEBATE", net_pnl=-400.0, r=-0.8, closed=won["closed"] - 7200)
+    debate = f"old-DEBATE-{won['closed'] - 7200}"
+    declared = ({"id": "remove-debate", "rule": "DEBATE", "reason": "operator: remove the debate trade",
+                 "decision_ids": (debate,)},)
+    before = rt.broker.account().balance
+    wrong = ({**declared[0], "id": "wrong", "decision_ids": (won["decision_id"],)},)
+    partial = ({**declared[0], "id": "partial", "decision_ids": (debate, "not-in-this-journal")},)
+    assert adjustments.apply(rt.broker, rt.db, wrong)[0]["status"] == "NOT_APPLIED"  # an agreement trade: never
+    assert adjustments.apply(rt.broker, rt.db, partial)[0]["status"] == "NOT_APPLIED"  # all its trades or nothing
+    assert rt.broker.account().balance == before and rt.broker.adjustments() == []
+    assert adjustments.apply(rt.broker, rt.db, declared) == [{"id": "remove-debate", "status": "APPLIED", "amount": 400.0}]
+    assert adjustments.apply(rt.broker, rt.db, declared)[0]["status"] == "ALREADY_APPLIED"  # once
+    assert rt.broker.account().balance == pytest.approx(before + 400.0)
+    (ev,) = [json.loads(e["payload"]) for e in rt.db.query("SELECT payload FROM events WHERE type='PAPER_ADJUSTMENT'")]
+    assert ev["balance_before"] == pytest.approx(before) and ev["balance_after"] == pytest.approx(before + 400.0)
+    assert ev["decision_ids"] == [debate] and ev["removed_pnl"] == -400.0
+    monkeypatch.setattr(adjustments, "DECLARED", declared)
+    clock.t += 60
+    rt2, _, _ = desk_runtime(tmp_path, monkeypatch, clock=clock)  # a restart: the same account, never applied twice
+    assert rt2.health["paper_adjustments"][0]["status"] == "ALREADY_APPLIED"
+    assert rt2.broker.account().balance == pytest.approx(before + 400.0)
+    pf = rt2.paper_forward()
+    acct = pf["account"]
+    assert acct["adjustments_total"] == 400.0 and acct["equity_before_adjustments"] == pytest.approx(acct["equity"] - 400)
+    assert acct["today_pnl"] == pytest.approx(acct["equity"] - acct["day_reference"] - 400.0, abs=0.01)
+    assert pf["performance"]["overall"]["trades"] == 1 and set(pf["performance"]["by_rule"]) == {"AGREE"}
+    assert [t["decision_id"] for t in pf["removed_trades"]] == [debate]
+    assert [t["decision_id"] for t in pf["recent_trades"]] == [won["decision_id"]]
+    assert rt2.db.verify_chain("trades")[0] and len(rt2.db.query("SELECT 1 FROM trades")) == 2  # nothing deleted
+    view = rt2.dual_ai()
+    assert [a["id"] for a in view["retired_rules"]["DEBATE"]["removed_from_account"]] == ["remove-debate"]
+    md = report_md({**pf, "dual_ai": view}, {"started": "now", "decision_mode": "dual_ai"})
+    assert "removed from the paper account at the operator's request" in md
+    assert "put back by a declared adjustment ($400.00)" in md and "It also holds" not in md
+    assert "Equity includes declared operator adjustments of $400.00" in md
+    status = rt2.gate.observe(rt2.broker)  # the hard gate reads the adjusted account: no kill, no lock
+    assert status.get("kill") is None and status.get("lock") is None and status.get("state") == "ACTIVE"
 
 
 def test_the_dashboard_shows_the_desk_and_never_the_key(tmp_path, monkeypatch):

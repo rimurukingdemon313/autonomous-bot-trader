@@ -139,8 +139,14 @@ broker other than the paper broker exists.
 - A model trader can only be judged here, forward. It cannot be judged on history it may have memorised.
 - Each rule is judged on its own trades. With the dual-AI desk, `REPORT.md` opens with the rule that trades
   (both AIs agree) and says, under it, how many trades of a retired rule the account also holds and what they
-  made; every closed trade carries its `rule`, and `performance.by_rule` has each rule's figures. The account
-  itself is never adjusted: the journal is append-only, so no trade is removed and no money is put back.
+  made; every closed trade carries its `rule`, and `performance.by_rule` has each rule's figures.
+- The account moves only by closed trades and by operator adjustments declared in code
+  (`aitrader/broker/adjustments.py`), never by a request or a model. An adjustment applies once, at startup, only
+  when every trade it names is in the journal with the rule it names; it is journaled and shown next to the
+  equity (`adjustments_total`, `equity_before_adjustments`), and P&L today excludes it. The trades it removes
+  stay in the journal and are listed apart (`removed_trades`). One exists: the 4 trades of the retired debate
+  rule (2026-10-15, +$1,416.51). Made after the day's reference was taken, it gives that one day's loss limit the
+  same headroom; the gate's floors are otherwise unchanged.
 
 ## Decision systems
 

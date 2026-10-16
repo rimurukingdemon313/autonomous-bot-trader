@@ -60,7 +60,13 @@ def report_md(v: dict, shift: dict) -> str:
                   f"{money(g.get('max_drawdown_usd'))} |", ""]
         for name, r in (dai.get("retired_rules") or {}).items():
             rp = r.get("performance") or {}
-            if rp.get("trades"):
+            if rp.get("trades") and r.get("removed_from_account"):
+                back = sum(x["amount"] for x in r["removed_from_account"])
+                lines += [f"The {rp['trades']} trade(s) of the old {name} rule, stopped in {r.get('stopped_in')}, were "
+                          f"removed from the paper account at the operator's request: their net "
+                          f"{money(rp.get('net_pnl'))} was put back by a declared adjustment ({money(back)}). They stay "
+                          "in the journal (append-only), in none of the account's figures below.", ""]
+            elif rp.get("trades"):
                 lines += [f"The account below is the real paper account. It also holds the {rp['trades']} trade(s) of "
                           f"the old {name} rule, stopped in {r.get('stopped_in')} ({r.get('was')}): net "
                           f"{money(rp.get('net_pnl'))}, {rp.get('wins', 0)} won, expectancy "
@@ -70,7 +76,7 @@ def report_md(v: dict, shift: dict) -> str:
         if unknown.get("trades"):
             lines += [f"Desk trades whose rule could not be read: {unknown['trades']}, net "
                       f"{money(unknown.get('net_pnl'))}: in the account, in neither rule's figures.", ""]
-        lines += ["## Paper account (every trade)", ""]
+        lines += ["## Paper account", ""]
     lines += [
         "| Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |",
         "|---|---|---|---|---|---|---|---|---|---|---|---|",
@@ -79,6 +85,10 @@ def report_md(v: dict, shift: dict) -> str:
         f"{o.get('trades', 0)} ({o.get('sample', 'none')}) | {fmt(o.get('win_rate'), '{:.1%}')} | "
         f"{fmt(o.get('expectancy_r'), '{:+.3f}R')} | {fmt(o.get('profit_factor'), '{:.2f}')} | "
         f"{v.get('risk_status')} | {v.get('bot_status')} |", ""]
+    if a.get("adjustments_total"):  # declared, never folded in silently
+        lines += [f"Equity includes declared operator adjustments of {money(a['adjustments_total'])} "
+                  f"(without them: {money(a.get('equity_before_adjustments'))}); P&L today excludes them. "
+                  + "; ".join(f"`{x['id']}`: {x.get('reason')}" for x in v.get("adjustments") or []) + ".", ""]
     # found live (2026-10-14): the gate refused every approved trade for twelve hours, one line among many below
     def gate_code(reason: str) -> str:
         m = re.search(r"reason=([A-Z_]+)", reason)
@@ -136,7 +146,8 @@ def report_md(v: dict, shift: dict) -> str:
                   f"losses {perf.get('losses', 0)} · net {money(perf.get('net_pnl'))} · expectancy "
                   f"{fmt(perf.get('expectancy_r'), '{:+.3f}R')} · profit factor {fmt(perf.get('profit_factor'), '{:.2f}')}"
                   + "".join(f" · old {k} rule (stopped in {r.get('stopped_in')}): {(r.get('performance') or {}).get('trades', 0)} "
-                            f"trade(s), net {money((r.get('performance') or {}).get('net_pnl'))}, apart"
+                            f"trade(s), net {money((r.get('performance') or {}).get('net_pnl'))}, "
+                            + ("removed from the account" if r.get("removed_from_account") else "apart")
                             for k, r in (dai.get("retired_rules") or {}).items()
                             if (r.get("performance") or {}).get("trades")), "",
                   f"Disagreements (not traded; the debate runs in shadow): "
