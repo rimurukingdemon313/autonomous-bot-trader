@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 02:08 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 23:07 UTC · decision system `dual_ai`
+Updated 2026-10-16 02:23 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-15 23:07 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 | Trades | Wins | Losses | Win rate | Net P&L | Expectancy | Profit factor | Max drawdown |
 |---|---|---|---|---|---|---|---|
-| 32 (adequate) | 16 | 16 | 50.0% | $478.65 | +0.057R | 1.09 | $1,928.96 |
+| 33 (adequate) | 17 | 16 | 51.5% | $973.05 | +0.086R | 1.18 | $1,928.96 |
 
 The account below is the real paper account. It also holds the 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0 (opposite sides: one debate picked the side and the trade was taken): net $-1,416.51, 0 won, expectancy -0.817R. They stay in the journal, listed as theirs, and are never averaged with the agreement figures.
 
@@ -16,7 +16,7 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,615.32 | $258.25 | $-384.68 | $-384.68 | 3 | 36 (adequate) | 44.4% | -0.040R | 0.86 | ACTIVE | RUNNING |
+| $200,000.00 | $199,585.57 | $228.51 | $-414.43 | $-414.43 | 2 | 37 (adequate) | 46.0% | -0.012R | 0.94 | ACTIVE | RUNNING |
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: MARKET_DATA_STALE x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-15 12:15 UTC; 16 decision(s) since, none refused by the gate.
 
@@ -62,14 +62,14 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCAD | SELL | 4.22 | 1.4194149999999999 | 1.42065 | 1.4178 | $71.37 |
-| USDJPY | SELL | 5.57 | 158.152 | 158.24 | 158.0 | n/a |
+| USDCAD | SELL | 4.22 | 1.4194149999999999 | 1.42065 | 1.4178 | $41.63 |
 | EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | $-12.59 |
 
 ## Closed paper trades (latest 20)
 
 | Closed | Symbol | Side | Net | R | Costs | Exit | Source | Rule |
 |---|---|---|---|---|---|---|---|---|
+| 10-16 02:05 | USDJPY | SELL | $494.39 | +0.99 | $77.59 | TARGET | DUAL_AI | AGREE |
 | 10-16 01:09 | USDCAD | SELL | $-57.07 | -0.11 | $79.25 | TIME | DUAL_AI | AGREE |
 | 10-16 00:47 | USDJPY | SELL | $-49.61 | -0.20 | $39.69 | TIME | DUAL_AI | AGREE |
 | 10-15 22:53 | AUDJPY | BUY | $133.74 | +0.27 | $76.64 | TIME | DUAL_AI | AGREE |
@@ -89,19 +89,18 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 | 10-15 01:06 | USDCHF | SELL | $631.35 | +1.27 | $83.09 | TARGET | DUAL_AI | AGREE |
 | 10-15 00:13 | USDJPY | SELL | $496.41 | +1.00 | $58.47 | TARGET | DUAL_AI | AGREE |
 | 10-14 23:46 | USDCAD | SELL | $827.26 | +1.67 | $146.34 | TARGET | DUAL_AI | AGREE |
-| 10-14 10:59 | AUDJPY | BUY | $348.10 | +0.70 | $53.12 | TIME | DUAL_AI | AGREE |
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 19/900
+OpenRouter `READY` · key set · trader 1 `dots-studio/dots-3-note-preview:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `nvidia/nemotron-3.5-lightning:free` · calls today 22/900
 
-Agreement trades 32 (adequate) · wins 16 · losses 16 · net $478.65 · expectancy +0.057R · profit factor 1.09 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, apart
+Agreement trades 33 (adequate) · wins 17 · losses 16 · net $973.05 · expectancy +0.086R · profit factor 1.18 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, apart
 
 Disagreements (not traded; the debate runs in shadow): 57 · the debate's pick if taken: 55 resolved (adequate), expectancy -0.180R · the side it rejected if taken: 60 resolved (adequate), expectancy -0.188R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +0.063R vs +0.296R as taken (14, insufficient) · held 24 h +1.743R vs +1.743R as taken (4, insufficient) · stop and target twice as far +1.283R vs +1.743R as taken (4, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.013R vs +0.204R as taken (15, insufficient) · held 24 h +1.187R vs +1.187R as taken (5, insufficient) · stop and target twice as far +0.823R vs +1.187R as taken (5, insufficient)
 
-Trades taken by session (UTC): ASIA 15 resolved (insufficient), expectancy -0.068R · LONDON 4 resolved (insufficient), expectancy +0.630R · OVERLAP 5 resolved (insufficient), expectancy -0.216R · NEW_YORK 4 resolved (insufficient), expectancy +1.091R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 15 resolved (insufficient), expectancy -0.068R · LONDON 4 resolved (insufficient), expectancy +0.630R · OVERLAP 6 resolved (insufficient), expectancy -0.361R · NEW_YORK 4 resolved (insufficient), expectancy +1.091R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
