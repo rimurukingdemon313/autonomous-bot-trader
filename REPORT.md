@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 07:58 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 04:43 UTC · decision system `dual_ai`
+Updated 2026-10-16 08:13 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 04:43 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,12 +16,13 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $201,088.07 | $1,731.01 | $1,088.07 | $0.00 | 1 | 39 (adequate) | 48.7% | +0.055R | 1.12 | ACTIVE | RUNNING |
+| $200,000.00 | $200,988.57 | $1,631.50 | $988.57 | $0.00 | 2 | 39 (adequate) | 48.7% | +0.055R | 1.12 | ACTIVE | RUNNING |
 
-**WARNING: the hard risk gate refused 9 of the last 20 decisions: OPEN_RISK_LIMIT x8, FINANCING_EXCEEDS_RISK x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-16 06:45 UTC; 3 decision(s) since, none refused by the gate.
+**WARNING: the hard risk gate refused 9 of the last 20 decisions: OPEN_RISK_LIMIT x8, FINANCING_EXCEEDS_RISK x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-16 06:45 UTC; 4 decision(s) since, none refused by the gate.
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-16 08:00 NZDUSD BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-16 07:45 USDCHF SELL: AI DECISION → RISK REJECTED — reward_risk: 1.07 vs minimum 1.2
 - 10-16 07:45 USDCAD SELL: AI DECISION → RISK REJECTED — reward_risk: 0.76 vs minimum 1.2
 - 10-16 07:15 AUDUSD BUY: AI DECISION → RISK APPROVED → NOT EXECUTED (BLOCKED) — decision is 1103s old (max 900s): stale, not executed
@@ -41,10 +42,11 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 - 10-16 04:00 GBPUSD BUY: AI DECISION → RISK REJECTED — reward_risk: 1.03 vs minimum 1.2
 - 10-16 04:00 EURUSD BUY: AI DECISION → RISK APPROVED → RISK REJECTED — hard risk gate: RISK_GATE_REJECTED reason=OPEN_RISK_LIMIT equity_conservative=200585.10 daily_pnl=1228.04 daily_limit=-10000.00 total_pnl=585.10 total_limit=-20000.00 open_risk=1620.70 max_loss=498.17
 - 10-16 02:45 AUDUSD BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
-- 10-16 02:45 USDJPY SELL: AI DECISION → RISK REJECTED — reward_risk: 1.02 vs minimum 1.2
 
-## Latest decisions, NO TRADE included (888 so far)
+## Latest decisions, NO TRADE included (890 so far)
 
+- 10-16 08:00 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
+- 10-16 08:00 NZDUSD BUY: BUY NZDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 70: Both timeframes are structurally bullish with a fresh BOS and price above the recent higher high. The untested demand blo
 - 10-16 07:45 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 68: M15 and H4 are both trending down (LH+LL) with a fresh bearish BOS at 0.82595 just one bar ago and H4 bearish CHOCH/BOS
 - 10-16 07:45 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 65: M15 and H4 are both trending down (LH+LL) with a fresh bearish BOS at 1.4167 breaking the prior LL. Price is testing th
 - 10-16 07:15 AUDUSD BUY: BUY AUDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 65: M15 structure is bullish with a fresh BOS at 0.69502 and untested demand below; the overhead bearish FVG is mitigated. Bu
@@ -55,14 +57,13 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 - 10-16 06:30 EURCHF BUY: BUY EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 62: Bullish BOS/CHoCH structure breaks and a tested demand order block support a long bias after price swept the 0.92781 lows
 - 10-16 06:00 GBPJPY BUY: BUY GBPJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 55: H4 trend is up and the M15 just printed a bullish CHoCH at 209.922 with bullish displacement, making the pullback to the 
 - 10-16 06:00 EURJPY NO_TRADE: Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
-- 10-16 05:45 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
-- 10-16 05:45 NZDUSD BUY: BUY NZDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 57: Both timeframes trend up with HH+HL and multiple bullish BOS. Price is pulling back from HH 0.56583 into the open bullish
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | $239.81 |
+| NZDUSD | BUY | 2.75 | 0.566785 | 0.56525 | 0.569 | $11.00 |
+| EURGBP | SELL | 3.16 | 0.8447300000000001 | 0.84568 | 0.8435 | n/a |
 
 ## Closed paper trades (latest 20)
 
@@ -91,18 +92,20 @@ The account below is the real paper account. It also holds the 4 trade(s) of the
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-super-120b-a12b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 56/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-super-120b-a12b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 58/900
 
 Agreement trades 35 (adequate) · wins 19 · losses 16 · net $2,264.78 · expectancy +0.155R · profit factor 1.41 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, apart
 
 Disagreements (not traded; the debate runs in shadow): 58 · the debate's pick if taken: 57 resolved (adequate), expectancy -0.184R · the side it rejected if taken: 62 resolved (adequate), expectancy -0.219R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.050R vs +0.134R as taken (19, insufficient) · held 24 h +0.307R vs +0.262R as taken (11, insufficient) · stop and target twice as far +0.154R vs +0.262R as taken (11, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.023R vs +0.152R as taken (20, insufficient) · held 24 h +0.307R vs +0.262R as taken (11, insufficient) · stop and target twice as far +0.154R vs +0.262R as taken (11, insufficient)
 
-Trades taken by session (UTC): ASIA 15 resolved (insufficient), expectancy -0.068R · LONDON 4 resolved (insufficient), expectancy +0.630R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 6 resolved (insufficient), expectancy +0.792R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 16 resolved (insufficient), expectancy -0.034R · LONDON 4 resolved (insufficient), expectancy +0.630R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 6 resolved (insufficient), expectancy +0.792R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-16 08:00 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-16 08:00 | NZDUSD | BUY 70 | BUY 68 | - | AGREE | BUY | APPROVED |
 | 10-16 07:45 | USDCHF | SELL 68 | SELL 70 | - | AGREE | SELL | REJECTED |
 | 10-16 07:45 | USDCAD | SELL 65 | SELL 62 | - | AGREE | SELL | REJECTED |
 | 10-16 07:15 | AUDUSD | BUY 65 | BUY 60 | - | AGREE | BUY | APPROVED |
@@ -113,8 +116,6 @@ Trades taken by session (UTC): ASIA 15 resolved (insufficient), expectancy -0.06
 | 10-16 06:30 | EURCHF | BUY 62 | BUY 65 | - | AGREE | BUY | APPROVED |
 | 10-16 06:00 | GBPJPY | BUY 55 | BUY 75 | - | AGREE | BUY | REJECTED |
 | 10-16 06:00 | EURJPY | BUY 72 | -  | - | TRADER2_UNAVAILABLE | NO_TRADE | - |
-| 10-16 05:45 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-16 05:45 | NZDUSD | BUY 57 | BUY 60 | - | AGREE | BUY | APPROVED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
