@@ -30,10 +30,10 @@
  },
  "bot_status": "RUNNING",
  "account": {
-  "equity": 200717.05,
+  "equity": 200545.79,
   "balance": 200007.81,
-  "total_pnl": 717.05,
-  "today_pnl": 1359.99,
+  "total_pnl": 545.79,
+  "today_pnl": 1188.72,
   "day_reference": 199357.06593283179,
   "drawdown_from_start": 0.0,
   "max_loss_floor": 180000.0,
@@ -248,12 +248,12 @@
    "side": "BUY",
    "qty": 4.31,
    "entry": 0.69326,
-   "current": 0.69435,
+   "current": 0.6940500000000001,
    "stop": 0.69238,
    "target": 0.69528,
-   "r_now": 1.239,
+   "r_now": 0.898,
    "opened": 1792118983.0,
-   "pnl": 469.79,
+   "pnl": 340.49,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -265,12 +265,12 @@
    "side": "SELL",
    "qty": 3.16,
    "entry": 0.8447300000000001,
-   "current": 0.8441599999999999,
+   "current": 0.8442599999999999,
    "stop": 0.84568,
    "target": 0.8435,
-   "r_now": 0.6,
+   "r_now": 0.495,
    "opened": 1792109120.0,
-   "pnl": 239.45,
+   "pnl": 197.49,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -2023,6 +2023,13 @@
  ],
  "last_decisions": [
   {
+   "symbol": "EURJPY",
+   "decision": "NO_TRADE",
+   "t": 1792130416,
+   "reason": "Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone",
+   "data_flags": []
+  },
+  {
    "symbol": "EURGBP",
    "decision": "NO_TRADE",
    "t": 1792129519,
@@ -2182,16 +2189,9 @@
    "t": 1792118721,
    "reason": "BUY AUDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 60: M15 just confirmed a bullish BOS at 0.69286 with an HL at 0.69238 and an untested demand OB below, while displacement is ",
    "data_flags": []
-  },
-  {
-   "symbol": "USDJPY",
-   "decision": "SELL",
-   "t": 1792118721,
-   "reason": "SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 62: H4 is in a downtrend (LH/LL) and the latest M15 structure is a bearish CHoCH at 158.052, with price now below the untes",
-   "data_flags": []
   }
  ],
- "decisions_total": 878,
+ "decisions_total": 879,
  "shift": {
   "started": "2026-10-16 04:43 UTC",
   "decision_mode": "dual_ai",
@@ -2215,24 +2215,29 @@
    "judge_pin": null,
    "version": "openrouter-1.7.0",
    "status": "READY",
-   "calls_today": 25,
+   "calls_today": 30,
    "last_call": {
-    "t": 1792129863,
+    "t": 1792131175,
     "role": "judge",
-    "model": "dots-studio/dots-3-note-preview:free",
-    "status": "OK",
-    "ok": true,
-    "error": null,
-    "request_id": "f30b5a011c5b41f2b8e5fff90c4d2a5c",
-    "provider_id": "gen-1792129793-skJ3tUNbrtNTvturT4AZ",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "status": "TIMEOUT",
+    "ok": false,
+    "error": "no answer within 420 s (last: INVALID: no JSON object in the reply)",
+    "request_id": null,
+    "provider_id": null,
     "attempts": 1,
-    "latency_ms": 70722.9,
+    "latency_ms": 0.0,
     "cached": false,
-    "tokens": 21351,
-    "tried": []
+    "tokens": null,
+    "tried": [
+     {
+      "model": "nvidia/nemotron-3.5-lightning:free",
+      "status": "INVALID: no JSON object in the reply"
+     }
+    ]
    },
    "key": {
-    "checked": 1792128621,
+    "checked": 1792130421,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 0.0,
@@ -2250,7 +2255,7 @@
      {
       "id": "nvidia/nemotron-3.5-super-vl:free",
       "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
-      "score": 71.5,
+      "score": 67.93,
       "context": 1000000,
       "image": true,
       "intelligence_index": 26.5,
@@ -2285,6 +2290,32 @@
       "reasoning": true,
       "family": "dots-studio",
       "expires": "2026-12-31"
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 36.7,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": 16.7,
+      "params_b": 26.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 34.7,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": 14.7,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
      }
     ],
     "judge": [
@@ -2423,7 +2454,7 @@
     ],
     "free_total": 12,
     "catalog_total": 465,
-    "refreshed": 1792129793.2007,
+    "refreshed": 1792131177.2484746,
     "error": null,
     "version": "free-models-1.3.0",
     "cooldown": {},
@@ -2435,7 +2466,7 @@
    "model_stats": {
     "nvidia/nemotron-3.5-super-vl:free": {
      "ok": 5,
-     "failed": 1
+     "failed": 2
     },
     "thinkingmachines/inkling-small:free": {
      "ok": 0,
@@ -2458,16 +2489,16 @@
      "failed": 3
     },
     "dots-studio/dots-3-note-preview:free": {
-     "ok": 6,
+     "ok": 7,
      "failed": 0
     },
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
      "ok": 0,
-     "failed": 1
+     "failed": 2
     },
     "nvidia/nemotron-3.5-lightning:free": {
      "ok": 1,
-     "failed": 0
+     "failed": 1
     }
    }
   },
@@ -2566,30 +2597,225 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1792128600,
     "last_bar_available": 1792129500
+   },
+   "EURJPY": {
+    "t": 1792130416,
+    "decision_id": "a9f1b27d5778bb99a22211c6",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30275,
+    "sha256": "4c2ed4ccaa5d41b1417e2ea5b36ec8fbd6949af25f045296df4f50e948fcebd0",
+    "as_of": 1792130416,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792129500,
+    "last_bar_available": 1792130400
+   },
+   "GBPJPY": {
+    "t": 1792130416,
+    "decision_id": "7497b645a9c4493668763700",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30240,
+    "sha256": "99b02c552d8bbb7c8bbbe95e423dac90cc45a633f832bc751372f293450417fb",
+    "as_of": 1792130416,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792129500,
+    "last_bar_available": 1792130400
    }
   },
   "last_analysis": {
-   "decision_id": "23f32e545de7adcf5347a6dc",
-   "symbol": "EURGBP",
-   "t": 1792129519,
+   "decision_id": "a9f1b27d5778bb99a22211c6",
+   "symbol": "EURJPY",
+   "t": 1792130416,
    "decision": "NO_TRADE",
-   "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
+   "reason": "Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "market unavailable for a decision: blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
-    "rule": "MARKET_UNAVAILABLE"
+    "reason": "Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone",
+    "rule": "TRADER2_UNAVAILABLE"
    },
-   "models": {},
-   "trader1": null,
+   "models": {
+    "trader1": "dots-studio/dots-3-note-preview:free",
+    "trader2": "nvidia/nemotron-3.5-lightning:free"
+   },
+   "trader1": {
+    "confidence": 72,
+    "direction": "BUY",
+    "entry": 177.15,
+    "invalidation": "177.03",
+    "liquidity": "Price is resting on the strong 177.136 support and EQL at 177.141, with an open bullish FVG below at 176.874-176.96 and EQH liquidity target at 177.437.",
+    "market_structure": "M15 is in an uptrend (HH/HL) with a recent minor bearish CHOCH at 177.167, pulling back to test the major 6-touch support at 177.136.",
+    "momentum": "Short-term momentum is a bearish pullback, but showing stabilization near the major support level.",
+    "reason": "The price is testing the major 6-touch support at 177.136 within the entry zone. A bounce towards the untested supply zone is the higher-probability play, with a stop below the support to manage risk.",
+    "reversal_probability": 30,
+    "risk_reward": 1.67,
+    "stop_loss": 177.03,
+    "take_profit": 177.35,
+    "trend": "M15 is UP while H4 is RANGING; buying the dip at the lower boundary of the range is the higher-probability strategy."
+   },
    "trader2": null,
    "verifier": null,
-   "chart": null,
-   "calls": [],
-   "trader1_input": null,
+   "chart": {
+    "annotate_version": "chart-annotate-1.0.0",
+    "as_of": 1792130416,
+    "bytes": 30275,
+    "execution_timeframe": "M15",
+    "height": 1000,
+    "higher_timeframe": "H4",
+    "last_bar_available": 1792130400,
+    "last_bar_open": 1792129500,
+    "sha256": "4c2ed4ccaa5d41b1417e2ea5b36ec8fbd6949af25f045296df4f50e948fcebd0",
+    "version": "chart-render-1.0.0",
+    "width": 1280
+   },
+   "calls": [
+    {
+     "attempts": 1,
+     "cached": false,
+     "error": null,
+     "latency_ms": 89146.4,
+     "model": "dots-studio/dots-3-note-preview:free",
+     "ok": true,
+     "provider_id": "gen-1792130485-i5GZUe1hSYmO7E0gvgkE",
+     "request_id": "b9d54f1083b342fa83bc6adeafa3a676",
+     "role": "vision",
+     "status": "OK",
+     "tokens": 14801,
+     "tried": [
+      {
+       "model": "nvidia/nemotron-3.5-super-vl:free",
+       "status": "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)"
+      },
+      {
+       "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+       "status": "UPSTREAM_ERROR"
+      }
+     ]
+    },
+    {
+     "attempts": 1,
+     "cached": false,
+     "error": "no answer within 420 s (last: INVALID: no JSON object in the reply)",
+     "latency_ms": 0.0,
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "ok": false,
+     "provider_id": null,
+     "request_id": null,
+     "role": "judge",
+     "status": "TIMEOUT",
+     "tokens": null,
+     "tried": [
+      {
+       "model": "nvidia/nemotron-3.5-lightning:free",
+       "status": "INVALID: no JSON object in the reply"
+      }
+     ]
+    }
+   ],
+   "trader1_input": "image",
    "version": "dual-ai-1.4.0",
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "a9f1b27d5778bb99a22211c6",
+    "symbol": "EURJPY",
+    "t": 1792130416,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free",
+     "trader2": "nvidia/nemotron-3.5-lightning:free"
+    },
+    "trader1": {
+     "confidence": 72,
+     "direction": "BUY",
+     "entry": 177.15,
+     "invalidation": "177.03",
+     "liquidity": "Price is resting on the strong 177.136 support and EQL at 177.141, with an open bullish FVG below at 176.874-176.96 and EQH liquidity target at 177.437.",
+     "market_structure": "M15 is in an uptrend (HH/HL) with a recent minor bearish CHOCH at 177.167, pulling back to test the major 6-touch support at 177.136.",
+     "momentum": "Short-term momentum is a bearish pullback, but showing stabilization near the major support level.",
+     "reason": "The price is testing the major 6-touch support at 177.136 within the entry zone. A bounce towards the untested supply zone is the higher-probability play, with a stop below the support to manage risk.",
+     "reversal_probability": 30,
+     "risk_reward": 1.67,
+     "stop_loss": 177.03,
+     "take_profit": 177.35,
+     "trend": "M15 is UP while H4 is RANGING; buying the dip at the lower boundary of the range is the higher-probability strategy."
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792130416,
+     "bytes": 30275,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792130400,
+     "last_bar_open": 1792129500,
+     "sha256": "4c2ed4ccaa5d41b1417e2ea5b36ec8fbd6949af25f045296df4f50e948fcebd0",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 89146.4,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1792130485-i5GZUe1hSYmO7E0gvgkE",
+      "request_id": "b9d54f1083b342fa83bc6adeafa3a676",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 14801,
+      "tried": [
+       {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "status": "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)"
+       },
+       {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "status": "UPSTREAM_ERROR"
+       }
+      ]
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": "no answer within 420 s (last: INVALID: no JSON object in the reply)",
+      "latency_ms": 0.0,
+      "model": "nvidia/nemotron-3.5-lightning:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": null,
+      "role": "judge",
+      "status": "TIMEOUT",
+      "tokens": null,
+      "tried": [
+       {
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "status": "INVALID: no JSON object in the reply"
+       }
+      ]
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.4.0",
+    "risk": null
+   },
    {
     "decision_id": "23f32e545de7adcf5347a6dc",
     "symbol": "EURGBP",
@@ -3527,107 +3753,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.4.0",
     "risk": null
-   },
-   {
-    "decision_id": "6bfed804ea735342568f2158",
-    "symbol": "USDJPY",
-    "t": 1792124116,
-    "decision": "SELL",
-    "reason": "SELL USDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 65: Both timeframes trend down with LH/LL structure; the most recent M15 break is bearish CHoCH at 158.052 and the latest swing is LH at 158.075. An untested supply order block at 158.106-158.151 caps upside, while a break ",
-    "consensus": {
-     "desk_confidence": 0.62,
-     "direction": "SELL",
-     "levels_from": "trader1",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 158.085,
-     "take_profit": 157.544
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "nvidia/nemotron-3-super-120b-a12b:free"
-    },
-    "trader1": {
-     "confidence": 65,
-     "direction": "SELL",
-     "entry": 157.898,
-     "invalidation": 158.085,
-     "liquidity": "EQH liquidity stacked above at 158.194-158.385; recent lows swept at 157.874; price testing 5-touch support at 157.885.",
-     "market_structure": "M15 and H4 both in LH/LL downtrends; latest M15 break is bearish CHoCH at 158.052 and most recent swing is LH at 158.075; untested supply order block at 158.106-158.151 above price.",
-     "momentum": "Latest M15 displacement is bearish; price hovering at key support with downside break risk after bearish CHoCH.",
-     "reason": "Both timeframes trend down with LH/LL structure; the most recent M15 break is bearish CHoCH at 158.052 and the latest swing is LH at 158.075. An untested supply order block at 158.106-158.151 caps upside, while a break below 157.885 support targets the previous day low at 157.544. Stop above 158.085 invalidates the short setup.",
-     "reversal_probability": 35,
-     "risk_reward": 1.89,
-     "stop_loss": 158.085,
-     "take_profit": 157.544,
-     "trend": "DOWN on M15 and H4."
-    },
-    "trader2": {
-     "confidence": 62,
-     "direction": "SELL",
-     "entry": 157.898,
-     "invalidation": 158.085,
-     "liquidity": "EQH resistance stacked at 158.154\u2011158.385; recent low\u2011sweep at 157.874 (bullish signal) but price remains below OB, limiting upside.",
-     "market_structure": "M15 and H4 both in LH/LL downtrend; recent bearish CHoCH at 158.052 and BOS at 157.897; untested supply OB 158.106\u2011158.151 above price.",
-     "momentum": "Latest M15 displacement bearish; price testing 5\u2011touch support at 157.885 with downside bias after bearish CHoCH.",
-     "reason": "Both M15 and H4 show a LH/LL downtrend with the most recent bearish CHoCH at 158.052 and BOS at 157.897. An untested supply order block at 158.106\u2011158.151 acts as immediate resistance, capping any bounce. The Asia session swept the low at 157.874, but price has not reclaimed the OB, keeping the bearish bias intact. A break below 157.885 support targets the prior day low at 157.544.",
-     "reversal_probability": 38,
-     "risk_reward": 1.89,
-     "stop_loss": 158.085,
-     "take_profit": 157.544,
-     "trend": "DOWN on M15 and H4."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1792124116,
-     "bytes": 30875,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1792124100,
-     "last_bar_open": 1792123200,
-     "sha256": "90f6e2a0c1f7151f94ffe798c090e1ad7cb39c6c306b58b639b9c3f0af06b501",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 44190.0,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1792124122-QKnW7BlU4ALrEB4W1zRc",
-      "request_id": "2713a71b32b341049ab5db16b212cd9f",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 18232,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "error": null,
-      "latency_ms": 97334.8,
-      "model": "nvidia/nemotron-3-super-120b-a12b:free",
-      "ok": true,
-      "provider_id": "gen-1792124166-lgoIhLXVRvY8xiryAlIK",
-      "request_id": "0caf10f6ac2b41888db3d5fdf256f712",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 18687,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.4.0",
-    "risk": {
-     "approved": true,
-     "reasons": [],
-     "qty": 2.86
-    }
    }
   ],
   "open_positions": [
@@ -3637,12 +3762,12 @@
     "side": "BUY",
     "qty": 4.31,
     "entry": 0.69326,
-    "current": 0.69435,
+    "current": 0.6940500000000001,
     "stop": 0.69238,
     "target": 0.69528,
-    "r_now": 1.239,
+    "r_now": 0.898,
     "opened": 1792118983.0,
-    "pnl": 469.79,
+    "pnl": 340.49,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -3654,12 +3779,12 @@
     "side": "SELL",
     "qty": 3.16,
     "entry": 0.8447300000000001,
-    "current": 0.8441599999999999,
+    "current": 0.8442599999999999,
     "stop": 0.84568,
     "target": 0.8435,
-    "r_now": 0.6,
+    "r_now": 0.495,
     "opened": 1792109120.0,
-    "pnl": 239.45,
+    "pnl": 197.49,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -4283,11 +4408,11 @@
     "DISAGREE": 57,
     "MARKET_UNAVAILABLE": 329,
     "TRADER1_UNAVAILABLE": 26,
-    "TRADER2_UNAVAILABLE": 3
+    "TRADER2_UNAVAILABLE": 4
    },
    "agreement_rate": 0.684,
    "decisions_with_both_traders": 196,
-   "unavailable": 358
+   "unavailable": 359
   },
   "recent_trades": [
    {
