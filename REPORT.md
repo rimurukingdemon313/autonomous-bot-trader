@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-16 22:00 UTC**, run 216, version `radar-1.0.0`. State from: cache. Quotes this hour: 2384.
+Updated **2026-10-16 23:00 UTC**, run 217, version `radar-1.0.0`. State from: cache. Quotes this hour: 2384.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,33 +17,33 @@ Updated **2026-10-16 22:00 UTC**, run 216, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 9.08
-- run_coverage: 0.9863
-- closed_positions: 24
-- open_positions: 2
-- utilisation: 0.0773
+- days: 9.12
+- run_coverage: 0.9864
+- closed_positions: 25
+- open_positions: 1
+- utilisation: 0.0774
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.3433
-- book_excess_pct: -0.3676
-- ann_excess_deployed_pct: -195.148
-- ann_excess_deployed_costs_x1.5_pct: -316.328
-- ann_excess_deployed_costs_x2_pct: -437.508
-- best_coin: RSR
-- book_excess_without_best_coin_pct: -0.3959
+- book_pnl_pct: -0.1879
+- book_excess_pct: -0.2038
+- ann_excess_deployed_pct: -106.922
+- ann_excess_deployed_costs_x1.5_pct: -226.651
+- ann_excess_deployed_costs_x2_pct: -346.38
+- best_coin: AGT
+- book_excess_without_best_coin_pct: -0.3068
 - max_dd_pct: 0.3433
-- t_excess_daily: -3.219
+- t_excess_daily: -1.119
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 14.5 | -4.9 | 17.0 | **-7.5** |
-| AGT | mexc | gate | 2026-10-16 22:00 | 29.1% | 0.0 | 0.0 | 17.0 | **-17.0** |
+| KORU | mexc | gate | 2026-10-15 00:00 | 25.6% | 15.0 | -9.3 | 17.0 | **-11.3** |
 
-## Closed positions (24)
+## Closed positions (25)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| AGT | mexc | gate | 0.0 | rebalance | 297.5 |
 | AGT | mexc | gate | 0.2 | rebalance | -90.9 |
 | WAL | mexc | gate | 0.0 | spread_reversed | -25.0 |
 | WAL | mexc | gate | 0.0 | spread_reversed | -30.4 |
@@ -73,7 +73,6 @@ Updated **2026-10-16 22:00 UTC**, run 216, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| AGT | mexc | gate | 29.1% | 65.0% |
-| KORU | mexc | gate | 28.8% | 39.1% |
+| KORU | mexc | gate | 29.4% | 58.3% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
