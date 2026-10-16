@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-16 19:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 15:54 UTC · decision system `dual_ai`
+Updated 2026-10-16 19:24 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-16 15:54 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -22,6 +22,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-16 19:15 EURJPY BUY: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 19:00 EURGBP BUY: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 19:00 NZDUSD SELL: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 18:45 USDCAD SELL: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
@@ -41,10 +42,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 15:45 USDJPY SELL: AI DECISION → RISK REJECTED — stop_distance: stop 0.002 vs 3.0 x spread 0.01; spread: spread is 500.0% of the stop (max 25%); cost_to_risk: round-trip cost is 950.0% of the stop (max 25%): spread 0.01 + commission and slippage; we
 - 10-16 15:30 GBPUSD BUY: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 15:30 EURUSD BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 26.6% of the stop (max 25%): spread 8e-05 + commission and slippage; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
-- 10-16 15:15 AUDJPY SELL: AI DECISION → RISK REJECTED — weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 
-## Latest decisions, NO TRADE included (966 so far)
+## Latest decisions, NO TRADE included (967 so far)
 
+- 10-16 19:15 EURJPY BUY: BUY EURJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) BUY 65: The trade is a BUY on the confluence of the H4 bullish BOS at 177.59, the tested demand order block, and the bullish l
 - 10-16 19:00 EURGBP BUY: BUY EURGBP on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 62: M15 structure is bullish (HH/HL) with a fresh bullish CHoCH at 0.8432 and a new HH at 0.8434, while price holds above the
 - 10-16 19:00 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 65: M15 structure is bearish with fresh bearish BOS at 0.56484 and a new LL at 0.56424, while open bearish FVGs sit above p
 - 10-16 18:45 USDCHF NO_TRADE: the traders disagree (Trader 1 BUY 62, Trader 2 SELL 65): no trade unless both choose the same side; the debate (nvidia/nemotron-3-super-120b-a12b:free) would have chosen BUY: followed forward in shad
@@ -56,7 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 17:45 AUDJPY BUY: BUY AUDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 60: Price is pulling back into the 109.72 higher-low/support after a one-bar-ago bullish sweep of lows, so demand is being te
 - 10-16 17:45 EURCHF NO_TRADE: Trader 2 (independent) gave no usable answer (TIMEOUT: no answer within 420 s (last: INVALID: no JSON object in the reply)): no decision on one trader alone
 - 10-16 17:30 GBPJPY BUY: BUY GBPJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 56: H4 is in an uptrend while M15 has pulled back into a LH/LL sequence; the most recent M15 bar swept the 210.507 LL/3-touch
-- 10-16 17:30 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 56: M15 structure is bearish with consecutive bearish BOS breaks at 177.586 and 177.514 and the last confirmed swing a lowe
 
 ## Open paper positions
 
@@ -90,7 +90,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `nvidia/nemotron-3-super-120b-a12b:free` · calls today 60/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `nvidia/nemotron-3-super-120b-a12b:free` · calls today 65/900
 
 Agreement trades 41 (adequate) · wins 22 · losses 19 · net $1,912.63 · expectancy +0.115R · profit factor 1.28 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
@@ -102,6 +102,7 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-16 19:15 | EURJPY | BUY 65 | BUY 62 | - | AGREE | BUY | REJECTED |
 | 10-16 19:00 | EURGBP | BUY 62 | BUY 60 | - | AGREE | BUY | REJECTED |
 | 10-16 19:00 | NZDUSD | SELL 65 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-16 18:45 | USDCHF | BUY 62 | SELL 65 | BUY | DISAGREE | NO_TRADE | - |
@@ -113,7 +114,6 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 | 10-16 17:45 | AUDJPY | BUY 60 | BUY 62 | - | AGREE | BUY | REJECTED |
 | 10-16 17:45 | EURCHF | SELL 70 | -  | - | TRADER2_UNAVAILABLE | NO_TRADE | - |
 | 10-16 17:30 | GBPJPY | BUY 56 | BUY 62 | - | AGREE | BUY | REJECTED |
-| 10-16 17:30 | EURJPY | SELL 56 | SELL 58 | - | AGREE | SELL | REJECTED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
