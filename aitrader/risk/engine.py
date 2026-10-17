@@ -57,14 +57,20 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   new position is opened (MODE=PAPER_FORWARD: Friday, like the weekend; and the London/New York overlap, 12:00-16:00
 #:   UTC, the session the desk's trades did worst in: 8 trades, -0.38 R). `trade_risk_budget` states the most the next
 #:   trade would be sized to lose. It only ever refuses an entry; sizes and every other check unchanged.
-RISK_VERSION = "risk-1.8.0"
+#: 1.9.0 (operator, 2026-10-17, after reading every trade): Friday trades again until 12:00 UTC (the one Friday
+#:   so far, all entered before 12:00: 9 trades, +2.88 R) and is closed after it; Saturday and Sunday are stated
+#:   closed days rather than assumed; a calendar window may name its weekday. no_opposite_currency: no new position
+#:   on the opposite side of a currency an open position holds (11 such trades: 36% won, -0.21 R each; the rest
+#:   +0.23 R): the account would bet against itself and pay both trades' costs. Both only ever refuse an entry.
+RISK_VERSION = "risk-1.9.0"
 NEW_YORK = ZoneInfo("America/New_York")
 #: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
 PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
-#: MODE=PAPER_FORWARD: no new position on Friday (UTC), as on Saturday and Sunday
-PAPER_FORWARD_CLOSED_WEEKDAYS_UTC = (4,)
-#: MODE=PAPER_FORWARD: no new position in the London/New York overlap, 12:00-16:00 UTC (as learning.forward.session_of)
-PAPER_FORWARD_CLOSED_UTC = ((12 * 60, 16 * 60),)
+#: MODE=PAPER_FORWARD: no new position on Saturday or Sunday (UTC): the market is shut, and that is stated, not assumed
+PAPER_FORWARD_CLOSED_WEEKDAYS_UTC = (5, 6)
+#: MODE=PAPER_FORWARD: no new position in the London/New York overlap, 12:00-16:00 UTC (as learning.forward.session_of),
+#: nor on Friday from 12:00 UTC to the weekend
+PAPER_FORWARD_CLOSED_UTC = ((12 * 60, 16 * 60), (4, 12 * 60, 24 * 60))
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 #: No configuration can take per-trade risk above this.
@@ -116,10 +122,13 @@ class RiskLimits:
     quiet_ny_end_min: int = 0
     #: no new position whose maximum holding time would run past the Friday close (17:00 New York)
     no_weekend_carry: bool = False
-    #: no NEW position on these UTC weekdays (0 Monday .. 6 Sunday) or inside these UTC windows ((start, end) minutes
-    #: after 00:00 UTC, start < end). Open positions are managed as usual.
+    #: no NEW position on these UTC weekdays (0 Monday .. 6 Sunday) or inside these UTC windows: (start, end) minutes
+    #: after 00:00 UTC every day, or (weekday, start, end) on that weekday only; start < end. Open positions are
+    #: managed as usual.
     closed_weekdays_utc: tuple = ()
     closed_utc_windows: tuple = ()
+    #: no new position on the opposite side of a currency an open position holds (long EUR while short EUR)
+    no_opposite_currency: bool = False
 
     def __post_init__(self) -> None:
         for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
@@ -131,11 +140,15 @@ class RiskLimits:
         if not isinstance(self.closed_weekdays_utc, tuple) or not all(
                 isinstance(d, int) and not isinstance(d, bool) and 0 <= d <= 6 for d in self.closed_weekdays_utc):
             raise ValueError(f"closed_weekdays_utc must be a tuple of weekdays 0..6 (got {self.closed_weekdays_utc!r})")
-        if not isinstance(self.closed_utc_windows, tuple) or not all(
-                isinstance(w, tuple) and len(w) == 2 and minute(w[0]) and minute(w[1]) and w[0] < w[1]
-                for w in self.closed_utc_windows):
-            raise ValueError("closed_utc_windows must be a tuple of (start, end) minutes after 00:00 UTC, 0 <= start < "
-                             f"end <= 1440 (got {self.closed_utc_windows!r})")
+        def window(w) -> bool:
+            if not isinstance(w, tuple) or len(w) not in (2, 3):
+                return False
+            day, a, b = (None, *w) if len(w) == 2 else w
+            day_ok = day is None or (isinstance(day, int) and not isinstance(day, bool) and 0 <= day <= 6)
+            return day_ok and minute(a) and minute(b) and a < b
+        if not isinstance(self.closed_utc_windows, tuple) or not all(window(w) for w in self.closed_utc_windows):
+            raise ValueError("closed_utc_windows must be a tuple of (start, end) or (weekday, start, end): minutes after "
+                             f"00:00 UTC, 0 <= start < end <= 1440, weekday 0..6 (got {self.closed_utc_windows!r})")
 
     def effective_risk_pct(self) -> float:
         pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
@@ -334,11 +347,33 @@ class RiskEngine:
         if u.weekday() in days:
             return Check("trading_calendar", False, f"{WEEKDAYS[u.weekday()]} (UTC): no new position on "
                                                     + ", ".join(WEEKDAYS[d] for d in sorted(days)))
-        for a, b in windows:
-            if a <= m < b:
-                return Check("trading_calendar", False, f"{u:%H:%M} UTC: no new position from {a // 60:02d}:{a % 60:02d} "
-                                                        f"to {b // 60:02d}:{b % 60:02d} UTC")
+        for w in windows:
+            day, a, b = (None, *w) if len(w) == 2 else w
+            if (day is None or u.weekday() == day) and a <= m < b:
+                on = "" if day is None else f" on {WEEKDAYS[day]}"
+                return Check("trading_calendar", False, f"{WEEKDAYS[u.weekday()]} {u:%H:%M} UTC: no new position{on} from "
+                                                        f"{a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} UTC")
         return Check("trading_calendar", True, f"{WEEKDAYS[u.weekday()]} {u:%H:%M} UTC: open for new positions")
+
+    def _c_currency_conflict(self, decision, account: AccountState) -> Check | None:
+        """No new position on the opposite side of a currency an open position holds, if the limits say so. A position
+        whose side cannot be read counts as a conflict: it cannot be shown not to be one."""
+        if not self.limits.no_opposite_currency:
+            return None
+        s, side = decision.instrument, (1 if decision.decision == "BUY" else -1)
+        mine = {s[:3]: side, s[3:]: -side}
+        clash = []
+        for p in account.open_positions:
+            ps, ps_side = str(p.get("symbol") or ""), p.get("side")
+            if ps_side not in (1, -1):
+                clash.append(f"{ps} (side unknown)")
+                continue
+            theirs = {ps[:3]: ps_side, ps[3:]: -ps_side}
+            clash += [f"{ps} {'BUY' if ps_side > 0 else 'SELL'} is {'long' if theirs[c] > 0 else 'short'} {c}"
+                      for c, d in mine.items() if theirs.get(c) == -d]
+        return Check("currency_conflict", not clash,
+                     f"{decision.decision} {s} would bet against an open position: " + "; ".join(clash) if clash else
+                     "no open position on the opposite side of either currency")
 
     def trade_risk_budget(self, account: AccountState) -> float | None:
         """The most the next trade would be sized to lose (before lot rounding), from the same rule evaluate() sizes
@@ -459,6 +494,7 @@ class RiskEngine:
         ok = ok and v.halt is None
         for c in self._c_positions(account, decision.instrument):
             ok &= add(c)
+        ok &= add(self._c_currency_conflict(decision, account))
         ok &= add(self._c_weekend(now))
         ok &= add(self._c_quiet_hours(now))
         ok &= add(self._c_calendar(now))

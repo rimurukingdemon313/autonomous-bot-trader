@@ -63,8 +63,10 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison.
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
-- **Closed days and hours** (risk 1.8.0, operator, 2026-10-17): no new position on Friday (UTC) nor in the
-  London/New York overlap, 12:00-16:00 UTC; the traders are not asked then.
+- **Closed days and hours** (risk 1.8.0/1.9.0, operator, 2026-10-17): no new position in the London/New York overlap,
+  12:00-16:00 UTC, on Friday from 12:00 UTC, nor on Saturday or Sunday; the traders are not asked then.
+- **Never against itself** (risk 1.9.0): a trade on the opposite side of a currency an open position holds is refused
+  (11 such trades so far: 36% won, -0.21 R each; the rest +0.23 R). Refused trades are still followed forward.
 - **Time budget** (dual-ai 1.5.0, orchestrator 1.19.0): each decision is told how long it has before it would be
   too old to execute (the execution engine's 900 s, less the quote wait and a margin). A trader is asked only
   while its answer can still execute, and never for longer than is left; the shadow debate waits at most

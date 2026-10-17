@@ -146,7 +146,7 @@ class ServiceConfig:
             risk = dataclasses.replace(risk, quiet_ny_start_min=PAPER_FORWARD_QUIET_NY[0],
                                        quiet_ny_end_min=PAPER_FORWARD_QUIET_NY[1], no_weekend_carry=True,
                                        closed_weekdays_utc=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC,
-                                       closed_utc_windows=PAPER_FORWARD_CLOSED_UTC)
+                                       closed_utc_windows=PAPER_FORWARD_CLOSED_UTC, no_opposite_currency=True)
         source = e.get("DATA_SOURCE", "yahoo").strip().lower() or "yahoo"
         if source == "auto":
             source = "yahoo"

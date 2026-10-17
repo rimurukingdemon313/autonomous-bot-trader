@@ -713,7 +713,8 @@ def test_the_paper_forward_service_has_the_quiet_hours_and_the_running_evaluatio
     assert cfg.risk.no_weekend_carry is True and paper.risk.no_weekend_carry is False
 
 
-# ── the trading calendar: no new position on Friday, nor in the London/New York overlap (operator, 2026-10-17) ──
+# ── the trading calendar (operator, 2026-10-17): not in the London/New York overlap, not on Friday after 12:00 UTC,
+#    not on Saturday or Sunday ──
 
 def _cal(when, days=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, windows=PAPER_FORWARD_CLOSED_UTC, closed_r=()):
     from datetime import datetime, timezone
@@ -728,9 +729,13 @@ def _cal(when, days=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, windows=PAPER_FORWARD_CLO
 
 
 @pytest.mark.parametrize("when,blocked", [
-    ((2026, 10, 16, 0, 0), True),     # Friday 00:00 UTC: closed, like the weekend
-    ((2026, 10, 16, 9, 30), True),    # Friday morning
+    ((2026, 10, 16, 1, 8), False),    # Friday 01:08 UTC: the USDJPY entry of 2026-10-16 (+0.99 R) trades again
+    ((2026, 10, 16, 11, 59), False),  # Friday, the last minute open
+    ((2026, 10, 16, 12, 0), True),    # Friday from 12:00 UTC: closed to the weekend
+    ((2026, 10, 16, 16, 30), True),   # Friday afternoon, after the overlap too
     ((2026, 10, 16, 23, 59), True),   # Friday night
+    ((2026, 10, 17, 9, 0), True),     # Saturday: a closed day, stated
+    ((2026, 10, 18, 22, 0), True),    # Sunday night (UTC): still a closed day
     ((2026, 10, 15, 9, 30), False),   # Thursday, London
     ((2026, 10, 15, 11, 59), False),  # a minute before the overlap
     ((2026, 10, 15, 12, 0), True),    # the London/New York overlap opens
@@ -739,7 +744,7 @@ def _cal(when, days=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, windows=PAPER_FORWARD_CLO
     ((2026, 10, 15, 16, 0), False),   # New York alone
     ((2026, 10, 19, 1, 0), False),    # Monday night (UTC): the week trades again
 ])
-def test_no_new_position_on_friday_nor_in_the_london_new_york_overlap(when, blocked):
+def test_no_new_position_in_the_overlap_on_friday_afternoon_or_at_the_weekend(when, blocked):
     v, gates, _, _ = _cal(when)
     assert v.approved is (not blocked), v.reasons
     (cal,) = [c for c in gates if c.name == "trading_calendar"]
@@ -754,19 +759,59 @@ def test_limits_without_a_calendar_never_check_one_and_a_calendar_is_validated()
     for bad in ((7,), (-1,), (True,), ("4",), [4]):
         with pytest.raises(ValueError):
             RiskLimits(closed_weekdays_utc=bad)
-    for bad in (((960, 720),), ((0, 1441),), ((-1, 60),), [(720, 960)], ((720,),), ((720.0, 960),)):
+    for bad in (((960, 720),), ((0, 1441),), ((-1, 60),), [(720, 960)], ((720,),), ((720.0, 960),), ((7, 0, 60),),
+                ((True, 0, 60),), ((4, 720, 1440, 0),)):
         with pytest.raises(ValueError):
             RiskLimits(closed_utc_windows=bad)
 
 
-def test_the_paper_forward_service_closes_friday_and_the_overlap_and_plain_paper_does_not():
+def test_the_paper_forward_service_has_the_calendar_and_the_currency_rule_and_plain_paper_does_not():
     from aitrader.service.config import ServiceConfig
     env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-cal-test", "DASHBOARD_TOKEN": "t"}
     cfg = ServiceConfig.from_env(env)
-    assert cfg.risk.closed_weekdays_utc == (4,) and cfg.risk.closed_utc_windows == ((720, 960),)
+    assert cfg.risk.closed_weekdays_utc == (5, 6) and cfg.risk.closed_utc_windows == ((720, 960), (4, 720, 1440))
+    assert cfg.risk.no_opposite_currency is True
     assert cfg.hard_profile.sha256().startswith("98db6393b13e")  # the evaluation's profile is untouched
     paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
     assert paper.risk.closed_weekdays_utc == () and paper.risk.closed_utc_windows == ()
+    assert paper.risk.no_opposite_currency is False
+
+
+def _against(side, symbol, held, rule=True):
+    """A new `side` `symbol` trade while `held` ((symbol, side) pairs) are open."""
+    from datetime import datetime, timezone
+    t = int(datetime(2026, 10, 15, 9, 30, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec(symbol, 100_000, 0.01, 0.01, 50, 1.0)
+    s = 1 if side == "BUY" else -1
+    entry = ASK if s > 0 else BID
+    d = SimpleNamespace(id="x", decision=side, instrument=symbol, stop_loss=entry - 0.0020 * s,
+                        take_profit=entry + 0.0040 * s)
+    opens = [{"symbol": sym, "side": sd, "qty": 1.0, "notional": 100_000.0, "risk_amount": 100.0} for sym, sd in held]
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[], open_positions=opens)
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, no_opposite_currency=rule))
+    return eng.evaluate(d, acct, spec, Quote(symbol, BID, ASK, t), t)
+
+
+@pytest.mark.parametrize("side,symbol,held,ok", [
+    ("SELL", "EURUSD", [("USDCAD", -1)], False),  # long USD while USDCAD SELL is short USD: 2026-10-15 13:33-ish
+    ("BUY", "USDCAD", [("USDCAD", -1)], False),   # the same pair, the other way
+    ("BUY", "EURUSD", [("USDCAD", -1)], True),    # short USD again: aligned
+    ("BUY", "EURGBP", [("USDCAD", -1)], True),    # no currency in common
+    ("SELL", "EURUSD", [("AUDJPY", 1), ("USDCHF", -1)], False),  # one clash among several is enough
+    ("SELL", "EURUSD", [("USDCAD", 0)], False),   # a side that cannot be read is not assumed harmless
+])
+def test_no_new_position_on_the_opposite_side_of_a_currency_already_held(side, symbol, held, ok):
+    # read from every trade (2026-10-17): 11 trades opened against a currency an open position held won 36%, -0.21 R
+    # each; the others +0.23 R. The account would bet against itself and pay both trades' costs.
+    v = _against(side, symbol, held)
+    assert v.approved is ok, v.reasons
+    if not ok:
+        assert any("currency_conflict" in r for r in v.reasons)
+
+
+def test_the_currency_rule_is_only_checked_when_the_limits_say_so():
+    assert _against("SELL", "EURUSD", [("USDCAD", -1)], rule=False).approved
 
 
 def test_the_next_trades_risk_budget_is_what_the_engine_sizes_to():
