@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-17 12:25 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-17 08:40 UTC · decision system `dual_ai`
+Updated 2026-10-17 12:40 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-17 08:40 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 16:00 EURUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 0.40 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 15:45 USDJPY SELL: AI DECISION → RISK REJECTED — stop_distance: stop 0.002 vs 3.0 x spread 0.01; spread: spread is 500.0% of the stop (max 25%); cost_to_risk: round-trip cost is 950.0% of the stop (max 25%): spread 0.01 + commission and slippage; we
 
-## Latest decisions, NO TRADE included (1102 so far)
+## Latest decisions, NO TRADE included (1104 so far)
 
+- 10-17 12:30 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 870 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 568s old [data: latest bar closed 870 minutes ago]
+- 10-17 12:30 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 870 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 567s old [data: latest bar closed 870 minutes ago]
 - 10-17 12:15 USDCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 915 minutes ago; STALE_DATA: quote is 54923s old; STALE_DATA: last closed bar is 915 minutes old [data: latest bar closed 915 minutes ago]
 - 10-17 12:15 USDCAD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 855 minutes ago; STALE_DATA: quote is 1437s old; STALE_DATA: last closed bar is 855 minutes old [data: latest bar closed 855 minutes ago]
 - 10-17 12:00 AUDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 840 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 840 mi [data: latest bar closed 840 minutes ago]
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-17 11:30 EURCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 810 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 50452s old [data: latest bar closed 810 minutes ago]
 - 10-17 11:15 GBPJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 795 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 49521s old [data: latest bar closed 795 minutes ago]
 - 10-17 11:15 EURJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 795 minutes ago; STALE_DATA: quote is 49551s old; STALE_DATA: last closed bar is 795 minutes old [data: latest bar closed 795 minutes ago]
-- 10-17 11:00 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 780 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 48652s old [data: latest bar closed 780 minutes ago]
-- 10-17 11:00 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 780 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 22250s old [data: latest bar closed 780 minutes ago]
 
 ## Open paper positions
 
@@ -102,6 +102,8 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-17 12:30 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-17 12:30 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 12:15 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 12:15 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 12:00 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -112,8 +114,6 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 | 10-17 11:30 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 11:15 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 11:15 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-17 11:00 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-17 11:00 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
