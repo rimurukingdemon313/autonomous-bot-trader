@@ -63,6 +63,17 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison.
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
+- **Closed days and hours** (risk 1.8.0, operator, 2026-10-17): no new position on Friday (UTC) nor in the
+  London/New York overlap, 12:00-16:00 UTC; the traders are not asked then.
+- **Time budget** (dual-ai 1.5.0, orchestrator 1.19.0): each decision is told how long it has before it would be
+  too old to execute (the execution engine's 900 s, less the quote wait and a margin). A trader is asked only
+  while its answer can still execute, and never for longer than is left; the shadow debate waits at most
+  120 s. Live (2026-10-16), a debate that waited 420 s on a busy model made the next pair's agreement 1103 s
+  old, and it was refused as stale.
+- **The gate's open-risk room** (orchestrator 1.19.0, gate 1.2.0): the hard gate values open positions to their
+  stops from the current price, so profitable ones count for more than their planned risk. When the next
+  trade's risk does not fit in what is left, the traders are not asked: the gate would refuse it (six approved
+  trades were, on 2026-10-16).
 - **Quiet hours** (risk 1.6.0, the risk engine's own limit for MODE=PAPER_FORWARD): no new position from 16:00 to 20:00 New York
   (DST-aware; 23:00-03:00 Baghdad in summer), an hour before the 17:00 rollover to the Tokyo open, when
   liquidity is thinnest and spreads widest. Split by session, the first 14 trades were: Asia +$88 (3), London

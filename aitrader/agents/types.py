@@ -202,6 +202,8 @@ class MarketContext:
     # draws its chart from them) and the declared cost estimate at the decision quote.
     bars: dict = field(default_factory=dict)
     costs: dict | None = None
+    #: seconds left, when the decision starts, before it would be too old to execute; None: no limit is known
+    decide_within_s: float | None = None
 
     def as_dict(self) -> dict:
         return {

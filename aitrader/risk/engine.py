@@ -53,10 +53,19 @@ from .profile import HardRiskProfile, loss_per_lot
 #: 1.7.0: with no_weekend_carry (MODE=PAPER_FORWARD), no new position whose maximum holding time would run past the
 #:   Friday close (17:00 New York): the market shuts for two days and reopens where it likes. A decision without a
 #:   holding time is taken to hold 48 h. It only ever refuses an entry.
-RISK_VERSION = "risk-1.7.0"
+#: 1.8.0 (operator's choice, 2026-10-17): a trading calendar of closed UTC weekdays and closed UTC windows in which no
+#:   new position is opened (MODE=PAPER_FORWARD: Friday, like the weekend; and the London/New York overlap, 12:00-16:00
+#:   UTC, the session the desk's trades did worst in: 8 trades, -0.38 R). `trade_risk_budget` states the most the next
+#:   trade would be sized to lose. It only ever refuses an entry; sizes and every other check unchanged.
+RISK_VERSION = "risk-1.8.0"
 NEW_YORK = ZoneInfo("America/New_York")
 #: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
 PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
+#: MODE=PAPER_FORWARD: no new position on Friday (UTC), as on Saturday and Sunday
+PAPER_FORWARD_CLOSED_WEEKDAYS_UTC = (4,)
+#: MODE=PAPER_FORWARD: no new position in the London/New York overlap, 12:00-16:00 UTC (as learning.forward.session_of)
+PAPER_FORWARD_CLOSED_UTC = ((12 * 60, 16 * 60),)
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -107,12 +116,26 @@ class RiskLimits:
     quiet_ny_end_min: int = 0
     #: no new position whose maximum holding time would run past the Friday close (17:00 New York)
     no_weekend_carry: bool = False
+    #: no NEW position on these UTC weekdays (0 Monday .. 6 Sunday) or inside these UTC windows ((start, end) minutes
+    #: after 00:00 UTC, start < end). Open positions are managed as usual.
+    closed_weekdays_utc: tuple = ()
+    closed_utc_windows: tuple = ()
 
     def __post_init__(self) -> None:
         for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
             v = getattr(self, k)
             if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v < 1440:
                 raise ValueError(f"{k} must be an integer 0..1439, minutes after midnight New York (got {v!r})")
+        def minute(v) -> bool:
+            return isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 1440
+        if not isinstance(self.closed_weekdays_utc, tuple) or not all(
+                isinstance(d, int) and not isinstance(d, bool) and 0 <= d <= 6 for d in self.closed_weekdays_utc):
+            raise ValueError(f"closed_weekdays_utc must be a tuple of weekdays 0..6 (got {self.closed_weekdays_utc!r})")
+        if not isinstance(self.closed_utc_windows, tuple) or not all(
+                isinstance(w, tuple) and len(w) == 2 and minute(w[0]) and minute(w[1]) and w[0] < w[1]
+                for w in self.closed_utc_windows):
+            raise ValueError("closed_utc_windows must be a tuple of (start, end) minutes after 00:00 UTC, 0 <= start < "
+                             f"end <= 1440 (got {self.closed_utc_windows!r})")
 
     def effective_risk_pct(self) -> float:
         pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
@@ -301,6 +324,33 @@ class RiskEngine:
                      f"{ny:%H:%M} New York: no new position from {a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} "
                      f"New York (the rollover to the Tokyo open: the thinnest liquidity of the day)")
 
+    def _c_calendar(self, now: int) -> Check | None:
+        """No new position on a closed UTC weekday or inside a closed UTC window, if the limits set any."""
+        days, windows = self.limits.closed_weekdays_utc, self.limits.closed_utc_windows
+        if not days and not windows:
+            return None
+        u = datetime.fromtimestamp(now, timezone.utc)
+        m = u.hour * 60 + u.minute
+        if u.weekday() in days:
+            return Check("trading_calendar", False, f"{WEEKDAYS[u.weekday()]} (UTC): no new position on "
+                                                    + ", ".join(WEEKDAYS[d] for d in sorted(days)))
+        for a, b in windows:
+            if a <= m < b:
+                return Check("trading_calendar", False, f"{u:%H:%M} UTC: no new position from {a // 60:02d}:{a % 60:02d} "
+                                                        f"to {b // 60:02d}:{b % 60:02d} UTC")
+        return Check("trading_calendar", True, f"{WEEKDAYS[u.weekday()]} {u:%H:%M} UTC: open for new positions")
+
+    def trade_risk_budget(self, account: AccountState) -> float | None:
+        """The most the next trade would be sized to lose (before lot rounding), from the same rule evaluate() sizes
+        with; None without a positive equity."""
+        eq = account.equity
+        if eq is None or not eq > 0:
+            return None
+        L = self.limits
+        mult = streak_multiplier(account.closed_r, L.loss_streak_step, L.loss_streak_floor)
+        budget = eq * L.effective_risk_pct() * mult / 100
+        return min(budget, L.hard.risk_per_trade * mult) if L.hard is not None else budget
+
     def _c_weekend_carry(self, decision, now: int) -> Check | None:
         """No new position that could still be open at the Friday close (17:00 New York), if the limits say so."""
         if not self.limits.no_weekend_carry:
@@ -329,7 +379,8 @@ class RiskEngine:
         if not out[-1].passed:
             return out
         out += [self._c_daily(account), self._c_weekly(account), self._c_drawdown(account)[0]]
-        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_quiet_hours(now)) if c is not None]
+        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_quiet_hours(now),
+                            self._c_calendar(now)) if c is not None]
         out += self._c_positions(account, instrument)
         return out
 
@@ -410,6 +461,7 @@ class RiskEngine:
             ok &= add(c)
         ok &= add(self._c_weekend(now))
         ok &= add(self._c_quiet_hours(now))
+        ok &= add(self._c_calendar(now))
         ok &= add(self._c_weekend_carry(decision, now))
         if not ok:
             return v

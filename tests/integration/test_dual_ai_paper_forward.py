@@ -290,6 +290,29 @@ def test_a_declared_adjustment_takes_the_retired_rules_trades_out_of_the_account
     assert status.get("kill") is None and status.get("lock") is None and status.get("state") == "ACTIVE"
 
 
+def test_the_model_is_not_asked_for_a_trade_the_gate_would_refuse_for_open_risk_and_each_decision_has_a_budget(
+        tmp_path, monkeypatch):
+    # found live (2026-10-16): six trades the risk engine approved were refused by the hard gate (OPEN_RISK_LIMIT):
+    # it values open positions to their stops from the current price, so profitable ones count for more
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch)
+    seen = []
+    real = rt.orch.brain.dual_ai.decide
+
+    def spy(ctx, *a, **kw):
+        seen.append(ctx.decide_within_s)
+        return real(ctx, *a, **kw)
+    monkeypatch.setattr(rt.orch.brain.dual_ai, "decide", spy)
+    monkeypatch.setattr(rt.execution.gate, "open_risk_room", lambda broker: 120.0)  # less than one trade's 500
+    cycles(rt, clock)
+    assert not fake.calls and not rt.broker.positions()
+    last = rt.dual_ai()["last_analysis"]
+    assert last["decision"] == "NO_TRADE" and "gate_open_risk" in last["reason"]
+    monkeypatch.setattr(rt.execution.gate, "open_risk_room", lambda broker: 2_000.0)
+    cycles(rt, clock)
+    assert fake.calls and rt.broker.positions()  # room for it: asked, and taken
+    assert seen and all(isinstance(s, (int, float)) and 0 < s <= 900 - 150 for s in seen)
+
+
 def test_the_dashboard_shows_the_desk_and_never_the_key(tmp_path, monkeypatch):
     rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
     cycles(rt, clock)

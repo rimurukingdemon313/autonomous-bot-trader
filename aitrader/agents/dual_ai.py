@@ -56,6 +56,7 @@ import dataclasses
 import json
 import math
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -82,7 +83,11 @@ from .types import MarketContext
 #:        levels fall inside the risk engine's published per-trade limits (RiskEngine.trade_limits: minimum stop
 #:        distance, minimum reward:risk, at the executable price) while the other's respect them, the other's are
 #:        used. Both are the traders' own, never edited; the risk engine still decides.
-DUAL_AI_VERSION = "dual-ai-1.4.0"
+#: 1.5.0 (live, 2026-10-16: two agreements refused as stale, 933 s and 1103 s old, after the other pair's shadow
+#:        debate waited 420 s on a busy model): every call has a time budget. A trader is asked only while the
+#:        decision can still execute in time (MarketContext.decide_within_s), and never for longer than is left;
+#:        the shadow debate, measurement only, waits at most SHADOW_DEBATE_DEADLINE_S. Prompts are unchanged.
+DUAL_AI_VERSION = "dual-ai-1.5.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -97,6 +102,9 @@ HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
+CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
+SHADOW_DEBATE_DEADLINE_S = 120.0  # the shadow debate is measurement only: it never holds up the next decision long
+MIN_CALL_S = 30.0                # less time left than this: the trader is not asked (its answer would come too late)
 #: Trader 1 reads the chart as numbers on a text model only when no vision model gave a usable answer, never after
 #: a stop that another model would not fix (no key, budget or quota spent, spend on the key, a policy block)
 NO_FALLBACK = frozenset({"NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "PAID_USAGE", "NOT_FREE",
@@ -472,13 +480,29 @@ class DualAITrader:
         hold = HOLD_MINUTES.get(chart.meta["execution_timeframe"], HOLD_MINUTES["H1"])
         rec["hold_minutes"] = hold
         key = f"{ctx.symbol}|{ctx.t}|{chart.meta['sha256'][:16]}"
+        started = time.monotonic()
 
         def why(r) -> str:
             return f"{r.status}{': ' + r.error if r.error else ''}"
 
+        def budget(cap: float) -> float | None:
+            """Seconds a call may take: its cap, or what is left before the decision would be too old to execute;
+            None when too little is left to ask at all."""
+            if ctx.decide_within_s is None:
+                return cap
+            rest = ctx.decide_within_s - (time.monotonic() - started)
+            return min(cap, rest) if rest >= MIN_CALL_S else None
+
+        def late(who: str) -> str:
+            return (f"{who} was not asked: too little time left before the decision would be too old to execute "
+                    f"({ctx.decide_within_s:.0f} s at the start)")
+
         # Trader 1: the chart image
+        dl = budget(CALL_DEADLINE_S)
+        if dl is None:
+            return stop(late("Trader 1") + ": no decision", "TRADER1_UNAVAILABLE")
         r1 = client.chat_json("vision", trader1_messages(ctx, chart, hold), lambda d: validate_trader(d, px),
-                              dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"])
+                              dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"], deadline_s=dl)
         rec["calls"].append(r1.record())
         rec["models"]["trader1"] = r1.model
         rec["trader1_input"] = "image"
@@ -488,9 +512,13 @@ class DualAITrader:
             # chart from its numbers on a text model of the third pool (Trader 2's best model stays Trader 2's),
             # never one already asked for this decision; a reply is still used as given or not at all
             asked = tuple(m for m in [*(m for m, _ in r1.tried), r1.model] if m)
+            dl = budget(CALL_DEADLINE_S)
+            if dl is None:
+                return stop(f"{failed}; {late('the chart as numbers')}: no decision on one trader alone",
+                            "TRADER1_UNAVAILABLE")
             r1 = client.chat_json("trader1_numbers", trader1_numbers_messages(ctx, chart, hold),
                                   lambda d: validate_trader(d, px), dedupe_key=key + "|trader1-numbers",
-                                  max_tokens=MAX_TOKENS["vision"], avoid=asked)
+                                  max_tokens=MAX_TOKENS["vision"], avoid=asked, deadline_s=dl)
             rec["calls"].append(r1.record())
             rec["models"]["trader1"] = r1.model
             rec["trader1_input"] = "numbers"
@@ -502,9 +530,12 @@ class DualAITrader:
         t1 = r1.data
 
         # Trader 2: independent, on a different model
+        dl = budget(CALL_DEADLINE_S)
+        if dl is None:
+            return stop(late("Trader 2") + ": no decision on one trader alone", "TRADER2_UNAVAILABLE")
         r2 = client.chat_json("judge", trader2_messages(ctx, reports, chart, t1, hold),
                               lambda d: validate_trader(d, px), dedupe_key=key + "|trader2",
-                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,))
+                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,), deadline_s=dl)
         rec["calls"].append(r2.record())
         rec["models"]["trader2"] = r2.model
         if r2.data is not None:
@@ -517,21 +548,25 @@ class DualAITrader:
         if t1["direction"] != t2["direction"]:
             # opposite sides: no trade. One debate (a third model when one exists, never a second round) runs in
             # shadow: its pick and the side it rejected are followed forward as if taken, never traded.
-            r3 = client.chat_json("verifier", verify_messages(ctx, reports, chart, t1, t2, hold), validate_verifier,
-                                  dedupe_key=key + "|verifier", max_tokens=MAX_TOKENS["verifier"],
-                                  avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True)
-            rec["calls"].append(r3.record())
-            rec["models"]["verifier"] = r3.model
-            if r3.data is not None:
-                rec["verifier"] = _clean(r3.data, VERIFY_KEYS)
-            res = resolve(t1, t2, r3.data if r3.ok else None)
+            dl = budget(SHADOW_DEBATE_DEADLINE_S)
+            r3 = None if dl is None else client.chat_json(
+                "verifier", verify_messages(ctx, reports, chart, t1, t2, hold), validate_verifier,
+                dedupe_key=key + "|verifier", max_tokens=MAX_TOKENS["verifier"],
+                avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True, deadline_s=dl)
+            if r3 is not None:
+                rec["calls"].append(r3.record())
+                rec["models"]["verifier"] = r3.model
+                if r3.data is not None:
+                    rec["verifier"] = _clean(r3.data, VERIFY_KEYS)
+            res = resolve(t1, t2, r3.data if r3 is not None and r3.ok else None)
             rec["consensus"] = res
             if res["pick_from"]:
                 sides = {"trader1": t1, "trader2": t2}
                 rec["shadow"] = [_shadow_side(sides[res["pick_from"]], res["pick_from"], PICK_FAMILY, hold),
                                  _shadow_side(sides[res["loser"]], res["loser"], LOSER_FAMILY, hold)]
             seen = (f"the debate ({r3.model}) would have chosen {res['debate_pick']}: followed forward in shadow, "
-                    "not traded" if res["pick_from"] else f"the shadow debate gave no usable answer ({why(r3)})")
+                    "not traded" if res["pick_from"] else late("the shadow debate") if r3 is None else
+                    f"the shadow debate gave no usable answer ({why(r3)})")
             return stop(f"the traders disagree (Trader 1 {t1['direction']} {t1['confidence']}, Trader 2 "
                         f"{t2['direction']} {t2['confidence']}): no trade unless both choose the same side; {seen}",
                         "DISAGREE")

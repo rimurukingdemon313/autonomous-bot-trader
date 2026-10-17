@@ -51,6 +51,7 @@ kill switch, or override a rejection:
 | A late public price | Yahoo stamps its own prices and is sometimes a minute or two late; the hard gate refuses a quote older than 90 s. On a live feed the execution engine waits, bounded (up to 6 x 15 s), for the next price before the gate decides: a read retried, nothing sent (exec 1.8.0) |
 | Weekend | no new position whose maximum holding time could run past the Friday close (17:00 New York): the market shuts for two days and reopens where it likes (risk 1.7.0) |
 | Quiet hours | no new position from 16:00 to 20:00 New York (DST-aware), an hour before the 17:00 rollover to the Tokyo open: liquidity is thinnest and spreads widest then. Open positions are kept and managed. The risk engine's own limit for MODE=PAPER_FORWARD, not a field of the evaluation profile (a profile cannot change during an evaluation) |
+| Closed days and hours | no new position on Friday (UTC), as on Saturday and Sunday, nor in the London/New York overlap, 12:00-16:00 UTC (the session the desk did worst in: 8 trades, -0.38 R). The operator's choice, 2026-10-17; the risk engine's own calendar for MODE=PAPER_FORWARD (risk 1.8.0), not a field of the evaluation profile. Open positions are kept and managed |
 | Targets | $20,000 / $10,000, reported; they never force a trade |
 
 ## 3. A position's life

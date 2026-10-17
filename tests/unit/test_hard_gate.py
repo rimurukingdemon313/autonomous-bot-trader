@@ -22,7 +22,7 @@ from aitrader.memory.db import Database
 from aitrader.risk.engine import AccountState, InstrumentSpec, Quote, RiskEngine, RiskLimits, RiskVerdict
 from aitrader.risk.hard_gate import (CLEAR_KILL_CONFIRMATION, RESET_CONFIRMATION, HardRiskGate, Permit,
                                      TradeProposal)
-from aitrader.risk.engine import PAPER_FORWARD_QUIET_NY
+from aitrader.risk.engine import PAPER_FORWARD_CLOSED_UTC, PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, PAPER_FORWARD_QUIET_NY
 from aitrader.risk.profile import FTMO_200K, PAPER_FORWARD_200K, HardRiskProfile, ProfileError, loss_per_lot
 
 T0 = 1_768_298_400  # Tuesday 2026-01-13 10:00 UTC (11:00 in Prague, winter time)
@@ -711,6 +711,89 @@ def test_the_paper_forward_service_has_the_quiet_hours_and_the_running_evaluatio
     paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
     assert (paper.risk.quiet_ny_start_min, paper.risk.quiet_ny_end_min) == (0, 0)
     assert cfg.risk.no_weekend_carry is True and paper.risk.no_weekend_carry is False
+
+
+# ── the trading calendar: no new position on Friday, nor in the London/New York overlap (operator, 2026-10-17) ──
+
+def _cal(when, days=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, windows=PAPER_FORWARD_CLOSED_UTC, closed_r=()):
+    from datetime import datetime, timezone
+    t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="c", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=list(closed_r))
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, closed_weekdays_utc=days,
+                                closed_utc_windows=windows))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t), eng.account_gates(acct, "EURUSD", t), eng, acct
+
+
+@pytest.mark.parametrize("when,blocked", [
+    ((2026, 10, 16, 0, 0), True),     # Friday 00:00 UTC: closed, like the weekend
+    ((2026, 10, 16, 9, 30), True),    # Friday morning
+    ((2026, 10, 16, 23, 59), True),   # Friday night
+    ((2026, 10, 15, 9, 30), False),   # Thursday, London
+    ((2026, 10, 15, 11, 59), False),  # a minute before the overlap
+    ((2026, 10, 15, 12, 0), True),    # the London/New York overlap opens
+    ((2026, 10, 15, 14, 1), True),    # inside it: the EURUSD/EURJPY entries stopped out on 2026-10-16
+    ((2026, 10, 15, 15, 59), True),   # its last minute
+    ((2026, 10, 15, 16, 0), False),   # New York alone
+    ((2026, 10, 19, 1, 0), False),    # Monday night (UTC): the week trades again
+])
+def test_no_new_position_on_friday_nor_in_the_london_new_york_overlap(when, blocked):
+    v, gates, _, _ = _cal(when)
+    assert v.approved is (not blocked), v.reasons
+    (cal,) = [c for c in gates if c.name == "trading_calendar"]
+    assert cal.passed is (not blocked)  # the model is not even asked when it is closed
+    if blocked:
+        assert any("trading_calendar" in r for r in v.reasons)
+
+
+def test_limits_without_a_calendar_never_check_one_and_a_calendar_is_validated():
+    v, gates, _, _ = _cal((2026, 10, 16, 13, 0), (), ())
+    assert v.approved and not [c for c in gates if c.name == "trading_calendar"]
+    for bad in ((7,), (-1,), (True,), ("4",), [4]):
+        with pytest.raises(ValueError):
+            RiskLimits(closed_weekdays_utc=bad)
+    for bad in (((960, 720),), ((0, 1441),), ((-1, 60),), [(720, 960)], ((720,),), ((720.0, 960),)):
+        with pytest.raises(ValueError):
+            RiskLimits(closed_utc_windows=bad)
+
+
+def test_the_paper_forward_service_closes_friday_and_the_overlap_and_plain_paper_does_not():
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-cal-test", "DASHBOARD_TOKEN": "t"}
+    cfg = ServiceConfig.from_env(env)
+    assert cfg.risk.closed_weekdays_utc == (4,) and cfg.risk.closed_utc_windows == ((720, 960),)
+    assert cfg.hard_profile.sha256().startswith("98db6393b13e")  # the evaluation's profile is untouched
+    paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
+    assert paper.risk.closed_weekdays_utc == () and paper.risk.closed_utc_windows == ()
+
+
+def test_the_next_trades_risk_budget_is_what_the_engine_sizes_to():
+    v, _, eng, acct = _cal((2026, 10, 15, 9, 30))
+    budget = eng.trade_risk_budget(acct)
+    assert v.approved and budget == pytest.approx(500.0) and 0.9 * budget <= v.risk_amount <= budget
+    _, _, eng2, after_losses = _cal((2026, 10, 15, 9, 30), closed_r=(-1, -1, -1))
+    assert eng2.trade_risk_budget(after_losses) == pytest.approx(250.0)  # the loss streak halves it, never raises it
+    richer = dataclasses.replace(after_losses, equity=400_000.0)  # where the profile's fixed $500 is what binds
+    assert eng2.trade_risk_budget(richer) == pytest.approx(250.0)  # halved too: never the full 500 after losses
+
+
+def test_the_gates_open_risk_room_is_what_authorize_counts_and_reading_it_writes_nothing():
+    e = env()
+    e.gate.observe(e.broker)
+    assert e.gate.open_risk_room(e.broker) == pytest.approx(FTMO_200K.max_open_risk)  # nothing open
+    for i in range(3):
+        assert execute(e, f"p{i}").status == "FILLED"
+    state = e.db.one("SELECT value, sha256 FROM risk_gate_state")
+    logged = len(e.db.query("SELECT 1 FROM risk_gate_log"))
+    room = e.gate.open_risk_room(e.broker)
+    assert e.db.one("SELECT value, sha256 FROM risk_gate_state") == state
+    assert len(e.db.query("SELECT 1 FROM risk_gate_log")) == logged
+    assert 485 <= room < 600  # 3 x 485 counted: a 4th of 485 fits
+    assert execute(e, "p3").status == "FILLED"
+    room = e.gate.open_risk_room(e.broker)
+    assert room < 485 and execute(e, "p4").status == "BLOCKED"  # less room than a trade: authorize refuses it
 
 
 def _carry(when, hold_min=480, carry=True):

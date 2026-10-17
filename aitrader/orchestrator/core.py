@@ -41,7 +41,7 @@ from ..broker.paper import pip_of
 from ..data.resample import bucket_start
 from ..decision.edge_status import SIGNAL_CLASS, classify, execution_route
 from ..decision.synthesis import Decision
-from ..execution.engine import ExecutionEngine
+from ..execution.engine import QUOTE_WAIT_S, QUOTE_WAIT_TRIES, ExecutionEngine
 from ..features.store import LOOKBACK, compute_at
 from ..learning.experience import Evaluation, ExperienceView, session_of
 from ..learning import dual_ai_stats
@@ -90,7 +90,14 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         read before it; a model's answer can take minutes.
 #: 1.18.0: a dual-AI trade taken is also followed forward under shadow exits (break-even at +1R, held 24 h, twice
 #:         as wide), never traded.
-ORCHESTRATOR_VERSION = "orchestrator-1.18.0"
+#: 1.19.0 (live, 2026-10-16): a model decision is told how long it has before it would be too old to execute
+#:         (`decide_within_s`: the execution engine's maximum decision age less the time execution needs); two were
+#:         refused as stale after a slow shadow debate on the other pair. The account checks that refuse any trade
+#:         now include the hard gate's own open-risk room: when the next trade's risk does not fit in it, the model is
+#:         not asked (six approved trades were refused by the gate for open risk). Both only ever skip a decision.
+ORCHESTRATOR_VERSION = "orchestrator-1.19.0"
+#: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
+EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
 
 class NullKnowledge:
@@ -390,6 +397,13 @@ class Orchestrator:
             ctx.trading_allowed = self._trading_allowed()
             ctx.account_blocks = [f"{c.name} ({c.detail})" for c in self.risk.account_gates(state, symbol, t)
                                   if not c.passed]
+            # the hard gate values open risk from each position's current price to its stop, with costs: when the
+            # next trade's risk does not fit in what it leaves, it would refuse it, so the model is not asked
+            room, need = self.execution.gate.open_risk_room(self.broker), self.risk.trade_risk_budget(state)
+            if room is not None and need is not None and room < 0.9 * need:
+                ctx.account_blocks.append(f"gate_open_risk (the hard risk gate's open-risk room {room:.2f} is less than "
+                                          f"the next trade's risk {need:.2f}: it would refuse the trade)")
+            ctx.decide_within_s = max(0.0, t + self.execution.max_decision_age_s - EXECUTION_ALLOWANCE_S - self.clock())
         self._event("ANALYSIS_REQUESTED", {"symbol": symbol, "t": t})
         thought = self.brain.think(ctx, self.versions)
         d = thought.decision

@@ -47,7 +47,9 @@ from .profile import HardRiskProfile, loss_per_lot, pip_of
 
 #: 1.1.0: a profile's `daily_breach` LOCK_DAY: a daily breach stops new trades until the next reset (DAILY_LOCK),
 #:        recorded as an FTMO-rule violation, without the kill switch; status reports the risk state.
-GATE_VERSION = "hard-gate-1.1.0"
+#: 1.2.0: `open_risk_room` (read-only): the open-risk limit left, valued as authorize() values it, so a caller can
+#:        skip asking for a trade the gate would refuse for open risk; authorize() is unchanged and still decides.
+GATE_VERSION = "hard-gate-1.2.0"
 SYMBOL_RE = re.compile(r"^[A-Z0-9]{6,12}$")
 RESET_CONFIRMATION = "RESET-EVALUATION"
 CLEAR_KILL_CONFIRMATION = "CLEAR-KILL-SWITCH"
@@ -670,6 +672,21 @@ class HardRiskGate:
                 hb = TradeProposal("heartbeat", "heartbeat", "-", 0, 0.0, None, None, None, source="HEARTBEAT")
                 self._refuse(st, hb, rej, calc, now)
             return self.status()
+
+    def open_risk_room(self, broker) -> float | None:
+        """Read-only: the profile's open-risk limit minus the open risk authorize() would count now, valued the same
+        way (positions to their stops from the current price, with costs); None when it cannot be read. It writes
+        nothing and authorises nothing: authorize() still decides every trade."""
+        with self._lock:
+            try:
+                st = self._load()  # a fresh copy of the verified state; never saved here
+                if st is None:
+                    return None
+                calc: dict = {}
+                self._account(st, broker, self.clock(), calc)
+                return self._profile.max_open_risk - calc["open_risk"]
+            except Exception:  # noqa: BLE001 - unknown; authorize() decides
+                return None
 
     # ── operator / evaluation controls (never reachable by a model) ─────
 

@@ -273,6 +273,38 @@ def test_the_traders_are_told_the_risk_engines_own_limits():
     assert "min_stop_distance" in fake.calls[0]["body"]["messages"][0]["content"]
 
 
+def deadlines(reply, within):
+    """The wall-clock budget each call was given, by role."""
+    brain, fake = desk(reply)
+    c = desk_ctx()
+    c.decide_within_s = within
+    asked = {}
+    real = brain.dual_ai.client.chat_json
+
+    def spy(role, *a, **kw):
+        asked[role] = kw.get("deadline_s")
+        return real(role, *a, **kw)
+    brain.dual_ai.client.chat_json = spy
+    return brain.think(c, V).decision, asked, fake
+
+
+def test_with_too_little_time_left_no_trader_is_asked_and_it_is_no_trade():
+    # found live (2026-10-16): two agreements were refused as stale (933 s, 1103 s old) after the other pair's shadow
+    # debate waited 420 s on a busy model. An answer that would come too late to execute is not asked for.
+    d, asked, fake = deadlines(scripted(), within=10)
+    assert d.decision == "NO_TRADE" and asked == {} and not fake.calls
+    assert d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE" and "too old to execute" in d.no_trade_reason
+
+
+def test_every_call_ends_before_the_decision_would_be_too_old_and_the_shadow_debate_waits_briefly():
+    d, asked, _ = deadlines(scripted(t1=("BUY", 80), t2=("SELL", 70)), within=300)
+    assert d.decision == "NO_TRADE" and set(asked) == {"vision", "judge", "verifier"}
+    assert 250 < asked["vision"] <= 300 and asked["judge"] <= 300  # never longer than is left
+    assert asked["verifier"] <= 120  # measurement only: it never holds up the next decision long
+    _, free, _ = deadlines(scripted(t1=("BUY", 80), t2=("SELL", 70)), within=None)
+    assert free == {"vision": 420.0, "judge": 420.0, "verifier": 120.0}  # no known limit: the caps
+
+
 def test_when_one_vision_model_answers_badly_another_trader_1_model_is_asked():
     # found in the live run (GBPUSD 11:45): the first vision model answered without JSON
     def t1(body):
