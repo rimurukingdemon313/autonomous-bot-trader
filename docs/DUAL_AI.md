@@ -65,6 +65,8 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
 - **Closed days and hours** (risk 1.8.0/1.9.0, operator, 2026-10-17): no new position in the London/New York overlap,
   12:00-16:00 UTC, on Friday from 12:00 UTC, nor on Saturday or Sunday; the traders are not asked then.
+- **Scheduled news** (risk 1.10.0): no new position from 30 min before to 30 min after a High-impact release for
+  the pair's currencies; without a readable calendar the desk stands aside. The traders are not asked then.
 - **Never against itself** (risk 1.9.0): a trade on the opposite side of a currency an open position holds is refused
   (11 such trades so far: 36% won, -0.21 R each; the rest +0.23 R). Refused trades are still followed forward.
 - **Time budget** (dual-ai 1.5.0, orchestrator 1.19.0): each decision is told how long it has before it would be
@@ -242,6 +244,24 @@ rate, the debate's pick and its rejected side as if taken, the agreement rate. E
 Trader 2 and the debate are shown this record from LEARNING weeks only (every third ISO week is EVALUATION and
 is never learned from). Nothing moves a rule, a size or a limit; the desk's trades are never averaged with
 another mode's.
+
+## Hypotheses under test (registered 2026-10-17, before the data that will judge them)
+
+Read from the first 41 agreement trades. Many splits were tried that day, so a split that looks strong may be
+chance; none of these is a rule. Each is judged on agreement trades opened from 2026-10-19 only, never on the
+trades it was found in, and adopted (as a risk-engine refusal) only if it holds there.
+
+| Hypothesis | Found in (41 trades) | Adopt if, on new trades |
+|---|---|---|
+| H1 structure "range (mixed swings)" loses; a clear H1 structure (up or down) wins | range 21: 33% won, -0.18 R; clear 20: +0.43 R | each group has 20+ trades and range is 0.3 R or more below clear |
+| Chasing loses: a BUY with H1 RSI above 65, a SELL below 35 | 7 trades: 29% won, -0.30 R; the rest +0.20 R | 15+ chasing trades, 0.3 R or more below the rest |
+| Trader 2's levels lose when used | 7 trades: 29% won, -0.24 R; Trader 1's 34: +0.19 R | 15+ trades on Trader 2's levels, 0.3 R or more below |
+| Holding 24 h beats the 8 h exit | shadow, 19 trades: +0.39 R vs +0.13 R | 30+ paired trades in shadow, 0.15 R or more better |
+| Agreements refused for reward:risk under 1.2 would have paid | shadow, 34: +0.15 R, 59% won | 50+ in shadow and still positive; it would loosen a limit, so it needs the most |
+
+Already adopted the same day, with a reason beyond the numbers: no trade against a currency already held (the
+account would bet against itself); the overlap, late Friday and the weekend closed (operator); High-impact news
+windows (event risk). These are still measured: risk-refused trades are followed forward.
 
 ## Configuration and activation
 

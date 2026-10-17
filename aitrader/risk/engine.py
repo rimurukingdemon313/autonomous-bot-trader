@@ -62,7 +62,10 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   closed days rather than assumed; a calendar window may name its weekday. no_opposite_currency: no new position
 #:   on the opposite side of a currency an open position holds (11 such trades: 36% won, -0.21 R each; the rest
 #:   +0.23 R): the account would bet against itself and pay both trades' costs. Both only ever refuse an entry.
-RISK_VERSION = "risk-1.9.0"
+#: 1.10.0: news_blackout_min: no new position from N minutes before to M minutes after a High-impact scheduled
+#:   release for either currency of the pair (the economic calendar the models already read); news_required: an
+#:   unavailable calendar means scheduled-event risk is unknown, and the engine stands aside. Only ever refuses.
+RISK_VERSION = "risk-1.10.0"
 NEW_YORK = ZoneInfo("America/New_York")
 #: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
 PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
@@ -71,6 +74,8 @@ PAPER_FORWARD_CLOSED_WEEKDAYS_UTC = (5, 6)
 #: MODE=PAPER_FORWARD: no new position in the London/New York overlap, 12:00-16:00 UTC (as learning.forward.session_of),
 #: nor on Friday from 12:00 UTC to the weekend
 PAPER_FORWARD_CLOSED_UTC = ((12 * 60, 16 * 60), (4, 12 * 60, 24 * 60))
+#: MODE=PAPER_FORWARD: no new position from 30 min before to 30 min after a High-impact release for the pair
+PAPER_FORWARD_NEWS_BLACKOUT_MIN = (30, 30)
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 #: No configuration can take per-trade risk above this.
@@ -129,6 +134,10 @@ class RiskLimits:
     closed_utc_windows: tuple = ()
     #: no new position on the opposite side of a currency an open position holds (long EUR while short EUR)
     no_opposite_currency: bool = False
+    #: (before, after) minutes around a High-impact release for either currency of the pair: no new position; ()
+    #: none. news_required: no calendar, or an unavailable one, refuses every new position (event risk unknown).
+    news_blackout_min: tuple = ()
+    news_required: bool = False
 
     def __post_init__(self) -> None:
         for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
@@ -137,6 +146,10 @@ class RiskLimits:
                 raise ValueError(f"{k} must be an integer 0..1439, minutes after midnight New York (got {v!r})")
         def minute(v) -> bool:
             return isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 1440
+        if self.news_blackout_min != () and not (
+                isinstance(self.news_blackout_min, tuple) and len(self.news_blackout_min) == 2
+                and all(isinstance(x, int) and not isinstance(x, bool) and 0 <= x <= 720 for x in self.news_blackout_min)):
+            raise ValueError(f"news_blackout_min must be () or (before, after) minutes 0..720 (got {self.news_blackout_min!r})")
         if not isinstance(self.closed_weekdays_utc, tuple) or not all(
                 isinstance(d, int) and not isinstance(d, bool) and 0 <= d <= 6 for d in self.closed_weekdays_utc):
             raise ValueError(f"closed_weekdays_utc must be a tuple of weekdays 0..6 (got {self.closed_weekdays_utc!r})")
@@ -355,6 +368,32 @@ class RiskEngine:
                                                         f"{a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} UTC")
         return Check("trading_calendar", True, f"{WEEKDAYS[u.weekday()]} {u:%H:%M} UTC: open for new positions")
 
+    def _c_news(self, news: dict | None) -> Check | None:
+        """No new position around a High-impact release for the pair's currencies, if the limits set a window; with
+        news_required, none without a readable calendar. `news` is the calendar's view for this pair at the decision
+        time (data.calendar.EconomicCalendar.for_symbol): its events carry minutes_away from that time."""
+        L = self.limits
+        if not L.news_blackout_min and not L.news_required:
+            return None
+        feed = (news or {}).get("feed") or {}
+        events = (news or {}).get("events")
+        if news is None or feed.get("status") == "UNAVAILABLE" or events is None:
+            why = "no economic calendar" if news is None else f"the economic calendar is unavailable ({feed.get('reason')})"
+            return Check("news", not L.news_required, f"{why}: scheduled-event risk unknown"
+                         + (", stand aside" if L.news_required else ""))
+        if not L.news_blackout_min:
+            return Check("news", True, f"calendar {feed.get('status')}; no blackout window set")
+        before, after = L.news_blackout_min
+        near = [e for e in events if str(e.get("impact")) == "High" and isinstance(e.get("minutes_away"), (int, float))
+                and -after <= e["minutes_away"] <= before]
+        return Check("news", not near,
+                     ("High-impact release " + "; ".join(f"{e.get('currency')} {e.get('title')} "
+                                                         f"{'in ' + str(e['minutes_away']) + ' min' if e['minutes_away'] >= 0 else str(-e['minutes_away']) + ' min ago'}"
+                                                         for e in near)
+                      + f": no new position from {before} min before to {after} min after") if near else
+                     f"no High-impact release for {', '.join((news or {}).get('currencies') or [])} within {before} min "
+                     f"ahead or {after} min past (calendar {feed.get('status')})")
+
     def _c_currency_conflict(self, decision, account: AccountState) -> Check | None:
         """No new position on the opposite side of a currency an open position holds, if the limits say so. A position
         whose side cannot be read counts as a conflict: it cannot be shown not to be one."""
@@ -406,7 +445,7 @@ class RiskEngine:
             return Check("funded_weekend", not (wd.weekday() == 4 and wd.hour >= 16), "no new positions late Friday")
         return None
 
-    def account_gates(self, account: AccountState, instrument: str, now: int) -> list[Check]:
+    def account_gates(self, account: AccountState, instrument: str, now: int, news: dict | None = None) -> list[Check]:
         """The checks that refuse ANY new trade on `instrument` whatever its levels: the same
         definitions evaluate() applies. Used to avoid asking a model for a trade the account cannot
         take (a spent daily loss limit, full positions); evaluate() still decides every trade."""
@@ -415,13 +454,14 @@ class RiskEngine:
             return out
         out += [self._c_daily(account), self._c_weekly(account), self._c_drawdown(account)[0]]
         out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_quiet_hours(now),
-                            self._c_calendar(now)) if c is not None]
+                            self._c_calendar(now), self._c_news(news)) if c is not None]
         out += self._c_positions(account, instrument)
         return out
 
     def evaluate(self, decision, account: AccountState, spec: InstrumentSpec | None, quote: Quote | None,
                  now: int, executed_ids: set[str] | frozenset = frozenset(),
-                 data_flags: tuple[str, ...] | list[str] = (), swap_per_night: float = 0.0) -> RiskVerdict:
+                 data_flags: tuple[str, ...] | list[str] = (), swap_per_night: float = 0.0,
+                 news: dict | None = None) -> RiskVerdict:
         L = self.limits
         v = RiskVerdict(decision.id, False)
         checks = v.checks
@@ -498,6 +538,7 @@ class RiskEngine:
         ok &= add(self._c_weekend(now))
         ok &= add(self._c_quiet_hours(now))
         ok &= add(self._c_calendar(now))
+        ok &= add(self._c_news(news))
         ok &= add(self._c_weekend_carry(decision, now))
         if not ok:
             return v

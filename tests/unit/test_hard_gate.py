@@ -841,6 +841,69 @@ def test_the_gates_open_risk_room_is_what_authorize_counts_and_reading_it_writes
     assert room < 485 and execute(e, "p4").status == "BLOCKED"  # less room than a trade: authorize refuses it
 
 
+# ── scheduled news: no new position around a High-impact release (risk 1.10.0) ──
+
+def _news(events=(), status="FRESH", window=(30, 30), required=True, news="given"):
+    from datetime import datetime, timezone
+    t = int(datetime(2026, 10, 15, 9, 30, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="n", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    view = None if news is None else {"feed": {"status": status, "reason": "HTTP 429" if status == "UNAVAILABLE" else None},
+                                      "currencies": ["EUR", "USD"],
+                                      "events": None if status == "UNAVAILABLE" else list(events)}
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, news_blackout_min=window,
+                                news_required=required))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t, news=view), eng.account_gates(acct, "EURUSD", t,
+                                                                                                    news=view)
+
+
+def _ev(mins, impact="High", title="Non-Farm Employment Change", ccy="USD"):
+    return {"minutes_away": mins, "currency": ccy, "title": title, "impact": impact}
+
+
+@pytest.mark.parametrize("events,ok", [
+    ([_ev(20)], False),                      # 20 min before a High-impact release
+    ([_ev(-20)], False),                     # 20 min after it: the spike is still settling
+    ([_ev(30)], False), ([_ev(-30)], False),  # the window's edges are inside
+    ([_ev(31)], True), ([_ev(-31)], True),   # outside it
+    ([_ev(5, impact="Medium")], True),       # only High impact closes the window
+    ([_ev(90), _ev(-120)], True),            # far from both
+    ([], True),                              # a calendar with nothing near
+])
+def test_no_new_position_around_a_high_impact_release(events, ok):
+    v, gates = _news(events)
+    assert v.approved is ok, v.reasons
+    (n,) = [c for c in gates if c.name == "news"]
+    assert n.passed is ok  # refused before the model is asked
+    if not ok:
+        assert any("High-impact release" in r for r in v.reasons)
+
+
+def test_without_a_readable_calendar_event_risk_is_unknown_and_the_engine_stands_aside():
+    v, _ = _news(status="UNAVAILABLE")
+    assert not v.approved and any("stand aside" in r for r in v.reasons)
+    v, _ = _news(news=None)
+    assert not v.approved and any("no economic calendar" in r for r in v.reasons)
+    v, _ = _news(status="UNAVAILABLE", required=False)  # not required: a missing calendar alone refuses nothing
+    assert v.approved
+    v, gates = _news([_ev(5)], window=(), required=False)  # neither set: the calendar is never checked
+    assert v.approved and not [c for c in gates if c.name == "news"]
+    for bad in ((30,), (-1, 30), (30, 721), (True, 30), [30, 30], (30.0, 30)):
+        with pytest.raises(ValueError):
+            RiskLimits(news_blackout_min=bad)
+
+
+def test_the_paper_forward_service_has_the_news_window_and_requires_the_calendar():
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-news-test", "DASHBOARD_TOKEN": "t"}
+    cfg = ServiceConfig.from_env(env)
+    assert cfg.risk.news_blackout_min == (30, 30) and cfg.risk.news_required is True
+    paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
+    assert paper.risk.news_blackout_min == () and paper.risk.news_required is False
+
+
 def _carry(when, hold_min=480, carry=True):
     from datetime import datetime, timezone
     t = int(datetime(*when, tzinfo=timezone.utc).timestamp())

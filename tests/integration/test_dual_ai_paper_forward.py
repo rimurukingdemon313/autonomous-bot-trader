@@ -313,6 +313,36 @@ def test_the_model_is_not_asked_for_a_trade_the_gate_would_refuse_for_open_risk_
     assert seen and all(isinstance(s, (int, float)) and 0 < s <= 900 - 150 for s in seen)
 
 
+class Calendar:
+    """The economic calendar's view, as data.calendar.EconomicCalendar.for_symbol gives it: here a fixed schedule."""
+
+    def __init__(self, minutes_away=None, status="FRESH"):
+        self.minutes_away, self.status = minutes_away, status
+
+    def for_symbol(self, symbol, t):
+        events = [] if self.minutes_away is None else [
+            {"minutes_away": self.minutes_away, "currency": symbol[3:], "title": "CPI y/y", "impact": "High"}]
+        return {"feed": {"status": self.status, "reason": "HTTP 429" if self.status == "UNAVAILABLE" else None},
+                "currencies": [symbol[:3], symbol[3:]], "events": None if self.status == "UNAVAILABLE" else events}
+
+
+def test_around_a_high_impact_release_the_traders_are_not_asked_and_nothing_is_traded(tmp_path, monkeypatch):
+    import dataclasses
+    from aitrader.risk.engine import RiskEngine
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch)
+    rt.orch.risk = RiskEngine(dataclasses.replace(rt.orch.risk.limits, news_blackout_min=(30, 30), news_required=True))
+    rt.orch.news = Calendar(minutes_away=12)  # a High-impact release for the pair in 12 minutes
+    cycles(rt, clock)
+    assert not fake.calls and not rt.broker.positions()
+    assert "High-impact release" in rt.dual_ai()["last_analysis"]["reason"]
+    rt.orch.news = Calendar(status="UNAVAILABLE")  # no readable calendar: event risk unknown, stand aside
+    cycles(rt, clock)
+    assert not fake.calls and not rt.broker.positions()
+    rt.orch.news = Calendar(minutes_away=None)  # nothing scheduled near: asked, and traded
+    cycles(rt, clock)
+    assert fake.calls and rt.broker.positions()
+
+
 def test_the_dashboard_shows_the_desk_and_never_the_key(tmp_path, monkeypatch):
     rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
     cycles(rt, clock)

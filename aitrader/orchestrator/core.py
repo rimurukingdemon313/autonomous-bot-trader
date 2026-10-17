@@ -95,7 +95,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         refused as stale after a slow shadow debate on the other pair. The account checks that refuse any trade
 #:         now include the hard gate's own open-risk room: when the next trade's risk does not fit in it, the model is
 #:         not asked (six approved trades were refused by the gate for open risk). Both only ever skip a decision.
-ORCHESTRATOR_VERSION = "orchestrator-1.19.0"
+#: 1.20.0: the risk engine reads the economic calendar for the pair (account_gates before the model is asked,
+#:         evaluate after): with a news window it refuses a new position around a High-impact release.
+ORCHESTRATOR_VERSION = "orchestrator-1.20.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -395,8 +397,8 @@ class Orchestrator:
                 ctx.history = (self.history.brief(fv.values, t) if fv.complete else
                                {"available": False, "reason": "features incomplete at this bar"})
             ctx.trading_allowed = self._trading_allowed()
-            ctx.account_blocks = [f"{c.name} ({c.detail})" for c in self.risk.account_gates(state, symbol, t)
-                                  if not c.passed]
+            ctx.account_blocks = [f"{c.name} ({c.detail})"
+                                  for c in self.risk.account_gates(state, symbol, t, news=ctx.news) if not c.passed]
             # the hard gate values open risk from each position's current price to its stop, with costs: when the
             # next trade's risk does not fit in what it leaves, it would refuse it, so the model is not asked
             room, need = self.execution.gate.open_risk_room(self.broker), self.risk.trade_risk_budget(state)
@@ -433,8 +435,10 @@ class Orchestrator:
             fresh = self.feed.quote(symbol, t)
             if fresh is not None:
                 quote = fresh
+            news = ctx.news if ctx.news is not None else (self.news.for_symbol(symbol, t) if self.news is not None
+                                                           else None)
             verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags,
-                                         swap_per_night=swap)
+                                         swap_per_night=swap, news=news)
             if not self.db.one("SELECT 1 AS x FROM risk_verdicts WHERE decision_id=?", (d.id,)):
                 self.db.append("risk_verdicts", {"decision_id": d.id, "approved": int(verdict.approved),
                                                  "payload": verdict.as_dict()})
