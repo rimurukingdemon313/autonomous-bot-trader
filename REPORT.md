@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-18 00:07 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-17 19:51 UTC · decision system `dual_ai`
+Updated 2026-10-18 00:22 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-17 19:51 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-16 16:00 EURUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 0.40 vs minimum 1.2; weekend_carry: held up to 480 min it could still be open at the Friday close (Fri 17:00 New York)
 - 10-16 15:45 USDJPY SELL: AI DECISION → RISK REJECTED — stop_distance: stop 0.002 vs 3.0 x spread 0.01; spread: spread is 500.0% of the stop (max 25%); cost_to_risk: round-trip cost is 950.0% of the stop (max 25%): spread 0.01 + commission and slippage; we
 
-## Latest decisions, NO TRADE included (1196 so far)
+## Latest decisions, NO TRADE included (1198 so far)
 
+- 10-18 00:15 AUDJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1575 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 96384s old [data: latest bar closed 1575 minutes ago]
+- 10-18 00:15 EURCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1575 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 96384s old [data: latest bar closed 1575 minutes ago]
 - 10-18 00:00 GBPJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1560 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 95453s old [data: latest bar closed 1560 minutes ago]
 - 10-18 00:00 EURJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1560 minutes ago; STALE_DATA: quote is 10696s old; STALE_DATA: last closed bar is 1560 minutes o [data: latest bar closed 1560 minutes ago]
 - 10-17 23:45 EURGBP NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1545 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 41067s old [data: latest bar closed 1545 minutes ago]
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,4
 - 10-17 23:15 USDJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1575 minutes ago; STALE_DATA: quote is 94521s old; STALE_DATA: last closed bar is 1575 minutes o [data: latest bar closed 1575 minutes ago]
 - 10-17 23:00 GBPUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1440 minutes ago; STALE_DATA: quote is 38367s old; STALE_DATA: last closed bar is 1440 minutes o [data: latest bar closed 1440 minutes ago]
 - 10-17 23:00 EURUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1500 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 38367s old [data: latest bar closed 1500 minutes ago]
-- 10-17 22:45 AUDJPY NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1485 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 90984s old [data: latest bar closed 1485 minutes ago]
-- 10-17 22:45 EURCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: DATA_QUALITY: latest bar closed 1485 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 90984s old [data: latest bar closed 1485 minutes ago]
 
 ## Open paper positions
 
@@ -94,7 +94,7 @@ OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `Non
 
 Agreement trades 41 (adequate) · wins 22 · losses 19 · net $1,912.63 · expectancy +0.115R · profit factor 1.28 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 63 · the debate's pick if taken: 58 resolved (adequate), expectancy -0.200R · the side it rejected if taken: 63 resolved (adequate), expectancy -0.197R
+Disagreements (not traded; the debate runs in shadow): 63 · the debate's pick if taken: 59 resolved (adequate), expectancy -0.216R · the side it rejected if taken: 63 resolved (adequate), expectancy -0.197R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +0.103R vs +0.300R as taken (28, insufficient) · held 24 h +0.445R vs +0.152R as taken (20, insufficient) · stop and target twice as far +0.228R vs +0.152R as taken (20, insufficient)
 
@@ -102,6 +102,8 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-18 00:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-18 00:15 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-18 00:00 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-18 00:00 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 23:45 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -112,8 +114,6 @@ Trades taken by session (UTC): ASIA 19 resolved (insufficient), expectancy +0.27
 | 10-17 23:15 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 23:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-17 23:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-17 22:45 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-17 22:45 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
