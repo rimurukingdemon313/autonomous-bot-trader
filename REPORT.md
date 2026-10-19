@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-19 12:29 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 10:59 UTC · decision system `dual_ai`
+Updated 2026-10-19 12:44 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 10:59 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,265.64 | $-1,646.99 | $265.64 | $0.00 | 2 | 50 (adequate) | 48.0% | +0.014R | 1.06 | ACTIVE | RUNNING |
+| $200,000.00 | $200,219.94 | $-1,692.69 | $219.94 | $0.00 | 2 | 50 (adequate) | 48.0% | +0.014R | 1.06 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $198,849.12); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $198,803.43); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,8
 - 10-19 03:15 USDJPY BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY USDJPY would bet against an open position: AUDUSD BUY is short USD
 - 10-19 03:00 GBPUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 1.06 vs minimum 1.2; currency_conflict: SELL GBPUSD would bet against an open position: AUDUSD BUY is short USD
 
-## Latest decisions, NO TRADE included (1486 so far)
+## Latest decisions, NO TRADE included (1488 so far)
 
+- 10-19 12:30 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
+- 10-19 12:30 EURUSD NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 12:15 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 12:15 EURCHF NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 12:00 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -55,15 +57,13 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,8
 - 10-19 11:30 USDCAD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
 - 10-19 11:15 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-19 11:15 USDJPY NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-19 11:00 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-19 11:00 EURUSD NO_TRADE: market unavailable for a decision: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCHF | SELL | 0.7 | 0.824815 | 0.82595 | 0.82331 | $-39.02 |
-| EURGBP | SELL | 1.29 | 0.84103 | 0.84224 | 0.8396 | $-194.24 |
+| USDCHF | SELL | 0.7 | 0.824815 | 0.82595 | 0.82331 | n/a |
+| EURGBP | SELL | 1.29 | 0.84103 | 0.84224 | 0.8396 | $-177.00 |
 
 ## Closed paper trades (latest 20)
 
@@ -98,12 +98,14 @@ Agreement trades 50 (adequate) · wins 24 · losses 26 · net $498.90 · expecta
 
 Disagreements (not traded; the debate runs in shadow): 76 · the debate's pick if taken: 66 resolved (adequate), expectancy -0.158R · the side it rejected if taken: 71 resolved (adequate), expectancy -0.246R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +0.055R vs +0.195R as taken (32, adequate) · held 24 h +0.512R vs +0.300R as taken (28, insufficient) · stop and target twice as far +0.190R vs +0.300R as taken (28, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R +0.018R vs +0.154R as taken (33, adequate) · held 24 h +0.512R vs +0.300R as taken (28, insufficient) · stop and target twice as far +0.190R vs +0.300R as taken (28, insufficient)
 
-Trades taken by session (UTC): ASIA 23 resolved (insufficient), expectancy +0.138R · LONDON 9 resolved (insufficient), expectancy +0.225R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 6 resolved (insufficient), expectancy +0.792R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.083R · LONDON 9 resolved (insufficient), expectancy +0.225R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 6 resolved (insufficient), expectancy +0.792R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-19 12:30 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-19 12:30 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 12:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 12:15 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 12:00 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 23 resolved (insufficient), expectancy +0.13
 | 10-19 11:30 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 11:15 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 11:15 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-19 11:00 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-19 11:00 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
