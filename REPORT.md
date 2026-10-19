@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-19 20:35 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 16:35 UTC · decision system `dual_ai`
+Updated 2026-10-19 20:50 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 16:35 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,3
 - 10-19 08:15 AUDJPY SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 30.3% of the stop (max 25%): spread 0.018 + commission and slippage
 - 10-19 08:15 EURCHF SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (1550 so far)
+## Latest decisions, NO TRADE included (1552 so far)
 
+- 10-19 20:45 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
+- 10-19 20:45 EURJPY NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
 - 10-19 20:30 EURGBP NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the mode
 - 10-19 20:30 NZDUSD NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
 - 10-19 20:15 USDCHF NO_TRADE: market unavailable for a decision: blocked before consulting the model: EXPOSURE: a USDCHF position is already open
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,3
 - 10-19 19:45 EURUSD NO_TRADE: market unavailable for a decision: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-19 19:36 AUDJPY BUY: BUY AUDJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 55: M15 shows consecutive bullish BOS with an untested demand OB and open bullish FVG beneath price, favoring continuation; H
 - 10-19 19:30 EURCHF NO_TRADE: the traders disagree (Trader 1 BUY 63, Trader 2 SELL 58): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
-- 10-19 19:20 GBPJPY NO_TRADE: the traders disagree (Trader 1 BUY 58, Trader 2 SELL 58): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
-- 10-19 19:15 EURJPY NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 65): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 
 ## Open paper positions
 
@@ -104,6 +104,8 @@ Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.08
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-19 20:45 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-19 20:45 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 20:30 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 20:30 | NZDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 20:15 | USDCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.08
 | 10-19 19:45 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 19:36 | AUDJPY | BUY 55 | BUY 50 | - | AGREE | BUY | REJECTED |
 | 10-19 19:30 | EURCHF | BUY 63 | SELL 58 | SELL | DISAGREE | NO_TRADE | - |
-| 10-19 19:20 | GBPJPY | BUY 58 | SELL 58 | SELL | DISAGREE | NO_TRADE | - |
-| 10-19 19:15 | EURJPY | BUY 55 | SELL 65 | SELL | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
