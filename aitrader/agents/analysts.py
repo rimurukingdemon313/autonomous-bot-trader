@@ -218,9 +218,8 @@ class RiskAnalystConfig:
 class RiskAnalyst:
     name = "risk"
 
-    def __init__(self, config: RiskAnalystConfig = RiskAnalystConfig(), calendar_available: bool = False) -> None:
+    def __init__(self, config: RiskAnalystConfig = RiskAnalystConfig()) -> None:
         self.config = config
-        self.calendar_available = calendar_available
 
     def analyze(self, ctx: MarketContext, candidates: list[SetupCandidate]) -> AgentReport:
         rep = _report(self.name, time.time())
@@ -278,9 +277,15 @@ class RiskAnalyst:
             obj.append(Objection("ROLLOVER_WINDOW", "MAJOR", self.name, "daily rollover: spreads widen"))
         if now.weekday() == 4 and now.hour >= 18:
             obj.append(Objection("WEEKEND_GAP", "MAJOR", self.name, "Friday evening: position would carry over the weekend"))
-        if not self.calendar_available:
+        # event risk is known only from a calendar that was read: the pair's view at this decision, judged as the
+        # risk engine's news check judges it (data/calendar.py, risk/engine.py)
+        news = ctx.news
+        feed = (news or {}).get("feed") or {}
+        if news is None or feed.get("status") == "UNAVAILABLE" or news.get("events") is None:
+            why = ("no economic calendar connected" if news is None
+                   else f"the economic calendar is unavailable ({feed.get('reason')})")
             obj.append(Objection("EVENT_RISK_UNKNOWN", "MINOR", self.name,
-                                 "no economic calendar connected: scheduled-event risk is unknown, not zero"))
+                                 f"{why}: scheduled-event risk is unknown, not zero"))
         rep.stance = "OPPOSE" if any(o.severity != "MINOR" for o in obj) else "NEUTRAL"
         rep.summary = f"{len(obj)} objection(s): " + ", ".join(sorted({o.code for o in obj})) if obj else "no risk objections"
         rep.finished = time.time()

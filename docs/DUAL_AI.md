@@ -67,6 +67,12 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   12:00-16:00 UTC, on Friday from 12:00 UTC, nor on Saturday or Sunday; the traders are not asked then.
 - **Scheduled news** (risk 1.10.0): no new position from 30 min before to 30 min after a High-impact release for
   the pair's currencies; without a readable calendar the desk stands aside. The traders are not asked then.
+  Medium and Low impact never close the window: the week of 2026-10-19, the UK earnings (Tue) and the flash PMIs
+  (Fri) are Medium in the feed, so only UK CPI (Wed 06:00 UTC) closes one in open hours.
+- **What the traders are told about event risk** (agents 1.2.0, from the first shift started after 2026-10-19
+  13:00 UTC): the risk analyst raises EVENT_RISK_UNKNOWN only when no calendar was read for the pair. Until then it
+  was raised on every decision, so Trader 2 read the calendar and, beside it, "no economic calendar connected";
+  every trade before that shift was decided with both lines.
 - **Never against itself** (risk 1.9.0): a trade on the opposite side of a currency an open position holds is refused
   (11 such trades so far: 36% won, -0.21 R each; the rest +0.23 R). Refused trades are still followed forward.
 - **Time budget** (dual-ai 1.5.0, orchestrator 1.19.0): each decision is told how long it has before it would be
@@ -249,7 +255,9 @@ another mode's.
 
 Read from the first 41 agreement trades. Many splits were tried that day, so a split that looks strong may be
 chance; none of these is a rule. Each is judged on agreement trades opened from 2026-10-19 only, never on the
-trades it was found in, and adopted (as a risk-engine refusal) only if it holds there.
+trades it was found in, and adopted (as a risk-engine refusal) only if it holds there. Agents 1.2.0 (what Trader 2
+is told about event risk) began on 2026-10-19, inside that window: the trades keep their version stamp and are
+read per version as well as together.
 
 | Hypothesis | Found in (41 trades) | Adopt if, on new trades |
 |---|---|---|
