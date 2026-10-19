@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-19 13:00 UTC**, run 279, version `radar-1.0.0`. State from: cache. Quotes this hour: 2394.
+Updated **2026-10-19 14:00 UTC**, run 280, version `radar-1.0.0`. State from: cache. Quotes this hour: 2398.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-10-19 13:00 UTC**, run 279, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 11.71
+- days: 11.75
 - run_coverage: 0.9894
 - closed_positions: 38
 - open_positions: 2
-- utilisation: 0.0935
+- utilisation: 0.0939
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.4258
-- book_excess_pct: -0.4542
-- ann_excess_deployed_pct: -153.636
-- ann_excess_deployed_costs_x1.5_pct: -271.084
-- ann_excess_deployed_costs_x2_pct: -388.532
+- book_pnl_pct: -0.4213
+- book_excess_pct: -0.4499
+- ann_excess_deployed_pct: -150.987
+- ann_excess_deployed_costs_x1.5_pct: -267.535
+- ann_excess_deployed_costs_x2_pct: -384.084
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.4826
+- book_excess_without_best_coin_pct: -0.4782
 - max_dd_pct: 0.4258
-- t_excess_daily: -2.039
+- t_excess_daily: -2.018
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| SAND | mexc | gate | 2026-10-19 12:00 | 35.7% | 0.4 | 1.7 | 17.0 | **-14.9** |
-| AGT | mexc | gate | 2026-10-19 13:00 | 31.1% | 0.0 | 0.0 | 17.0 | **-17.0** |
+| SAND | mexc | gate | 2026-10-19 12:00 | 35.7% | 0.8 | -3.4 | 17.0 | **-19.6** |
+| AGT | mexc | gate | 2026-10-19 13:00 | 31.1% | 0.4 | 13.2 | 17.0 | **-3.4** |
 
 ## Closed positions (38)
 
@@ -79,7 +79,7 @@ Updated **2026-10-19 13:00 UTC**, run 279, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| SAND | mexc | gate | 36.3% | 45.0% |
-| AGT | mexc | gate | 31.1% | 42.0% |
+| SAND | mexc | gate | 36.6% | 23.1% |
+| AGT | mexc | gate | 30.8% | 32.0% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
