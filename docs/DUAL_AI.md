@@ -65,21 +65,38 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
 - **Closed days and hours** (risk 1.8.0/1.9.0, operator, 2026-10-17): no new position in the London/New York overlap,
   12:00-16:00 UTC, on Friday from 12:00 UTC, nor on Saturday or Sunday; the traders are not asked then.
-- **Scheduled news** (risk 1.10.0): no new position from 30 min before to 30 min after a High-impact release for
-  the pair's currencies; without a readable calendar the desk stands aside. The traders are not asked then.
-  Medium and Low impact never close the window: the week of 2026-10-19, the UK earnings (Tue) and the flash PMIs
-  (Fri) are Medium in the feed, so only UK CPI (Wed 06:00 UTC) closes one in open hours.
+- **Scheduled news** (risk 1.10.0, Medium since 1.11.0): no new position from 30 min before to 30 min after a High-
+  or Medium-impact release for the pair's currencies; without a readable calendar the desk stands aside. The
+  traders are not asked then. Low impact never closes the window. Medium was added on the operator's word
+  (2026-10-19, "do not trade against the news"), not on a measured loss: that week the UK earnings (Tue) and the
+  flash PMIs (Fri) were Medium, and a High-only window let a trade open into them. Of the 50 trades before it, 5
+  were held through a Medium release (mostly speeches: 40% won, -0.30 R), too few to say more.
 - **What the traders are told about event risk** (agents 1.2.0, from the first shift started after 2026-10-19
   13:00 UTC): the risk analyst raises EVENT_RISK_UNKNOWN only when no calendar was read for the pair. Until then it
   was raised on every decision, so Trader 2 read the calendar and, beside it, "no economic calendar connected";
   every trade before that shift was decided with both lines.
 - **Never against itself** (risk 1.9.0): a trade on the opposite side of a currency an open position holds is refused
   (11 such trades so far: 36% won, -0.21 R each; the rest +0.23 R). Refused trades are still followed forward.
+- **Not in chop** (risk 1.12.0, operator, 2026-10-19): no new position unless the pair's H1 structure (the market map
+  the traders read, confirmed swings only) is a clear trend, up (HH+HL) or down (LH+LL); a range (mixed swings, or too
+  few swings to tell) or an unreadable structure refuses it. Of the first 50 agreement trades, the 23 opened in an H1
+  range won 30%, -0.24 R each (-$2,395); the 27 in a clear trend won 63%, +0.23 R (+$2,894), with or against it
+  alike (with 11: +0.36 R; against 16: +0.15 R). This is hypothesis H1 below, adopted before its threshold because the
+  operator asked; it is checked after the traders answer, so every refused agreement is followed forward and the rule
+  is judged on what the trades it refused would have done.
 - **Time budget** (dual-ai 1.5.0, orchestrator 1.19.0): each decision is told how long it has before it would be
   too old to execute (the execution engine's 900 s, less the quote wait and a margin). A trader is asked only
   while its answer can still execute, and never for longer than is left; the shadow debate waits at most
   120 s. Live (2026-10-16), a debate that waited 420 s on a busy model made the next pair's agreement 1103 s
   old, and it was refused as stale.
+- **Each pair at its own turn** (orchestrator 1.22.0, openrouter 1.8.0, risk 1.13.0, 2026-10-19): the pairs of a
+  cycle are decided one after another, and each now decides on the data of its own turn with its whole budget.
+  Stamped with the cycle's start, the second pair began already aged by the first one's model calls: that day
+  two pairs reached their traders with 0 s left after 13-14 min on the pair before. A model request never waits
+  past its role's deadline (a 180 s wait could begin with less left), and a lone request cut short by it is not
+  held against the model. The time rules (the trading calendar, quiet hours, the weekend) and the news window
+  are judged when the position would open, after the traders answered: an answer takes minutes, and a decision
+  begun at 11:50 could otherwise open a position in the 12:00 overlap, or 20 minutes before a release.
 - **The gate's open-risk room** (orchestrator 1.19.0, gate 1.2.0): the hard gate values open positions to their
   stops from the current price, so profitable ones count for more than their planned risk. When the next
   trade's risk does not fit in what is left, the traders are not asked: the gate would refuse it (six approved
@@ -261,7 +278,7 @@ read per version as well as together.
 
 | Hypothesis | Found in (41 trades) | Adopt if, on new trades |
 |---|---|---|
-| H1 structure "range (mixed swings)" loses; a clear H1 structure (up or down) wins | range 21: 33% won, -0.18 R; clear 20: +0.43 R | each group has 20+ trades and range is 0.3 R or more below clear |
+| H1 structure "range (mixed swings)" loses; a clear H1 structure (up or down) wins | range 21: 33% won, -0.18 R; clear 20: +0.43 R | each group has 20+ trades and range is 0.3 R or more below clear. **Adopted early by the operator (2026-10-19, risk 1.12.0)**: since then the range group is the refused agreements, followed forward; the rule is reversed if they do not do 0.3 R or more worse than the trades taken, over 20+ of each |
 | Chasing loses: a BUY with H1 RSI above 65, a SELL below 35 | 7 trades: 29% won, -0.30 R; the rest +0.20 R | 15+ chasing trades, 0.3 R or more below the rest |
 | Trader 2's levels lose when used | 7 trades: 29% won, -0.24 R; Trader 1's 34: +0.19 R | 15+ trades on Trader 2's levels, 0.3 R or more below |
 | Holding 24 h beats the 8 h exit | shadow, 19 trades: +0.39 R vs +0.13 R | 30+ paired trades in shadow, 0.15 R or more better |
@@ -269,7 +286,8 @@ read per version as well as together.
 
 Already adopted the same day, with a reason beyond the numbers: no trade against a currency already held (the
 account would bet against itself); the overlap, late Friday and the weekend closed (operator); High-impact news
-windows (event risk). These are still measured: risk-refused trades are followed forward.
+windows (event risk). These are still measured: risk-refused trades are followed forward. On 2026-10-19 the
+operator added Medium-impact news windows (risk 1.11.0) and H1 above (risk 1.12.0): both only ever refuse.
 
 ## Configuration and activation
 

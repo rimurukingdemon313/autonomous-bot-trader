@@ -190,6 +190,35 @@ def test_timeouts_are_retried_with_backoff_then_stop_at_the_deadline():
     assert res.status == "TIMEOUT" and 1 <= len(fake.calls) <= 3
 
 
+def test_a_request_never_waits_past_the_roles_deadline():
+    # found live (2026-10-19): a request could wait its whole 180 s with less of the decision left, so a slow model
+    # overran the decision's budget and the next pair of the cycle reached its traders with nothing left
+    now = [1_790_000_000.0]
+
+    def slow(role, body):
+        now[0] += 100  # each attempt takes 100 s of the clock, then times out
+        raise TimeoutError("timed out")
+    fake = FakeOpenRouter(slow, catalog=[model(VISION, ii=30), model(TRADER, image=False, ii=28)])
+    c = client(fake, clock=lambda: now[0], max_retries=5)
+    res = c.chat_json("vision", MSG, accept, dedupe_key="k", deadline_s=250)
+    assert res.status == "TIMEOUT" and [x["timeout"] for x in fake.calls] == [180.0, 150.0]  # 250 s in all, never more
+    assert VISION in c.selection()["cooldown"]  # its own full 180 s went unanswered: rested, as before
+
+
+def test_a_lone_request_cut_short_by_the_deadline_is_not_held_against_the_model():
+    now = [1_790_000_000.0]
+
+    def slow(role, body):
+        now[0] += 50
+        raise TimeoutError("timed out")
+    fake = FakeOpenRouter(slow, catalog=[model(VISION, ii=30), model(TRADER, image=False, ii=28)])
+    c = client(fake, clock=lambda: now[0], max_retries=5)
+    res = c.chat_json("vision", MSG, accept, dedupe_key="k", deadline_s=40)
+    assert res.status == "TIMEOUT" and [x["timeout"] for x in fake.calls] == [40.0]
+    assert "the 40 s the decision had left" in res.error
+    assert VISION not in c.selection()["cooldown"]  # it never had its own timeout: asked again next time
+
+
 def test_malformed_json_is_never_repaired_or_asked_twice_of_the_same_model():
     fake = FakeOpenRouter(lambda r, b: "I think BUY, maybe")
     res = client(fake).chat_json("vision", MSG, accept, dedupe_key="k")

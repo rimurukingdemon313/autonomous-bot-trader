@@ -343,6 +343,31 @@ def test_around_a_high_impact_release_the_traders_are_not_asked_and_nothing_is_t
     assert fake.calls and rt.broker.positions()
 
 
+def test_in_an_h1_range_the_agreement_is_refused_and_followed_forward_and_in_a_clear_trend_it_trades(tmp_path,
+                                                                                                    monkeypatch):
+    # the operator (2026-10-19): "do not trade into chop". Registered hypothesis H1: of the first 50 agreement trades,
+    # the 23 opened in an H1 range won 30%, -0.24 R each; the 27 in a clear H1 trend won 63%, +0.23 R
+    import dataclasses
+    from aitrader.risk.engine import RiskEngine
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch)
+    rt.orch.risk = RiskEngine(dataclasses.replace(rt.orch.risk.limits, require_clear_structure="H1"))
+    cycles(rt, clock)  # EURUSD first
+    dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='EURUSD'")["payload"])
+    assert dec["context"]["market_map"]["structure"]["H1"]["trend"] == "range (mixed swings)"  # the replay, checked
+    trail = pipeline(rt)[-1]
+    assert trail["symbol"] == "EURUSD" and trail["stages"] == ["AI DECISION", "RISK REJECTED"]
+    assert "structure" in trail["reason"] and "range (mixed swings)" in trail["reason"]
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"] and not rt.broker.positions()  # asked, refused
+    (prop,) = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    assert prop["family"] == "DUAL_AI" and prop["route"] == "REJECTED" and not prop["executed"]
+    assert any("structure" in r for r in prop["risk_reasons"])  # followed forward: the rule stays measured
+    cycles(rt, clock)  # GBPUSD next: the same desk, the same answers
+    dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='GBPUSD'")["payload"])
+    assert dec["context"]["market_map"]["structure"]["H1"]["trend"] == "up (HH+HL)"
+    (pos,) = rt.broker.positions()
+    assert pos.symbol == "GBPUSD" and pipeline(rt)[-1]["stages"] == ["AI DECISION", "RISK APPROVED", "PAPER EXECUTED"]
+
+
 def test_the_dashboard_shows_the_desk_and_never_the_key(tmp_path, monkeypatch):
     rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
     cycles(rt, clock)
@@ -387,3 +412,82 @@ def test_every_model_mode_is_a_model_signal_class_for_the_execution_engine():
     from aitrader.execution.engine import MODEL_SIGNAL_CLASSES
     assert {SIGNAL_CLASS[m] for m in MODEL_MODES} <= MODEL_SIGNAL_CLASSES  # a new model mode cannot slip through
     assert "EVIDENCE" not in MODEL_SIGNAL_CLASSES and "EDGE" not in MODEL_SIGNAL_CLASSES
+
+
+# ── time (orchestrator 1.22.0, risk 1.13.0): each pair decides at its own turn; the time rules are judged when the
+#    position would open, after the traders answered ──
+
+def slow_desk(minutes, clock_of):
+    """The desk's scripted answers, each taking `minutes` of the clock."""
+    base = desk_reply()
+
+    def reply(role, body):
+        clock_of().t += int(minutes * 60)
+        return base(role, body)
+    return reply
+
+
+def test_each_pair_of_a_cycle_decides_at_its_own_turn_with_its_whole_budget(tmp_path, monkeypatch):
+    # found live (2026-10-19): the pairs of a cycle are decided one after another; stamped with the cycle's start, the
+    # second began already aged by the first one's model calls (13-14 min) and reached its traders with 0 s left
+    box = {}
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch, slow_desk(400 / 60, lambda: box["clock"]))
+    box["clock"] = clock
+    seen = []
+    real = rt.orch.brain.dual_ai.decide
+
+    def spy(ctx, *a, **kw):
+        seen.append((ctx.symbol, ctx.t, ctx.decide_within_s))
+        return real(ctx, *a, **kw)
+    monkeypatch.setattr(rt.orch.brain.dual_ai, "decide", spy)
+    clock.t += 300
+    start = clock.t
+    rt.orch.cycle(start, ["EURUSD", "GBPUSD"])
+    (eu, gb) = seen
+    assert eu[:2] == ("EURUSD", start) and gb[:2] == ("GBPUSD", start + 800)  # after EURUSD's two 400 s answers
+    assert gb[2] == pytest.approx(900 - 150)  # its whole budget, not the 0 s EURUSD left of the cycle's
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "trader1", "trader2"]  # both reached their traders
+
+
+def test_a_decision_begun_before_a_closed_window_does_not_open_a_position_inside_it(tmp_path, monkeypatch):
+    import dataclasses
+    from datetime import datetime, timezone
+    from aitrader.risk.engine import RiskEngine
+    box = {}
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch, slow_desk(4, lambda: box["clock"]))
+    box["clock"] = clock
+    u = datetime.fromtimestamp(clock.t + 300, timezone.utc)  # the next cycle's decision time
+    m = u.hour * 60 + u.minute
+    assert m + 60 <= 1440  # the window below stays inside the day
+    rt.orch.risk = RiskEngine(dataclasses.replace(rt.orch.risk.limits, closed_utc_windows=((m + 5, m + 60),)))
+    cycles(rt, clock)  # open when it began, so the traders are asked; closed 8 min later, when it would open
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"] and not rt.broker.positions()
+    trail = pipeline(rt)[-1]
+    assert trail["stages"] == ["AI DECISION", "RISK REJECTED"] and "trading_calendar" in trail["reason"]
+
+
+class Release:
+    """One High-impact release at a fixed time: the view gives minutes_away from the time it is asked about."""
+
+    def __init__(self, at):
+        self.at = at
+
+    def for_symbol(self, symbol, t):
+        return {"feed": {"status": "FRESH"}, "currencies": [symbol[:3], symbol[3:]],
+                "events": [{"minutes_away": (self.at - t) // 60, "currency": symbol[3:], "title": "CPI y/y",
+                            "impact": "High"}]}
+
+
+def test_the_news_window_is_judged_when_the_position_would_open(tmp_path, monkeypatch):
+    import dataclasses
+    from aitrader.risk.engine import RiskEngine
+    box = {}
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch, slow_desk(4, lambda: box["clock"]))
+    box["clock"] = clock
+    rt.orch.risk = RiskEngine(dataclasses.replace(rt.orch.risk.limits, news_blackout_min=(30, 30), news_required=True))
+    rt.orch.news = Release(clock.t + 300 + 35 * 60)  # 35 min after the decision begins: outside the window then
+    cycles(rt, clock)  # the traders are asked; 8 min later the release is 27 min away
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"] and not rt.broker.positions()
+    trail = pipeline(rt)[-1]
+    assert trail["stages"] == ["AI DECISION", "RISK REJECTED"]
+    assert "High-impact release" in trail["reason"] and "in 27 min" in trail["reason"]

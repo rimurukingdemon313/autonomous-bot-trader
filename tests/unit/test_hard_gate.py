@@ -22,7 +22,8 @@ from aitrader.memory.db import Database
 from aitrader.risk.engine import AccountState, InstrumentSpec, Quote, RiskEngine, RiskLimits, RiskVerdict
 from aitrader.risk.hard_gate import (CLEAR_KILL_CONFIRMATION, RESET_CONFIRMATION, HardRiskGate, Permit,
                                      TradeProposal)
-from aitrader.risk.engine import PAPER_FORWARD_CLOSED_UTC, PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, PAPER_FORWARD_QUIET_NY
+from aitrader.risk.engine import (PAPER_FORWARD_CLOSED_UTC, PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, PAPER_FORWARD_NEWS_IMPACTS,
+                                  PAPER_FORWARD_QUIET_NY)
 from aitrader.risk.profile import FTMO_200K, PAPER_FORWARD_200K, HardRiskProfile, ProfileError, loss_per_lot
 
 T0 = 1_768_298_400  # Tuesday 2026-01-13 10:00 UTC (11:00 in Prague, winter time)
@@ -753,6 +754,22 @@ def test_no_new_position_in_the_overlap_on_friday_afternoon_or_at_the_weekend(wh
         assert any("trading_calendar" in r for r in v.reasons)
 
 
+def test_the_time_rules_are_judged_when_the_position_would_open_never_earlier_than_the_decision():
+    # the traders' answer takes minutes: a decision begun at 11:50 is approved at 12:02, inside the overlap
+    from datetime import datetime, timezone
+    _, _, eng, acct = _cal((2026, 10, 15, 11, 50))
+    at = lambda h, m: int(datetime(2026, 10, 15, h, m, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="o", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    q = Quote("EURUSD", BID, ASK, at(11, 50))
+    assert eng.evaluate(d, acct, spec, q, at(11, 50)).approved  # as before: judged at the decision time
+    late = eng.evaluate(d, acct, spec, q, at(11, 50), opens_at=at(12, 2))
+    assert not late.approved and any("trading_calendar" in r and "12:02" in r for r in late.reasons)
+    q2 = Quote("EURUSD", BID, ASK, at(12, 5))
+    early = eng.evaluate(d, acct, spec, q2, at(12, 5), opens_at=at(11, 55))  # never before the decision began
+    assert not early.approved and any("trading_calendar" in r for r in early.reasons)
+
+
 def test_limits_without_a_calendar_never_check_one_and_a_calendar_is_validated():
     v, gates, _, _ = _cal((2026, 10, 16, 13, 0), (), ())
     assert v.approved and not [c for c in gates if c.name == "trading_calendar"]
@@ -843,7 +860,7 @@ def test_the_gates_open_risk_room_is_what_authorize_counts_and_reading_it_writes
 
 # ── scheduled news: no new position around a High-impact release (risk 1.10.0) ──
 
-def _news(events=(), status="FRESH", window=(30, 30), required=True, news="given"):
+def _news(events=(), status="FRESH", window=(30, 30), required=True, news="given", impacts=("High",)):
     from datetime import datetime, timezone
     t = int(datetime(2026, 10, 15, 9, 30, tzinfo=timezone.utc).timestamp())
     spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
@@ -854,7 +871,7 @@ def _news(events=(), status="FRESH", window=(30, 30), required=True, news="given
                                       "currencies": ["EUR", "USD"],
                                       "events": None if status == "UNAVAILABLE" else list(events)}
     eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, news_blackout_min=window,
-                                news_required=required))
+                                news_required=required, news_impacts=impacts))
     return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t, news=view), eng.account_gates(acct, "EURUSD", t,
                                                                                                     news=view)
 
@@ -881,6 +898,28 @@ def test_no_new_position_around_a_high_impact_release(events, ok):
         assert any("High-impact release" in r for r in v.reasons)
 
 
+@pytest.mark.parametrize("events,ok", [
+    ([_ev(-5, impact="Medium", title="Average Earnings Index 3m/y", ccy="EUR")], False),  # Medium closes it too
+    ([_ev(25, impact="Medium", title="Flash Manufacturing PMI")], False),
+    ([_ev(31, impact="Medium")], True), ([_ev(-31, impact="Medium")], True),  # the same window, not a wider one
+    ([_ev(0, impact="Low", title="Building Permits")], True),                 # Low never does
+    ([_ev(0, impact="Holiday", title="Bank Holiday")], True),
+    ([_ev(10, impact="High")], False),                                        # High still does
+])
+def test_the_paper_forward_window_closes_around_medium_impact_releases_too(events, ok):
+    # the operator (2026-10-19): "do not trade against the news"; that week the UK earnings (Tue 06:00 UTC) and
+    # the flash PMIs (Fri) were Medium in the calendar, so a High-only window let a trade open into them
+    v, gates = _news(events, impacts=PAPER_FORWARD_NEWS_IMPACTS)
+    assert v.approved is ok, v.reasons
+    (n,) = [c for c in gates if c.name == "news"]
+    assert n.passed is ok  # refused before the model is asked
+    if not ok:
+        impact = events[0]["impact"]
+        assert any(f"{impact}-impact release" in r and events[0]["title"] in r for r in v.reasons)
+    else:
+        assert "High/Medium-impact" in n.detail  # a passing check says what it looked for
+
+
 def test_without_a_readable_calendar_event_risk_is_unknown_and_the_engine_stands_aside():
     v, _ = _news(status="UNAVAILABLE")
     assert not v.approved and any("stand aside" in r for r in v.reasons)
@@ -893,6 +932,9 @@ def test_without_a_readable_calendar_event_risk_is_unknown_and_the_engine_stands
     for bad in ((30,), (-1, 30), (30, 721), (True, 30), [30, 30], (30.0, 30)):
         with pytest.raises(ValueError):
             RiskLimits(news_blackout_min=bad)
+    for bad in ((), ("Medium",), ("High", "Huge"), ["High"], ("High", "High"), ("high",), "High"):
+        with pytest.raises(ValueError):  # High is never left out: a window that skips it is not a news window
+            RiskLimits(news_impacts=bad)
 
 
 def test_the_paper_forward_service_has_the_news_window_and_requires_the_calendar():
@@ -900,8 +942,55 @@ def test_the_paper_forward_service_has_the_news_window_and_requires_the_calendar
     env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-news-test", "DASHBOARD_TOKEN": "t"}
     cfg = ServiceConfig.from_env(env)
     assert cfg.risk.news_blackout_min == (30, 30) and cfg.risk.news_required is True
+    assert cfg.risk.news_impacts == ("High", "Medium")
     paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
     assert paper.risk.news_blackout_min == () and paper.risk.news_required is False
+    assert paper.risk.news_impacts == ("High",)
+
+
+# ── market structure: no new position in an H1 range (risk 1.12.0, operator, 2026-10-19) ──
+
+def _struct(structure, tf="H1"):
+    from datetime import datetime, timezone
+    t = int(datetime(2026, 10, 19, 9, 30, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="s", decision="SELL", instrument="EURUSD", stop_loss=BID + 0.0020, take_profit=BID - 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, require_clear_structure=tf))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t, structure=structure)
+
+
+@pytest.mark.parametrize("structure,ok", [
+    ({"H1": {"trend": "down (LH+LL)"}, "M15": {"trend": "range (mixed swings)"}}, True),  # H1 decides, not M15
+    ({"H1": {"trend": "up (HH+HL)"}}, True),               # a SELL against a clear trend is not this rule's to refuse
+    ({"H1": {"trend": "range (mixed swings)"}}, False),    # higher high with a lower low: chop
+    ({"H1": {"trend": "range"}}, False),                   # too few swings to tell
+    ({"M15": {"trend": "down (LH+LL)"}}, False),           # no H1 structure: unreadable, not assumed clear
+    ({"H1": {}}, False), ({"H1": "down (LH+LL)"}, False), ({"H1": {"trend": None}}, False), (None, False),
+])
+def test_no_new_position_unless_the_h1_structure_is_a_clear_trend(structure, ok):
+    # the operator (2026-10-19): "do not trade into chop". Registered hypothesis H1 (docs/DUAL_AI.md): of the first 50
+    # agreement trades, the 23 in an H1 range won 30%, -0.24 R each; the 27 in a clear H1 trend won 63%, +0.23 R
+    v = _struct(structure)
+    assert v.approved is ok, v.reasons
+    if not ok:
+        assert any(r.startswith("structure: H1 structure is") for r in v.reasons)
+
+
+def test_the_structure_is_only_checked_when_the_limits_name_a_timeframe():
+    assert _struct(None, tf=None).approved
+    assert not [c for c in _struct({"H1": {"trend": "range (mixed swings)"}}, tf=None).checks if c.name == "structure"]
+    for bad in ("H4", "h1", "", 1, ("H1",)):
+        with pytest.raises(ValueError):
+            RiskLimits(require_clear_structure=bad)
+
+
+def test_the_paper_forward_service_requires_a_clear_h1_structure_and_plain_paper_does_not():
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-struct-test", "DASHBOARD_TOKEN": "t"}
+    assert ServiceConfig.from_env(env).risk.require_clear_structure == "H1"
+    assert ServiceConfig.from_env({**env, "MODE": "PAPER"}).risk.require_clear_structure is None
 
 
 def _carry(when, hold_min=480, carry=True):

@@ -11,9 +11,9 @@ import os
 import dataclasses
 from dataclasses import dataclass, field
 
-from ..risk.engine import (HARD_MAX_RISK_PCT, PAPER_FORWARD_CLOSED_UTC, PAPER_FORWARD_CLOSED_WEEKDAYS_UTC,
-                           PAPER_FORWARD_NEWS_BLACKOUT_MIN, PAPER_FORWARD_QUIET_NY, UNVALIDATED_MAX_RISK_PCT, FundedRules,
-                           RiskLimits)
+from ..risk.engine import (HARD_MAX_RISK_PCT, PAPER_FORWARD_CLEAR_STRUCTURE, PAPER_FORWARD_CLOSED_UTC,
+                           PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, PAPER_FORWARD_NEWS_BLACKOUT_MIN, PAPER_FORWARD_NEWS_IMPACTS,
+                           PAPER_FORWARD_QUIET_NY, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits)
 from ..decision.edge_status import PAPER_MODES
 from ..risk.profile import FTMO_200K, PAPER_FORWARD_200K, PROFILES, HardRiskProfile, ProfileError
 
@@ -148,7 +148,9 @@ class ServiceConfig:
                                        quiet_ny_end_min=PAPER_FORWARD_QUIET_NY[1], no_weekend_carry=True,
                                        closed_weekdays_utc=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC,
                                        closed_utc_windows=PAPER_FORWARD_CLOSED_UTC, no_opposite_currency=True,
-                                       news_blackout_min=PAPER_FORWARD_NEWS_BLACKOUT_MIN, news_required=True)
+                                       news_blackout_min=PAPER_FORWARD_NEWS_BLACKOUT_MIN, news_required=True,
+                                       news_impacts=PAPER_FORWARD_NEWS_IMPACTS,
+                                       require_clear_structure=PAPER_FORWARD_CLEAR_STRUCTURE)
         source = e.get("DATA_SOURCE", "yahoo").strip().lower() or "yahoo"
         if source == "auto":
             source = "yahoo"

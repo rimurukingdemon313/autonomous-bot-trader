@@ -97,7 +97,14 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         not asked (six approved trades were refused by the gate for open risk). Both only ever skip a decision.
 #: 1.20.0: the risk engine reads the economic calendar for the pair (account_gates before the model is asked,
 #:         evaluate after): with a news window it refuses a new position around a High-impact release.
-ORCHESTRATOR_VERSION = "orchestrator-1.20.0"
+#: 1.21.0: the risk engine reads the pair's market structure (the market map the traders read) when it decides after
+#:         their answer: with require_clear_structure it refuses a new position in a range.
+#: 1.22.0 (live, 2026-10-19): each pair of a cycle decides at its own turn, on the data of that moment: stamped with the
+#:         cycle's start, a later pair began already aged by the earlier pair's model calls (two pairs reached their
+#:         traders with 0 s left after 13-14 min on the pair before). And the risk engine judges the time rules and
+#:         the news window at the moment the position would open, after the traders answered (risk 1.13.0), with the
+#:         calendar read again then. A replay's clock is the bar time: a backtest decides exactly as before.
+ORCHESTRATOR_VERSION = "orchestrator-1.22.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -224,7 +231,8 @@ class Orchestrator:
             self._review_positions(t, symbols)
         for symbol in symbols if symbols is not None else self.cfg.symbols:
             try:
-                d = self.decide(symbol, t)
+                # its own turn: the pairs are decided one after another, and a model's answer takes minutes
+                d = self.decide(symbol, max(t, int(self.clock())))
                 if d is not None:
                     report["decisions"].append({"symbol": symbol, "decision": d.decision})
             except Exception as exc:  # a crash in one symbol is NO_TRADE for it, and visible
@@ -435,10 +443,12 @@ class Orchestrator:
             fresh = self.feed.quote(symbol, t)
             if fresh is not None:
                 quote = fresh
-            news = ctx.news if ctx.news is not None else (self.news.for_symbol(symbol, t) if self.news is not None
-                                                           else None)
+            # the time rules and the news window are judged when the position would open: now, the traders answered
+            opens_at = max(t, int(self.clock()))
+            news = self.news.for_symbol(symbol, opens_at) if self.news is not None else ctx.news
+            structure = ctx.market_map.get("structure") if isinstance(ctx.market_map, dict) else None
             verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags,
-                                         swap_per_night=swap, news=news)
+                                         swap_per_night=swap, news=news, structure=structure, opens_at=opens_at)
             if not self.db.one("SELECT 1 AS x FROM risk_verdicts WHERE decision_id=?", (d.id,)):
                 self.db.append("risk_verdicts", {"decision_id": d.id, "approved": int(verdict.approved),
                                                  "payload": verdict.as_dict()})

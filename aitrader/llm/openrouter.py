@@ -73,7 +73,11 @@ from .provider import extract_json
 #: 1.7.0 (live, 2026-10-13: two free vision models rate-limited upstream nearly all day were asked every cycle): a
 #:        model that rests again before giving a usable reply rests twice as long each time (5 min doubling to 60;
 #:        failing 15 doubling to 60); its first usable reply resets it.
-OPENROUTER_VERSION = "openrouter-1.7.0"
+#: 1.8.0 (live, 2026-10-19): a request never waits past the role's deadline: its timeout is the configured one or the
+#:        time the decision has left, whichever is less (a 180 s wait began with less left let a slow model overrun
+#:        the decision's budget). A lone request cut short by that deadline is not held against the model: it never
+#:        had its own timeout.
+OPENROUTER_VERSION = "openrouter-1.8.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -401,6 +405,7 @@ class OpenRouterClient:
         attempts = 0
         status_txt = "UNAVAILABLE"
         err = None
+        cut_short = False
         for attempt in range(self.config.max_retries + 1):
             with self._lock:
                 if self.clock() < self._quota_until:
@@ -411,11 +416,14 @@ class OpenRouterClient:
                                       f"{self.daily_budget} reached", request_id=rid, attempts=attempts)
                 self._calls += 1
             attempts += 1
+            timeout = min(self.config.timeout_s, max(1.0, deadline - self.clock()))  # never past the role's deadline
+            timed_out = False
             try:
                 code, hdrs, payload = self.transport("POST", f"{self.config.base_url}/chat/completions", headers, body,
-                                                     self.config.timeout_s)
+                                                     timeout)
             except Exception as exc:  # noqa: BLE001 - timeouts and connection errors: retried, bounded
                 code, hdrs, payload, err = -1, {}, None, f"{type(exc).__name__}: {str(exc)[:160]}"
+                timed_out = isinstance(exc, TimeoutError) or isinstance(getattr(exc, "reason", None), TimeoutError)
             lat = (time.perf_counter() - t0) * 1000
             msg = _error_message(payload)
             if code == 200 and isinstance(payload, dict) and not payload.get("error"):
@@ -461,6 +469,9 @@ class OpenRouterClient:
             elif code == -1:
                 status_txt = "TIMEOUT"
                 wait = None
+                if timed_out and timeout < self.config.timeout_s:  # the decision's deadline ended it, not the model's
+                    cut_short, err = True, f"no answer in the {timeout:.0f} s the decision had left"
+                    break
             elif code >= 500 or code == 408:
                 status_txt, err = f"HTTP_{code}", f"HTTP {code}: {msg}"
                 wait = None
@@ -474,9 +485,10 @@ class OpenRouterClient:
                 if self.clock() + backoff >= deadline:
                     break  # no time left for another attempt on this model
                 self.sleep(backoff)
-        with self._lock:
-            self._note(model, False)
-            self._rest(model, "rate_limited" if status_txt in ("RATE_LIMITED", "UPSTREAM_ERROR") else "failing")
+        if not (cut_short and attempts == 1):  # a lone request cut short by the deadline says nothing of the model
+            with self._lock:
+                self._note(model, False)
+                self._rest(model, "rate_limited" if status_txt in ("RATE_LIMITED", "UPSTREAM_ERROR") else "failing")
         return CallResult(False, status_txt, role, model, error=err, request_id=rid, attempts=attempts,
                           latency_ms=(time.perf_counter() - t0) * 1000)
 
