@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-19 22:40 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 22:10 UTC · decision system `dual_ai`
+Updated 2026-10-19 22:55 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 22:10 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,3
 - 10-19 08:15 AUDJPY SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 30.3% of the stop (max 25%): spread 0.018 + commission and slippage
 - 10-19 08:15 EURCHF SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (1566 so far)
+## Latest decisions, NO TRADE included (1568 so far)
 
+- 10-19 22:45 USDCHF NO_TRADE: blocked before consulting the model: EXPOSURE: a USDCHF position is already open
+- 10-19 22:45 USDCAD NO_TRADE: risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
 - 10-19 22:30 AUDUSD NO_TRADE: risk engine: quiet_hours (18:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
 - 10-19 22:30 USDJPY NO_TRADE: risk engine: quiet_hours (18:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
 - 10-19 22:15 GBPUSD NO_TRADE: risk engine: quiet_hours (18:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,3
 - 10-19 21:45 USDCAD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 - 10-19 21:30 AUDUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 - 10-19 21:30 USDJPY NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
-- 10-19 21:15 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
-- 10-19 21:15 EURUSD NO_TRADE: market unavailable for a decision: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency
 
 ## Open paper positions
 
@@ -104,6 +104,8 @@ Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.08
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-19 22:45 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-19 22:45 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-19 22:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-19 22:30 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-19 22:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.08
 | 10-19 21:45 | USDCAD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 21:30 | AUDUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 21:30 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-19 21:15 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-19 21:15 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
