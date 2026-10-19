@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-19 13:44 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 10:59 UTC · decision system `dual_ai`
+Updated 2026-10-19 14:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-19 10:59 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,7
 - 10-19 03:15 USDJPY BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY USDJPY would bet against an open position: AUDUSD BUY is short USD
 - 10-19 03:00 GBPUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 1.06 vs minimum 1.2; currency_conflict: SELL GBPUSD would bet against an open position: AUDUSD BUY is short USD
 
-## Latest decisions, NO TRADE included (1496 so far)
+## Latest decisions, NO TRADE included (1498 so far)
 
+- 10-19 13:45 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 13:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
+- 10-19 13:45 EURCHF NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 13:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 13:30 GBPJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 13:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 13:30 EURJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 13:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 13:15 EURGBP NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 13:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,7
 - 10-19 12:45 USDJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 12:30 GBPUSD NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-19 12:30 EURUSD NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 10-19 12:15 AUDJPY NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 10-19 12:15 EURCHF NO_TRADE: market unavailable for a decision: risk engine: trading_calendar (Monday 12:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 
 ## Open paper positions
 
@@ -102,6 +102,8 @@ Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.08
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-19 13:45 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
+| 10-19 13:45 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 13:30 | GBPJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 13:30 | EURJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 13:15 | EURGBP | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
@@ -112,8 +114,6 @@ Trades taken by session (UTC): ASIA 24 resolved (insufficient), expectancy +0.08
 | 10-19 12:45 | USDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 12:30 | GBPUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 | 10-19 12:30 | EURUSD | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-19 12:15 | AUDJPY | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
-| 10-19 12:15 | EURCHF | -  | -  | - | MARKET_UNAVAILABLE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
