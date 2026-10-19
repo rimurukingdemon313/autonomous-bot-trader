@@ -139,7 +139,7 @@ standing aside is right is measured, not assumed. The prompts are unchanged, so 
 | rule | when | models asked |
 |---|---|---|
 | `DISAGREE` | the traders chose opposite sides: stand aside (the debate runs in shadow; if it gives no usable answer, nothing is followed) | 3 |
-| `MARKET_UNAVAILABLE` | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine's account checks already refuse any trade | none |
+| `NOT_ASKED` (`MARKET_UNAVAILABLE` before dual-ai 1.6.0) | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine already refuses any trade (the calendar, a news window, full positions); the reason names the rule that refused | none |
 | `AI_UNAVAILABLE` | `OPENROUTER_API_KEY` not set | none |
 | `NO_CHART` | not enough completed bars to draw the chart | none |
 | `TRADER1_UNAVAILABLE` / `TRADER2_UNAVAILABLE` | that trader's model gave no usable answer: unavailable, rate-limited, quota spent, malformed, impossible levels (for Trader 1: no vision model, and then no text model reading the chart's numbers) | 1 / 2 |

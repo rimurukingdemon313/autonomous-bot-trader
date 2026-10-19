@@ -26,13 +26,15 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:        trades are split by it.
 #: 1.3.0: the trades taken beside their shadow exits (break-even at +1R, held 24 h, twice as wide), paired on the
 #:        same entries; the trades taken by session.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.3.0"
+#: 1.4.0: NOT_ASKED (dual-ai 1.6.0's name for a decision refused before the traders were asked) counts as
+#:        unavailable, as MARKET_UNAVAILABLE did before it.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.4.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
-UNAVAILABLE = ("MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE", "TRADER2_UNAVAILABLE", "DEBATE_UNRESOLVED",
-               "MODE")
+UNAVAILABLE = ("NOT_ASKED", "MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE",
+               "TRADER2_UNAVAILABLE", "DEBATE_UNRESOLVED", "MODE")
 
 
 def _sample(n: int) -> str:

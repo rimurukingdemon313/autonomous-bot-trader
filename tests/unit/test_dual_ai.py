@@ -218,8 +218,22 @@ def test_when_trading_is_paused_nothing_is_asked():
     c = desk_ctx()
     c.trading_allowed = False
     d, fake = think(scripted(), c)
-    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "MARKET_UNAVAILABLE"
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "NOT_ASKED"
     assert fake.calls == []
+
+
+def test_a_refusal_before_the_traders_are_asked_says_which_rule_refused_never_that_the_market_was_missing():
+    # found in the 2026-10-19 report: 88 decisions read "market unavailable for a decision: risk engine:
+    # trading_calendar (...)": the market was there, a rule had refused
+    c = desk_ctx()
+    c.account_blocks = ["trading_calendar (Monday 12:00 UTC: no new position from 12:00 to 16:00 UTC)"]
+    d, fake = think(scripted(), c)
+    assert d.decision == "NO_TRADE" and fake.calls == []
+    assert d.ai["dual_ai"]["consensus"]["rule"] == "NOT_ASKED"
+    assert d.no_trade_reason.startswith("risk engine: trading_calendar (Monday 12:00 UTC")
+    assert "market unavailable" not in d.no_trade_reason
+    from aitrader.learning.dual_ai_stats import UNAVAILABLE
+    assert "NOT_ASKED" in UNAVAILABLE and "MARKET_UNAVAILABLE" in UNAVAILABLE  # the old name still counted
 
 
 def test_without_a_key_nothing_is_asked():

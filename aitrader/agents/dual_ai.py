@@ -31,8 +31,9 @@ and a stated confidence never changes a size.
 
 NO_TRADE is a market opinion here in one case only: the traders disagree (DISAGREE). Otherwise it means the
 decision could not be made at all:
-- MARKET_UNAVAILABLE: stale or bad data, no quote, a position already open on the pair, trading paused, or the
-  risk engine's account checks already refuse any trade (nothing is spent asking);
+- NOT_ASKED (MARKET_UNAVAILABLE before 1.6.0): stale or bad data, no quote, a position already open on the pair,
+  trading paused, or the risk engine already refuses any trade (the calendar, a news window, full positions);
+  nothing is spent asking, and the reason says which;
 - AI_UNAVAILABLE: no OpenRouter key configured;
 - NO_CHART, or a trader gave no usable answer (unavailable, quota spent, malformed): no decision is made on one
   trader alone, and a reply is never repaired;
@@ -87,7 +88,10 @@ from .types import MarketContext
 #:        debate waited 420 s on a busy model): every call has a time budget. A trader is asked only while the
 #:        decision can still execute in time (MarketContext.decide_within_s), and never for longer than is left;
 #:        the shadow debate, measurement only, waits at most SHADOW_DEBATE_DEADLINE_S. Prompts are unchanged.
-DUAL_AI_VERSION = "dual-ai-1.5.0"
+#: 1.6.0 (operator, 2026-10-19): a decision refused before the traders are asked is NOT_ASKED, with the refusal
+#:        as its reason ("risk engine: trading_calendar (...)"); it read "market unavailable for a decision", 88
+#:        times that day, when the market was there and a rule had refused. Record only: nothing decides by it.
+DUAL_AI_VERSION = "dual-ai-1.6.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -469,7 +473,7 @@ class DualAITrader:
             return stop("OPENROUTER_API_KEY is not set: the traders cannot be asked", "AI_UNAVAILABLE")
         blocked = pre_model_block(ctx, reports, _Configured(True))
         if blocked:
-            return stop("market unavailable for a decision: " + blocked[0], "MARKET_UNAVAILABLE", blocked[1])
+            return stop(blocked[0], "NOT_ASKED", blocked[1])
         try:
             chart = build_chart(ctx)
         except (ValueError, TypeError) as exc:
