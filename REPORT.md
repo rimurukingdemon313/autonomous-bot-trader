@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-19 11:00 UTC**, run 277, version `radar-1.0.0`. State from: cache. Quotes this hour: 2393.
+Updated **2026-10-19 12:00 UTC**, run 278, version `radar-1.0.0`. State from: cache. Quotes this hour: 2393.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,26 +17,27 @@ Updated **2026-10-19 11:00 UTC**, run 277, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 11.62
+- days: 11.67
 - run_coverage: 0.9893
 - closed_positions: 38
-- open_positions: 0
-- utilisation: 0.0931
+- open_positions: 1
+- utilisation: 0.0932
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.4098
-- book_excess_pct: -0.4212
-- ann_excess_deployed_pct: -143.023
-- ann_excess_deployed_costs_x1.5_pct: -255.154
-- ann_excess_deployed_costs_x2_pct: -367.286
+- book_pnl_pct: -0.4183
+- book_excess_pct: -0.4382
+- ann_excess_deployed_pct: -148.795
+- ann_excess_deployed_costs_x1.5_pct: -263.812
+- ann_excess_deployed_costs_x2_pct: -378.83
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.4496
-- max_dd_pct: 0.4098
-- t_excess_daily: -1.959
+- book_excess_without_best_coin_pct: -0.4666
+- max_dd_pct: 0.4183
+- t_excess_daily: -2.003
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
+| SAND | mexc | gate | 2026-10-19 12:00 | 35.7% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (38)
 
@@ -77,5 +78,6 @@ Updated **2026-10-19 11:00 UTC**, run 277, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
+| SAND | mexc | gate | 35.7% | 27.6% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
