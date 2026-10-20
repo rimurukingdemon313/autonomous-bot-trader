@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-20 21:18 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 20:33 UTC · decision system `dual_ai`
+Updated 2026-10-20 21:33 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 20:33 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $201,991.16 | $2,092.65 | $1,991.16 | $0.00 | 2 | 62 (adequate) | 50.0% | +0.037R | 1.16 | ACTIVE | RUNNING |
+| $200,000.00 | $201,880.16 | $1,981.65 | $1,880.16 | $0.00 | 2 | 62 (adequate) | 50.0% | +0.037R | 1.16 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $200,574.65); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $200,463.65); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,5
 - 10-20 02:15 EURJPY BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-20 02:00 EURGBP SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (1748 so far)
+## Latest decisions, NO TRADE included (1750 so far)
 
+- 10-20 21:30 EURGBP NO_TRADE: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
+- 10-20 21:30 NZDUSD NO_TRADE: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
 - 10-20 21:15 USDCHF NO_TRADE: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
 - 10-20 21:15 USDCAD NO_TRADE: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); currency_exposure (2 open positions share a
 - 10-20 21:00 AUDUSD NO_TRADE: risk engine: quiet_hours (17:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3); currency_ex
@@ -55,15 +57,13 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,5
 - 10-20 20:30 EURJPY NO_TRADE: blocked before consulting the model: EXPOSURE: a EURJPY position is already open
 - 10-20 20:15 EURGBP NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3); currency_ex
 - 10-20 20:15 NZDUSD NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3); currency_ex
-- 10-20 20:00 USDCHF NO_TRADE: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3); currency_ex
-- 10-20 20:00 USDCAD NO_TRADE: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3); currency_ex
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
 | GBPUSD | BUY | 2.36 | 1.33757 | 1.3358 | 1.34086 | $110.92 |
-| EURUSD | BUY | 3.7 | 1.12365 | 1.1226 | 1.12511 | $262.70 |
+| EURUSD | BUY | 3.7 | 1.12365 | 1.1226 | 1.12511 | $151.70 |
 
 ## Closed paper trades (latest 20)
 
@@ -104,6 +104,8 @@ Trades taken by session (UTC): ASIA 28 resolved (insufficient), expectancy +0.13
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-20 21:30 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-20 21:30 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 21:15 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 21:15 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 21:00 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 28 resolved (insufficient), expectancy +0.13
 | 10-20 20:30 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 20:15 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 20:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-20 20:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-20 20:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
