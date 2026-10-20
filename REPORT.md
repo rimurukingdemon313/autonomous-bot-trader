@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-20 11:37 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 09:22 UTC · decision system `dual_ai`
+Updated 2026-10-20 11:52 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 09:22 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,842.77 | $944.26 | $842.77 | $0.00 | 3 | 58 (adequate) | 48.3% | +0.004R | 1.06 | ACTIVE | RUNNING |
+| $200,000.00 | $200,990.94 | $1,092.42 | $990.94 | $0.00 | 3 | 58 (adequate) | 48.3% | +0.004R | 1.06 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $199,426.26); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $199,574.42); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,4
 - 10-20 01:16 GBPUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-20 01:15 EURUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (1670 so far)
+## Latest decisions, NO TRADE included (1672 so far)
 
+- 10-20 11:45 EURGBP NO_TRADE: risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 171.66 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consult
+- 10-20 11:45 NZDUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
 - 10-20 11:31 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while p
 - 10-20 11:30 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 61: The aligned bearish M15 and H4 structure favors continuation short despite repeated sweeps beneath 1.4049. A close above 
 - 10-20 11:17 AUDUSD SELL: SELL AUDUSD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 56: Sell the bearish M15 continuation while the market remains below the 0.69930-0.69955 supply zone. The stop is above the 0
@@ -55,15 +57,13 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,4
 - 10-20 10:45 EURCHF NO_TRADE: risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room -32.52 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consult
 - 10-20 10:33 GBPJPY BUY: BUY GBPJPY on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) BUY 59: Buy the pullback while the H4 bullish structure remains intact and price holds the 210.876-210.83 support area. A stop belo
 - 10-20 10:30 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 62: Sell the rebound because M15 bearish structure and momentum dominate near-term price action. The stop is beyond the 177.4
-- 10-20 10:15 EURGBP SELL: SELL EURGBP on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 69: Bearish structure, lower-timeframe momentum, and the H4 CHoCH favor a continuation sell after the break of 0.84053. The s
-- 10-20 10:15 NZDUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDCHF | SELL | 3.22 | 0.824415 | 0.8254 | 0.82302 | $-23.43 |
-| GBPJPY | BUY | 3.78 | 210.92149999999998 | 210.759 | 211.241 | $221.47 |
+| USDCHF | SELL | 3.22 | 0.824415 | 0.8254 | 0.82302 | $93.77 |
+| GBPJPY | BUY | 3.78 | 210.92149999999998 | 210.759 | 211.241 | $252.43 |
 | NZDUSD | BUY | 3.26 | 0.567885 | 0.5666 | 0.5695 | $45.64 |
 
 ## Closed paper trades (latest 20)
@@ -105,6 +105,8 @@ Trades taken by session (UTC): ASIA 27 resolved (insufficient), expectancy +0.12
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-20 11:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-20 11:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 11:31 | USDCHF | SELL 64 | SELL 62 | - | AGREE | SELL | APPROVED |
 | 10-20 11:30 | USDCAD | SELL 61 | SELL 63 | - | AGREE | SELL | REJECTED |
 | 10-20 11:17 | AUDUSD | SELL 56 | SELL 53 | - | AGREE | SELL | REJECTED |
@@ -115,8 +117,6 @@ Trades taken by session (UTC): ASIA 27 resolved (insufficient), expectancy +0.12
 | 10-20 10:45 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-20 10:33 | GBPJPY | BUY 59 | BUY 55 | - | AGREE | BUY | APPROVED |
 | 10-20 10:30 | EURJPY | SELL 62 | SELL 58 | - | AGREE | SELL | REJECTED |
-| 10-20 10:15 | EURGBP | SELL 69 | SELL 60 | - | AGREE | SELL | REJECTED |
-| 10-20 10:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
