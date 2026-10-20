@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-20 20:32 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 14:57 UTC · decision system `dual_ai`
+Updated 2026-10-20 20:33 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 20:33 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $202,395.24 | $2,496.73 | $2,395.24 | $0.00 | 3 | 61 (adequate) | 50.8% | +0.051R | 1.21 | ACTIVE | RUNNING |
+| $200,000.00 | $202,386.02 | $2,487.51 | $2,386.02 | $0.00 | 3 | 61 (adequate) | 50.8% | +0.051R | 1.21 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $200,978.73); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $200,969.51); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -62,7 +62,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,9
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURJPY | BUY | 4.88 | 177.6765 | 177.56 | 177.918 | $153.72 |
+| EURJPY | BUY | 4.88 | 177.6765 | 177.56 | 177.918 | $144.50 |
 | GBPUSD | BUY | 2.36 | 1.33757 | 1.3358 | 1.34086 | $87.32 |
 | EURUSD | BUY | 3.7 | 1.12365 | 1.1226 | 1.12511 | $114.70 |
 
@@ -93,7 +93,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $200,9
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `minimax/minimax-m3.1-flash:free` · trader 2 `nvidia/nemotron-3.5-super-vl:free` · debate `google/gemma-4-26b-a4b-it:free` · calls today 27/900
+OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
 Agreement trades 61 (adequate) · wins 31 · losses 30 · net $2,039.50 · expectancy +0.051R · profit factor 1.21 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
