@@ -50,12 +50,12 @@
   }
  ],
  "account": {
-  "equity": 200435.8,
+  "equity": 200482.72,
   "balance": 200095.48,
-  "total_pnl": 435.8,
-  "today_pnl": 537.29,
+  "total_pnl": 482.72,
+  "today_pnl": 584.21,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 199019.29,
+  "equity_before_adjustments": 199066.21,
   "day_reference": 199898.51310625882,
   "drawdown_from_start": 0.0,
   "max_loss_floor": 180000.0,
@@ -568,12 +568,12 @@
    "side": "BUY",
    "qty": 3.26,
    "entry": 0.567885,
-   "current": 0.568425,
+   "current": 0.568225,
    "stop": 0.5666,
    "target": 0.5695,
-   "r_now": 0.42,
+   "r_now": 0.265,
    "opened": 1792471619.0,
-   "pnl": 176.04,
+   "pnl": 110.84,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -585,12 +585,12 @@
    "side": "SELL",
    "qty": 3.08,
    "entry": 0.825415,
-   "current": 0.824975,
+   "current": 0.824675,
    "stop": 0.82645,
    "target": 0.82401,
-   "r_now": 0.425,
+   "r_now": 0.715,
    "opened": 1792466277.0,
-   "pnl": 164.28,
+   "pnl": 276.4,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -2319,6 +2319,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPUSD",
+   "decision": "NO_TRADE",
+   "t": 1792488623,
+   "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1792488622,
+   "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
+  {
    "symbol": "EURGBP",
    "decision": "SELL",
    "t": 1792487721,
@@ -2471,23 +2485,9 @@
    "t": 1792478721,
    "reason": "blocked before consulting the model: EXPOSURE: a EURCHF position is already open",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPJPY",
-   "decision": "NO_TRADE",
-   "t": 1792477819,
-   "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 197.33 is less than the next trade's risk 499.56: it would refuse the trade): the model was not consult",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURJPY",
-   "decision": "NO_TRADE",
-   "t": 1792477817,
-   "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 197.33 is less than the next trade's risk 499.56: it would refuse the trade): the model was not consult",
-   "data_flags": []
   }
  ],
- "decisions_total": 1652,
+ "decisions_total": 1654,
  "shift": {
   "started": "2026-10-20 09:22 UTC",
   "decision_mode": "dual_ai",
@@ -2542,109 +2542,69 @@
   },
   "charts": {},
   "last_analysis": {
-   "decision_id": "c2525f51547d452f8e687b7a",
-   "symbol": "EURGBP",
-   "t": 1792487721,
-   "decision": "SELL",
-   "reason": "SELL EURGBP on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 72: Sell the dominant H4 downtrend and fresh M15 bearish continuation below 0.84053. The stop sits beyond the broken 0.84094 swing and 0.84090 resistance, while the target projects a reachable move within eight hours. Confide",
+   "decision_id": "de97bf81810fe2f6d14f2d9a",
+   "symbol": "GBPUSD",
+   "t": 1792488623,
+   "decision": "NO_TRADE",
+   "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
    "consensus": {
-    "desk_confidence": 0.68,
-    "direction": "SELL",
-    "levels_from": "trader1",
-    "outcome": "TRADE",
-    "rule": "AGREE",
-    "stop_loss": 0.84099,
-    "take_profit": 0.83865
+    "outcome": "NO_TRADE",
+    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "minimax/minimax-m3.1-flash:free",
-    "trader2": "nvidia/nemotron-3.5-super-vl:free"
-   },
-   "trader1": {
-    "confidence": 72,
-    "direction": "SELL",
-    "entry": 0.83994,
-    "invalidation": 0.84095,
-    "liquidity": "The 0.84053 previous-day/week low has been broken, opening potential continuation toward 0.83865, although the fresh low and extreme intraday extension increase rebound risk; equal-high liquidity above can attract a pullback.",
-    "market_structure": "H4 remains bearish after a bearish CHoCH and BOS, while M15 has successive bearish BOS breaks through 0.84094 and 0.84053, leaving lower-high structure and price below the prior-day and prior-week low.",
-    "momentum": "Bearish displacement is active on M15, with M1, M5, M15, H1, and H4 all showing negative momentum and price near the bottom of its recent ranges.",
-    "reason": "Sell the dominant H4 downtrend and fresh M15 bearish continuation below 0.84053. The stop sits beyond the broken 0.84094 swing and 0.84090 resistance, while the target projects a reachable move within eight hours. Confidence is tempered by the 99th-percentile volatility and the increased probability of a mean-reversion bounce after the liquidity sweep.",
-    "reversal_probability": 33,
-    "risk_reward": 1.23,
-    "stop_loss": 0.84099,
-    "take_profit": 0.83865,
-    "trend": "The dominant H4 and broader regime are down, while M15 is classified as range-bound because of the ongoing rebound attempt inside the broader selloff."
-   },
-   "trader2": {
-    "confidence": 68,
-    "direction": "SELL",
-    "entry": 0.83994,
-    "invalidation": 0.84099,
-    "liquidity": "Prev day/week low 0.84053 swept opening downside; equal-high liquidity above at 0.84153/0.84262 can attract a pullback into the untested supply OB",
-    "market_structure": "H4 confirmed downtrend (LH+LL); M15 bearish BOS below 0.84053 prev day/week low and 0.84094 swing, price at bottom of 20-bar range",
-    "momentum": "Bearish displacement across M1-H4; all timeframes negative, price near range lows, volatility at 99th percentile ATR",
-    "reason": "H4 is in a confirmed downtrend and M15 just printed a bearish BOS below the 0.84053 previous-day/week low. Price sits at the bottom of its 20-bar range with an untested supply order block and bearish FVG above acting as resistance. The stop sits just above the broken 0.84094 swing; target projects continuation to 0.83865 within the session. Extreme volatility keeps reversal risk elevated but the structural edge favors the short.",
-    "reversal_probability": 35,
-    "risk_reward": 1.23,
-    "stop_loss": 0.84099,
-    "take_profit": 0.83865,
-    "trend": "H4 DOWN; M15 range structure but bearish break in progress; dominant bias is down"
-   },
+   "models": {},
+   "trader1": null,
+   "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1792487721,
-    "bytes": 31354,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1792487700,
-    "last_bar_open": 1792486800,
-    "sha256": "38dad59dbc920138e63841e361b6753e091a673fae42409dc5c1ba1321cefd6a",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 17077.6,
-     "model": "minimax/minimax-m3.1-flash:free",
-     "ok": true,
-     "provider_id": "gen-1792487722-yWpwtpqgEja5rAyTX21A",
-     "request_id": "a8ece7fc399a4d80bb89d28acc066ae1",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 8087,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 39134.3,
-     "model": "nvidia/nemotron-3.5-super-vl:free",
-     "ok": true,
-     "provider_id": "gen-1792487739-8GROj9gPOYa3YACGhOti",
-     "request_id": "60625df1ea15497c9793586a896c0870",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 20976,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.6.0",
-   "risk": {
-    "approved": false,
-    "reasons": [
-     "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
-    ],
-    "qty": 0.0
-   }
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "de97bf81810fe2f6d14f2d9a",
+    "symbol": "GBPUSD",
+    "t": 1792488623,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.6.0",
+    "risk": null
+   },
+   {
+    "decision_id": "d11c50e6d5256f5331264997",
+    "symbol": "EURUSD",
+    "t": 1792488622,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.6.0",
+    "risk": null
+   },
    {
     "decision_id": "c2525f51547d452f8e687b7a",
     "symbol": "EURGBP",
@@ -2936,48 +2896,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.6.0",
     "risk": null
-   },
-   {
-    "decision_id": "4e23d7a0c227e741e4a1b665",
-    "symbol": "GBPJPY",
-    "t": 1792483219,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room -207.88 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room -207.88 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.6.0",
-    "risk": null
-   },
-   {
-    "decision_id": "bd1064eb0223a875554358bc",
-    "symbol": "EURJPY",
-    "t": 1792483218,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room -207.88 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room -207.88 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.6.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -2987,12 +2905,12 @@
     "side": "BUY",
     "qty": 3.26,
     "entry": 0.567885,
-    "current": 0.568425,
+    "current": 0.568225,
     "stop": 0.5666,
     "target": 0.5695,
-    "r_now": 0.42,
+    "r_now": 0.265,
     "opened": 1792471619.0,
-    "pnl": 176.04,
+    "pnl": 110.84,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -3004,12 +2922,12 @@
     "side": "SELL",
     "qty": 3.08,
     "entry": 0.825415,
-    "current": 0.824975,
+    "current": 0.824675,
     "stop": 0.82645,
     "target": 0.82401,
-    "r_now": 0.425,
+    "r_now": 0.715,
     "opened": 1792466277.0,
-    "pnl": 164.28,
+    "pnl": 276.4,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -3584,24 +3502,24 @@
      "difference_r": -0.106
     },
     "HOLD24H": {
-     "n": 37,
+     "n": 38,
      "sample": "adequate",
-     "win_rate": 0.514,
-     "expectancy_r": 0.243,
-     "total_r": 8.97,
-     "profit_factor_r": 1.456,
-     "as_taken_expectancy_r": 0.08,
-     "difference_r": 0.162
+     "win_rate": 0.5,
+     "expectancy_r": 0.208,
+     "total_r": 7.9,
+     "profit_factor_r": 1.38,
+     "as_taken_expectancy_r": 0.05,
+     "difference_r": 0.158
     },
     "WIDE2X": {
-     "n": 37,
+     "n": 38,
      "sample": "adequate",
-     "win_rate": 0.486,
-     "expectancy_r": 0.133,
-     "total_r": 4.92,
-     "profit_factor_r": 1.259,
-     "as_taken_expectancy_r": 0.08,
-     "difference_r": 0.053
+     "win_rate": 0.5,
+     "expectancy_r": 0.137,
+     "total_r": 5.19,
+     "profit_factor_r": 1.273,
+     "as_taken_expectancy_r": 0.05,
+     "difference_r": 0.086
     },
     "note": "each trade taken, followed again under another exit on the same entry, after costs; difference_r > 0 means that exit would have done better on these trades. Measured, never traded"
    },
@@ -3652,13 +3570,13 @@
     "DEBATE": 5,
     "DISAGREE": 87,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 70,
+    "NOT_ASKED": 72,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 9
    },
    "agreement_rate": 0.725,
    "decisions_with_both_traders": 334,
-   "unavailable": 994
+   "unavailable": 996
   },
   "recent_trades": [
    {
@@ -4384,8 +4302,8 @@
   ]
  },
  "health": {
-  "last_cycle": null,
+  "last_cycle": 1792488619,
   "last_cycle_error": null,
-  "cycles": 0
+  "cycles": 1
  }
 }
