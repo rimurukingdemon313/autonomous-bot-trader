@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-20 09:17 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 03:46 UTC · decision system `dual_ai`
+Updated 2026-10-20 09:21 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 03:46 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,380.15 | $481.64 | $380.15 | $0.00 | 2 | 57 (adequate) | 47.4% | -0.013R | 1.01 | ACTIVE | RUNNING |
+| $200,000.00 | $200,398.45 | $499.94 | $398.45 | $0.00 | 2 | 57 (adequate) | 47.4% | -0.013R | 1.01 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $198,963.64); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $198,981.94); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -62,8 +62,8 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,9
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| NZDUSD | BUY | 3.26 | 0.567885 | 0.5666 | 0.5695 | $45.64 |
-| USDCHF | SELL | 3.08 | 0.825415 | 0.82645 | 0.82401 | $239.03 |
+| NZDUSD | BUY | 3.26 | 0.567885 | 0.5666 | 0.5695 | $176.04 |
+| USDCHF | SELL | 3.08 | 0.825415 | 0.82645 | 0.82401 | $126.93 |
 
 ## Closed paper trades (latest 20)
 
