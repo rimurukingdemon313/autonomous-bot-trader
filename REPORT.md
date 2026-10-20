@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-20 09:00 UTC**, run 299, version `radar-1.0.0`. State from: cache. Quotes this hour: 2386.
+Updated **2026-10-20 10:00 UTC**, run 300, version `radar-1.0.0`. State from: cache. Quotes this hour: 2387.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,11 +17,11 @@ Updated **2026-10-20 09:00 UTC**, run 299, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 12.54
+- days: 12.58
 - run_coverage: 0.9901
 - closed_positions: 46
 - open_positions: 0
-- utilisation: 0.0946
+- utilisation: 0.0943
 - rf_apr_pct_declared: 3.875
 - book_pnl_pct: -0.5438
 - book_excess_pct: -0.5563
