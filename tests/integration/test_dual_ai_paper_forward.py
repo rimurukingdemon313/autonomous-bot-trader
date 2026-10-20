@@ -140,12 +140,32 @@ def test_a_trade_taken_is_followed_forward_under_shadow_exits_never_executed(tmp
     rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
     (taken,) = [r for r in rows if r["family"] == "DUAL_AI"]
     shadows = sorted((r for r in rows if r["family"].startswith("DUAL_AI_EXIT_")), key=lambda r: r["family"])
-    assert [r["exit_variant"] for r in shadows] == ["BE1R", "HOLD24H", "WIDE2X"]
+    assert [r["exit_variant"] for r in shadows] == ["BE1R", "HOLD24H", "HOLD8H", "WIDE2X"]
     assert all(r["base_decision_id"] == taken["decision_id"] and r["route"] == "COUNTERFACTUAL"
                and r["executed"] is False for r in shadows)
     assert len(rt.broker.positions()) == 1  # nothing more was traded
     rec = dual_ai_stats.record(rt.db)
-    assert set(rec["exits_in_shadow"]) >= {"BE1R", "HOLD24H", "WIDE2X"} and "LATE" in rec["taken_by_session"]
+    assert set(rec["exits_in_shadow"]) >= {"BE1R", "HOLD24H", "WIDE2X", "HOLD8H"} and "LATE" in rec["taken_by_session"]
+
+
+def test_the_traders_plan_for_8h_and_the_trade_stays_open_up_to_24h_never_past_the_friday_close(tmp_path,
+                                                                                               monkeypatch):
+    # dual-ai 1.7.0 (registered hypothesis H4): of 31 trades followed again in shadow, holding 24 h did better in 7
+    # and worse in none; the 8 h exit had closed trades still running toward their targets
+    from aitrader.agents.dual_ai import time_exit_minutes
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch)
+    cycles(rt, clock)
+    row = rt.db.one("SELECT * FROM positions WHERE status='OPEN'")
+    dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],))["payload"])
+    tf = dec["ai"]["dual_ai"]["chart"]["execution_timeframe"]
+    assert dec["max_hold_minutes"] == time_exit_minutes(tf, dec["timestamp"]) == dec["ai"]["dual_ai"]["time_exit_minutes"]
+    assert {packet_of(c["body"])["holding_time_minutes"] for c in fake.calls} == {dec["ai"]["dual_ai"]["hold_minutes"]}
+    clock.t = int(row["opened"]) + dec["max_hold_minutes"] * 60 - 60
+    rt.orch.time_exits(clock.t)
+    assert rt.broker.positions()  # a minute before its time exit: still open
+    clock.t += 60
+    rt.orch.time_exits(clock.t)
+    assert not rt.broker.positions()  # closed by its time exit, at its own time
 
 
 def test_the_risk_engine_still_refuses_what_it_refuses(tmp_path, monkeypatch):

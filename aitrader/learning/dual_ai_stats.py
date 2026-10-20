@@ -28,9 +28,10 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:        same entries; the trades taken by session.
 #: 1.4.0: NOT_ASKED (dual-ai 1.6.0's name for a decision refused before the traders were asked) counts as
 #:        unavailable, as MARKET_UNAVAILABLE did before it.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.4.0"
+#: 1.5.0: the shadow exit closed at 8 h (HOLD8H, forward 1.2.0) beside the others: the exit before dual-ai 1.7.0.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.5.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
-EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X")}
+EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
 UNAVAILABLE = ("NOT_ASKED", "MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE",

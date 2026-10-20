@@ -124,9 +124,9 @@ def test_within_the_bar_that_reached_1r_the_order_of_its_high_and_low_is_unknown
 def test_the_shadow_exits_are_counterfactual_copies_never_executed_and_the_trade_is_unchanged():
     rec = prop(atr=0.0010, route="EXECUTE", executed=True, family="DUAL_AI")
     before = dict(rec)
-    be, hold, wide = exit_variants(rec, "DUAL_AI")
+    be, hold, wide, h8 = exit_variants(rec, "DUAL_AI")
     assert rec == before  # the trade's own record is never edited
-    for v, name in ((be, "be1r"), (hold, "hold24h"), (wide, "wide2x")):
+    for v, name in ((be, "be1r"), (hold, "hold24h"), (wide, "wide2x"), (h8, "hold8h")):
         assert v["decision_id"] == f"d1:exit-{name}" and v["family"] == f"DUAL_AI_EXIT_{name.upper()}"
         assert v["route"] == "COUNTERFACTUAL" and v["executed"] is False and v["base_decision_id"] == "d1"
         assert v["entry"] == rec["entry"] and v["t"] == rec["t"]  # the same entry, the same moment
@@ -137,7 +137,20 @@ def test_the_shadow_exits_are_counterfactual_copies_never_executed_and_the_trade
     b = bars(UP_THEN_BACK + [(1.1025, 1.1045, 1.1024, 1.1040)] * 300)
     base_o, wide_o = walk(rec, b, T0 + 9 * 86400), walk(wide, b, T0 + 9 * 86400)
     assert wide_o["cost_r"] == pytest.approx(base_o["cost_r"] / 2, abs=1e-6)  # twice as wide: costs half the share
+    assert h8["hold_s"] == 3600 and h8["stop"] == rec["stop"]  # a cap never lengthens a shorter hold
     assert exit_variants(None, "DUAL_AI") == []
+
+
+def test_a_trade_held_24h_is_followed_again_closed_at_8h_the_exit_it_replaced():
+    # dual-ai 1.7.0 holds its trades 24 h; HOLD8H keeps the old exit measured on the same entries
+    rec = prop(atr=0.0010, route="EXECUTE", executed=True, family="DUAL_AI", hold_s=24 * 3600)
+    (h8,) = [v for v in exit_variants(rec, "DUAL_AI") if v["exit_variant"] == "HOLD8H"]
+    assert h8["hold_s"] == 8 * 3600 and h8["target"] == rec["target"] and h8["entry"] == rec["entry"]
+    # still short of its target at 8 h, it reaches it in hour 9: the 24 h trade takes it, the 8 h exit does not
+    climb = [(1.1000, 1.1006, 1.0998, 1.1004)] * 8 + [(1.1004, 1.1030, 1.1003, 1.1025)] + [(1.1025, 1.1026, 1.1024, 1.1025)] * 30
+    b = bars(climb, tf="H1")  # hourly bars: the target is reached in hour 9
+    assert walk(rec, b, T0 + 3 * 86400)["reason"] == "TARGET"
+    assert walk(h8, b, T0 + 3 * 86400)["reason"] == "TIME"
 
 
 def test_partition_is_fixed_by_decision_time_in_week_blocks():

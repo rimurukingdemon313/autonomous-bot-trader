@@ -156,7 +156,8 @@ def report_md(v: dict, shift: dict) -> str:
                   "Exits in shadow (the same trades, followed again; measured, never traded): " + " · ".join(
                       f"{label} {exit_line((rec.get('exits_in_shadow') or {}).get(k) or {})}"
                       for k, label in (("BE1R", "break-even at +1R"), ("HOLD24H", "held 24 h"),
-                                       ("WIDE2X", "stop and target twice as far"))), "",
+                                       ("WIDE2X", "stop and target twice as far"),
+                                       ("HOLD8H", "closed at 8 h (the exit before dual-ai 1.7.0)"))), "",
                   "Trades taken by session (UTC): " + " · ".join(
                       f"{s} {shadow(st)}" for s, st in (rec.get("taken_by_session") or {}).items()), "",
                   "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |",

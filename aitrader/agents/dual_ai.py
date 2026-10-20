@@ -58,8 +58,9 @@ import json
 import math
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from ..charts.render import RENDER_VERSION, Chart, render_chart
 from ..data.resample import resample
@@ -91,7 +92,12 @@ from .types import MarketContext
 #: 1.6.0 (operator, 2026-10-19): a decision refused before the traders are asked is NOT_ASKED, with the refusal
 #:        as its reason ("risk engine: trading_calendar (...)"); it read "market unavailable for a decision", 88
 #:        times that day, when the market was there and a rule had refused. Record only: nothing decides by it.
-DUAL_AI_VERSION = "dual-ai-1.6.0"
+#: 1.7.0 (operator, 2026-10-20: "find the fix for the losses"): an M15 trade stays open up to 24 h (TIME_EXIT_MINUTES),
+#:        not 8 h, and always closes an hour before the Friday close. Registered hypothesis H4: of 31 trades followed
+#:        again in shadow with the same levels, holding 24 h did better in 7 and worse in none (+0.19 R a trade): the
+#:        8 h exit closed trades still running toward their targets, and 6 of the 7 reached them. The traders still
+#:        plan their levels for HOLD_MINUTES, as in those trades; the old 8 h exit is followed in shadow (HOLD8H).
+DUAL_AI_VERSION = "dual-ai-1.7.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -102,7 +108,11 @@ SIDES = ("BUY", "SELL")
 ENTRY_TOL_ATR = 1.0       # a market order: a stated entry further than this from the executable price is a misread
 MAX_TARGET_ATR = 15.0
 RR_ABS_TOL, RR_REL_TOL = 0.25, 0.20
-HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}
+HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}  # the holding time the traders plan their levels for
+#: how long a position may stay open before its time exit (1.7.0); never past an hour before the Friday close
+TIME_EXIT_MINUTES = {"M15": 24 * 60, "H1": 48 * 60}
+NEW_YORK = ZoneInfo("America/New_York")
+FRIDAY_LAST_EXIT_NY = 16 * 60  # 16:00 New York, an hour before the 17:00 close
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
@@ -275,6 +285,19 @@ def _clean(d: dict | None, keys: tuple) -> dict | None:
 TRADER_KEYS = ("direction", "entry", "stop_loss", "take_profit", "confidence", "risk_reward", "market_structure",
                "liquidity", "momentum", "trend", "reversal_probability", "invalidation", "reason")
 VERIFY_KEYS = ("direction", "confidence", "reason")
+
+
+def time_exit_minutes(timeframe: str, t: int) -> int:
+    """How long a trade opened at `t` may stay open: TIME_EXIT_MINUTES for its execution timeframe, cut so it closes
+    by 16:00 New York on Friday, an hour before the weekend close (so the weekend-carry rule never refuses a trade
+    for its time exit alone), and never shorter than the HOLD_MINUTES its traders planned for."""
+    planned = HOLD_MINUTES.get(timeframe, HOLD_MINUTES["H1"])
+    full = TIME_EXIT_MINUTES.get(timeframe, TIME_EXIT_MINUTES["H1"])
+    ny = datetime.fromtimestamp(t, NEW_YORK)
+    friday = (ny + timedelta(days=(4 - ny.weekday()) % 7)).replace(
+        hour=FRIDAY_LAST_EXIT_NY // 60, minute=FRIDAY_LAST_EXIT_NY % 60, second=0, microsecond=0)
+    left = int((friday.timestamp() - t) // 60)
+    return max(planned, min(full, left)) if left > 0 else planned
 
 
 def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
@@ -483,6 +506,7 @@ class DualAITrader:
         px = {"bid": float(ctx.bid), "ask": float(ctx.ask), "atr": float(ctx.atr)}
         hold = HOLD_MINUTES.get(chart.meta["execution_timeframe"], HOLD_MINUTES["H1"])
         rec["hold_minutes"] = hold
+        rec["time_exit_minutes"] = exit_after = time_exit_minutes(chart.meta["execution_timeframe"], ctx.t)
         key = f"{ctx.symbol}|{ctx.t}|{chart.meta['sha256'][:16]}"
         started = time.monotonic()
 
@@ -593,7 +617,7 @@ class DualAITrader:
         story = (f"{res['rule']}: Trader 1 ({r1.model}) {t1['direction']} {t1['confidence']}: {t1['reason']} | "
                  f"Trader 2 ({r2.model}) {t2['direction']} {t2['confidence']}: {t2['reason']}")
         p = {"action": res["direction"], "timeframe": chart.meta["execution_timeframe"],
-             "stop": float(lead["stop_loss"]), "target": float(lead["take_profit"]), "max_hold_minutes": hold,
+             "stop": float(lead["stop_loss"]), "target": float(lead["take_profit"]), "max_hold_minutes": exit_after,
              "thesis": story[:500],
              "invalidation": (f"price trades through {lead['invalidation']}" if _num(lead.get("invalidation"))
                               else str(lead["invalidation"])[:200] if _text(lead.get("invalidation"))

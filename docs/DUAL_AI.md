@@ -61,7 +61,15 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   moved to the entry once +1R is reached (`DUAL_AI_EXIT_BE1R`, from the bar after the one that reached it), held
   24 h (`..._HOLD24H`), and with stop and target twice as far, held 24 h (`..._WIDE2X`: costs half the share
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
-  entries; the report prints the comparison.
+  entries; the report prints the comparison. Since forward 1.2.0 also closed at 8 h (`..._HOLD8H`): the exit
+  the trades had before dual-ai 1.7.0.
+- **Time exit: 24 h** (dual-ai 1.7.0, operator, 2026-10-20): an M15 trade stays open up to 24 h, not 8 h, and
+  always closes by 16:00 New York on Friday, an hour before the weekend close (so the weekend rule never refuses
+  a trade for it). The traders still plan their levels for 8 h, as in the trades that measured it. Of 31 trades
+  followed again held 24 h, 24 ended the same (stop or target inside 8 h), 7 did better (6 reached their
+  target after the 8 h exit had closed them early) and none did worse: +0.19 R a trade. Only 3 of the 31 were
+  opened after the hypothesis was registered, so it is adopted before its threshold, on the operator's word;
+  HOLD8H keeps the old exit measured, and the change is reversed if, over 30 trades, it does 0.15 R or more worse.
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
 - **Closed days and hours** (risk 1.8.0/1.9.0, operator, 2026-10-17): no new position in the London/New York overlap,
   12:00-16:00 UTC, on Friday from 12:00 UTC, nor on Saturday or Sunday; the traders are not asked then.
@@ -281,13 +289,14 @@ read per version as well as together.
 | H1 structure "range (mixed swings)" loses; a clear H1 structure (up or down) wins | range 21: 33% won, -0.18 R; clear 20: +0.43 R | each group has 20+ trades and range is 0.3 R or more below clear. **Adopted early by the operator (2026-10-19, risk 1.12.0)**: since then the range group is the refused agreements, followed forward; the rule is reversed if they do not do 0.3 R or more worse than the trades taken, over 20+ of each |
 | Chasing loses: a BUY with H1 RSI above 65, a SELL below 35 | 7 trades: 29% won, -0.30 R; the rest +0.20 R | 15+ chasing trades, 0.3 R or more below the rest |
 | Trader 2's levels lose when used | 7 trades: 29% won, -0.24 R; Trader 1's 34: +0.19 R | 15+ trades on Trader 2's levels, 0.3 R or more below |
-| Holding 24 h beats the 8 h exit | shadow, 19 trades: +0.39 R vs +0.13 R | 30+ paired trades in shadow, 0.15 R or more better |
+| Holding 24 h beats the 8 h exit | shadow, 19 trades: +0.39 R vs +0.13 R | 30+ paired trades in shadow, 0.15 R or more better. **Adopted early by the operator (2026-10-20, dual-ai 1.7.0)** at 31 pairs, +0.19 R (7 better, none worse), of which 3 opened after registration; since then the 8 h exit is the shadow (HOLD8H) |
 | Agreements refused for reward:risk under 1.2 would have paid | shadow, 34: +0.15 R, 59% won | 50+ in shadow and still positive; it would loosen a limit, so it needs the most |
 
 Already adopted the same day, with a reason beyond the numbers: no trade against a currency already held (the
 account would bet against itself); the overlap, late Friday and the weekend closed (operator); High-impact news
 windows (event risk). These are still measured: risk-refused trades are followed forward. On 2026-10-19 the
-operator added Medium-impact news windows (risk 1.11.0) and H1 above (risk 1.12.0): both only ever refuse.
+operator added Medium-impact news windows (risk 1.11.0) and H1 above (risk 1.12.0): both only ever refuse. On
+2026-10-20, H4 (the 24 h time exit, dual-ai 1.7.0): it changes when a trade is closed, never its size or levels.
 
 ## Configuration and activation
 

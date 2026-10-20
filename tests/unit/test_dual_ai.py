@@ -12,8 +12,8 @@ import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.dual_ai import (
-    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, validate_trader,
-    validate_verifier,
+    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, time_exit_minutes,
+    validate_trader, validate_verifier,
 )
 
 from tests.integration.test_pipeline import market
@@ -427,3 +427,52 @@ def test_fits_limits_reads_the_published_limits_at_the_executable_price():
     assert fits_limits(ok, PX, LIM) and fits_limits(ok, PX, None)
     assert not fits_limits(answer("SELL", BID, ASK, ATR, stop_atr=1.0, target_atr=1.1), PX, LIM)  # reward:risk 1.1
     assert not fits_limits(answer("SELL", BID, ASK, ATR, stop_atr=0.2, target_atr=0.5), PX, LIM)  # stop 0.0002 < 0.0003
+
+
+@pytest.mark.parametrize("when,tf,minutes", [
+    ((2026, 10, 19, 10, 0), "M15", 24 * 60),   # Monday: the whole 24 h
+    ((2026, 10, 22, 22, 0), "M15", 22 * 60),   # Thursday night: closed by Friday 16:00 New York (20:00 UTC)
+    ((2026, 10, 23, 11, 0), "M15", 9 * 60),    # Friday morning: 9 h to 20:00 UTC, still more than the 8 h planned
+    ((2026, 10, 23, 13, 0), "M15", 8 * 60),    # never shorter than what the traders planned for
+    ((2026, 11, 13, 11, 0), "M15", 10 * 60),   # after the clocks change: 16:00 New York is 21:00 UTC
+    ((2026, 10, 19, 10, 0), "H1", 48 * 60),    # an H1 chart: unchanged
+])
+def test_a_trade_stays_open_up_to_24h_and_closes_an_hour_before_the_friday_close(when, tf, minutes):
+    from datetime import datetime, timezone
+    assert time_exit_minutes(tf, int(datetime(*when, tzinfo=timezone.utc).timestamp())) == minutes
+
+
+def test_a_24h_time_exit_never_makes_the_weekend_rule_refuse_a_trade_it_took_with_8h():
+    # the weekend-carry rule reads the trade's own holding time: closing by Friday 16:00 New York keeps Thursday
+    # night and Friday morning tradeable, as they were with the 8 h exit
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+    from aitrader.risk.engine import RiskEngine, RiskLimits
+    eng = RiskEngine(RiskLimits(no_weekend_carry=True))
+    for when in ((2026, 10, 22, 22, 0), (2026, 10, 23, 11, 0), (2026, 10, 21, 9, 0)):
+        t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+        d = SimpleNamespace(max_hold_minutes=time_exit_minutes("M15", t), max_hold_hours=None)
+        assert eng._c_weekend_carry(d, t).passed, when
+
+
+def m15_ctx():
+    """desk_ctx with enough completed M15 bars for the chart to execute on M15."""
+    import numpy as np
+    from aitrader.data.bars import BarSeries
+    c = desk_ctx()
+    h = market("EURUSD", T - 3600 * 200, 200, 7, 1.10)
+    n = len(h)
+    cols = {f: getattr(h, f) for f in ("bid_open", "bid_high", "bid_low", "bid_close", "ask_open", "ask_high",
+                                       "ask_low", "ask_close", "ticks", "spread_mean", "spread_max")}
+    c.bars = {**c.bars, "M15": BarSeries.from_columns("EURUSD", "M15", "test",
+                                                      open_time=T - 900 * (n + 1) + 900 * np.arange(n), **cols)}
+    return c
+
+
+def test_an_m15_trade_carries_the_24h_time_exit_while_its_traders_plan_for_8h():
+    c = m15_ctx()
+    d, fake = think(scripted(), c)
+    rec = d.ai["dual_ai"]
+    assert rec["chart"]["execution_timeframe"] == "M15" and d.decision == "BUY"
+    assert d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("M15", c.t) > 8 * 60
+    assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60}
