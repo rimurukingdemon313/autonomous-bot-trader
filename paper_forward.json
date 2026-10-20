@@ -50,12 +50,12 @@
   }
  ],
  "account": {
-  "equity": 201052.86,
+  "equity": 200842.77,
   "balance": 200599.1,
-  "total_pnl": 1052.86,
-  "today_pnl": 1154.35,
+  "total_pnl": 842.77,
+  "today_pnl": 944.26,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 199636.34,
+  "equity_before_adjustments": 199426.26,
   "day_reference": 199898.51310625882,
   "drawdown_from_start": 0.0,
   "max_loss_floor": 180000.0,
@@ -563,17 +563,34 @@
  },
  "open_positions": [
   {
+   "id": "P65",
+   "symbol": "USDCHF",
+   "side": "SELL",
+   "qty": 3.22,
+   "entry": 0.824415,
+   "current": 0.8244750000000001,
+   "stop": 0.8254,
+   "target": 0.82302,
+   "r_now": -0.061,
+   "opened": 1792495955.0,
+   "pnl": -23.43,
+   "max_hold_minutes": 480,
+   "timeframe": "M15",
+   "method": null,
+   "thesis": "SELL USDCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while price is testing supply. A stop above the"
+  },
+  {
    "id": "P64",
    "symbol": "GBPJPY",
    "side": "BUY",
    "qty": 3.78,
    "entry": 210.92149999999998,
-   "current": 211.06550000000001,
+   "current": 211.0145,
    "stop": 210.759,
    "target": 211.241,
-   "r_now": 0.886,
+   "r_now": 0.572,
    "opened": 1792492487.0,
-   "pnl": 342.92,
+   "pnl": 221.47,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -585,12 +602,12 @@
    "side": "BUY",
    "qty": 3.26,
    "entry": 0.567885,
-   "current": 0.568225,
+   "current": 0.568025,
    "stop": 0.5666,
    "target": 0.5695,
-   "r_now": 0.265,
+   "r_now": 0.109,
    "opened": 1792471619.0,
-   "pnl": 110.84,
+   "pnl": 45.64,
    "max_hold_minutes": 480,
    "timeframe": "M15",
    "method": null,
@@ -2043,6 +2060,36 @@
   {
    "decision": "SELL",
    "edge_status": "EXPERIMENTAL",
+   "fill": 0.824415,
+   "id": "7b045169de54344452ffa52e",
+   "mode": "PAPER_FORWARD",
+   "position_id": "P65",
+   "reason": null,
+   "size": 3.22,
+   "stages": [
+    "AI DECISION",
+    "RISK APPROVED",
+    "PAPER EXECUTED"
+   ],
+   "symbol": "USDCHF",
+   "t": 1792495871
+  },
+  {
+   "decision": "SELL",
+   "edge_status": "EXPERIMENTAL",
+   "id": "1a0a2405534122b94bea8add",
+   "mode": "PAPER_FORWARD",
+   "reason": "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)",
+   "stages": [
+    "AI DECISION",
+    "RISK REJECTED"
+   ],
+   "symbol": "USDCAD",
+   "t": 1792495819
+  },
+  {
+   "decision": "SELL",
+   "edge_status": "EXPERIMENTAL",
    "id": "d97251101621c16edc4f2566",
    "mode": "PAPER_FORWARD",
    "reason": "currency_conflict: SELL AUDUSD would bet against an open position: NZDUSD BUY is short USD",
@@ -2289,35 +2336,23 @@
    ],
    "symbol": "EURUSD",
    "t": 1792458916
-  },
-  {
-   "decision": "SELL",
-   "edge_status": "EXPERIMENTAL",
-   "id": "dce80109e8735a3ef1502871",
-   "mode": "PAPER_FORWARD",
-   "reason": "reward_risk: 0.98 vs minimum 1.2; currency_conflict: SELL AUDJPY would bet against an open position: GBPJPY BUY is short JPY",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "AUDJPY",
-   "t": 1792458088
-  },
-  {
-   "decision": "SELL",
-   "edge_status": "EXPERIMENTAL",
-   "id": "1a65b96e79f52145887f3806",
-   "mode": "PAPER_FORWARD",
-   "reason": "cost_to_risk: round-trip cost is 27.0% of the stop (max 25%): spread 0.00018 + commission and slippage",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "EURCHF",
-   "t": 1792458020
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "USDCHF",
+   "decision": "SELL",
+   "t": 1792495871,
+   "reason": "SELL USDCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while p",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDCAD",
+   "decision": "SELL",
+   "t": 1792495819,
+   "reason": "SELL USDCAD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 61: The aligned bearish M15 and H4 structure favors continuation short despite repeated sweeps beneath 1.4049. A close above ",
+   "data_flags": []
+  },
   {
    "symbol": "AUDUSD",
    "decision": "SELL",
@@ -2471,23 +2506,9 @@
    "t": 1792485917,
    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 89.80 is less than the next trade's risk ",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPUSD",
-   "decision": "NO_TRADE",
-   "t": 1792485020,
-   "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 239.48 is less than the next trade's risk",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURUSD",
-   "decision": "NO_TRADE",
-   "t": 1792485018,
-   "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 239.48 is less than the next trade's risk",
-   "data_flags": []
   }
  ],
- "decisions_total": 1668,
+ "decisions_total": 1670,
  "shift": {
   "started": "2026-10-20 09:22 UTC",
   "decision_mode": "dual_ai",
@@ -2511,20 +2532,20 @@
    "judge_pin": null,
    "version": "openrouter-1.8.0",
    "status": "READY",
-   "calls_today": 10,
+   "calls_today": 14,
    "last_call": {
-    "t": 1792495223,
+    "t": 1792495954,
     "role": "judge",
     "model": "nvidia/nemotron-3.5-super-vl:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "979e28904c5746a4a9e300253eb0ce6e",
-    "provider_id": "gen-1792495049-h6GcAJZYKGQOXXHeI9Bj",
+    "request_id": "fe0dfc34a7254f539744bde194677f7f",
+    "provider_id": "gen-1792495891-GNODn77zJ1qUoqZeAfAV",
     "attempts": 1,
-    "latency_ms": 174698.7,
+    "latency_ms": 62885.0,
     "cached": false,
-    "tokens": 25741,
+    "tokens": 24508,
     "tried": []
    },
    "key": {
@@ -2745,7 +2766,7 @@
     ],
     "free_total": 14,
     "catalog_total": 470,
-    "refreshed": 1792495049.1132119,
+    "refreshed": 1792495891.4518874,
     "error": null,
     "version": "free-models-1.3.0",
     "cooldown": {},
@@ -2753,11 +2774,11 @@
    },
    "model_stats": {
     "minimax/minimax-m3.1-flash:free": {
-     "ok": 5,
+     "ok": 7,
      "failed": 0
     },
     "nvidia/nemotron-3.5-super-vl:free": {
-     "ok": 5,
+     "ok": 7,
      "failed": 0
     }
    }
@@ -2842,68 +2863,98 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1792494000,
     "last_bar_available": 1792494900
+   },
+   "USDCAD": {
+    "t": 1792495819,
+    "decision_id": "1a0a2405534122b94bea8add",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 29258,
+    "sha256": "7d2d585b26816a5f4926c800363ee0b8f528d96fbfef34f50ca2d1e4ccc314c5",
+    "as_of": 1792495819,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792494900,
+    "last_bar_available": 1792495800
+   },
+   "USDCHF": {
+    "t": 1792495871,
+    "decision_id": "7b045169de54344452ffa52e",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30516,
+    "sha256": "68bf7fdbf2b6f266af21003392c3083f1837e16d535cd0a4b73a37ec530c36a8",
+    "as_of": 1792495871,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792494900,
+    "last_bar_available": 1792495800
    }
   },
   "last_analysis": {
-   "decision_id": "d97251101621c16edc4f2566",
-   "symbol": "AUDUSD",
-   "t": 1792495022,
+   "decision_id": "7b045169de54344452ffa52e",
+   "symbol": "USDCHF",
+   "t": 1792495871,
    "decision": "SELL",
-   "reason": "SELL AUDUSD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 56: Sell the bearish M15 continuation while the market remains below the 0.69930-0.69955 supply zone. The stop is above the 0.70008 swing high and 0.69999 liquidity, with the target targeting the day's low area. Recent bullis",
+   "reason": "SELL USDCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while price is testing supply. A stop above the 0.82515 lower high is placed at 0.82540 to satisfy the mini",
    "consensus": {
-    "desk_confidence": 0.53,
+    "desk_confidence": 0.62,
     "direction": "SELL",
     "levels_from": "trader1",
     "outcome": "TRADE",
     "rule": "AGREE",
-    "stop_loss": 0.7001,
-    "take_profit": 0.6975
+    "stop_loss": 0.8254,
+    "take_profit": 0.82302
    },
    "models": {
     "trader1": "minimax/minimax-m3.1-flash:free",
     "trader2": "nvidia/nemotron-3.5-super-vl:free"
    },
    "trader1": {
-    "confidence": 56,
+    "confidence": 64,
     "direction": "SELL",
-    "entry": 0.69915,
-    "invalidation": 0.69964,
-    "liquidity": "Overhead liquidity is concentrated at 0.69950-0.69964 and 0.69999-0.70008, while downside liquidity sits at 0.69839-0.69831 and near today's 0.69745 low.",
-    "market_structure": "M15 is bearish with LH/LL structure, a bearish CHoCH at 0.69964, and a fresh bearish BOS at 0.69901; H4 remains bullish, creating a lower-timeframe countertrend setup.",
-    "momentum": "Bearish M15 structure and the untested 0.69930-0.69955 supply favor continuation lower, although the bullish sweep at 0.69901 shows rebound risk.",
-    "reason": "Sell the bearish M15 continuation while the market remains below the 0.69930-0.69955 supply zone. The stop is above the 0.70008 swing high and 0.69999 liquidity, with the target targeting the day's low area. Recent bullish divergence and the opposing H4 trend keep confidence moderate.",
-    "reversal_probability": 44,
-    "risk_reward": 1.74,
-    "stop_loss": 0.7001,
-    "take_profit": 0.6975,
-    "trend": "M15 is DOWN while H4 is UP; the trade favors the bearish execution trend within a bullish higher-timeframe pullback."
+    "entry": 0.824425,
+    "invalidation": 0.82515,
+    "liquidity": "Sell-side liquidity sits at the previous-day low of 0.82331 and ultimately the previous-week low of 0.82175. Bullish sweeps of 0.82438 and 0.82427 warn of local absorption, but they have not produced a confirmed bullish structure break.",
+    "market_structure": "M15 remains in a bearish LH/LL sequence, with the latest bearish BOS at 0.82427 and bearish structure dominating after the bullish CHoCH at 0.82554. Price is testing the 0.82424-0.82453 supply order block, while repeated sweeps of 0.82427 create some reversal risk.",
+    "momentum": "M15 momentum remains negative over 5 and 20 bars, and H1 is also below its recent range midpoint. The sharp M1 rebound reflects short-term buying pressure against the prevailing intraday direction rather than a confirmed reversal.",
+    "reason": "The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while price is testing supply. A stop above the 0.82515 lower high is placed at 0.82540 to satisfy the minimum stop distance, with the open bullish FVG at 0.82302 offering sufficient reward. Repeated low sweeps reduce conviction and keep confidence moderate.",
+    "reversal_probability": 38,
+    "risk_reward": 1.44,
+    "stop_loss": 0.8254,
+    "take_profit": 0.82302,
+    "trend": "The M15 trend is down, while H4 remains range-bound with mixed swings but retains bearish higher-timeframe breaks at 0.82776 and 0.83127. The short-term rebound is occurring within a broader intraday bearish context."
    },
    "trader2": {
-    "confidence": 53,
+    "confidence": 62,
     "direction": "SELL",
-    "entry": 0.69915,
-    "invalidation": 0.7001,
-    "liquidity": "Bullish sweep at 0.69901 just failed (0 bars ago); equal lows at 0.69832 and 0.69725 below; overhead liquidity at 0.69999-0.70008",
-    "market_structure": "M15 bearish LH+LL with fresh bearish BOS at 0.69901; H4 bullish HH+HL; untested supply OB 0.69930-0.69955 directly above price",
-    "momentum": "Bearish M15 BOS but last M15 bar closed bullish at 0.69925; mixed short-term momentum",
-    "reason": "M15 shows a fresh bearish BOS at 0.69901 within an LH+LL downtrend, with an untested supply zone at 0.69930-0.69955 directly above price. The H4 uptrend makes this a countertrend setup, but execution-timeframe structure and nearby resistance favor downside. The bullish sweep at 0.69901 creates rebound risk, keeping confidence moderate. Stop above 0.70008 invalidates the bearish thesis; target at today's low area gives 1.74:1.",
-    "reversal_probability": 46,
-    "risk_reward": 1.74,
-    "stop_loss": 0.7001,
-    "take_profit": 0.6975,
-    "trend": "M15 DOWN, H4 UP; countertrend SELL within higher-timeframe uptrend"
+    "entry": 0.824425,
+    "invalidation": 0.82515,
+    "liquidity": "Repeated sweeps of the 0.82427 lows (most recent 0 bars ago) are bullish signals in isolation but have not produced a confirmed bullish structure break, so they read as liquidity grabs rather than reversal. Downside liquidity sits at the previous-day low 0.82331 and the open bullish FVG at 0.82302-0.82317, which is the natural target.",
+    "market_structure": "M15 is in a clear bearish LH/LL sequence; the most recent structure break is a bearish BOS at 0.82427 (1 bar ago), and price is now retesting the tested supply order block at 0.82424-0.82453. H1 trend is down with price at the bottom of its 20-bar range (position 0.06). H4 is range-bound but retains bearish breaks at 0.82776 and 0.83127 with no bullish resolution.",
+    "momentum": "M15 change_atr is negative over 5 and 20 bars (-0.63, -1.10) and H1 is also negative (-0.95, -1.37). The M1 uptick (change_atr 20: +2.65) is a short-term rebound against the intraday direction, not a confirmed reversal; no bullish CHoCH has followed the low sweeps.",
+    "reason": "SELL is the higher-probability side because M15 structure is bearish (LH/LL, recent bearish BOS at 0.82427) and price is retesting the supply order block. Repeated low sweeps at 0.82427 lack a confirmed bullish break, favoring continuation down to the 0.82302 FVG/previous-day-low area. A break above 0.82515 (last LH/equal highs) invalidates the setup; the stop at 0.8254 sits beyond that and meets the minimum stop distance.",
+    "reversal_probability": 38,
+    "risk_reward": 1.44,
+    "stop_loss": 0.8254,
+    "take_profit": 0.82302,
+    "trend": "M15 down; H4 range with bearish bias; intraday trend is bearish. The short-term rebound is occurring inside a broader intraday downtrend, making the retest of supply a higher-probability short than a long."
    },
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1792495022,
-    "bytes": 29815,
+    "as_of": 1792495871,
+    "bytes": 30516,
     "execution_timeframe": "M15",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1792494900,
-    "last_bar_open": 1792494000,
-    "sha256": "0c3872a280840ab73cbb70fc59e45500f82c43f666e7fed6f21029a36d6a64a5",
+    "last_bar_available": 1792495800,
+    "last_bar_open": 1792494900,
+    "sha256": "68bf7fdbf2b6f266af21003392c3083f1837e16d535cd0a4b73a37ec530c36a8",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -2912,42 +2963,244 @@
      "attempts": 1,
      "cached": false,
      "error": null,
-     "latency_ms": 25132.7,
+     "latency_ms": 18250.1,
      "model": "minimax/minimax-m3.1-flash:free",
      "ok": true,
-     "provider_id": "gen-1792495024-gitvFDUHfxhKGq2CiwUG",
-     "request_id": "38788ef4c6f3488a82a9c87e5e1c7c08",
+     "provider_id": "gen-1792495873-cqt0udJnMRKeEISRifYG",
+     "request_id": "9a31b6f4b603407596dbf9426252d0fe",
      "role": "vision",
      "status": "OK",
-     "tokens": 8833,
+     "tokens": 8065,
      "tried": []
     },
     {
      "attempts": 1,
      "cached": false,
      "error": null,
-     "latency_ms": 174698.7,
+     "latency_ms": 62885.0,
      "model": "nvidia/nemotron-3.5-super-vl:free",
      "ok": true,
-     "provider_id": "gen-1792495049-h6GcAJZYKGQOXXHeI9Bj",
-     "request_id": "979e28904c5746a4a9e300253eb0ce6e",
+     "provider_id": "gen-1792495891-GNODn77zJ1qUoqZeAfAV",
+     "request_id": "fe0dfc34a7254f539744bde194677f7f",
      "role": "judge",
      "status": "OK",
-     "tokens": 25741,
+     "tokens": 24508,
      "tried": []
     }
    ],
    "trader1_input": "image",
    "version": "dual-ai-1.6.0",
    "risk": {
-    "approved": false,
-    "reasons": [
-     "currency_conflict: SELL AUDUSD would bet against an open position: NZDUSD BUY is short USD"
-    ],
-    "qty": 0.0
+    "approved": true,
+    "reasons": [],
+    "qty": 3.22
    }
   },
   "analyses": [
+   {
+    "decision_id": "7b045169de54344452ffa52e",
+    "symbol": "USDCHF",
+    "t": 1792495871,
+    "decision": "SELL",
+    "reason": "SELL USDCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while price is testing supply. A stop above the 0.82515 lower high is placed at 0.82540 to satisfy the mini",
+    "consensus": {
+     "desk_confidence": 0.62,
+     "direction": "SELL",
+     "levels_from": "trader1",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 0.8254,
+     "take_profit": 0.82302
+    },
+    "models": {
+     "trader1": "minimax/minimax-m3.1-flash:free",
+     "trader2": "nvidia/nemotron-3.5-super-vl:free"
+    },
+    "trader1": {
+     "confidence": 64,
+     "direction": "SELL",
+     "entry": 0.824425,
+     "invalidation": 0.82515,
+     "liquidity": "Sell-side liquidity sits at the previous-day low of 0.82331 and ultimately the previous-week low of 0.82175. Bullish sweeps of 0.82438 and 0.82427 warn of local absorption, but they have not produced a confirmed bullish structure break.",
+     "market_structure": "M15 remains in a bearish LH/LL sequence, with the latest bearish BOS at 0.82427 and bearish structure dominating after the bullish CHoCH at 0.82554. Price is testing the 0.82424-0.82453 supply order block, while repeated sweeps of 0.82427 create some reversal risk.",
+     "momentum": "M15 momentum remains negative over 5 and 20 bars, and H1 is also below its recent range midpoint. The sharp M1 rebound reflects short-term buying pressure against the prevailing intraday direction rather than a confirmed reversal.",
+     "reason": "The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while price is testing supply. A stop above the 0.82515 lower high is placed at 0.82540 to satisfy the minimum stop distance, with the open bullish FVG at 0.82302 offering sufficient reward. Repeated low sweeps reduce conviction and keep confidence moderate.",
+     "reversal_probability": 38,
+     "risk_reward": 1.44,
+     "stop_loss": 0.8254,
+     "take_profit": 0.82302,
+     "trend": "The M15 trend is down, while H4 remains range-bound with mixed swings but retains bearish higher-timeframe breaks at 0.82776 and 0.83127. The short-term rebound is occurring within a broader intraday bearish context."
+    },
+    "trader2": {
+     "confidence": 62,
+     "direction": "SELL",
+     "entry": 0.824425,
+     "invalidation": 0.82515,
+     "liquidity": "Repeated sweeps of the 0.82427 lows (most recent 0 bars ago) are bullish signals in isolation but have not produced a confirmed bullish structure break, so they read as liquidity grabs rather than reversal. Downside liquidity sits at the previous-day low 0.82331 and the open bullish FVG at 0.82302-0.82317, which is the natural target.",
+     "market_structure": "M15 is in a clear bearish LH/LL sequence; the most recent structure break is a bearish BOS at 0.82427 (1 bar ago), and price is now retesting the tested supply order block at 0.82424-0.82453. H1 trend is down with price at the bottom of its 20-bar range (position 0.06). H4 is range-bound but retains bearish breaks at 0.82776 and 0.83127 with no bullish resolution.",
+     "momentum": "M15 change_atr is negative over 5 and 20 bars (-0.63, -1.10) and H1 is also negative (-0.95, -1.37). The M1 uptick (change_atr 20: +2.65) is a short-term rebound against the intraday direction, not a confirmed reversal; no bullish CHoCH has followed the low sweeps.",
+     "reason": "SELL is the higher-probability side because M15 structure is bearish (LH/LL, recent bearish BOS at 0.82427) and price is retesting the supply order block. Repeated low sweeps at 0.82427 lack a confirmed bullish break, favoring continuation down to the 0.82302 FVG/previous-day-low area. A break above 0.82515 (last LH/equal highs) invalidates the setup; the stop at 0.8254 sits beyond that and meets the minimum stop distance.",
+     "reversal_probability": 38,
+     "risk_reward": 1.44,
+     "stop_loss": 0.8254,
+     "take_profit": 0.82302,
+     "trend": "M15 down; H4 range with bearish bias; intraday trend is bearish. The short-term rebound is occurring inside a broader intraday downtrend, making the retest of supply a higher-probability short than a long."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792495871,
+     "bytes": 30516,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792495800,
+     "last_bar_open": 1792494900,
+     "sha256": "68bf7fdbf2b6f266af21003392c3083f1837e16d535cd0a4b73a37ec530c36a8",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 18250.1,
+      "model": "minimax/minimax-m3.1-flash:free",
+      "ok": true,
+      "provider_id": "gen-1792495873-cqt0udJnMRKeEISRifYG",
+      "request_id": "9a31b6f4b603407596dbf9426252d0fe",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 8065,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 62885.0,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792495891-GNODn77zJ1qUoqZeAfAV",
+      "request_id": "fe0dfc34a7254f539744bde194677f7f",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 24508,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.6.0",
+    "risk": {
+     "approved": true,
+     "reasons": [],
+     "qty": 3.22
+    }
+   },
+   {
+    "decision_id": "1a0a2405534122b94bea8add",
+    "symbol": "USDCAD",
+    "t": 1792495819,
+    "decision": "SELL",
+    "reason": "SELL USDCAD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 61: The aligned bearish M15 and H4 structure favors continuation short despite repeated sweeps beneath 1.4049. A close above the tested supply order block at 1.4055 would invalidate the bearish setup. The stop is beyond that ",
+    "consensus": {
+     "desk_confidence": 0.61,
+     "direction": "SELL",
+     "levels_from": "trader2",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 1.4056,
+     "take_profit": 1.40298
+    },
+    "models": {
+     "trader1": "minimax/minimax-m3.1-flash:free",
+     "trader2": "nvidia/nemotron-3.5-super-vl:free"
+    },
+    "trader1": {
+     "confidence": 61,
+     "direction": "SELL",
+     "entry": 1.404525,
+     "invalidation": 1.4055,
+     "liquidity": "Repeated bullish sweeps of 1.4049 and the 1.4042 intraday low indicate elevated reversal risk, while the tested 1.4048-1.4055 supply order block provides overhead liquidity for continuation selling.",
+     "market_structure": "M15 and H4 are both bearish with LH/LL sequences, confirmed bearish BOS levels, and price below the 1.4067-1.4068 structural breakdown area.",
+     "momentum": "Bearish momentum remains dominant: M15 has fallen 3.21 ATR over 20 bars, H1 is down 2.60 ATR, and price has not reclaimed the 1.4049 breakdown level.",
+     "reason": "The aligned bearish M15 and H4 structure favors continuation short despite repeated sweeps beneath 1.4049. A close above the tested supply order block at 1.4055 would invalidate the bearish setup. The stop is beyond that level and the 1.40298 target lies within the marked entry-zone boundary for a compliant 1.44 reward-to-risk.",
+     "reversal_probability": 39,
+     "risk_reward": 1.44,
+     "stop_loss": 1.4056,
+     "take_profit": 1.40298,
+     "trend": "Both execution and higher timeframes are down in a TRENDING_DOWN regime, with open bearish FVGs above at 1.40983-1.41020 and 1.4129-1.41350."
+    },
+    "trader2": {
+     "confidence": 63,
+     "direction": "SELL",
+     "entry": 1.404525,
+     "invalidation": 1.4056,
+     "liquidity": "Repeated sweeps of 1.4049 lows (bullish signal) but the tested supply order block 1.4048-1.4055 holds as immediate overhead resistance; equal highs at 1.4108 and 1.41128 sit above.",
+     "market_structure": "M15 and H4 both bearish LH/LL with confirmed bearish BOS at 1.4049; price below the 1.4067-1.4068 breakdown zone; H1 mixed but bearish BOS at 1.4067.",
+     "momentum": "Bearish: M15 down 3.21 ATR over 20 bars, H1 down 2.60 ATR, price has not reclaimed the 1.4049 breakdown level.",
+     "reason": "Aligned bearish M15/H4 structure favors continuation short despite repeated low sweeps. A close above the tested supply order block at 1.4055 invalidates the bearish thesis. The stop sits just beyond that block and the 1.40298 target lies below today's low in open space, giving a compliant 1.44 reward-to-risk.",
+     "reversal_probability": 38,
+     "risk_reward": 1.44,
+     "stop_loss": 1.4056,
+     "take_profit": 1.40298,
+     "trend": "TRENDING_DOWN across M15, H1 and H4; H4 at bottom of its 20-bar range (position 0.06), regime normal vol."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792495819,
+     "bytes": 29258,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792495800,
+     "last_bar_open": 1792494900,
+     "sha256": "7d2d585b26816a5f4926c800363ee0b8f528d96fbfef34f50ca2d1e4ccc314c5",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 15999.5,
+      "model": "minimax/minimax-m3.1-flash:free",
+      "ok": true,
+      "provider_id": "gen-1792495820-ghg62dW9MwqL6jDRXI0n",
+      "request_id": "eda059caac9d4d52b1225a813dd5b9bc",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 7969,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 34794.7,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792495836-nG22154USIXZQgcZYmWK",
+      "request_id": "ecc88096a791489c9d20a02297b2b7f4",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 19796,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.6.0",
+    "risk": {
+     "approved": false,
+     "reasons": [
+      "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
+     ],
+     "qty": 0.0
+    }
+   },
    {
     "decision_id": "d97251101621c16edc4f2566",
     "symbol": "AUDUSD",
@@ -3568,63 +3821,38 @@
     "trader1_input": null,
     "version": "dual-ai-1.6.0",
     "risk": null
-   },
-   {
-    "decision_id": "2f59dd641c47a99177676c2b",
-    "symbol": "USDCHF",
-    "t": 1792490421,
-    "decision": "NO_TRADE",
-    "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.6.0",
-    "risk": null
-   },
-   {
-    "decision_id": "1be25a3c90f453872d49ae09",
-    "symbol": "USDCAD",
-    "t": 1792490420,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.6.0",
-    "risk": null
    }
   ],
   "open_positions": [
+   {
+    "id": "P65",
+    "symbol": "USDCHF",
+    "side": "SELL",
+    "qty": 3.22,
+    "entry": 0.824415,
+    "current": 0.8244750000000001,
+    "stop": 0.8254,
+    "target": 0.82302,
+    "r_now": -0.061,
+    "opened": 1792495955.0,
+    "pnl": -23.43,
+    "max_hold_minutes": 480,
+    "timeframe": "M15",
+    "method": null,
+    "thesis": "SELL USDCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The higher-probability side is SELL because M15 structure, H1 positioning, and the H4 bearish context remain weak while price is testing supply. A stop above the"
+   },
    {
     "id": "P64",
     "symbol": "GBPJPY",
     "side": "BUY",
     "qty": 3.78,
     "entry": 210.92149999999998,
-    "current": 211.06550000000001,
+    "current": 211.0145,
     "stop": 210.759,
     "target": 211.241,
-    "r_now": 0.886,
+    "r_now": 0.572,
     "opened": 1792492487.0,
-    "pnl": 342.92,
+    "pnl": 221.47,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -3636,12 +3864,12 @@
     "side": "BUY",
     "qty": 3.26,
     "entry": 0.567885,
-    "current": 0.568225,
+    "current": 0.568025,
     "stop": 0.5666,
     "target": 0.5695,
-    "r_now": 0.265,
+    "r_now": 0.109,
     "opened": 1792471619.0,
-    "pnl": 110.84,
+    "pnl": 45.64,
     "max_hold_minutes": 480,
     "timeframe": "M15",
     "method": null,
@@ -4280,7 +4508,7 @@
     }
    },
    "decisions_by_rule": {
-    "AGREE": 247,
+    "AGREE": 249,
     "DEBATE": 5,
     "DISAGREE": 87,
     "MARKET_UNAVAILABLE": 887,
@@ -4288,8 +4516,8 @@
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 9
    },
-   "agreement_rate": 0.729,
-   "decisions_with_both_traders": 339,
+   "agreement_rate": 0.73,
+   "decisions_with_both_traders": 341,
    "unavailable": 1005
   },
   "recent_trades": [
@@ -5016,8 +5244,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1792494918,
+  "last_cycle": 1792495817,
   "last_cycle_error": null,
-  "cycles": 8
+  "cycles": 9
  }
 }
