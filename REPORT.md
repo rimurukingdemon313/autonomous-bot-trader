@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-21 07:39 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-21 02:08 UTC · decision system `dual_ai`
+Updated 2026-10-21 07:43 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-21 02:08 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $200,470.52 | $-1,274.86 | $470.52 | $0.00 | 2 | 69 (adequate) | 44.9% | -0.037R | 1.03 | ACTIVE | RUNNING |
+| $200,000.00 | $200,479.62 | $-1,265.76 | $479.62 | $0.00 | 2 | 69 (adequate) | 44.9% | -0.037R | 1.03 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $199,054.01); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $199,063.11); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -62,7 +62,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,0
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| NZDUSD | BUY | 0.91 | 0.568485 | 0.56737 | 0.56987 | $12.74 |
+| NZDUSD | BUY | 0.91 | 0.568485 | 0.56737 | 0.56987 | $21.84 |
 | USDCAD | SELL | 2.54 | 1.4061149999999998 | 1.4071 | 1.40472 | $97.59 |
 
 ## Closed paper trades (latest 20)
