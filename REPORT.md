@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-21 19:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-21 18:54 UTC · decision system `dual_ai`
+Updated 2026-10-21 20:10 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-21 18:54 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,3
 - 10-21 05:00 AUDJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-21 02:45 USDCAD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (1928 so far)
+## Latest decisions, NO TRADE included (1930 so far)
 
+- 10-21 20:00 GBPJPY NO_TRADE: blocked before consulting the model: EXPOSURE: a GBPJPY position is already open
+- 10-21 20:00 EURJPY NO_TRADE: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3); gate_open_r
 - 10-21 19:45 EURGBP NO_TRADE: risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 29.68 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consulte
 - 10-21 19:45 NZDUSD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 29.68 is less than the next trade's risk 
 - 10-21 19:30 USDCHF NO_TRADE: blocked before consulting the model: EXPOSURE: a USDCHF position is already open
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,3
 - 10-21 19:00 EURUSD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 291.43 is less than the next trade's risk
 - 10-21 18:45 EURGBP NO_TRADE: risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room -70.03 is less than the next trade's risk 500.00: it would refuse the trade): the model was not consult
 - 10-21 18:45 NZDUSD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room -70.03 is less than the next trade's risk
-- 10-21 18:30 USDCHF NO_TRADE: blocked before consulting the model: EXPOSURE: a USDCHF position is already open
-- 10-21 18:30 USDCAD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room -1.67 is less than the next trade's risk 
 
 ## Open paper positions
 
@@ -105,6 +105,8 @@ Trades taken by session (UTC): ASIA 31 resolved (adequate), expectancy +0.022R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-21 20:00 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-21 20:00 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-21 19:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-21 19:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-21 19:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -115,8 +117,6 @@ Trades taken by session (UTC): ASIA 31 resolved (adequate), expectancy +0.022R �
 | 10-21 19:00 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-21 18:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-21 18:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-21 18:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-21 18:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
