@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-21 02:08 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-20 20:33 UTC · decision system `dual_ai`
+Updated 2026-10-21 02:08 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-21 02:08 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $201,020.03 | $-725.35 | $1,020.03 | $0.00 | 3 | 64 (adequate) | 48.4% | +0.025R | 1.12 | ACTIVE | RUNNING |
+| $200,000.00 | $201,027.48 | $-717.91 | $1,027.48 | $0.00 | 3 | 64 (adequate) | 48.4% | +0.025R | 1.12 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $199,603.52); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $199,610.96); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -63,8 +63,8 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,6
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
 | EURCHF | BUY | 1.05 | 0.9273 | 0.9257 | 0.9295 | $-11.44 |
-| GBPJPY | BUY | 1.74 | 211.7595 | 211.587 | 211.992 | $-104.14 |
-| EURJPY | BUY | 2.43 | 177.7765 | 177.66 | 177.963 | $-139.31 |
+| GBPJPY | BUY | 1.74 | 211.7595 | 211.587 | 211.992 | $-99.75 |
+| EURJPY | BUY | 2.43 | 177.7765 | 177.66 | 177.963 | $-136.25 |
 
 ## Closed paper trades (latest 20)
 
@@ -93,13 +93,13 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $199,6
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `minimax/minimax-m3.1-flash:free` · trader 2 `nvidia/nemotron-3.5-super-vl:free` · debate `thinkingmachines/inkling-small:free` · calls today 8/900
+OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
 Agreement trades 64 (adequate) · wins 31 · losses 33 · net $1,274.92 · expectancy +0.025R · profit factor 1.12 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
 Disagreements (not traded; the debate runs in shadow): 89 · the debate's pick if taken: 85 resolved (adequate), expectancy -0.206R · the side it rejected if taken: 90 resolved (adequate), expectancy -0.244R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.031R vs +0.078R as taken (51, adequate) · held 24 h +0.191R vs -0.008R as taken (43, adequate) · stop and target twice as far +0.197R vs -0.008R as taken (43, adequate)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.031R vs +0.078R as taken (51, adequate) · held 24 h +0.191R vs -0.008R as taken (43, adequate) · stop and target twice as far +0.197R vs -0.008R as taken (43, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) none resolved yet
 
 Trades taken by session (UTC): ASIA 28 resolved (insufficient), expectancy +0.138R · LONDON 17 resolved (insufficient), expectancy +0.042R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 12 resolved (insufficient), expectancy +0.257R · LATE 3 resolved (insufficient), expectancy -1.106R
 
