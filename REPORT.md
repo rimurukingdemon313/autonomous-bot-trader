@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-21 21:00 UTC**, run 335, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
+Updated **2026-10-21 22:00 UTC**, run 336, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-21 21:00 UTC**, run 335, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 14.04
-- run_coverage: 0.9911
+- days: 14.08
+- run_coverage: 0.9912
 - closed_positions: 60
 - open_positions: 1
-- utilisation: 0.0925
+- utilisation: 0.0926
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.7801
-- book_excess_pct: -0.8023
-- ann_excess_deployed_pct: -227.451
-- ann_excess_deployed_costs_x1.5_pct: -376.499
-- ann_excess_deployed_costs_x2_pct: -525.546
-- best_coin: RSR
-- book_excess_without_best_coin_pct: -0.8307
+- book_pnl_pct: -0.7465
+- book_excess_pct: -0.7687
+- ann_excess_deployed_pct: -217.232
+- ann_excess_deployed_costs_x1.5_pct: -365.799
+- ann_excess_deployed_costs_x2_pct: -514.365
+- best_coin: IOST
+- book_excess_without_best_coin_pct: -0.8223
 - max_dd_pct: 0.8707
-- t_excess_daily: -2.924
+- t_excess_daily: -2.977
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IOST | mexc | gate | 2026-10-21 17:00 | 76.5% | 65.6 | 122.0 | 17.0 | **170.6** |
+| IOST | mexc | gate | 2026-10-21 17:00 | 76.5% | 101.8 | 153.0 | 17.0 | **237.8** |
 
 ## Closed positions (60)
 
@@ -78,6 +78,6 @@ Updated **2026-10-21 21:00 UTC**, run 335, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| IOST | mexc | gate | 171.9% | 2908.3% |
+| IOST | mexc | gate | 219.8% | 3444.4% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
