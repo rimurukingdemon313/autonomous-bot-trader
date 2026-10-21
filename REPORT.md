@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-21 19:00 UTC**, run 333, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
+Updated **2026-10-21 20:00 UTC**, run 334, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-21 19:00 UTC**, run 333, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 13.96
+- days: 14.0
 - run_coverage: 0.9911
 - closed_positions: 60
 - open_positions: 1
 - utilisation: 0.0925
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.8578
-- book_excess_pct: -0.8799
-- ann_excess_deployed_pct: -251.071
-- ann_excess_deployed_costs_x1.5_pct: -401.089
-- ann_excess_deployed_costs_x2_pct: -551.108
+- book_pnl_pct: -0.8239
+- book_excess_pct: -0.846
+- ann_excess_deployed_pct: -240.619
+- ann_excess_deployed_costs_x1.5_pct: -390.151
+- ann_excess_deployed_costs_x2_pct: -539.682
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.9082
+- book_excess_without_best_coin_pct: -0.8744
 - max_dd_pct: 0.8707
-- t_excess_daily: -2.729
+- t_excess_daily: -2.821
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IOST | mexc | gate | 2026-10-21 17:00 | 76.5% | 5.0 | 27.3 | 17.0 | **15.3** |
+| IOST | mexc | gate | 2026-10-21 17:00 | 76.5% | 27.0 | 73.1 | 17.0 | **83.1** |
 
 ## Closed positions (60)
 
@@ -78,5 +78,6 @@ Updated **2026-10-21 19:00 UTC**, run 333, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
+| IOST | mexc | gate | 131.1% | 3857.0% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
