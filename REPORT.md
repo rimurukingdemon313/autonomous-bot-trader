@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-20 23:00 UTC**, run 313, version `radar-1.0.0`. State from: cache. Quotes this hour: 2393.
+Updated **2026-10-21 00:00 UTC**, run 314, version `radar-1.0.0`. State from: cache. Quotes this hour: 2393.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,26 +17,27 @@ Updated **2026-10-20 23:00 UTC**, run 313, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 13.12
+- days: 13.17
 - run_coverage: 0.9905
 - closed_positions: 48
-- open_positions: 0
+- open_positions: 1
 - utilisation: 0.0927
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.5913
-- book_excess_pct: -0.6041
-- ann_excess_deployed_pct: -182.492
-- ann_excess_deployed_costs_x1.5_pct: -307.926
-- ann_excess_deployed_costs_x2_pct: -433.36
+- book_pnl_pct: -0.5998
+- book_excess_pct: -0.6211
+- ann_excess_deployed_pct: -187.627
+- ann_excess_deployed_costs_x1.5_pct: -315.629
+- ann_excess_deployed_costs_x2_pct: -443.631
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.6325
-- max_dd_pct: 0.5913
-- t_excess_daily: -2.612
+- book_excess_without_best_coin_pct: -0.6495
+- max_dd_pct: 0.5998
+- t_excess_daily: -2.621
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
+| BTW | gate | mexc | 2026-10-21 00:00 | 27.4% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (48)
 
@@ -77,5 +78,6 @@ Updated **2026-10-20 23:00 UTC**, run 313, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
+| BTW | gate | mexc | 27.4% | 189.7% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
