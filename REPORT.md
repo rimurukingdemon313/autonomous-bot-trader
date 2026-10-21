@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-21 15:00 UTC**, run 329, version `radar-1.0.0`. State from: cache. Quotes this hour: 2403.
+Updated **2026-10-21 16:00 UTC**, run 330, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,26 +17,27 @@ Updated **2026-10-21 15:00 UTC**, run 329, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 13.79
+- days: 13.83
 - run_coverage: 0.991
 - closed_positions: 57
-- open_positions: 0
+- open_positions: 1
 - utilisation: 0.0918
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.7704
-- book_excess_pct: -0.7838
-- ann_excess_deployed_pct: -227.347
-- ann_excess_deployed_costs_x1.5_pct: -369.987
-- ann_excess_deployed_costs_x2_pct: -512.627
+- book_pnl_pct: -0.7789
+- book_excess_pct: -0.8008
+- ann_excess_deployed_pct: -232.278
+- ann_excess_deployed_costs_x1.5_pct: -377.384
+- ann_excess_deployed_costs_x2_pct: -522.49
 - best_coin: RSR
-- book_excess_without_best_coin_pct: -0.8121
-- max_dd_pct: 0.7704
-- t_excess_daily: -2.943
+- book_excess_without_best_coin_pct: -0.8291
+- max_dd_pct: 0.7789
+- t_excess_daily: -2.927
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
+| IOST | mexc | gate | 2026-10-21 16:00 | 64.0% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (57)
 
@@ -77,5 +78,6 @@ Updated **2026-10-21 15:00 UTC**, run 329, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
+| IOST | mexc | gate | 64.0% | 2003.8% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
