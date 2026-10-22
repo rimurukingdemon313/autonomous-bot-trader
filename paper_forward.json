@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 198681.4,
+  "equity": 198764.79,
   "balance": 198762.32,
-  "total_pnl": -1318.6,
-  "today_pnl": -1176.82,
+  "total_pnl": -1235.21,
+  "today_pnl": -1093.42,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 197264.88,
+  "equity_before_adjustments": 197348.28,
   "day_reference": 199858.2156990063,
-  "drawdown_from_start": -1318.6,
+  "drawdown_from_start": -1235.21,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -573,7 +573,7 @@
    "target": 0.83712,
    "r_now": -0.847,
    "opened": 1792628260.0,
-   "pnl": -342.35,
+   "pnl": -342.51,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -585,12 +585,12 @@
    "side": "SELL",
    "qty": 2.29,
    "entry": 0.824415,
-   "current": 0.8234750000000001,
+   "current": 0.8231750000000001,
    "stop": 0.82592,
    "target": 0.8222,
-   "r_now": 0.625,
+   "r_now": 0.824,
    "opened": 1792602409.0,
-   "pnl": 261.43,
+   "pnl": 344.98,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -2041,6 +2041,19 @@
  ],
  "pipeline": [
   {
+   "decision": "BUY",
+   "edge_status": "EXPERIMENTAL",
+   "id": "db5c3db2ce356f3f68956d73",
+   "mode": "PAPER_FORWARD",
+   "reason": "currency_conflict: BUY USDCAD would bet against an open position: USDCHF SELL is short USD",
+   "stages": [
+    "AI DECISION",
+    "RISK REJECTED"
+   ],
+   "symbol": "USDCAD",
+   "t": 1792637123
+  },
+  {
    "decision": "SELL",
    "edge_status": "EXPERIMENTAL",
    "id": "ad3c4b4dd959ce2ddd15f915",
@@ -2310,26 +2323,23 @@
    ],
    "symbol": "EURGBP",
    "t": 1792567903
-  },
-  {
-   "decision": "BUY",
-   "edge_status": "EXPERIMENTAL",
-   "fill": 0.568485,
-   "id": "a14d503bcd06ce9f5b47ff60",
-   "mode": "PAPER_FORWARD",
-   "position_id": "P75",
-   "reason": null,
-   "size": 0.91,
-   "stages": [
-    "AI DECISION",
-    "RISK APPROVED",
-    "PAPER EXECUTED"
-   ],
-   "symbol": "NZDUSD",
-   "t": 1792567816
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "USDCHF",
+   "decision": "NO_TRADE",
+   "t": 1792637206,
+   "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDCAD",
+   "decision": "BUY",
+   "t": 1792637123,
+   "reason": "BUY USDCAD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) BUY 57: Buy after three bullish sweeps of 1.40380, where the completed M15 bar also recovered from the sweep. The stop is below the",
+   "data_flags": []
+  },
   {
    "symbol": "AUDUSD",
    "decision": "SELL",
@@ -2487,27 +2497,9 @@
    "data_flags": [
     "latest bar closed 225 minutes ago"
    ]
-  },
-  {
-   "symbol": "GBPUSD",
-   "decision": "NO_TRADE",
-   "t": 1792625420,
-   "reason": "blocked before consulting the model: DATA_QUALITY: latest bar closed 210 minutes ago; STALE_DATA: last closed bar is 210 minutes old",
-   "data_flags": [
-    "latest bar closed 210 minutes ago"
-   ]
-  },
-  {
-   "symbol": "EURUSD",
-   "decision": "NO_TRADE",
-   "t": 1792625419,
-   "reason": "blocked before consulting the model: DATA_QUALITY: latest bar closed 210 minutes ago; STALE_DATA: last closed bar is 210 minutes old",
-   "data_flags": [
-    "latest bar closed 210 minutes ago"
-   ]
   }
  ],
- "decisions_total": 1980,
+ "decisions_total": 1982,
  "shift": {
   "started": "2026-10-22 00:30 UTC",
   "decision_mode": "dual_ai",
@@ -2531,20 +2523,20 @@
    "judge_pin": null,
    "version": "openrouter-1.8.0",
    "status": "READY",
-   "calls_today": 9,
+   "calls_today": 12,
    "last_call": {
-    "t": 1792636470,
+    "t": 1792637206,
     "role": "judge",
     "model": "nvidia/nemotron-3.5-super-vl:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "07ab960d8e234ffe9e9224fdcbd96235",
-    "provider_id": "gen-1792636340-Nl2jlul4O0mtfLrcQTeP",
+    "request_id": "e530d68c66d54bdea18829a4b3cf5630",
+    "provider_id": "gen-1792637159-m8bzoGAndKXX4bcO6Haj",
     "attempts": 1,
-    "latency_ms": 129821.5,
+    "latency_ms": 47340.2,
     "cached": false,
-    "tokens": 22796,
+    "tokens": 22389,
     "tried": []
    },
    "key": {
@@ -2765,19 +2757,25 @@
     ],
     "free_total": 15,
     "catalog_total": 468,
-    "refreshed": 1792637124.6459484,
+    "refreshed": 1792638024.3279982,
     "error": null,
     "version": "free-models-1.3.0",
-    "cooldown": {},
+    "cooldown": {
+     "minimax/minimax-m3.1-flash:free": {
+      "until": 1792638325,
+      "why": "rate_limited",
+      "in_a_row": 1
+     }
+    },
     "excluded": {}
    },
    "model_stats": {
     "minimax/minimax-m3.1-flash:free": {
-     "ok": 4,
-     "failed": 0
+     "ok": 5,
+     "failed": 1
     },
     "nvidia/nemotron-3.5-super-vl:free": {
-     "ok": 4,
+     "ok": 5,
      "failed": 0
     }
    }
@@ -2862,114 +2860,169 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1792636200,
     "last_bar_available": 1792637100
+   },
+   "NZDUSD": {
+    "t": 1792638022,
+    "decision_id": "e483ceba12a1dfe49f36f1f2",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30010,
+    "sha256": "7054074ab6b652169d9433d695b6f762834c86b59f5e648595eada2f4e0e42a0",
+    "as_of": 1792638022,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792637100,
+    "last_bar_available": 1792638000
    }
   },
   "last_analysis": {
-   "decision_id": "ad3c4b4dd959ce2ddd15f915",
-   "symbol": "AUDUSD",
-   "t": 1792636309,
-   "decision": "SELL",
-   "reason": "SELL AUDUSD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 58: The bearish M15 BOS sequence and sustained selling favor continuation toward 0.70097, with 0.70141 liquidity providing intermediate downside magnet. The stop is beyond 0.70279, where recovery through the nearest bearish F",
+   "decision_id": "02fceddfe945efce6e406585",
+   "symbol": "USDCHF",
+   "t": 1792637206,
+   "decision": "NO_TRADE",
+   "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
    "consensus": {
-    "desk_confidence": 0.58,
-    "direction": "SELL",
-    "levels_from": "trader1",
-    "outcome": "TRADE",
-    "rule": "AGREE",
-    "stop_loss": 0.70293,
-    "take_profit": 0.70097
+    "outcome": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "minimax/minimax-m3.1-flash:free",
-    "trader2": "nvidia/nemotron-3.5-super-vl:free"
-   },
-   "trader1": {
-    "confidence": 58,
-    "direction": "SELL",
-    "entry": 0.70205,
-    "invalidation": 0.70279,
-    "liquidity": "Price is sitting near 0.70217 support, so the initial downside room is limited, but a break can target the 0.70141 equal-lows liquidity and the open bullish FVG at 0.70097-0.70116.",
-    "market_structure": "M15 has shifted into short-term bearish structure with bearish CHoCH below 0.70304 and confirmed BOS below 0.70235 and 0.70220; this conflicts with the still-bullish H4 structure.",
-    "momentum": "Execution momentum is strongly bearish: M15 is down 3.82 ATR over five bars and 3.39 ATR over 20 bars, with consecutive bearish structure breaks and a high-volatility displacement.",
-    "reason": "The bearish M15 BOS sequence and sustained selling favor continuation toward 0.70097, with 0.70141 liquidity providing intermediate downside magnet. The stop is beyond 0.70279, where recovery through the nearest bearish FVG would invalidate the immediate bearish setup. Bullish H4 structure and nearby 0.70217 support keep confidence moderate and create meaningful reversal risk.",
-    "reversal_probability": 42,
-    "risk_reward": 1.23,
-    "stop_loss": 0.70293,
-    "take_profit": 0.70097,
-    "trend": "The H4 and daily trends remain bullish, while the M15/H1 direction is corrective and bearish, making the short countertrend but tactically favored."
-   },
-   "trader2": {
-    "confidence": 58,
-    "direction": "SELL",
-    "entry": 0.70205,
-    "invalidation": 0.70293,
-    "liquidity": "Entry inside open bearish FVG 0.7019-0.7022; downside targets equal lows 0.70141 and bullish FVG 0.70097-0.70116",
-    "market_structure": "M15 bearish BOS below 0.7022 and 0.70235 with LH+LL; H1 bearish CHoCH at 0.70235; H4 still bullish HH+HL",
-    "momentum": "Strong bearish displacement, M15 down 3.82 ATR over 5 bars with consecutive structure breaks",
-    "reason": "Bearish M15 BOS sequence and H1 CHoCH favor continuation toward 0.70097; entry at 0.70205 sells the retracement into the bearish FVG with stop above 0.70279 FVG top. H4 bullish structure and nearby support keep reversal risk meaningful, capping confidence.",
-    "reversal_probability": 42,
-    "risk_reward": 1.23,
-    "stop_loss": 0.70293,
-    "take_profit": 0.70097,
-    "trend": "M15/H1 corrective bearish against bullish H4 daily trend"
-   },
+   "models": {},
+   "trader1": null,
+   "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1792636309,
-    "bytes": 30338,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1792636200,
-    "last_bar_open": 1792635300,
-    "sha256": "2a0200f8dd94b0df145f431a4f731881179bbffa8ac8b97b3be70fcf693731c0",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 28762.5,
-     "model": "minimax/minimax-m3.1-flash:free",
-     "ok": true,
-     "provider_id": "gen-1792636311-PoEiXllUNTa9rDqcQoYv",
-     "request_id": "09067f559a0e474bac311e5a318ed459",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 8295,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 129821.5,
-     "model": "nvidia/nemotron-3.5-super-vl:free",
-     "ok": true,
-     "provider_id": "gen-1792636340-Nl2jlul4O0mtfLrcQTeP",
-     "request_id": "07ab960d8e234ffe9e9224fdcbd96235",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 22796,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.7.0",
-   "risk": {
-    "approved": false,
-    "reasons": [
-     "reward_risk: 1.00 vs minimum 1.2",
-     "currency_conflict: SELL AUDUSD would bet against an open position: USDCHF SELL is short USD",
-     "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
-    ],
-    "qty": 0.0
-   }
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "02fceddfe945efce6e406585",
+    "symbol": "USDCHF",
+    "t": 1792637206,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.7.0",
+    "risk": null
+   },
+   {
+    "decision_id": "db5c3db2ce356f3f68956d73",
+    "symbol": "USDCAD",
+    "t": 1792637123,
+    "decision": "BUY",
+    "reason": "BUY USDCAD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) BUY 57: Buy after three bullish sweeps of 1.40380, where the completed M15 bar also recovered from the sweep. The stop is below the 1.40280 structural low, and 1.40556 is a reachable prior swing high within the holding period. Nega",
+    "consensus": {
+     "desk_confidence": 0.56,
+     "direction": "BUY",
+     "levels_from": "trader1",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 1.40275,
+     "take_profit": 1.40556
+    },
+    "models": {
+     "trader1": "minimax/minimax-m3.1-flash:free",
+     "trader2": "nvidia/nemotron-3.5-super-vl:free"
+    },
+    "trader1": {
+     "confidence": 57,
+     "direction": "BUY",
+     "entry": 1.403875,
+     "invalidation": 1.40275,
+     "liquidity": "Sell-side liquidity at 1.40380 has been swept three times, with the previous-day low at 1.40350 and 1.40280 providing the next support zone. Upside liquidity lies above 1.40483-1.40556.",
+     "market_structure": "M15 remains bearish after a CHoCH below 1.40510 and latest LH at 1.40483, but the repeated sweep of 1.40380 and recovery indicate local demand; H4 retains its marked HH+HL structure.",
+     "momentum": "M1 has stabilized near 1.40386, but M5 and M15 momentum remain negative, making this a countertrend reversal attempt rather than a clean continuation trade.",
+     "reason": "Buy after three bullish sweeps of 1.40380, where the completed M15 bar also recovered from the sweep. The stop is below the 1.40280 structural low, and 1.40556 is a reachable prior swing high within the holding period. Negative M15 momentum and the broader downtrend keep confidence modest.",
+     "reversal_probability": 58,
+     "risk_reward": 1.5,
+     "stop_loss": 1.40275,
+     "take_profit": 1.40556,
+     "trend": "The H4 trend is up, while the broader daily and regime data remain bearish, so the timeframes are mixed but H4 favors the long side at current support."
+    },
+    "trader2": {
+     "confidence": 56,
+     "direction": "BUY",
+     "entry": 1.403875,
+     "invalidation": 1.40275,
+     "liquidity": "1.4038 swept three times (bars_ago 23, 1, 0) with no follow-through down = sell-side exhaustion; last M15 bar swept to 1.4033 then recovered to close 1.40386; equal highs at 1.40562 above; support at 1.40345/1.4035 below.",
+     "market_structure": "M15 in range with bearish CHoCH at 1.4038 but price testing support; H4 structurally up (HH+HL); H1 demand zone 1.4035-1.40545 tested and holding; price at bottom of H4 20-bar range (position 0.13).",
+     "momentum": "M15 momentum negative (change_atr -0.36/1, -0.62/5) but last completed bar shows bullish rejection after the sweep; M1 stabilized near 1.40386; countertrend reversal attempt, not clean continuation.",
+     "reason": "Price swept 1.4038 three times and bounced each time, showing absorption of sell orders at support; the last M15 bar swept to 1.4033 then closed back at 1.40386, a bullish rejection. H4 structure remains up (HH+HL) and the H1 demand zone 1.4035-1.40545 is holding. A break below 1.40275 (below the 1.4033 sweep low and 1.4035 prior-day low) invalidates the thesis.",
+     "reversal_probability": 55,
+     "risk_reward": 1.5,
+     "stop_loss": 1.40275,
+     "take_profit": 1.40556,
+     "trend": "H4 up (HH+HL) but regime TRENDING_DOWN and D1 near range low; timeframes mixed, yet the immediate structure favors the long side at tested support with H4 bias upward."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792637123,
+     "bytes": 29593,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792637100,
+     "last_bar_open": 1792636200,
+     "sha256": "5ad7105a1527fe213528f4c3f35765c5e185b2661e557c8eaa71038382f3f91c",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 34320.5,
+      "model": "minimax/minimax-m3.1-flash:free",
+      "ok": true,
+      "provider_id": "gen-1792637124-ikvwlR3wKxUcQHzY50kU",
+      "request_id": "855c8857db9e4878a69302bac4f1e782",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 9554,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 47340.2,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792637159-m8bzoGAndKXX4bcO6Haj",
+      "request_id": "e530d68c66d54bdea18829a4b3cf5630",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 22389,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.7.0",
+    "risk": {
+     "approved": false,
+     "reasons": [
+      "currency_conflict: BUY USDCAD would bet against an open position: USDCHF SELL is short USD"
+     ],
+     "qty": 0.0
+    }
+   },
    {
     "decision_id": "ad3c4b4dd959ce2ddd15f915",
     "symbol": "AUDUSD",
@@ -3508,48 +3561,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.7.0",
     "risk": null
-   },
-   {
-    "decision_id": "3131ebc8d52922455aa84c03",
-    "symbol": "USDCHF",
-    "t": 1792631720,
-    "decision": "NO_TRADE",
-    "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "blocked before consulting the model: EXPOSURE: a USDCHF position is already open",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.7.0",
-    "risk": null
-   },
-   {
-    "decision_id": "f828f67b75b4d4960e564c85",
-    "symbol": "USDCAD",
-    "t": 1792631718,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 401.85 is less than the next trade's risk 499.29: it would refuse the trade): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2); gate_open_risk (the hard risk gate's open-risk room 401.85 is less than the next trade's risk 499.29: it would refuse the trade): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.7.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -3564,7 +3575,7 @@
     "target": 0.83712,
     "r_now": -0.847,
     "opened": 1792628260.0,
-    "pnl": -342.35,
+    "pnl": -342.51,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -3576,12 +3587,12 @@
     "side": "SELL",
     "qty": 2.29,
     "entry": 0.824415,
-    "current": 0.8234750000000001,
+    "current": 0.8231750000000001,
     "stop": 0.82592,
     "target": 0.8222,
-    "r_now": 0.625,
+    "r_now": 0.824,
     "opened": 1792602409.0,
-    "pnl": 261.43,
+    "pnl": 344.98,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4146,55 +4157,55 @@
    },
    "exits_in_shadow": {
     "BE1R": {
-     "n": 55,
+     "n": 56,
      "sample": "adequate",
-     "win_rate": 0.364,
-     "expectancy_r": -0.106,
-     "total_r": -5.85,
-     "profit_factor_r": 0.799,
-     "as_taken_expectancy_r": -0.006,
-     "difference_r": -0.101
+     "win_rate": 0.375,
+     "expectancy_r": -0.08,
+     "total_r": -4.5,
+     "profit_factor_r": 0.846,
+     "as_taken_expectancy_r": 0.019,
+     "difference_r": -0.099
     },
     "HOLD24H": {
-     "n": 55,
+     "n": 56,
      "sample": "adequate",
-     "win_rate": 0.491,
-     "expectancy_r": 0.174,
-     "total_r": 9.58,
-     "profit_factor_r": 1.314,
-     "as_taken_expectancy_r": -0.006,
-     "difference_r": 0.18
+     "win_rate": 0.5,
+     "expectancy_r": 0.195,
+     "total_r": 10.94,
+     "profit_factor_r": 1.359,
+     "as_taken_expectancy_r": 0.019,
+     "difference_r": 0.177
     },
     "WIDE2X": {
-     "n": 55,
+     "n": 56,
      "sample": "adequate",
-     "win_rate": 0.491,
-     "expectancy_r": 0.118,
-     "total_r": 6.51,
-     "profit_factor_r": 1.243,
-     "as_taken_expectancy_r": -0.006,
-     "difference_r": 0.124
+     "win_rate": 0.482,
+     "expectancy_r": 0.098,
+     "total_r": 5.47,
+     "profit_factor_r": 1.197,
+     "as_taken_expectancy_r": 0.019,
+     "difference_r": 0.079
     },
     "HOLD8H": {
-     "n": 1,
+     "n": 2,
      "sample": "insufficient",
-     "win_rate": 0.0,
-     "expectancy_r": -1.095,
-     "total_r": -1.1,
-     "profit_factor_r": 0.0,
-     "as_taken_expectancy_r": -1.095,
+     "win_rate": 0.5,
+     "expectancy_r": 0.132,
+     "total_r": 0.26,
+     "profit_factor_r": 1.241,
+     "as_taken_expectancy_r": 0.132,
      "difference_r": 0.0
     },
     "note": "each trade taken, followed again under another exit on the same entry, after costs; difference_r > 0 means that exit would have done better on these trades. Measured, never traded"
    },
    "taken_by_session": {
     "ASIA": {
-     "n": 32,
+     "n": 33,
      "sample": "adequate",
-     "win_rate": 0.438,
-     "expectancy_r": -0.013,
-     "total_r": -0.42,
-     "profit_factor_r": 0.976
+     "win_rate": 0.455,
+     "expectancy_r": 0.028,
+     "total_r": 0.94,
+     "profit_factor_r": 1.053
     },
     "LONDON": {
      "n": 17,
@@ -4230,17 +4241,17 @@
     }
    },
    "decisions_by_rule": {
-    "AGREE": 286,
+    "AGREE": 287,
     "DEBATE": 5,
     "DISAGREE": 93,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 348,
+    "NOT_ASKED": 349,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 9
    },
    "agreement_rate": 0.745,
-   "decisions_with_both_traders": 384,
-   "unavailable": 1272
+   "decisions_with_both_traders": 385,
+   "unavailable": 1273
   },
   "recent_trades": [
    {
@@ -4966,8 +4977,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1792636215,
+  "last_cycle": 1792637118,
   "last_cycle_error": null,
-  "cycles": 8
+  "cycles": 9
  }
 }
