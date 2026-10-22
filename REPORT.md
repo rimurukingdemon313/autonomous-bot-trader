@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-22 17:17 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 17:17 UTC · decision system `dual_ai`
+Updated 2026-10-22 17:32 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 17:17 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,614.17 | $-244.04 | $-385.83 | $-385.83 | 1 | 87 (adequate) | 44.8% | -0.032R | 0.98 | ACTIVE | RUNNING |
+| $200,000.00 | $199,457.85 | $-400.37 | $-542.15 | $-542.15 | 1 | 87 (adequate) | 44.8% | -0.032R | 0.98 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $198,197.66); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $198,041.33); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -62,7 +62,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,1
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| USDJPY | SELL | 1.77 | 156.857 | 157.02 | 156.663 | $-28.32 |
+| USDJPY | SELL | 1.77 | 156.857 | 157.02 | 156.663 | $-184.65 |
 
 ## Closed paper trades (latest 20)
 
@@ -91,15 +91,15 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,1
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `thinkingmachines/inkling-small:free` · debate `google/gemma-4-26b-a4b-it:free` · calls today 1/900
 
 Agreement trades 87 (adequate) · wins 39 · losses 48 · net $-357.51 · expectancy -0.032R · profit factor 0.98 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 99 · the debate's pick if taken: 89 resolved (adequate), expectancy -0.221R · the side it rejected if taken: 94 resolved (adequate), expectancy -0.227R
+Disagreements (not traded; the debate runs in shadow): 99 · the debate's pick if taken: 90 resolved (adequate), expectancy -0.231R · the side it rejected if taken: 95 resolved (adequate), expectancy -0.211R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.108R vs -0.033R as taken (61, adequate) · held 24 h +0.129R vs -0.033R as taken (61, adequate) · stop and target twice as far +0.033R vs -0.033R as taken (61, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.321R vs -0.403R as taken (7, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.083R vs -0.010R as taken (62, adequate) · held 24 h +0.150R vs -0.010R as taken (62, adequate) · stop and target twice as far +0.056R vs -0.010R as taken (62, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.286R vs -0.173R as taken (8, insufficient)
 
-Trades taken by session (UTC): ASIA 34 resolved (adequate), expectancy -0.003R · LONDON 20 resolved (insufficient), expectancy -0.013R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 13 resolved (insufficient), expectancy +0.156R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 34 resolved (adequate), expectancy -0.003R · LONDON 20 resolved (insufficient), expectancy -0.013R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 14 resolved (insufficient), expectancy +0.248R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
