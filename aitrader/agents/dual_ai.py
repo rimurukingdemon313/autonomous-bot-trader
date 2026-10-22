@@ -97,7 +97,13 @@ from .types import MarketContext
 #:        again in shadow with the same levels, holding 24 h did better in 7 and worse in none (+0.19 R a trade): the
 #:        8 h exit closed trades still running toward their targets, and 6 of the 7 reached them. The traders still
 #:        plan their levels for HOLD_MINUTES, as in those trades; the old 8 h exit is followed in shadow (HOLD8H).
-DUAL_AI_VERSION = "dual-ai-1.7.0"
+#: 1.8.0 (operator, 2026-10-22: "a bigger timeframe, keep it free"): the desk trades the H1 chart (EXECUTION_TF), H4
+#:        above it, not M15. All 79 agreement trades so far were M15: their round-trip costs took a median 16% of
+#:        each trade's risk, about what the desk lost per trade (-0.05 R), and in shadow the same trades with stop
+#:        and target twice as far did +0.07 R better (60 pairs). On H1 the traders set wider levels from the larger
+#:        structure, so the same costs are a far smaller share. A trade is planned and held up to 48 h, closed by
+#:        16:00 New York on Friday; the traders are told the time it really has.
+DUAL_AI_VERSION = "dual-ai-1.8.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -114,6 +120,8 @@ TIME_EXIT_MINUTES = {"M15": 24 * 60, "H1": 48 * 60}
 NEW_YORK = ZoneInfo("America/New_York")
 FRIDAY_LAST_EXIT_NY = 16 * 60  # 16:00 New York, an hour before the 17:00 close
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
+#: the chart the desk trades on (1.8.0: H1, with H4 above it); "M15" trades M15 when it has MIN_EXEC_BARS
+EXECUTION_TF = "H1"
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
 CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
@@ -289,15 +297,20 @@ VERIFY_KEYS = ("direction", "confidence", "reason")
 
 def time_exit_minutes(timeframe: str, t: int) -> int:
     """How long a trade opened at `t` may stay open: TIME_EXIT_MINUTES for its execution timeframe, cut so it closes
-    by 16:00 New York on Friday, an hour before the weekend close (so the weekend-carry rule never refuses a trade
-    for its time exit alone), and never shorter than the HOLD_MINUTES its traders planned for."""
-    planned = HOLD_MINUTES.get(timeframe, HOLD_MINUTES["H1"])
+    by 16:00 New York on Friday, an hour before the weekend close, so the weekend-carry rule never refuses a trade
+    for its time exit alone (new positions stop at 12:00 UTC on Friday, so the cut never leaves an M15 trade less
+    than its 8 h). The traders are told the shorter of this and HOLD_MINUTES (hold_minutes)."""
     full = TIME_EXIT_MINUTES.get(timeframe, TIME_EXIT_MINUTES["H1"])
     ny = datetime.fromtimestamp(t, NEW_YORK)
     friday = (ny + timedelta(days=(4 - ny.weekday()) % 7)).replace(
         hour=FRIDAY_LAST_EXIT_NY // 60, minute=FRIDAY_LAST_EXIT_NY % 60, second=0, microsecond=0)
     left = int((friday.timestamp() - t) // 60)
-    return max(planned, min(full, left)) if left > 0 else planned
+    return min(full, left) if left > 0 else full
+
+
+def hold_minutes(timeframe: str, t: int) -> int:
+    """The holding time the traders plan their levels for: HOLD_MINUTES, never longer than the trade can stay open."""
+    return min(HOLD_MINUTES.get(timeframe, HOLD_MINUTES["H1"]), time_exit_minutes(timeframe, t))
 
 
 def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
@@ -334,12 +347,13 @@ def _shadow_side(t: dict, who: str, family: str, hold: int) -> dict:
 # ── the data each trader reads ──────────────────────────────────────────
 
 def chart_frames(ctx: MarketContext):
-    """(execution bars, higher-timeframe bars) from the context's completed bars: M15 execution when there
-    is enough of it, else H1; H4 resampled from H1 as the higher timeframe."""
+    """(execution bars, higher-timeframe bars) from the context's completed bars: H1 (EXECUTION_TF); M15 only when
+    EXECUTION_TF names it and there is enough of it; H4 resampled from H1 as the higher timeframe."""
     bars = ctx.bars or {}
     h1 = bars.get("H1")
     m15 = bars.get("M15")
-    ex = m15 if m15 is not None and len(m15.as_of(ctx.t)) >= MIN_EXEC_BARS["M15"] else h1
+    ex = (m15 if EXECUTION_TF == "M15" and m15 is not None and len(m15.as_of(ctx.t)) >= MIN_EXEC_BARS["M15"]
+          else h1)
     htf = None
     if h1 is not None and len(h1):
         try:
@@ -504,7 +518,7 @@ class DualAITrader:
         rec["chart"] = chart.meta
         self._keep_chart(ctx, chart, did)
         px = {"bid": float(ctx.bid), "ask": float(ctx.ask), "atr": float(ctx.atr)}
-        hold = HOLD_MINUTES.get(chart.meta["execution_timeframe"], HOLD_MINUTES["H1"])
+        hold = hold_minutes(chart.meta["execution_timeframe"], ctx.t)
         rec["hold_minutes"] = hold
         rec["time_exit_minutes"] = exit_after = time_exit_minutes(chart.meta["execution_timeframe"], ctx.t)
         key = f"{ctx.symbol}|{ctx.t}|{chart.meta['sha256'][:16]}"
