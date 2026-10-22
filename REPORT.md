@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-22 01:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 00:30 UTC · decision system `dual_ai`
+Updated 2026-10-22 01:30 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 00:30 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,714.60 | $-143.61 | $-285.40 | $-285.40 | 3 | 73 (adequate) | 45.2% | -0.037R | 0.97 | ACTIVE | RUNNING |
+| $200,000.00 | $199,552.17 | $-306.04 | $-447.83 | $-447.83 | 3 | 73 (adequate) | 45.2% | -0.037R | 0.97 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $198,298.09); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $198,135.66); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -62,9 +62,9 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $198,2
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 3.08 | 0.8384300000000001 | 0.83941 | 0.83712 | $-94.89 |
+| EURGBP | SELL | 3.08 | 0.8384300000000001 | 0.83941 | 0.83712 | $-136.12 |
 | USDCHF | SELL | 2.29 | 0.824415 | 0.82592 | 0.8222 | $11.11 |
-| AUDUSD | BUY | 4.04 | 0.7028599999999999 | 0.7019 | 0.7043 | $117.16 |
+| AUDUSD | BUY | 4.04 | 0.7028599999999999 | 0.7019 | 0.7043 | $-4.04 |
 
 ## Closed paper trades (latest 20)
 
