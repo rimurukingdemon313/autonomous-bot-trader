@@ -472,21 +472,20 @@ def m15_ctx():
     return c
 
 
-def test_the_desk_trades_the_h1_chart_even_with_enough_m15_and_its_traders_are_told_the_time_it_has():
-    # dual-ai 1.8.0: every M15 trade so far paid a median 16% of its risk in costs; on H1 the levels are wider
+def test_the_desk_trades_m15_held_up_to_24h_and_the_h1_path_stays_when_named():
+    # dual-ai 1.9.0: on 60 trades in shadow the levels as taken held 24 h beat stop and target twice as far
     from aitrader.agents import dual_ai
-    c = m15_ctx()
-    d, fake = think(scripted(), c)
+    d, fake = think(scripted(), m15_ctx())
     rec = d.ai["dual_ai"]
-    assert rec["chart"]["execution_timeframe"] == "H1" and d.decision == "BUY"
-    assert d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("H1", c.t)
-    assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {rec["hold_minutes"]}
-    assert rec["hold_minutes"] == min(48 * 60, rec["time_exit_minutes"])  # T is a Friday: told the time it has
-    try:  # the M15 path is still there when named, with its 24 h exit and 8 h plan
-        dual_ai.EXECUTION_TF = "M15"
+    assert rec["chart"]["execution_timeframe"] == "M15" and d.decision == "BUY"
+    assert d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("M15", T) > 8 * 60
+    assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60} == {rec["hold_minutes"]}
+    try:  # H1 when named (1.8.0): planned and held up to 48 h, told the time it really has
+        dual_ai.EXECUTION_TF = "H1"
         d, fake = think(scripted(), m15_ctx())
         rec = d.ai["dual_ai"]
-        assert rec["chart"]["execution_timeframe"] == "M15" and d.max_hold_minutes == time_exit_minutes("M15", T)
-        assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60}
+        assert rec["chart"]["execution_timeframe"] == "H1" and d.max_hold_minutes == time_exit_minutes("H1", T)
+        assert rec["hold_minutes"] == min(48 * 60, rec["time_exit_minutes"])  # T is a Friday
+        assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {rec["hold_minutes"]}
     finally:
-        dual_ai.EXECUTION_TF = "H1"
+        dual_ai.EXECUTION_TF = "M15"

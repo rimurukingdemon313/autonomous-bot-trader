@@ -103,7 +103,11 @@ from .types import MarketContext
 #:        and target twice as far did +0.07 R better (60 pairs). On H1 the traders set wider levels from the larger
 #:        structure, so the same costs are a far smaller share. A trade is planned and held up to 48 h, closed by
 #:        16:00 New York on Friday; the traders are told the time it really has.
-DUAL_AI_VERSION = "dual-ai-1.8.0"
+#: 1.9.0 (operator, 2026-10-22, before 1.8.0 traded live): back to the M15 chart, keeping the 24 h time exit.
+#:        On the same 60 trades followed in shadow, the levels as taken held 24 h did +$4,360 better than the
+#:        trades did; stop and target twice as far (the closest measure of H1 levels) +$2,289. The H1 path
+#:        stays, named by EXECUTION_TF; the Friday cut of every time exit and hold_minutes stay.
+DUAL_AI_VERSION = "dual-ai-1.9.0"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
@@ -120,8 +124,8 @@ TIME_EXIT_MINUTES = {"M15": 24 * 60, "H1": 48 * 60}
 NEW_YORK = ZoneInfo("America/New_York")
 FRIDAY_LAST_EXIT_NY = 16 * 60  # 16:00 New York, an hour before the 17:00 close
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
-#: the chart the desk trades on (1.8.0: H1, with H4 above it); "M15" trades M15 when it has MIN_EXEC_BARS
-EXECUTION_TF = "H1"
+#: the chart the desk trades on: "M15" (1.9.0) when it has MIN_EXEC_BARS, else H1; "H1" always H1 (1.8.0)
+EXECUTION_TF = "M15"
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
 CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
@@ -347,8 +351,8 @@ def _shadow_side(t: dict, who: str, family: str, hold: int) -> dict:
 # ── the data each trader reads ──────────────────────────────────────────
 
 def chart_frames(ctx: MarketContext):
-    """(execution bars, higher-timeframe bars) from the context's completed bars: H1 (EXECUTION_TF); M15 only when
-    EXECUTION_TF names it and there is enough of it; H4 resampled from H1 as the higher timeframe."""
+    """(execution bars, higher-timeframe bars) from the context's completed bars: M15 when EXECUTION_TF names it and
+    there is enough of it, else H1; H4 resampled from H1 as the higher timeframe."""
     bars = ctx.bars or {}
     h1 = bars.get("H1")
     m15 = bars.get("M15")

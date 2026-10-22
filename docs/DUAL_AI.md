@@ -63,14 +63,12 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison. Since forward 1.2.0 also closed at 8 h (`..._HOLD8H`): the exit
   the trades had before dual-ai 1.7.0.
-- **The H1 chart** (dual-ai 1.8.0, operator, 2026-10-22: "a bigger timeframe, keep it free"): the desk trades
-  the H1 chart with H4 above it, no longer M15. All 79 agreement trades before were M15: their round-trip costs
-  took a median 16% of each trade's risk, about what the desk lost per trade (-0.05 R), and in shadow the same
-  trades with stop and target twice as far did +0.07 R better over 60 pairs. On H1 the traders set their own,
-  wider levels from the larger structure, so the same costs are a far smaller share of the risk. A trade is
-  planned and held up to 48 h, closed by 16:00 New York on Friday, and the traders are told the time it really
-  has. Fewer trades: the positions stay longer. The free models are unchanged: no DeepSeek model was free on
-  OpenRouter that day (the catalog's 21 free models, read on the runner).
+- **The chart: M15, held up to 24 h** (dual-ai 1.9.0, 2026-10-22). Asked for a bigger timeframe, the desk was
+  set to trade H1 (1.8.0), and was set back to M15 before 1.8.0 traded live, keeping the 24 h time exit: on the
+  same 60 trades followed in shadow, the levels as taken held 24 h did +$4,360 better than the trades did,
+  stop and target twice as far (the closest measure of H1 levels) +$2,289. The H1 path stays, named by
+  `EXECUTION_TF`. Every time exit closes by 16:00 New York on Friday, and the traders are told the time a
+  trade really has. No DeepSeek model was free on OpenRouter that day (21 free models in the catalog).
 - **Time exit: 24 h** (dual-ai 1.7.0, operator, 2026-10-20): an M15 trade stays open up to 24 h, not 8 h, and
   always closes by 16:00 New York on Friday, an hour before the weekend close (so the weekend rule never refuses
   a trade for it). The traders still plan their levels for 8 h, as in the trades that measured it. Of 31 trades
