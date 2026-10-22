@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-22 21:00 UTC**, run 359, version `radar-1.0.0`. State from: cache. Quotes this hour: 2412.
+Updated **2026-10-22 22:00 UTC**, run 360, version `radar-1.0.0`. State from: cache. Quotes this hour: 2412.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-10-22 21:00 UTC**, run 359, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 15.04
+- days: 15.08
 - run_coverage: 0.9917
 - closed_positions: 63
 - open_positions: 3
-- utilisation: 0.0933
+- utilisation: 0.0939
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.6392
-- book_excess_pct: -0.6791
-- ann_excess_deployed_pct: -179.195
-- ann_excess_deployed_costs_x1.5_pct: -329.395
-- ann_excess_deployed_costs_x2_pct: -479.594
+- book_pnl_pct: -0.6228
+- book_excess_pct: -0.6629
+- ann_excess_deployed_pct: -173.332
+- ann_excess_deployed_costs_x1.5_pct: -322.187
+- ann_excess_deployed_costs_x2_pct: -471.042
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -0.8589
+- book_excess_without_best_coin_pct: -0.8404
 - max_dd_pct: 0.8707
-- t_excess_daily: -2.747
+- t_excess_daily: -2.628
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IOST | mexc | gate | 2026-10-22 10:00 | 374.1% | 27.5 | 35.9 | 17.0 | **46.5** |
-| BTW | mexc | gate | 2026-10-22 20:00 | 28.4% | 11.0 | 21.5 | 17.0 | **15.5** |
-| XMR | hyperliquid | mexc | 2026-10-22 20:00 | 25.1% | 0.4 | 3.7 | 16.5 | **-12.5** |
+| IOST | mexc | gate | 2026-10-22 10:00 | 374.1% | 28.8 | 30.4 | 17.0 | **42.2** |
+| BTW | mexc | gate | 2026-10-22 20:00 | 28.4% | 11.0 | 53.2 | 17.0 | **47.3** |
+| XMR | hyperliquid | mexc | 2026-10-22 20:00 | 25.1% | 0.3 | 9.1 | 16.5 | **-7.1** |
 
 ## Closed positions (63)
 
