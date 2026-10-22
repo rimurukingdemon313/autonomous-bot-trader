@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 199457.85,
+  "equity": 199500.89,
   "balance": 199642.49,
-  "total_pnl": -542.15,
-  "today_pnl": -400.37,
+  "total_pnl": -499.11,
+  "today_pnl": -357.32,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 198041.33,
+  "equity_before_adjustments": 198084.38,
   "day_reference": 199858.2156990063,
-  "drawdown_from_start": -542.15,
+  "drawdown_from_start": -499.11,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -568,12 +568,12 @@
    "side": "SELL",
    "qty": 1.77,
    "entry": 156.857,
-   "current": 157.01999999999998,
+   "current": 156.982,
    "stop": 157.02,
    "target": 156.663,
-   "r_now": -1.0,
+   "r_now": -0.767,
    "opened": 1792689146.0,
-   "pnl": -184.65,
+   "pnl": -141.6,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -2314,6 +2314,13 @@
  ],
  "last_decisions": [
   {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1792690219,
+   "reason": "the traders disagree (Trader 1 BUY 55, Trader 2 SELL 65): no trade unless both choose the same side; the shadow debate was not asked: too little time left before the decision would be too old to execu",
+   "data_flags": []
+  },
+  {
    "symbol": "USDJPY",
    "decision": "SELL",
    "t": 1792688420,
@@ -2473,16 +2480,9 @@
    "t": 1792676720,
    "reason": "blocked before consulting the model: EXPOSURE: a USDCAD position is already open",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1792675819,
-   "reason": "risk engine: trading_calendar (Thursday 13:30 UTC: no new position from 12:00 to 16:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 2090,
+ "decisions_total": 2091,
  "shift": {
   "started": "2026-10-22 17:17 UTC",
   "decision_mode": "dual_ai",
@@ -2506,8 +2506,22 @@
    "judge_pin": null,
    "version": "openrouter-1.8.0",
    "status": "READY",
-   "calls_today": 1,
-   "last_call": {},
+   "calls_today": 10,
+   "last_call": {
+    "t": 1792691184,
+    "role": "vision",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "status": "OK",
+    "ok": true,
+    "error": null,
+    "request_id": "e8fd57770789484b8ee3acc39b6b68a1",
+    "provider_id": "gen-1792691038-8Fp9kjIk1Tw3DAGdfubE",
+    "attempts": 1,
+    "latency_ms": 145801.5,
+    "cached": false,
+    "tokens": 14626,
+    "tried": []
+   },
    "key": {
     "checked": 1792690221,
     "ok": true,
@@ -2520,8 +2534,8 @@
    "paid_usage": null,
    "data_policy": null,
    "vision_model": "nvidia/nemotron-3.5-super-vl:free",
-   "judge_model": "thinkingmachines/inkling-small:free",
-   "verifier_model": "google/gemma-4-26b-a4b-it:free",
+   "judge_model": "google/gemma-4-26b-a4b-it:free",
+   "verifier_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
    "selection": {
     "vision": [
      {
@@ -2535,32 +2549,6 @@
       "structured": true,
       "reasoning": true,
       "family": "nvidia",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 75.7,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.7,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 75.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
       "expires": null
      },
      {
@@ -2588,35 +2576,35 @@
       "reasoning": true,
       "family": "google",
       "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 60.27,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 54.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
      }
     ],
     "judge": [
-     {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 51.7,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.7,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 51.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
      {
       "id": "google/gemma-4-26b-a4b-it:free",
       "name": "Google: Gemma 4 26B A4B  (free)",
@@ -2655,48 +2643,35 @@
       "reasoning": true,
       "family": "nvidia",
       "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 30.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
      }
     ],
     "verifier": [
-     {
-      "id": "google/gemma-4-26b-a4b-it:free",
-      "name": "Google: Gemma 4 26B A4B  (free)",
-      "score": 43.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 16.7,
-      "params_b": 26.0,
-      "structured": true,
-      "reasoning": true,
-      "family": "google",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 42.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "google/gemma-4-31b-it:free",
-      "name": "Google: Gemma 4 31B (free)",
-      "score": 41.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 14.7,
-      "params_b": 31.0,
-      "structured": true,
-      "reasoning": true,
-      "family": "google",
-      "expires": null
-     },
      {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "name": "NVIDIA: Nemotron 3 Ultra (free)",
@@ -2711,6 +2686,19 @@
       "expires": null
      },
      {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 31.7,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": 14.7,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
       "id": "dots-studio/dots-3-note-preview:free",
       "name": "Dots Studio: Dots3-Note Preview (free)",
       "score": 31.0,
@@ -2722,17 +2710,82 @@
       "reasoning": true,
       "family": "dots-studio",
       "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 27.27,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
      }
     ],
     "free_total": 14,
     "catalog_total": 468,
-    "refreshed": 1792690221.3857017,
+    "refreshed": 1792691184.29006,
     "error": null,
     "version": "free-models-1.3.0",
-    "cooldown": {},
-    "excluded": {}
+    "cooldown": {
+     "google/gemma-4-26b-a4b-it:free": {
+      "until": 1792691784,
+      "why": "rate_limited",
+      "in_a_row": 2
+     },
+     "google/gemma-4-31b-it:free": {
+      "until": 1792691785,
+      "why": "rate_limited",
+      "in_a_row": 2
+     }
+    },
+    "excluded": {
+     "thinkingmachines/inkling-small:free": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter",
+     "thinkingmachines/inkling:free": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/ap"
+    }
    },
-   "model_stats": {}
+   "model_stats": {
+    "nvidia/nemotron-3.5-super-vl:free": {
+     "ok": 2,
+     "failed": 0
+    },
+    "thinkingmachines/inkling-small:free": {
+     "ok": 0,
+     "failed": 1
+    },
+    "thinkingmachines/inkling:free": {
+     "ok": 0,
+     "failed": 1
+    },
+    "google/gemma-4-26b-a4b-it:free": {
+     "ok": 0,
+     "failed": 2
+    },
+    "google/gemma-4-31b-it:free": {
+     "ok": 0,
+     "failed": 2
+    },
+    "nvidia/nemotron-3-ultra-550b-a55b:free": {
+     "ok": 1,
+     "failed": 0
+    }
+   }
   },
   "rules": {
    "max_calls_per_decision": 3,
@@ -2754,68 +2807,84 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1792689300,
     "last_bar_available": 1792690200
+   },
+   "GBPUSD": {
+    "t": 1792691036,
+    "decision_id": "c54f003c9c62637fd45d60d2",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 29906,
+    "sha256": "50b9be9a225238f568ff00b6879a4558d65130c3f6798cc4611149e5a19840f4",
+    "as_of": 1792691036,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792689300,
+    "last_bar_available": 1792690200
    }
   },
   "last_analysis": {
-   "decision_id": "076da693256e4c643607faee",
-   "symbol": "USDJPY",
-   "t": 1792688420,
-   "decision": "SELL",
-   "reason": "SELL USDJPY on M15: AGREE: Trader 1 (recursive/flint-v1.0:free) SELL 65: Higher timeframe and execution structure favor sellers after bearish BOS/CHoCH and failed higher high. Price is below key bearish breaks and momentum is negative, with supply/order block and FVG resistance overhead. Sell entry ",
+   "decision_id": "164aa5de2165458f3973c2cf",
+   "symbol": "EURUSD",
+   "t": 1792690219,
+   "decision": "NO_TRADE",
+   "reason": "the traders disagree (Trader 1 BUY 55, Trader 2 SELL 65): no trade unless both choose the same side; the shadow debate was not asked: too little time left before the decision would be too old to execute (748 s at the start)",
    "consensus": {
-    "desk_confidence": 0.65,
-    "direction": "SELL",
-    "levels_from": "trader2",
-    "outcome": "TRADE",
-    "rule": "AGREE",
-    "stop_loss": 157.02,
-    "take_profit": 156.663
+    "debate_pick": null,
+    "direction": null,
+    "levels_from": null,
+    "loser": null,
+    "outcome": "NO_TRADE",
+    "pick_from": null,
+    "reason": "the traders disagree (Trader 1 BUY 55, Trader 2 SELL 65): no trade unless both choose the same side; the shadow debate was not asked: too little time left before the decision would be too old to execute (748 s at the start)",
+    "rule": "DISAGREE"
    },
    "models": {
-    "trader1": "recursive/flint-v1.0:free",
+    "trader1": "nvidia/nemotron-3.5-super-vl:free",
     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
    },
    "trader1": {
-    "confidence": 65,
-    "direction": "SELL",
-    "entry": 156.912,
-    "invalidation": 157.02,
-    "liquidity": "SELL-SIDE LIQUIDITY ABOVE: EQH 157.362, ORDER BLOCK SUPPLY 157.105-157.229",
-    "market_structure": "BEARISH BOS/CHoCH / H4 DOWNTREND",
-    "momentum": "BEARISH / SELL DISPLACEMENT",
-    "reason": "Higher timeframe and execution structure favor sellers after bearish BOS/CHoCH and failed higher high. Price is below key bearish breaks and momentum is negative, with supply/order block and FVG resistance overhead. Sell entry at 156.912 with stop above 157.02 and target at 156.663. Invalidation is a reclaim above 157.02.",
-    "reversal_probability": 35,
-    "risk_reward": 2.31,
-    "stop_loss": 157.02,
-    "take_profit": 156.663,
-    "trend": "H4 BEARISH, M15 RANGE/MIXED"
+    "confidence": 55,
+    "direction": "BUY",
+    "entry": 1.12254,
+    "invalidation": 1.12133,
+    "liquidity": "No liquidity array entries; untested demand OB at 1.12032-1.12082 below; open bullish FVGs at 1.12233-1.12246 and below",
+    "market_structure": "M15 downtrend (LH+LL) invalidated by bullish CHoCH at 1.12133; H4 ranging with mixed swings",
+    "momentum": "Bullish recovery from LL 1.11932; M15 range position 0.81 near short-term top but CHoCH holds",
+    "reason": "Bullish CHoCH at 1.12133 broke the M15 bearish structure and price holds above it. Open bullish FVGs and untested demand OB below support the long side, while H4 remains range-bound with no bearish edge. Stop below CHoCH at 1.12133; target at bearish FVG 1.12400 meets minimum R:R.",
+    "reversal_probability": 45,
+    "risk_reward": 1.21,
+    "stop_loss": 1.12133,
+    "take_profit": 1.124,
+    "trend": "M15 DOWN, H4 RANGE"
    },
    "trader2": {
-    "confidence": 70,
+    "confidence": 65,
     "direction": "SELL",
-    "entry": 156.912,
-    "invalidation": 157.02,
-    "liquidity": "Buy-side liquidity rests above at EQH 157.362 (M15) and 158.259/158.343 (H1); recent low sweep at 157.02 (bullish) was the CHoCH trigger, now acting as resistance",
-    "market_structure": "M5/H1 downtrend (LH+LL) with fresh M15 bearish CHoCH at 157.02; untested supply blocks at 157.105-157.229 (M15) and 157.617-157.762 (H1); multiple bearish FVGs overhead",
-    "momentum": "Bearish displacement evident from 158.03 to 156.77; current bounce is corrective (14 pips) into broken structure",
-    "reason": "M5/H1 bearish trends with fresh M15 CHoCH at 157.02; price retracing to broken HL offers pullback short with clear invalidation; target at H1 swing low 156.681 yields 2.5:1 R:R passing risk engine; NY session shows positive desk expectancy.",
-    "reversal_probability": 30,
-    "risk_reward": 2.54,
-    "stop_loss": 157.02,
-    "take_profit": 156.663,
-    "trend": "H4 range but lower highs/lows since Oct 19; M5/H1 clearly bearish; M15 range with bearish CHoCH"
+    "entry": 1.12246,
+    "invalidation": 1.12334,
+    "liquidity": "Resistance cluster at 1.1228-1.1230 with 15 combined touches; bearish FVG above at 1.12397-1.1241; equal highs on H4 at 1.12638 untested",
+    "market_structure": "M15 bullish CHoCH at 1.12133 but price at resistance cluster (1.1228/1.12301, 7-8 touches) with bearish rejection on last bar; H1 bearish BOS at 1.12171 still relevant despite 16:00 higher high",
+    "momentum": "M15 rally from 1.11932 losing steam at range top (position 0.81); last M15 bar long upper wick rejection from 1.12334; M5 range position 0.65 fading",
+    "reason": "M15 advance stalled at heavy resistance cluster (1.1228-1.1230, 15 touches) with bearish rejection candle; H1 structure favors downside to CHoCH support at 1.12133; 1.28 R:R meets risk engine minimums with 8.8 pip stop.",
+    "reversal_probability": 55,
+    "risk_reward": 1.28,
+    "stop_loss": 1.12334,
+    "take_profit": 1.12133,
+    "trend": "M15 UP (post-CHoCH HH/HL) but at resistance; H1 RANGE transitioning; H4 RANGE"
    },
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1792688420,
-    "bytes": 29578,
+    "as_of": 1792690219,
+    "bytes": 29289,
     "execution_timeframe": "M15",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1792688400,
-    "last_bar_open": 1792687500,
-    "sha256": "d80a0f45423e0ab276b6759a8b1e839f1d0031401aaf9e10fe950c4644df8c1a",
+    "last_bar_available": 1792690200,
+    "last_bar_open": 1792689300,
+    "sha256": "eed6a784ff883ab3c6d259d01b8c2ca86ab96cae140cdff5d8db6852995b5963",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -2823,69 +2892,169 @@
     {
      "attempts": 1,
      "cached": false,
-     "error": "no answer within 420 s (last: INVALID: take_profit 157.359 is on the wrong side for SELL (entry 156.922, executable 156.912))",
-     "latency_ms": 0.0,
-     "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-     "ok": false,
-     "provider_id": null,
-     "request_id": null,
+     "error": null,
+     "latency_ms": 616163.7,
+     "model": "nvidia/nemotron-3.5-super-vl:free",
+     "ok": true,
+     "provider_id": "gen-1792690221-MBUjugfBX22b5sO5ZJWZ",
+     "request_id": "81c72ebcfc1f4b4ca1e2ad5640e80a20",
      "role": "vision",
-     "status": "TIMEOUT",
-     "tokens": null,
-     "tried": [
-      {
-       "model": "nvidia/nemotron-3.5-super-vl:free",
-       "status": "INVALID: no JSON object in the reply"
-      },
-      {
-       "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-       "status": "INVALID: take_profit 157.359 is on the wrong side for SELL (entry 156.922, executable 156.912)"
-      }
-     ]
+     "status": "OK",
+     "tokens": 17789,
+     "tried": []
     },
     {
      "attempts": 1,
      "cached": false,
      "error": null,
-     "latency_ms": 96482.0,
-     "model": "recursive/flint-v1.0:free",
+     "latency_ms": 197028.9,
+     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
      "ok": true,
-     "provider_id": "gen-1792688920-wnjsMZ5eNu0AzTF2SXgX",
-     "request_id": "708eb4226115406bbd8e0b945b5ccdeb",
-     "role": "trader1_numbers",
+     "provider_id": "gen-1792690839-uKy3vdzpHczd8LFGVI7H",
+     "request_id": "21ec65e2fe73453a9574a0c25301250b",
+     "role": "judge",
      "status": "OK",
-     "tokens": 16136,
+     "tokens": 20864,
      "tried": [
       {
-       "model": "xingchen-agi/xing4.0-29b-a4b:free",
+       "model": "thinkingmachines/inkling-small:free",
+       "status": "MODEL_RESTRICTED"
+      },
+      {
+       "model": "thinkingmachines/inkling:free",
+       "status": "MODEL_RESTRICTED"
+      },
+      {
+       "model": "google/gemma-4-26b-a4b-it:free",
+       "status": "RATE_LIMITED"
+      },
+      {
+       "model": "google/gemma-4-31b-it:free",
        "status": "RATE_LIMITED"
       }
      ]
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "error": null,
-     "latency_ms": 129233.9,
-     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-     "ok": true,
-     "provider_id": "gen-1792689017-V1wHNdSe3VVUiYNwDp02",
-     "request_id": "11ac0664eb1d4317b85ba523b8884c52",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 18464,
-     "tried": []
     }
    ],
-   "trader1_input": "numbers",
-   "version": "dual-ai-1.7.0",
-   "risk": {
-    "approved": true,
-    "reasons": [],
-    "qty": 1.77
-   }
+   "trader1_input": "image",
+   "version": "dual-ai-1.9.0",
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "164aa5de2165458f3973c2cf",
+    "symbol": "EURUSD",
+    "t": 1792690219,
+    "decision": "NO_TRADE",
+    "reason": "the traders disagree (Trader 1 BUY 55, Trader 2 SELL 65): no trade unless both choose the same side; the shadow debate was not asked: too little time left before the decision would be too old to execute (748 s at the start)",
+    "consensus": {
+     "debate_pick": null,
+     "direction": null,
+     "levels_from": null,
+     "loser": null,
+     "outcome": "NO_TRADE",
+     "pick_from": null,
+     "reason": "the traders disagree (Trader 1 BUY 55, Trader 2 SELL 65): no trade unless both choose the same side; the shadow debate was not asked: too little time left before the decision would be too old to execute (748 s at the start)",
+     "rule": "DISAGREE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
+    },
+    "trader1": {
+     "confidence": 55,
+     "direction": "BUY",
+     "entry": 1.12254,
+     "invalidation": 1.12133,
+     "liquidity": "No liquidity array entries; untested demand OB at 1.12032-1.12082 below; open bullish FVGs at 1.12233-1.12246 and below",
+     "market_structure": "M15 downtrend (LH+LL) invalidated by bullish CHoCH at 1.12133; H4 ranging with mixed swings",
+     "momentum": "Bullish recovery from LL 1.11932; M15 range position 0.81 near short-term top but CHoCH holds",
+     "reason": "Bullish CHoCH at 1.12133 broke the M15 bearish structure and price holds above it. Open bullish FVGs and untested demand OB below support the long side, while H4 remains range-bound with no bearish edge. Stop below CHoCH at 1.12133; target at bearish FVG 1.12400 meets minimum R:R.",
+     "reversal_probability": 45,
+     "risk_reward": 1.21,
+     "stop_loss": 1.12133,
+     "take_profit": 1.124,
+     "trend": "M15 DOWN, H4 RANGE"
+    },
+    "trader2": {
+     "confidence": 65,
+     "direction": "SELL",
+     "entry": 1.12246,
+     "invalidation": 1.12334,
+     "liquidity": "Resistance cluster at 1.1228-1.1230 with 15 combined touches; bearish FVG above at 1.12397-1.1241; equal highs on H4 at 1.12638 untested",
+     "market_structure": "M15 bullish CHoCH at 1.12133 but price at resistance cluster (1.1228/1.12301, 7-8 touches) with bearish rejection on last bar; H1 bearish BOS at 1.12171 still relevant despite 16:00 higher high",
+     "momentum": "M15 rally from 1.11932 losing steam at range top (position 0.81); last M15 bar long upper wick rejection from 1.12334; M5 range position 0.65 fading",
+     "reason": "M15 advance stalled at heavy resistance cluster (1.1228-1.1230, 15 touches) with bearish rejection candle; H1 structure favors downside to CHoCH support at 1.12133; 1.28 R:R meets risk engine minimums with 8.8 pip stop.",
+     "reversal_probability": 55,
+     "risk_reward": 1.28,
+     "stop_loss": 1.12334,
+     "take_profit": 1.12133,
+     "trend": "M15 UP (post-CHoCH HH/HL) but at resistance; H1 RANGE transitioning; H4 RANGE"
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792690219,
+     "bytes": 29289,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792690200,
+     "last_bar_open": 1792689300,
+     "sha256": "eed6a784ff883ab3c6d259d01b8c2ca86ab96cae140cdff5d8db6852995b5963",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 616163.7,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792690221-MBUjugfBX22b5sO5ZJWZ",
+      "request_id": "81c72ebcfc1f4b4ca1e2ad5640e80a20",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 17789,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 197028.9,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ok": true,
+      "provider_id": "gen-1792690839-uKy3vdzpHczd8LFGVI7H",
+      "request_id": "21ec65e2fe73453a9574a0c25301250b",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 20864,
+      "tried": [
+       {
+        "model": "thinkingmachines/inkling-small:free",
+        "status": "MODEL_RESTRICTED"
+       },
+       {
+        "model": "thinkingmachines/inkling:free",
+        "status": "MODEL_RESTRICTED"
+       },
+       {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "status": "RATE_LIMITED"
+       },
+       {
+        "model": "google/gemma-4-31b-it:free",
+        "status": "RATE_LIMITED"
+       }
+      ]
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.9.0",
+    "risk": null
+   },
    {
     "decision_id": "076da693256e4c643607faee",
     "symbol": "USDJPY",
@@ -3630,27 +3799,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.7.0",
     "risk": null
-   },
-   {
-    "decision_id": "e314f44134fe808574497a85",
-    "symbol": "AUDUSD",
-    "t": 1792681219,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: trading_calendar (Thursday 15:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: trading_calendar (Thursday 15:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.7.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -3660,12 +3808,12 @@
     "side": "SELL",
     "qty": 1.77,
     "entry": 156.857,
-    "current": 157.01999999999998,
+    "current": 156.982,
     "stop": 157.02,
     "target": 156.663,
-    "r_now": -1.0,
+    "r_now": -0.767,
     "opened": 1792689146.0,
-    "pnl": -184.65,
+    "pnl": -141.6,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4316,14 +4464,14 @@
    "decisions_by_rule": {
     "AGREE": 330,
     "DEBATE": 5,
-    "DISAGREE": 99,
+    "DISAGREE": 100,
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 407,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 10
    },
-   "agreement_rate": 0.76,
-   "decisions_with_both_traders": 434,
+   "agreement_rate": 0.759,
+   "decisions_with_both_traders": 435,
    "unavailable": 1332
   },
   "recent_trades": [
