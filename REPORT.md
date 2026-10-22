@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-22 03:45 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 00:30 UTC · decision system `dual_ai`
+Updated 2026-10-22 04:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 00:30 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -22,6 +22,8 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,7
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-22 03:47 GBPUSD BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY GBPUSD would bet against an open position: GBPJPY SELL is short GBP
+- 10-22 03:45 EURUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-22 03:30 EURCHF SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-22 03:19 GBPJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-22 03:15 EURJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
@@ -40,11 +42,11 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,7
 - 10-21 10:32 AUDJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.03 vs minimum 1.2
 - 10-21 10:30 EURCHF SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-21 10:16 GBPJPY BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
-- 10-21 10:15 EURJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
-- 10-21 10:00 EURGBP SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (1988 so far)
+## Latest decisions, NO TRADE included (1990 so far)
 
+- 10-22 03:47 GBPUSD BUY: BUY GBPUSD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) BUY 64: Buy the pullback into the open bullish FVG after the confirmed sweep and bullish M15 CHOCH. The stop sits below the 1.33905
+- 10-22 03:45 EURUSD BUY: BUY EURUSD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) BUY 63: Buy the controlled pullback because consecutive bullish structure breaks and H4 acceptance above 1.12435 favor continuation
 - 10-22 03:32 AUDJPY NO_TRADE: the traders disagree (Trader 1 SELL 68, Trader 2 BUY 65): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen BUY: followed forward in shadow
 - 10-22 03:30 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 67: Sell at the bid after the confirmed bearish break from 0.92533 and rejection from the untested supply block. The stop is 
 - 10-22 03:19 GBPJPY SELL: SELL GBPJPY on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 63: The bearish CHOCH and BOS sequence favors a continuation sell toward the 211.102 previous-day low. A stop above the 211.5
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,7
 - 10-22 02:45 USDCAD BUY: BUY USDCAD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) BUY 57: Buy after three bullish sweeps of 1.40380, where the completed M15 bar also recovered from the sweep. The stop is below the
 - 10-22 02:31 AUDUSD SELL: SELL AUDUSD on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 58: The bearish M15 BOS sequence and sustained selling favor continuation toward 0.70097, with 0.70141 liquidity providing in
 - 10-22 02:30 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (minimax/minimax-m3.1-flash:free) SELL 64: The latest bearish CHoCH and BOS favor continuation toward the 157.895 liquidity pool and 157.832 previous-day low. A rec
-- 10-22 02:15 GBPUSD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-22 02:15 EURUSD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 
 ## Open paper positions
 
@@ -91,7 +91,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,7
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `minimax/minimax-m3.1-flash:free` · trader 2 `nvidia/nemotron-3.5-super-vl:free` · debate `nvidia/nemotron-3-ultra-550b-a55b:free` · calls today 30/900
+OpenRouter `READY` · key set · trader 1 `minimax/minimax-m3.1-flash:free` · trader 2 `nvidia/nemotron-3.5-super-vl:free` · debate `google/gemma-4-26b-a4b-it:free` · calls today 35/900
 
 Agreement trades 77 (adequate) · wins 34 · losses 43 · net $-1,106.61 · expectancy -0.055R · profit factor 0.92 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
@@ -103,6 +103,8 @@ Trades taken by session (UTC): ASIA 33 resolved (adequate), expectancy +0.028R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-22 03:47 | GBPUSD | BUY 64 | BUY 64 | - | AGREE | BUY | REJECTED |
+| 10-22 03:45 | EURUSD | BUY 63 | BUY 58 | - | AGREE | BUY | REJECTED |
 | 10-22 03:32 | AUDJPY | SELL 68 | BUY 65 | BUY | DISAGREE | NO_TRADE | - |
 | 10-22 03:30 | EURCHF | SELL 67 | SELL 64 | - | AGREE | SELL | REJECTED |
 | 10-22 03:19 | GBPJPY | SELL 63 | SELL 60 | - | AGREE | SELL | APPROVED |
@@ -113,8 +115,6 @@ Trades taken by session (UTC): ASIA 33 resolved (adequate), expectancy +0.028R �
 | 10-22 02:45 | USDCAD | BUY 57 | BUY 56 | - | AGREE | BUY | REJECTED |
 | 10-22 02:31 | AUDUSD | SELL 58 | SELL 58 | - | AGREE | SELL | REJECTED |
 | 10-22 02:30 | USDJPY | SELL 64 | SELL 63 | - | AGREE | SELL | REJECTED |
-| 10-22 02:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-22 02:15 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
