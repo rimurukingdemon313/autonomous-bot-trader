@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 200257.24,
+  "equity": 199887.29,
   "balance": 200508.34,
-  "total_pnl": 257.24,
-  "today_pnl": 399.03,
+  "total_pnl": -112.71,
+  "today_pnl": 29.07,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 198840.73,
+  "equity_before_adjustments": 198470.77,
   "day_reference": 199858.2156990063,
-  "drawdown_from_start": 0.0,
+  "drawdown_from_start": -112.71,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -563,17 +563,34 @@
  },
  "open_positions": [
   {
+   "id": "P91",
+   "symbol": "EURCHF",
+   "side": "BUY",
+   "qty": 1.99,
+   "entry": 0.9228999999999999,
+   "current": 0.9227099999999999,
+   "stop": 0.92119,
+   "target": 0.92534,
+   "r_now": -0.111,
+   "opened": 1792685503.0,
+   "pnl": -45.95,
+   "max_hold_minutes": 1440,
+   "timeframe": "M15",
+   "method": null,
+   "thesis": "BUY EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 65: EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liquidity at 0.91909-0.9202 was already swept"
+  },
+  {
    "id": "P90",
    "symbol": "GBPUSD",
    "side": "SELL",
    "qty": 2.7,
    "entry": 1.33693,
-   "current": 1.33786,
+   "current": 1.33906,
    "stop": 1.33845,
    "target": 1.33447,
-   "r_now": -0.612,
+   "r_now": -1.401,
    "opened": 1792669751.0,
-   "pnl": -251.1,
+   "pnl": -575.1,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -2024,6 +2041,23 @@
  ],
  "pipeline": [
   {
+   "decision": "BUY",
+   "edge_status": "EXPERIMENTAL",
+   "fill": 0.9228999999999999,
+   "id": "ffe342834e16b35df7b8bf9f",
+   "mode": "PAPER_FORWARD",
+   "position_id": "P91",
+   "reason": null,
+   "size": 1.99,
+   "stages": [
+    "AI DECISION",
+    "RISK APPROVED",
+    "PAPER EXECUTED"
+   ],
+   "symbol": "EURCHF",
+   "t": 1792684820
+  },
+  {
    "decision": "SELL",
    "edge_status": "EXPERIMENTAL",
    "fill": 1.33693,
@@ -2289,22 +2323,16 @@
    ],
    "symbol": "EURUSD",
    "t": 1792655119
-  },
-  {
-   "decision": "SELL",
-   "edge_status": "EXPERIMENTAL",
-   "id": "b1e1addbb467f0c6b19893f2",
-   "mode": "PAPER_FORWARD",
-   "reason": "reward_risk: 1.19 vs minimum 1.2",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "AUDJPY",
-   "t": 1792654288
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "EURCHF",
+   "decision": "BUY",
+   "t": 1792684820,
+   "reason": "BUY EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 65: EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liqui",
+   "data_flags": []
+  },
   {
    "symbol": "GBPJPY",
    "decision": "NO_TRADE",
@@ -2465,16 +2493,9 @@
    "t": 1792674019,
    "reason": "risk engine: trading_calendar (Thursday 13:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "EURCHF",
-   "decision": "NO_TRADE",
-   "t": 1792674018,
-   "reason": "risk engine: trading_calendar (Thursday 13:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 2085,
+ "decisions_total": 2086,
  "shift": {
   "started": "2026-10-22 11:41 UTC",
   "decision_mode": "dual_ai",
@@ -2498,37 +2519,24 @@
    "judge_pin": null,
    "version": "openrouter-1.8.0",
    "status": "READY",
-   "calls_today": 9,
+   "calls_today": 14,
    "last_call": {
-    "t": 1792669751,
+    "t": 1792685503,
     "role": "judge",
     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "cefe5d38d719401b857697f34e39b3a1",
-    "provider_id": "gen-1792669665-Gmu5XXqmW0SxRj1hqdXj",
+    "request_id": "7a845d7286094d63b180aac113116aae",
+    "provider_id": "gen-1792685235-U7GBb57rvB386kDmNrWw",
     "attempts": 1,
-    "latency_ms": 85814.7,
+    "latency_ms": 267821.2,
     "cached": false,
-    "tokens": 18318,
-    "tried": [
-     {
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "status": "INVALID: no JSON object in the reply"
-     },
-     {
-      "model": "thinkingmachines/inkling-small:free",
-      "status": "MODEL_RESTRICTED"
-     },
-     {
-      "model": "thinkingmachines/inkling:free",
-      "status": "MODEL_RESTRICTED"
-     }
-    ]
+    "tokens": 20004,
+    "tried": []
    },
    "key": {
-    "checked": 1792669522,
+    "checked": 1792684821,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 0.0,
@@ -2538,63 +2546,11 @@
    },
    "paid_usage": null,
    "data_policy": null,
-   "vision_model": "minimax/minimax-m3.1-flash:free",
-   "judge_model": "nvidia/nemotron-3.5-super-vl:free",
-   "verifier_model": "thinkingmachines/inkling-small:free",
+   "vision_model": "google/gemma-4-26b-a4b-it:free",
+   "judge_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+   "verifier_model": "nvidia/nemotron-3.5-super-vl:free",
    "selection": {
     "vision": [
-     {
-      "id": "minimax/minimax-m3.1-flash:free",
-      "name": "MiniMax: MiniMax M3.1 Flash (free)",
-      "score": 92.7,
-      "context": 1000000,
-      "image": true,
-      "intelligence_index": 42.7,
-      "params_b": null,
-      "structured": true,
-      "reasoning": true,
-      "family": "minimax",
-      "expires": null
-     },
-     {
-      "id": "nvidia/nemotron-3.5-super-vl:free",
-      "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
-      "score": 76.5,
-      "context": 1000000,
-      "image": true,
-      "intelligence_index": 26.5,
-      "params_b": null,
-      "structured": true,
-      "reasoning": true,
-      "family": "nvidia",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 75.7,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.7,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 75.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
      {
       "id": "google/gemma-4-26b-a4b-it:free",
       "name": "Google: Gemma 4 26B A4B  (free)",
@@ -2607,13 +2563,11 @@
       "reasoning": true,
       "family": "google",
       "expires": null
-     }
-    ],
-    "judge": [
+     },
      {
       "id": "nvidia/nemotron-3.5-super-vl:free",
       "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
-      "score": 52.5,
+      "score": 66.5,
       "context": 1000000,
       "image": true,
       "intelligence_index": 26.5,
@@ -2624,31 +2578,46 @@
       "expires": null
      },
      {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 51.7,
-      "context": 1048576,
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 64.7,
+      "context": 262144,
       "image": true,
-      "intelligence_index": 25.7,
-      "params_b": null,
-      "structured": false,
+      "intelligence_index": 14.7,
+      "params_b": 31.0,
+      "structured": true,
       "reasoning": true,
-      "family": "thinkingmachines",
+      "family": "google",
       "expires": null
      },
      {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 51.0,
-      "context": 1048576,
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 60.27,
+      "context": 256000,
       "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
       "structured": false,
       "reasoning": true,
-      "family": "thinkingmachines",
+      "family": "nvidia",
       "expires": null
      },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 54.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     }
+    ],
+    "judge": [
      {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "name": "NVIDIA: Nemotron 3 Ultra (free)",
@@ -2663,63 +2632,76 @@
       "expires": null
      },
      {
-      "id": "google/gemma-4-26b-a4b-it:free",
-      "name": "Google: Gemma 4 26B A4B  (free)",
-      "score": 42.7,
-      "context": 262144,
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
+      "score": 42.5,
+      "context": 1000000,
       "image": true,
-      "intelligence_index": 16.7,
-      "params_b": 26.0,
+      "intelligence_index": 26.5,
+      "params_b": null,
       "structured": true,
       "reasoning": true,
-      "family": "google",
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 36.27,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "name": "NVIDIA: Nemotron 3.5 Lightning (free)",
+      "score": 35.9,
+      "context": 1000000,
+      "image": false,
+      "intelligence_index": 12.9,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+      "name": "NVIDIA: Nemotron 3 Super (free)",
+      "score": 35.8,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": 12.8,
+      "params_b": 120.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "nvidia",
       "expires": null
      }
     ],
     "verifier": [
      {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 52.7,
-      "context": 1048576,
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
+      "score": 33.5,
+      "context": 1000000,
       "image": true,
-      "intelligence_index": 25.7,
+      "intelligence_index": 26.5,
       "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 52.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "google/gemma-4-26b-a4b-it:free",
-      "name": "Google: Gemma 4 26B A4B  (free)",
-      "score": 43.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 16.7,
-      "params_b": 26.0,
       "structured": true,
       "reasoning": true,
-      "family": "google",
+      "family": "nvidia",
       "expires": null
      },
      {
       "id": "google/gemma-4-31b-it:free",
       "name": "Google: Gemma 4 31B (free)",
-      "score": 41.7,
+      "score": 31.7,
       "context": 262144,
       "image": true,
       "intelligence_index": 14.7,
@@ -2730,25 +2712,57 @@
       "expires": null
      },
      {
-      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "name": "NVIDIA: Nemotron 3 Ultra (free)",
-      "score": 35.9,
-      "context": 1000000,
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 31.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
       "image": false,
-      "intelligence_index": 22.9,
-      "params_b": 550.0,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 27.27,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
       "structured": false,
       "reasoning": true,
       "family": "nvidia",
       "expires": null
      }
     ],
-    "free_total": 15,
+    "free_total": 14,
     "catalog_total": 468,
-    "refreshed": 1792669634.169688,
+    "refreshed": 1792685505.2906039,
     "error": null,
     "version": "free-models-1.3.0",
-    "cooldown": {},
+    "cooldown": {
+     "google/gemma-4-26b-a4b-it:free": {
+      "until": 1792685805,
+      "why": "rate_limited",
+      "in_a_row": 1
+     }
+    },
     "excluded": {
      "thinkingmachines/inkling-small:free": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter",
      "thinkingmachines/inkling:free": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/ap"
@@ -2760,7 +2774,7 @@
      "failed": 0
     },
     "nvidia/nemotron-3.5-super-vl:free": {
-     "ok": 1,
+     "ok": 2,
      "failed": 1
     },
     "thinkingmachines/inkling-small:free": {
@@ -2772,8 +2786,12 @@
      "failed": 1
     },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
-     "ok": 1,
+     "ok": 2,
      "failed": 0
+    },
+    "google/gemma-4-26b-a4b-it:free": {
+     "ok": 0,
+     "failed": 1
     }
    }
   },
@@ -2812,30 +2830,241 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1792668600,
     "last_bar_available": 1792669500
+   },
+   "EURCHF": {
+    "t": 1792684820,
+    "decision_id": "ffe342834e16b35df7b8bf9f",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 29518,
+    "sha256": "34946d465228c72d3e07cc4770caad5cbf98db3efa2bd07c4f2ab9a4e29a91fc",
+    "as_of": 1792684820,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792683900,
+    "last_bar_available": 1792684800
+   },
+   "AUDJPY": {
+    "t": 1792685503,
+    "decision_id": "ba67610818a8746692dde4e9",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 29844,
+    "sha256": "52b11a05dda7d11409933ee85adb781a7e950a9429a9c1170d726b2ed7281e6b",
+    "as_of": 1792685503,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792683900,
+    "last_bar_available": 1792684800
    }
   },
   "last_analysis": {
-   "decision_id": "74b5db7dcf9c4aa7c83bce57",
-   "symbol": "GBPJPY",
-   "t": 1792683919,
-   "decision": "NO_TRADE",
-   "reason": "risk engine: trading_calendar (Thursday 15:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+   "decision_id": "ffe342834e16b35df7b8bf9f",
+   "symbol": "EURCHF",
+   "t": 1792684820,
+   "decision": "BUY",
+   "reason": "BUY EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 65: EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liquidity at 0.91909-0.9202 was already swept. Price sits just above the prior-week low (0.92223) with un",
    "consensus": {
-    "outcome": "NO_TRADE",
-    "reason": "risk engine: trading_calendar (Thursday 15:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-    "rule": "NOT_ASKED"
+    "desk_confidence": 0.6,
+    "direction": "BUY",
+    "levels_from": "trader1",
+    "outcome": "TRADE",
+    "rule": "AGREE",
+    "stop_loss": 0.92119,
+    "take_profit": 0.92534
    },
-   "models": {},
-   "trader1": null,
-   "trader2": null,
+   "models": {
+    "trader1": "nvidia/nemotron-3.5-super-vl:free",
+    "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
+   },
+   "trader1": {
+    "confidence": 65,
+    "direction": "BUY",
+    "entry": 0.92249,
+    "invalidation": 0.92119,
+    "liquidity": "Downside EQH/lows swept at 0.91909-0.9202 (bullish signal); untested buy-side EQH above at 0.92534, 0.92672, 0.927",
+    "market_structure": "RANGE with bullish CHoCH at 0.9217; recent HL 0.92119 then LH 0.92271, price testing tested demand OB",
+    "momentum": "M15/H1 bars closing near highs after H4 range bar swept lows and closed at 0.92249; normal volatility, ATR percentile 66",
+    "reason": "EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liquidity at 0.91909-0.9202 was already swept. Price sits just above the prior-week low (0.92223) with untested buy-side EQH liquidity above at 0.92534+. A break below the recent higher low at 0.92119 invalidates the bullish setup.",
+    "reversal_probability": 40,
+    "risk_reward": 2.19,
+    "stop_loss": 0.92119,
+    "take_profit": 0.92534,
+    "trend": "M15 RANGE (MIXED), H4 RANGE (MIXED); price just above prior-week low 0.92223 and 20-day low area, mean-reversion bias to upside"
+   },
+   "trader2": {
+    "confidence": 60,
+    "direction": "BUY",
+    "entry": 0.92249,
+    "invalidation": 0.92119,
+    "liquidity": "Downside liquidity swept at 0.91909-0.9202 (bullish); buy-side EQH untested at 0.92534, 0.9263, 0.92672",
+    "market_structure": "M15 bullish CHoCH at 0.9217 with tested demand OB at 0.91998-0.92149; H1 downtrend but price holding at prior-week low 0.92223",
+    "momentum": "M5/M15 show bullish structure (HH/HL); H1 bearish momentum fading at key support",
+    "reason": "Price defends prior-week low with bullish CHoCH and tested demand OB; downside liquidity already swept; targeting first untested EQH at 0.92534 offers 2.19 R:R within risk limits.",
+    "reversal_probability": 45,
+    "risk_reward": 2.19,
+    "stop_loss": 0.92119,
+    "take_profit": 0.92534,
+    "trend": "H4 range, H1 down, M15 transitioning bullish after CHoCH"
+   },
    "verifier": null,
-   "chart": null,
-   "calls": [],
-   "trader1_input": null,
+   "chart": {
+    "annotate_version": "chart-annotate-1.0.0",
+    "as_of": 1792684820,
+    "bytes": 29518,
+    "execution_timeframe": "M15",
+    "height": 1000,
+    "higher_timeframe": "H4",
+    "last_bar_available": 1792684800,
+    "last_bar_open": 1792683900,
+    "sha256": "34946d465228c72d3e07cc4770caad5cbf98db3efa2bd07c4f2ab9a4e29a91fc",
+    "version": "chart-render-1.0.0",
+    "width": 1280
+   },
+   "calls": [
+    {
+     "attempts": 2,
+     "cached": false,
+     "error": null,
+     "latency_ms": 413891.1,
+     "model": "nvidia/nemotron-3.5-super-vl:free",
+     "ok": true,
+     "provider_id": "gen-1792684936-uuoep0wcilsJcuzSqFsy",
+     "request_id": "f71e8c347463416ebd912fb3016721df",
+     "role": "vision",
+     "status": "OK",
+     "tokens": 17762,
+     "tried": []
+    },
+    {
+     "attempts": 1,
+     "cached": false,
+     "error": null,
+     "latency_ms": 267821.2,
+     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+     "ok": true,
+     "provider_id": "gen-1792685235-U7GBb57rvB386kDmNrWw",
+     "request_id": "7a845d7286094d63b180aac113116aae",
+     "role": "judge",
+     "status": "OK",
+     "tokens": 20004,
+     "tried": []
+    }
+   ],
+   "trader1_input": "image",
    "version": "dual-ai-1.7.0",
-   "risk": null
+   "risk": {
+    "approved": true,
+    "reasons": [],
+    "qty": 1.99
+   }
   },
   "analyses": [
+   {
+    "decision_id": "ffe342834e16b35df7b8bf9f",
+    "symbol": "EURCHF",
+    "t": 1792684820,
+    "decision": "BUY",
+    "reason": "BUY EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 65: EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liquidity at 0.91909-0.9202 was already swept. Price sits just above the prior-week low (0.92223) with un",
+    "consensus": {
+     "desk_confidence": 0.6,
+     "direction": "BUY",
+     "levels_from": "trader1",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 0.92119,
+     "take_profit": 0.92534
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
+    },
+    "trader1": {
+     "confidence": 65,
+     "direction": "BUY",
+     "entry": 0.92249,
+     "invalidation": 0.92119,
+     "liquidity": "Downside EQH/lows swept at 0.91909-0.9202 (bullish signal); untested buy-side EQH above at 0.92534, 0.92672, 0.927",
+     "market_structure": "RANGE with bullish CHoCH at 0.9217; recent HL 0.92119 then LH 0.92271, price testing tested demand OB",
+     "momentum": "M15/H1 bars closing near highs after H4 range bar swept lows and closed at 0.92249; normal volatility, ATR percentile 66",
+     "reason": "EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liquidity at 0.91909-0.9202 was already swept. Price sits just above the prior-week low (0.92223) with untested buy-side EQH liquidity above at 0.92534+. A break below the recent higher low at 0.92119 invalidates the bullish setup.",
+     "reversal_probability": 40,
+     "risk_reward": 2.19,
+     "stop_loss": 0.92119,
+     "take_profit": 0.92534,
+     "trend": "M15 RANGE (MIXED), H4 RANGE (MIXED); price just above prior-week low 0.92223 and 20-day low area, mean-reversion bias to upside"
+    },
+    "trader2": {
+     "confidence": 60,
+     "direction": "BUY",
+     "entry": 0.92249,
+     "invalidation": 0.92119,
+     "liquidity": "Downside liquidity swept at 0.91909-0.9202 (bullish); buy-side EQH untested at 0.92534, 0.9263, 0.92672",
+     "market_structure": "M15 bullish CHoCH at 0.9217 with tested demand OB at 0.91998-0.92149; H1 downtrend but price holding at prior-week low 0.92223",
+     "momentum": "M5/M15 show bullish structure (HH/HL); H1 bearish momentum fading at key support",
+     "reason": "Price defends prior-week low with bullish CHoCH and tested demand OB; downside liquidity already swept; targeting first untested EQH at 0.92534 offers 2.19 R:R within risk limits.",
+     "reversal_probability": 45,
+     "risk_reward": 2.19,
+     "stop_loss": 0.92119,
+     "take_profit": 0.92534,
+     "trend": "H4 range, H1 down, M15 transitioning bullish after CHoCH"
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792684820,
+     "bytes": 29518,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792684800,
+     "last_bar_open": 1792683900,
+     "sha256": "34946d465228c72d3e07cc4770caad5cbf98db3efa2bd07c4f2ab9a4e29a91fc",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 2,
+      "cached": false,
+      "error": null,
+      "latency_ms": 413891.1,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792684936-uuoep0wcilsJcuzSqFsy",
+      "request_id": "f71e8c347463416ebd912fb3016721df",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 17762,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 267821.2,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ok": true,
+      "provider_id": "gen-1792685235-U7GBb57rvB386kDmNrWw",
+      "request_id": "7a845d7286094d63b180aac113116aae",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 20004,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.7.0",
+    "risk": {
+     "approved": true,
+     "reasons": [],
+     "qty": 1.99
+    }
+   },
    {
     "decision_id": "74b5db7dcf9c4aa7c83bce57",
     "symbol": "GBPJPY",
@@ -3066,42 +3295,38 @@
     "trader1_input": null,
     "version": "dual-ai-1.7.0",
     "risk": null
-   },
-   {
-    "decision_id": "e9806a08dd41fdc4f7beed5a",
-    "symbol": "EURCHF",
-    "t": 1792679421,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: trading_calendar (Thursday 14:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: trading_calendar (Thursday 14:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.7.0",
-    "risk": null
    }
   ],
   "open_positions": [
+   {
+    "id": "P91",
+    "symbol": "EURCHF",
+    "side": "BUY",
+    "qty": 1.99,
+    "entry": 0.9228999999999999,
+    "current": 0.9227099999999999,
+    "stop": 0.92119,
+    "target": 0.92534,
+    "r_now": -0.111,
+    "opened": 1792685503.0,
+    "pnl": -45.95,
+    "max_hold_minutes": 1440,
+    "timeframe": "M15",
+    "method": null,
+    "thesis": "BUY EURCHF on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 65: EURCHF is ranging with a bullish CHoCH at 0.9217 and a tested demand order block at 0.91998-0.92149, while downside liquidity at 0.91909-0.9202 was already swept"
+   },
    {
     "id": "P90",
     "symbol": "GBPUSD",
     "side": "SELL",
     "qty": 2.7,
     "entry": 1.33693,
-    "current": 1.33786,
+    "current": 1.33906,
     "stop": 1.33845,
     "target": 1.33447,
-    "r_now": -0.612,
+    "r_now": -1.401,
     "opened": 1792669751.0,
-    "pnl": -251.1,
+    "pnl": -575.1,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -3750,7 +3975,7 @@
     }
    },
    "decisions_by_rule": {
-    "AGREE": 328,
+    "AGREE": 329,
     "DEBATE": 5,
     "DISAGREE": 97,
     "MARKET_UNAVAILABLE": 887,
@@ -3759,7 +3984,7 @@
     "TRADER2_UNAVAILABLE": 9
    },
    "agreement_rate": 0.763,
-   "decisions_with_both_traders": 430,
+   "decisions_with_both_traders": 431,
    "unavailable": 1331
   },
   "recent_trades": [
