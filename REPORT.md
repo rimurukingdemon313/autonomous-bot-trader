@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 09:29 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 04:28 UTC · decision system `dual_ai`
+Updated 2026-10-23 09:44 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 04:28 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $197,748.85 | $-1,921.41 | $-2,251.15 | $-2,251.15 | 2 | 95 (adequate) | 42.1% | -0.071R | 0.88 | ACTIVE | RUNNING |
+| $200,000.00 | $197,695.35 | $-1,974.91 | $-2,304.65 | $-2,304.65 | 2 | 95 (adequate) | 42.1% | -0.071R | 0.88 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $196,332.33); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $196,278.83); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Last decisions (decision → risk → paper execution)
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,3
 - 10-23 03:30 EURUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL EURUSD would bet against an open position: USDCHF SELL is short USD
 - 10-23 03:00 EURJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2206 so far)
+## Latest decisions, NO TRADE included (2208 so far)
 
+- 10-23 09:30 USDCHF NO_TRADE: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
+- 10-23 09:30 USDCAD NO_TRADE: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 09:15 AUDUSD NO_TRADE: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 09:15 USDJPY NO_TRADE: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 09:04 GBPUSD SELL: SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: H4 downtrend with untested supply OB above creates bearish bias; recent M15 bearish CHoCH and displacement align. Entry
@@ -55,15 +57,13 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,3
 - 10-23 08:30 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 66: H4 is in a downtrend (LH+LL) and M15 just printed a bearish CHoCH at 175.83 with bearish displacement. Open bearish FVG
 - 10-23 08:18 EURGBP NO_TRADE: risk engine: news (Medium-impact release GBP Flash Manufacturing PMI in 11 min; Medium-impact release GBP Flash Services PMI in 11 min: no new position from 30 min before to 30 min after): the model w
 - 10-23 08:15 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 75: The M15 trend is clearly bearish with lower highs and lower lows, and the price is currently testing a key supply or
-- 10-23 08:02 USDCHF SELL: SELL USDCHF on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The H4 trend is DOWN with bearish structure breaks, while the M15 uptrend is a counter-trend pullback into strong re
-- 10-23 08:00 USDCAD SELL: SELL USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The higher timeframe is bearish with recent bearish BOS breaks, while the M15 shows a liquidity sweep at the highs (
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| GBPUSD | SELL | 0.85 | 1.33783 | 1.33895 | 1.336 | $-19.55 |
-| EURUSD | SELL | 0.9 | 1.1195499999999998 | 1.1206 | 1.11787 | $-17.10 |
+| GBPUSD | SELL | 0.85 | 1.33783 | 1.33895 | 1.336 | $-28.05 |
+| EURUSD | SELL | 0.9 | 1.1195499999999998 | 1.1206 | 1.11787 | $-62.10 |
 
 ## Closed paper trades (latest 20)
 
@@ -104,6 +104,8 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-23 09:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-23 09:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 09:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 09:15 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 09:04 | GBPUSD | SELL 60 | SELL 65 | - | AGREE | SELL | APPROVED |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 | 10-23 08:30 | EURJPY | SELL 66 | SELL 68 | - | AGREE | SELL | REJECTED |
 | 10-23 08:18 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 08:15 | NZDUSD | SELL 75 | SELL 70 | - | AGREE | SELL | REJECTED |
-| 10-23 08:02 | USDCHF | SELL 65 | SELL 65 | - | AGREE | SELL | REJECTED |
-| 10-23 08:00 | USDCAD | SELL 72 | SELL 68 | - | AGREE | SELL | REJECTED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
