@@ -76,6 +76,22 @@ def test_expiring_soon_is_excluded_and_failures_lower_a_rank():
     assert fm.select(cat, penalties={"x/a:free": 1.0}).vision[0]["id"] == "x/b:free"
 
 
+def test_a_model_excluded_by_its_forward_record_takes_no_seat_and_the_next_free_one_does():
+    weak = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    assert "Trader 2" in fm.RECORD_EXCLUDED[weak]  # excluded with the record that put it there
+    cat = CATALOG + [model(weak, image=False, ii=60)]  # it would outscore every model for Trader 2 and the debate
+    sel = fm.select(cat, now=1_790_000_000)
+    assert weak not in {r["id"] for role in (sel.vision, sel.judge, sel.verifier) for r in role}
+    assert sel.judge[0]["id"] == TRADER and sel.verifier[0]["id"] == DEBATE and sel.free_total == 3
+    assert sel.as_dict()["record_excluded"] == fm.RECORD_EXCLUDED  # the dashboard shows why
+    fake = FakeOpenRouter(good, catalog=cat)
+    c = client(fake, judge_pin=weak)  # a pin cannot bring it back either
+    assert weak not in c.models_for("judge")
+    for role in ("vision", "judge", "verifier"):
+        assert c.chat_json(role, MSG, accept, dedupe_key=role).ok
+    assert fake.calls and all(call["model"] != weak for call in fake.calls)
+
+
 def test_no_free_model_means_no_model_never_a_paid_fallback():
     sel = fm.select([model("paid/x", price="0.00001", ii=90)], now=1_790_000_000)
     assert sel.vision == [] and sel.judge == [] and sel.error

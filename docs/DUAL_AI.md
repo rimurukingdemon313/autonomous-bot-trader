@@ -211,7 +211,7 @@ model is never used again; if the key's spent credit (GET /key `usage`) ever ris
 further request is made** (`PAID_USAGE_STOPPED`). Use this key for this bot only. There is never a paid
 fallback: no free model, no call, NO_TRADE (`AI_UNAVAILABLE`-class).
 
-### Selection (declared score, from catalog fields only, never from trading results)
+### Selection (declared score, from catalog fields only, never from trading results, with one declared exception)
 
 - capability = the catalog's independent Artificial Analysis intelligence index (else from the parameter
   count, at most 12);
@@ -223,13 +223,22 @@ fallback: no free model, no call, NO_TRADE (`AI_UNAVAILABLE`-class).
 
 With only two suitable models, the stronger reasoner of the two is reused for the debate.
 
+**One declared exception, from the desk's own record (free-models 1.4.0, operator, 2026-10-23):**
+`RECORD_EXCLUDED` takes a model out of every seat, each with the forward record that put it there; nothing adds
+to it automatically, and a pin cannot bring it back. Its one entry is `nvidia/nemotron-3-ultra-550b-a55b:free`.
+In Trader 2's seat its 125 agreements, followed forward, won 30% at -0.35 R each; the 175 agreements with
+another model in that seat (when it was busy) won 50% at +0.09 R. Within 3 h of each other the gap was -0.39 R
+(standard error 0.15), and it was worse on 6 of the 8 days both sat. Of the 92 agreement trades to 04:20 UTC that
+day, the 47 it sat in made -$2,739.99 and the other 45 +$1,321.48: more than the account's whole loss (-$1,418.51). The next free model in the ranking takes
+the seat, as it already did whenever this one was busy.
+
 **Picks on the live catalog, 2026-10-10 19:14 UTC** (458 models, 14 qualifying free, 6 with image input;
 `research/results/openrouter-free-models.json`):
 
 | role | model | why |
 |---|---|---|
 | Trader 1 (vision) | `thinkingmachines/inkling-small:free` | highest intelligence index of the free image models (25.7), 1M context, reasoning; fallback `thinkingmachines/inkling:free` (25.0) |
-| Trader 2 (independent) | `nvidia/nemotron-3-ultra-550b-a55b:free` | the strongest free reasoner of another family (22.9; 550B, 1M context); text only, so it reads the chart's marks as numbers |
+| Trader 2 (independent) | `nvidia/nemotron-3-ultra-550b-a55b:free` | the strongest free reasoner of another family (22.9; 550B, 1M context); text only, so it reads the chart's marks as numbers. **Excluded since free-models 1.4.0** (above) |
 | Debate | `google/gemma-4-26b-a4b-it:free` | a third family, sees the chart image (16.7) |
 
 The catalog changes; the selection is recomputed hourly and on failures. Optional pins
@@ -303,6 +312,11 @@ account would bet against itself); the overlap, late Friday and the weekend clos
 windows (event risk). These are still measured: risk-refused trades are followed forward. On 2026-10-19 the
 operator added Medium-impact news windows (risk 1.11.0) and H1 above (risk 1.12.0): both only ever refuse. On
 2026-10-20, H4 (the 24 h time exit, dual-ai 1.7.0): it changes when a trade is closed, never its size or levels.
+On 2026-10-23, H5 (free-models 1.4.0): `nemotron-3-ultra` no longer sits as Trader 2 (Selection, above). It
+changes which free model answers, never a rule, a size or a level. It is judged on the first 30 agreement trades
+taken under free-models 1.4.0: kept if their average is above the -0.14 R a trade made with that model in the
+seat (47 trades), and reviewed otherwise. Like every split read from the same data, part of the gap may be
+chance: the models that took the seat can be expected to do worse than their +0.09 R so far.
 
 ## Configuration and activation
 

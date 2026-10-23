@@ -13,6 +13,9 @@ The catalog (`GET /api/v1/models`) is read. A model is FREE only when all of the
 - It is not a router (`openrouter/...`), a safety/guard classifier, an embedding, rerank or speech model.
 - It is not too weak to trade: a measured intelligence index of at least 10, or, unmeasured, not stated below 7B.
 
+- It is not on RECORD_EXCLUDED: the one declared exception to the rule below, a model the desk's own forward record
+  took out of every seat, named there with that record. Nothing adds to it automatically.
+
 Selection is an explicit, declared score computed from the catalog's own fields. It is never tuned on trading
 results:
 
@@ -53,7 +56,17 @@ from datetime import datetime, timezone
 
 #: 1.3.0 (live check): models too weak to trade or settle a debate are left out: a measured intelligence index
 #:        below 10, or, with no measurement, fewer than 7B parameters stated (a 2.6B model was picked as the debate).
-FREE_MODELS_VERSION = "free-models-1.3.0"
+#: 1.4.0 (operator, 2026-10-23: "give me a solution"): nemotron-3-ultra no longer takes a seat (RECORD_EXCLUDED).
+#:        As Trader 2 it agreed to the trades that lost: of the 92 agreement trades it sat in 47, net -$2,739.99,
+#:        while the other models in its seat (when it was busy) sat in 45, net +$1,321.48.
+FREE_MODELS_VERSION = "free-models-1.4.0"
+#: model -> the forward record that excluded it. A declared, dated decision, changed only by a code change saying why.
+RECORD_EXCLUDED = {
+    "nvidia/nemotron-3-ultra-550b-a55b:free": (
+        "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, "
+        "-0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others "
+        "-0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"),
+}
 MIN_INTELLIGENCE, MIN_PARAMS_B = 10.0, 7.0
 MIN_CONTEXT = 16_384
 EXCLUDED_PREFIXES = ("openrouter/",)
@@ -224,7 +237,8 @@ def free_candidates(catalog: list[dict], now: float | None = None) -> dict[str, 
     """FREE models usable per role (unscored): vision needs image input; both need text output and context."""
     now = time.time() if now is None else now
     free = [m for m in catalog if isinstance(m, dict) and is_free(m) and context_length(m) >= MIN_CONTEXT
-            and (_expiry_days(m, now) is None or _expiry_days(m, now) > 7) and not too_weak(m)]
+            and (_expiry_days(m, now) is None or _expiry_days(m, now) > 7) and not too_weak(m)
+            and m.get("id") not in RECORD_EXCLUDED]
     return {"vision": [m for m in free if supports_image(m)], "text": free}
 
 
@@ -241,7 +255,7 @@ class Selection:
     def as_dict(self) -> dict:
         return {"vision": self.vision, "judge": self.judge, "verifier": self.verifier, "free_total": self.free_total,
                 "catalog_total": self.catalog_total, "refreshed": self.refreshed, "error": self.error,
-                "version": FREE_MODELS_VERSION}
+                "record_excluded": dict(RECORD_EXCLUDED), "version": FREE_MODELS_VERSION}
 
 
 def _row(m: dict, score: float) -> dict:
@@ -289,6 +303,6 @@ def select(catalog: list[dict], now: float | None = None, penalties: dict[str, f
     return sel
 
 
-__all__ = ["FREE_MODELS_VERSION", "FREE_SUFFIX", "MIN_CONTEXT", "Selection", "capability", "family",
+__all__ = ["FREE_MODELS_VERSION", "FREE_SUFFIX", "MIN_CONTEXT", "RECORD_EXCLUDED", "Selection", "capability", "family",
            "free_candidates", "intelligence", "is_free", "judge_score", "params_b", "select", "supports_image",
            "verifier_score", "vision_score"]
