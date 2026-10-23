@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 08:43 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 04:28 UTC · decision system `dual_ai`
+Updated 2026-10-23 08:58 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 04:28 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -22,6 +22,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,3
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-23 08:51 AUDJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-23 08:30 EURJPY SELL: AI DECISION → RISK REJECTED — reward_risk: 0.56 vs minimum 1.2
 - 10-23 08:15 NZDUSD SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 25.1% of the stop (max 25%): spread 0.00015 + commission and slippage
 - 10-23 08:02 USDCHF SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
@@ -41,10 +42,11 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,3
 - 10-23 03:00 EURJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-23 02:51 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-23 02:45 NZDUSD BUY: AI DECISION → RISK REJECTED — reward_risk: 0.96 vs minimum 1.2; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
-- 10-23 02:35 USDCHF SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (2200 so far)
+## Latest decisions, NO TRADE included (2202 so far)
 
+- 10-23 08:51 AUDJPY SELL: SELL AUDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The bearish sweep of the EQH liquidity at 110.32/110.34 combined with the recent lower high (LH) at 110.344 and stro
+- 10-23 08:45 EURCHF NO_TRADE: the traders disagree (Trader 1 BUY 60, Trader 2 SELL 70): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 - 10-23 08:36 GBPJPY NO_TRADE: risk engine: news (Medium-impact release GBP Flash Manufacturing PMI 7 min ago; Medium-impact release GBP Flash Services PMI 7 min ago: no new position from 30 min before to 30 min after): the model w
 - 10-23 08:30 EURJPY SELL: SELL EURJPY on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 66: H4 is in a downtrend (LH+LL) and M15 just printed a bearish CHoCH at 175.83 with bearish displacement. Open bearish FVG
 - 10-23 08:18 EURGBP NO_TRADE: risk engine: news (Medium-impact release GBP Flash Manufacturing PMI in 11 min; Medium-impact release GBP Flash Services PMI in 11 min: no new position from 30 min before to 30 min after): the model w
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,3
 - 10-23 07:45 USDJPY SELL: SELL USDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The H4 trend remains bearish (LH+LL), favoring sells on pullbacks, while the M15 is in a range with the price curren
 - 10-23 07:30 GBPUSD SELL: SELL GBPUSD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 70: The M15 chart shows a clear bearish structure with lower highs, lower lows, and recent bearish liquidity sweeps, ind
 - 10-23 07:30 EURUSD NO_TRADE: risk engine: news (Medium-impact release EUR French Flash Manufacturing PMI 16 min ago; Medium-impact release EUR French Flash Services PMI 16 min ago; Medium-impact release EUR German Flash Manufactu
-- 10-23 07:15 AUDJPY SELL: SELL AUDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The triple liquidity sweep of the highs at 110.32 with bearish signals indicates a fake breakout and smart money dis
-- 10-23 07:15 EURCHF NO_TRADE: risk engine: news (Medium-impact release EUR French Flash Manufacturing PMI 1 min ago; Medium-impact release EUR French Flash Services PMI 1 min ago; Medium-impact release EUR German Flash Manufacturi
 
 ## Open paper positions
 
@@ -90,11 +90,11 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,3
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 60/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 66/900
 
 Agreement trades 95 (adequate) · wins 40 · losses 55 · net $-2,214.50 · expectancy -0.071R · profit factor 0.88 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 114 · the debate's pick if taken: 93 resolved (adequate), expectancy -0.180R · the side it rejected if taken: 98 resolved (adequate), expectancy -0.237R
+Disagreements (not traded; the debate runs in shadow): 115 · the debate's pick if taken: 93 resolved (adequate), expectancy -0.180R · the side it rejected if taken: 98 resolved (adequate), expectancy -0.237R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.099R vs -0.032R as taken (68, adequate) · held 24 h +0.113R vs -0.032R as taken (68, adequate) · stop and target twice as far +0.057R vs -0.032R as taken (68, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.279R vs -0.214R as taken (14, insufficient)
 
@@ -102,6 +102,8 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-23 08:51 | AUDJPY | SELL 72 | SELL 60 | - | AGREE | SELL | REJECTED |
+| 10-23 08:45 | EURCHF | BUY 60 | SELL 70 | SELL | DISAGREE | NO_TRADE | - |
 | 10-23 08:36 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 08:30 | EURJPY | SELL 66 | SELL 68 | - | AGREE | SELL | REJECTED |
 | 10-23 08:18 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -112,8 +114,6 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 | 10-23 07:45 | USDJPY | SELL 65 | SELL 70 | - | AGREE | SELL | REJECTED |
 | 10-23 07:30 | GBPUSD | SELL 70 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-23 07:30 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 07:15 | AUDJPY | SELL 72 | SELL 68 | - | AGREE | SELL | REJECTED |
-| 10-23 07:15 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
