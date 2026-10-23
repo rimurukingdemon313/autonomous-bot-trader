@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 197663.88,
+  "equity": 197723.78,
   "balance": 197682.56,
-  "total_pnl": -2336.12,
-  "today_pnl": -2006.38,
+  "total_pnl": -2276.22,
+  "today_pnl": -1946.48,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 196247.36,
+  "equity_before_adjustments": 196307.26,
   "day_reference": 199670.26094383272,
-  "drawdown_from_start": -2336.12,
+  "drawdown_from_start": -2276.22,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -568,12 +568,12 @@
    "side": "SELL",
    "qty": 0.87,
    "entry": 1.12035,
-   "current": 1.1203400000000001,
+   "current": 1.1201400000000001,
    "stop": 1.12145,
    "target": 1.11883,
-   "r_now": 0.009,
+   "r_now": 0.191,
    "opened": 1792750763.0,
-   "pnl": 0.87,
+   "pnl": 18.27,
    "max_hold_minutes": 584,
    "timeframe": "M15",
    "method": null,
@@ -585,12 +585,12 @@
    "side": "SELL",
    "qty": 0.85,
    "entry": 1.33783,
-   "current": 1.33806,
+   "current": 1.3375599999999999,
    "stop": 1.33895,
    "target": 1.336,
-   "r_now": -0.205,
+   "r_now": 0.241,
    "opened": 1792746447.0,
-   "pnl": -19.55,
+   "pnl": 22.95,
    "max_hold_minutes": 655,
    "timeframe": "M15",
    "method": null,
@@ -2043,6 +2043,19 @@
   {
    "decision": "SELL",
    "edge_status": "EXPERIMENTAL",
+   "id": "a608d2e00049f33b8dc8e97f",
+   "mode": "PAPER_FORWARD",
+   "reason": "currency_conflict: SELL EURGBP would bet against an open position: GBPUSD SELL is short GBP; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)",
+   "stages": [
+    "AI DECISION",
+    "RISK REJECTED"
+   ],
+   "symbol": "EURGBP",
+   "t": 1792753222
+  },
+  {
+   "decision": "SELL",
+   "edge_status": "EXPERIMENTAL",
    "fill": 1.12035,
    "id": "5a30f9ccb02a21e67293262c",
    "mode": "PAPER_FORWARD",
@@ -2302,22 +2315,23 @@
    ],
    "symbol": "AUDUSD",
    "t": 1792727429
-  },
-  {
-   "decision": "SELL",
-   "edge_status": "EXPERIMENTAL",
-   "id": "f0b2ac807194143850dc5644",
-   "mode": "PAPER_FORWARD",
-   "reason": "reward_risk: 1.01 vs minimum 1.2; currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "GBPUSD",
-   "t": 1792726415
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "EURGBP",
+   "decision": "SELL",
+   "t": 1792753222,
+   "reason": "SELL EURGBP on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 68: H4 is in a downtrend (LH+LL) with bearish BOS at 0.83712 just above price; M15 shows a failed bullish CHoCH at 0.8370 w",
+   "data_flags": []
+  },
+  {
+   "symbol": "NZDUSD",
+   "decision": "NO_TRADE",
+   "t": 1792753221,
+   "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
   {
    "symbol": "USDCHF",
    "decision": "NO_TRADE",
@@ -2471,23 +2485,9 @@
    "t": 1792742423,
    "reason": "SELL USDCAD on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 72: The higher timeframe is bearish with recent bearish BOS breaks, while the M15 shows a liquidity sweep at the highs (",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1792741713,
-   "reason": "the traders disagree (Trader 1 SELL 68, Trader 2 BUY 60): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, ",
-   "data_flags": []
-  },
-  {
-   "symbol": "USDJPY",
-   "decision": "SELL",
-   "t": 1792741522,
-   "reason": "SELL USDJPY on M15: AGREE: Trader 1 (dots-studio/dots-3-note-preview:free) SELL 65: The H4 trend remains bearish (LH+LL), favoring sells on pullbacks, while the M15 is in a range with the price curren",
-   "data_flags": []
   }
  ],
- "decisions_total": 2216,
+ "decisions_total": 2218,
  "shift": {
   "started": "2026-10-23 10:03 UTC",
   "decision_mode": "dual_ai",
@@ -2511,29 +2511,21 @@
    "judge_pin": null,
    "version": "openrouter-1.8.0",
    "status": "READY",
-   "calls_today": 6,
+   "calls_today": 10,
    "last_call": {
-    "t": 1792750763,
+    "t": 1792753421,
     "role": "judge",
     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "4367fb5fdb9a4b069332171422bba1ee",
-    "provider_id": "gen-1792750697-Ioitcuo6skc8A8RhbXWr",
+    "request_id": "9cb8ddfc521b418aa60f3c374cb60121",
+    "provider_id": "gen-1792753308-kRlolvDBQTC6qmN5jvhF",
     "attempts": 1,
-    "latency_ms": 65619.0,
+    "latency_ms": 112222.8,
     "cached": false,
-    "tokens": 17052,
+    "tokens": 18589,
     "tried": [
-     {
-      "model": "thinkingmachines/inkling-small:free",
-      "status": "MODEL_RESTRICTED"
-     },
-     {
-      "model": "thinkingmachines/inkling:free",
-      "status": "MODEL_RESTRICTED"
-     },
      {
       "model": "google/gemma-4-26b-a4b-it:free",
       "status": "RATE_LIMITED"
@@ -2545,7 +2537,7 @@
     ]
    },
    "key": {
-    "checked": 1792750522,
+    "checked": 1792753223,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 0.0,
@@ -2556,8 +2548,8 @@
    "paid_usage": null,
    "data_policy": null,
    "vision_model": "nvidia/nemotron-3.5-super-vl:free",
-   "judge_model": "thinkingmachines/inkling-small:free",
-   "verifier_model": "google/gemma-4-26b-a4b-it:free",
+   "judge_model": "google/gemma-4-26b-a4b-it:free",
+   "verifier_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
    "selection": {
     "vision": [
      {
@@ -2571,32 +2563,6 @@
       "structured": true,
       "reasoning": true,
       "family": "nvidia",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 75.7,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.7,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 75.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
       "expires": null
      },
      {
@@ -2624,35 +2590,35 @@
       "reasoning": true,
       "family": "google",
       "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 60.27,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 54.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
      }
     ],
     "judge": [
-     {
-      "id": "thinkingmachines/inkling-small:free",
-      "name": "Thinking Machines: Inkling Small (free)",
-      "score": 51.7,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.7,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 51.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
      {
       "id": "google/gemma-4-26b-a4b-it:free",
       "name": "Google: Gemma 4 26B A4B  (free)",
@@ -2691,48 +2657,35 @@
       "reasoning": true,
       "family": "nvidia",
       "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 30.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
      }
     ],
     "verifier": [
-     {
-      "id": "google/gemma-4-26b-a4b-it:free",
-      "name": "Google: Gemma 4 26B A4B  (free)",
-      "score": 43.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 16.7,
-      "params_b": 26.0,
-      "structured": true,
-      "reasoning": true,
-      "family": "google",
-      "expires": null
-     },
-     {
-      "id": "thinkingmachines/inkling:free",
-      "name": "Thinking Machines: Inkling (free)",
-      "score": 42.0,
-      "context": 1048576,
-      "image": true,
-      "intelligence_index": 25.0,
-      "params_b": null,
-      "structured": false,
-      "reasoning": true,
-      "family": "thinkingmachines",
-      "expires": null
-     },
-     {
-      "id": "google/gemma-4-31b-it:free",
-      "name": "Google: Gemma 4 31B (free)",
-      "score": 41.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 14.7,
-      "params_b": 31.0,
-      "structured": true,
-      "reasoning": true,
-      "family": "google",
-      "expires": null
-     },
      {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "name": "NVIDIA: Nemotron 3 Ultra (free)",
@@ -2747,6 +2700,19 @@
       "expires": null
      },
      {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 31.7,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": 14.7,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
       "id": "dots-studio/dots-3-note-preview:free",
       "name": "Dots Studio: Dots3-Note Preview (free)",
       "score": 31.0,
@@ -2758,14 +2724,51 @@
       "reasoning": true,
       "family": "dots-studio",
       "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 27.27,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": 10.3,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
      }
     ],
     "free_total": 14,
     "catalog_total": 468,
-    "refreshed": 1792750696.9047868,
+    "refreshed": 1792753308.110634,
     "error": null,
     "version": "free-models-1.3.0",
-    "cooldown": {},
+    "cooldown": {
+     "google/gemma-4-26b-a4b-it:free": {
+      "until": 1792753908,
+      "why": "rate_limited",
+      "in_a_row": 2
+     },
+     "google/gemma-4-31b-it:free": {
+      "until": 1792753908,
+      "why": "rate_limited",
+      "in_a_row": 2
+     }
+    },
     "excluded": {
      "thinkingmachines/inkling-small:free": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter",
      "thinkingmachines/inkling:free": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/ap"
@@ -2773,7 +2776,7 @@
    },
    "model_stats": {
     "nvidia/nemotron-3.5-super-vl:free": {
-     "ok": 1,
+     "ok": 2,
      "failed": 0
     },
     "thinkingmachines/inkling-small:free": {
@@ -2786,14 +2789,14 @@
     },
     "google/gemma-4-26b-a4b-it:free": {
      "ok": 0,
-     "failed": 1
+     "failed": 2
     },
     "google/gemma-4-31b-it:free": {
      "ok": 0,
-     "failed": 1
+     "failed": 2
     },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
-     "ok": 1,
+     "ok": 2,
      "failed": 0
     }
    }
@@ -2818,30 +2821,273 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1792749600,
     "last_bar_available": 1792750500
+   },
+   "EURGBP": {
+    "t": 1792753222,
+    "decision_id": "a608d2e00049f33b8dc8e97f",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30104,
+    "sha256": "899f94e591bcf0094ab688491cb69effd45d1d26e484d0af65faa1d554242d86",
+    "as_of": 1792753222,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1792752300,
+    "last_bar_available": 1792753200
    }
   },
   "last_analysis": {
-   "decision_id": "2667b8f7d9ff4668932a751f",
-   "symbol": "USDCHF",
-   "t": 1792752318,
-   "decision": "NO_TRADE",
-   "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "decision_id": "a608d2e00049f33b8dc8e97f",
+   "symbol": "EURGBP",
+   "t": 1792753222,
+   "decision": "SELL",
+   "reason": "SELL EURGBP on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 68: H4 is in a downtrend (LH+LL) with bearish BOS at 0.83712 just above price; M15 shows a failed bullish CHoCH at 0.8370 with a bearish sweep of highs two bars ago. Price sits at the 5-touch resistance 0.83705 inside the e",
    "consensus": {
-    "outcome": "NO_TRADE",
-    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "rule": "NOT_ASKED"
+    "desk_confidence": 0.68,
+    "direction": "SELL",
+    "levels_from": "trader1",
+    "levels_reason": "the more confident trader's levels are inside the risk engine's per-trade limits; trader1's own levels respect them",
+    "outcome": "TRADE",
+    "rule": "AGREE",
+    "stop_loss": 0.838,
+    "take_profit": 0.83588
    },
-   "models": {},
-   "trader1": null,
-   "trader2": null,
+   "models": {
+    "trader1": "nvidia/nemotron-3.5-super-vl:free",
+    "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
+   },
+   "trader1": {
+    "confidence": 68,
+    "direction": "SELL",
+    "entry": 0.83704,
+    "invalidation": 0.838,
+    "liquidity": "Buy-side EQH above at 0.83813/0.83935; sell-side liquidity below today's low 0.83612; stops clustered above today's high 0.8378",
+    "market_structure": "H4 downtrend (LH+LL); M15 range with bearish sweep of highs at 0.8370 and bearish BOS at 0.83712; price at 5-touch resistance 0.83705",
+    "momentum": "Bearish displacement 10 bars ago; recent bearish sweep of highs at 0.8370 rejected the bullish CHoCH",
+    "reason": "H4 is in a downtrend (LH+LL) with bearish BOS at 0.83712 just above price; M15 shows a failed bullish CHoCH at 0.8370 with a bearish sweep of highs two bars ago. Price sits at the 5-touch resistance 0.83705 inside the entry zone, favoring continuation lower. Target breakdown below today's low 0.83612; stop above today's high 0.8378 invalidates the setup.",
+    "reversal_probability": 32,
+    "risk_reward": 1.21,
+    "stop_loss": 0.838,
+    "take_profit": 0.83588,
+    "trend": "H4 DOWN; M15 RANGE (mixed); regime TRENDING_DOWN"
+   },
+   "trader2": {
+    "confidence": 70,
+    "direction": "SELL",
+    "entry": 0.83704,
+    "invalidation": 0.83788,
+    "liquidity": "Buy-side EQH at 0.83732/0.8382/0.83935; sell-side liquidity below today's low 0.83612",
+    "market_structure": "H4 downtrend (LH+LL) with bearish BOS at 0.83712; M15 range with bearish sweep of highs at 0.8370 invalidating bullish CHoCH",
+    "momentum": "Bearish displacement 10 bars ago; recent bearish sweep of highs at 0.8370 shows rejection",
+    "reason": "H4 downtrend intact with bearish BOS at 0.83712; M15 bearish sweep of highs at 0.8370 rejected bullish CHoCH. Price at 5-touch resistance 0.83705 and base of H1 supply block 0.83711-0.8377. Target breakdown below today's low 0.83612; stop above today's high 0.8378 invalidates.",
+    "reversal_probability": 30,
+    "risk_reward": 1.2,
+    "stop_loss": 0.83788,
+    "take_profit": 0.83603,
+    "trend": "H4 DOWN; M15 RANGE; regime TRENDING_DOWN"
+   },
    "verifier": null,
-   "chart": null,
-   "calls": [],
-   "trader1_input": null,
+   "chart": {
+    "annotate_version": "chart-annotate-1.0.0",
+    "as_of": 1792753222,
+    "bytes": 30104,
+    "execution_timeframe": "M15",
+    "height": 1000,
+    "higher_timeframe": "H4",
+    "last_bar_available": 1792753200,
+    "last_bar_open": 1792752300,
+    "sha256": "899f94e591bcf0094ab688491cb69effd45d1d26e484d0af65faa1d554242d86",
+    "version": "chart-render-1.0.0",
+    "width": 1280
+   },
+   "calls": [
+    {
+     "attempts": 1,
+     "cached": false,
+     "error": null,
+     "latency_ms": 84304.0,
+     "model": "nvidia/nemotron-3.5-super-vl:free",
+     "ok": true,
+     "provider_id": "gen-1792753223-rap8buw5Hdxkvhjw5yYg",
+     "request_id": "e90c66a504574e92aff417efeb33e106",
+     "role": "vision",
+     "status": "OK",
+     "tokens": 14594,
+     "tried": []
+    },
+    {
+     "attempts": 1,
+     "cached": false,
+     "error": null,
+     "latency_ms": 112222.8,
+     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+     "ok": true,
+     "provider_id": "gen-1792753308-kRlolvDBQTC6qmN5jvhF",
+     "request_id": "9cb8ddfc521b418aa60f3c374cb60121",
+     "role": "judge",
+     "status": "OK",
+     "tokens": 18589,
+     "tried": [
+      {
+       "model": "google/gemma-4-26b-a4b-it:free",
+       "status": "RATE_LIMITED"
+      },
+      {
+       "model": "google/gemma-4-31b-it:free",
+       "status": "RATE_LIMITED"
+      }
+     ]
+    }
+   ],
+   "trader1_input": "image",
    "version": "dual-ai-1.9.0",
-   "risk": null
+   "risk": {
+    "approved": false,
+    "reasons": [
+     "currency_conflict: SELL EURGBP would bet against an open position: GBPUSD SELL is short GBP",
+     "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
+    ],
+    "qty": 0.0
+   }
   },
   "analyses": [
+   {
+    "decision_id": "a608d2e00049f33b8dc8e97f",
+    "symbol": "EURGBP",
+    "t": 1792753222,
+    "decision": "SELL",
+    "reason": "SELL EURGBP on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 68: H4 is in a downtrend (LH+LL) with bearish BOS at 0.83712 just above price; M15 shows a failed bullish CHoCH at 0.8370 with a bearish sweep of highs two bars ago. Price sits at the 5-touch resistance 0.83705 inside the e",
+    "consensus": {
+     "desk_confidence": 0.68,
+     "direction": "SELL",
+     "levels_from": "trader1",
+     "levels_reason": "the more confident trader's levels are inside the risk engine's per-trade limits; trader1's own levels respect them",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 0.838,
+     "take_profit": 0.83588
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "nvidia/nemotron-3-ultra-550b-a55b:free"
+    },
+    "trader1": {
+     "confidence": 68,
+     "direction": "SELL",
+     "entry": 0.83704,
+     "invalidation": 0.838,
+     "liquidity": "Buy-side EQH above at 0.83813/0.83935; sell-side liquidity below today's low 0.83612; stops clustered above today's high 0.8378",
+     "market_structure": "H4 downtrend (LH+LL); M15 range with bearish sweep of highs at 0.8370 and bearish BOS at 0.83712; price at 5-touch resistance 0.83705",
+     "momentum": "Bearish displacement 10 bars ago; recent bearish sweep of highs at 0.8370 rejected the bullish CHoCH",
+     "reason": "H4 is in a downtrend (LH+LL) with bearish BOS at 0.83712 just above price; M15 shows a failed bullish CHoCH at 0.8370 with a bearish sweep of highs two bars ago. Price sits at the 5-touch resistance 0.83705 inside the entry zone, favoring continuation lower. Target breakdown below today's low 0.83612; stop above today's high 0.8378 invalidates the setup.",
+     "reversal_probability": 32,
+     "risk_reward": 1.21,
+     "stop_loss": 0.838,
+     "take_profit": 0.83588,
+     "trend": "H4 DOWN; M15 RANGE (mixed); regime TRENDING_DOWN"
+    },
+    "trader2": {
+     "confidence": 70,
+     "direction": "SELL",
+     "entry": 0.83704,
+     "invalidation": 0.83788,
+     "liquidity": "Buy-side EQH at 0.83732/0.8382/0.83935; sell-side liquidity below today's low 0.83612",
+     "market_structure": "H4 downtrend (LH+LL) with bearish BOS at 0.83712; M15 range with bearish sweep of highs at 0.8370 invalidating bullish CHoCH",
+     "momentum": "Bearish displacement 10 bars ago; recent bearish sweep of highs at 0.8370 shows rejection",
+     "reason": "H4 downtrend intact with bearish BOS at 0.83712; M15 bearish sweep of highs at 0.8370 rejected bullish CHoCH. Price at 5-touch resistance 0.83705 and base of H1 supply block 0.83711-0.8377. Target breakdown below today's low 0.83612; stop above today's high 0.8378 invalidates.",
+     "reversal_probability": 30,
+     "risk_reward": 1.2,
+     "stop_loss": 0.83788,
+     "take_profit": 0.83603,
+     "trend": "H4 DOWN; M15 RANGE; regime TRENDING_DOWN"
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1792753222,
+     "bytes": 30104,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1792753200,
+     "last_bar_open": 1792752300,
+     "sha256": "899f94e591bcf0094ab688491cb69effd45d1d26e484d0af65faa1d554242d86",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 84304.0,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1792753223-rap8buw5Hdxkvhjw5yYg",
+      "request_id": "e90c66a504574e92aff417efeb33e106",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 14594,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "error": null,
+      "latency_ms": 112222.8,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ok": true,
+      "provider_id": "gen-1792753308-kRlolvDBQTC6qmN5jvhF",
+      "request_id": "9cb8ddfc521b418aa60f3c374cb60121",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 18589,
+      "tried": [
+       {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "status": "RATE_LIMITED"
+       },
+       {
+        "model": "google/gemma-4-31b-it:free",
+        "status": "RATE_LIMITED"
+       }
+      ]
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.9.0",
+    "risk": {
+     "approved": false,
+     "reasons": [
+      "currency_conflict: SELL EURGBP would bet against an open position: GBPUSD SELL is short GBP",
+      "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
+     ],
+     "qty": 0.0
+    }
+   },
+   {
+    "decision_id": "4b3b2f44ee52cc13e41e3555",
+    "symbol": "NZDUSD",
+    "t": 1792753221,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.9.0",
+    "risk": null
+   },
    {
     "decision_id": "2667b8f7d9ff4668932a751f",
     "symbol": "USDCHF",
@@ -3237,48 +3483,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.9.0",
     "risk": null
-   },
-   {
-    "decision_id": "c2aa6101431e3255c451d0a1",
-    "symbol": "AUDUSD",
-    "t": 1792746919,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.9.0",
-    "risk": null
-   },
-   {
-    "decision_id": "3cf79996c163c65ffab84b5f",
-    "symbol": "USDJPY",
-    "t": 1792746918,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.9.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -3288,12 +3492,12 @@
     "side": "SELL",
     "qty": 0.87,
     "entry": 1.12035,
-    "current": 1.1203400000000001,
+    "current": 1.1201400000000001,
     "stop": 1.12145,
     "target": 1.11883,
-    "r_now": 0.009,
+    "r_now": 0.191,
     "opened": 1792750763.0,
-    "pnl": 0.87,
+    "pnl": 18.27,
     "max_hold_minutes": 584,
     "timeframe": "M15",
     "method": null,
@@ -3305,12 +3509,12 @@
     "side": "SELL",
     "qty": 0.85,
     "entry": 1.33783,
-    "current": 1.33806,
+    "current": 1.3375599999999999,
     "stop": 1.33895,
     "target": 1.336,
-    "r_now": -0.205,
+    "r_now": 0.241,
     "opened": 1792746447.0,
-    "pnl": -19.55,
+    "pnl": 22.95,
     "max_hold_minutes": 655,
     "timeframe": "M15",
     "method": null,
@@ -3959,17 +4163,17 @@
     }
    },
    "decisions_by_rule": {
-    "AGREE": 368,
+    "AGREE": 369,
     "DEBATE": 5,
     "DISAGREE": 115,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 478,
+    "NOT_ASKED": 479,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 11
    },
-   "agreement_rate": 0.754,
-   "decisions_with_both_traders": 488,
-   "unavailable": 1404
+   "agreement_rate": 0.755,
+   "decisions_with_both_traders": 489,
+   "unavailable": 1405
   },
   "recent_trades": [
    {
@@ -4695,8 +4899,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1792752315,
+  "last_cycle": 1792753219,
   "last_cycle_error": null,
-  "cycles": 3
+  "cycles": 4
  }
 }
