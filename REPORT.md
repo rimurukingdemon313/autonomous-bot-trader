@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 04:43 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 04:28 UTC · decision system `dual_ai`
+Updated 2026-10-23 04:58 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 04:28 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,14 +16,15 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,486.07 | $-1,184.20 | $-1,513.93 | $-1,513.93 | 2 | 92 (adequate) | 43.5% | -0.048R | 0.92 | ACTIVE | RUNNING |
+| $200,000.00 | $198,409.52 | $-1,260.75 | $-1,590.48 | $-1,590.48 | 2 | 92 (adequate) | 43.5% | -0.048R | 0.92 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $197,069.55); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $196,993.00); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
-**WARNING: the hard risk gate refused 1 of the last 20 decisions: FINANCING_EXCEEDS_RISK x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-23 01:45 UTC; 11 decision(s) since, none refused by the gate.
+**WARNING: the hard risk gate refused 1 of the last 20 decisions: FINANCING_EXCEEDS_RISK x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-23 01:45 UTC; 12 decision(s) since, none refused by the gate.
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
 - 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-23 03:50 AUDUSD BUY: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 33.9% of the stop (max 25%): spread 0.0001 + commission and slippage; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+
 - 10-23 03:33 GBPUSD SELL: AI DECISION → RISK REJECTED — reward_risk: 1.01 vs minimum 1.2; currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
@@ -43,10 +44,12 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,0
 - 10-22 18:41 USDCHF SELL: AI DECISION → RISK REJECTED — cost_to_risk: round-trip cost is 27.1% of the stop (max 25%): spread 0.00015 + commission and slippage
 - 10-22 18:30 USDCAD BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY USDCAD would bet against an open position: USDJPY SELL is short USD
 - 10-22 18:11 AUDUSD BUY: AI DECISION → RISK REJECTED — reward_risk: 1.00 vs minimum 1.2; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
-- 10-22 18:00 USDJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (2167 so far)
+## Latest decisions, NO TRADE included (2170 so far)
 
+- 10-23 04:49 AUDUSD NO_TRADE: the traders disagree (Trader 1 BUY 68, Trader 2 SELL 70): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
+- 10-23 04:45 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 57, Trader 2 SELL 65): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
+- 10-23 04:40 GBPUSD SELL: SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) SELL 65: The higher timeframe shows a bearish CHOCH after a bullish BOS, and the M15 mirrors this with a bearis
 - 10-23 04:30 EURUSD NO_TRADE: the traders disagree (Trader 1 SELL 75, Trader 2 BUY 60): no trade unless both choose the same side; the debate (nvidia/nemotron-3.5-lightning:free) would have chosen BUY: followed forward in shadow, 
 - 10-23 04:21 EURGBP NO_TRADE: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
 - 10-23 04:15 NZDUSD BUY: BUY NZDUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) BUY 62: M15 shows a clear bullish HH/HL structure with four consecutive bullish BOS and an untested demand order block at 0.56961
@@ -56,16 +59,13 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,0
 - 10-23 03:45 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 60, Trader 2 SELL 68): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 - 10-23 03:33 GBPUSD SELL: SELL GBPUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 55: Recent bearish CHoCH at 1.34018 and bearish displacement shift short-term structure down. Untested supply OB at 1.34021
 - 10-23 03:30 EURUSD SELL: SELL EURUSD on M15: AGREE: Trader 1 (nvidia/nemotron-3.5-super-vl:free) SELL 60: Both timeframes show bearish structure with a recent bearish CHoCH and untested supply above, favoring continuation low
-- 10-23 03:20 AUDJPY NO_TRADE: the traders disagree (Trader 1 BUY 58, Trader 2 SELL 68): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
-- 10-23 03:15 EURCHF NO_TRADE: the traders disagree (Trader 1 BUY 60, Trader 2 SELL 55): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
-- 10-23 03:05 GBPJPY NO_TRADE: the traders disagree (Trader 1 BUY 65, Trader 2 SELL 60): no trade unless both choose the same side; the debate (recursive/flint-v1.0:free) would have chosen SELL: followed forward in shadow, not trad
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 1.7 | 0.8369300000000001 | 0.83778 | 0.83593 | $-52.37 |
-| USDCHF | SELL | 2.21 | 0.821115 | 0.8226 | 0.81912 | $-43.06 |
+| EURGBP | SELL | 1.7 | 0.8369300000000001 | 0.83778 | 0.83593 | $-75.12 |
+| USDCHF | SELL | 2.21 | 0.821115 | 0.8226 | 0.81912 | $-96.86 |
 
 ## Closed paper trades (latest 20)
 
@@ -94,11 +94,11 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,0
 
 ## Dual AI desk (two free OpenRouter traders; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-26b-a4b-it:free` · debate `nvidia/nemotron-3-ultra-550b-a55b:free` · calls today 15/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `nvidia/nemotron-3-ultra-550b-a55b:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 22/900
 
 Agreement trades 92 (adequate) · wins 40 · losses 52 · net $-1,418.51 · expectancy -0.048R · profit factor 0.92 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 109 · the debate's pick if taken: 91 resolved (adequate), expectancy -0.210R · the side it rejected if taken: 96 resolved (adequate), expectancy -0.220R
+Disagreements (not traded; the debate runs in shadow): 111 · the debate's pick if taken: 91 resolved (adequate), expectancy -0.210R · the side it rejected if taken: 96 resolved (adequate), expectancy -0.220R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.119R vs -0.051R as taken (67, adequate) · held 24 h +0.096R vs -0.051R as taken (67, adequate) · stop and target twice as far +0.051R vs -0.051R as taken (67, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.394R vs -0.324R as taken (13, insufficient)
 
@@ -106,6 +106,9 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-23 04:49 | AUDUSD | BUY 68 | SELL 70 | SELL | DISAGREE | NO_TRADE | - |
+| 10-23 04:45 | USDJPY | BUY 57 | SELL 65 | SELL | DISAGREE | NO_TRADE | - |
+| 10-23 04:40 | GBPUSD | SELL 65 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-23 04:30 | EURUSD | SELL 75 | BUY 60 | BUY | DISAGREE | NO_TRADE | - |
 | 10-23 04:21 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 04:15 | NZDUSD | BUY 62 | BUY 58 | - | AGREE | BUY | REJECTED |
@@ -115,9 +118,6 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 | 10-23 03:45 | USDJPY | BUY 60 | SELL 68 | SELL | DISAGREE | NO_TRADE | - |
 | 10-23 03:33 | GBPUSD | SELL 55 | SELL 58 | - | AGREE | SELL | REJECTED |
 | 10-23 03:30 | EURUSD | SELL 60 | SELL 65 | - | AGREE | SELL | REJECTED |
-| 10-23 03:20 | AUDJPY | BUY 58 | SELL 68 | SELL | DISAGREE | NO_TRADE | - |
-| 10-23 03:15 | EURCHF | BUY 60 | SELL 55 | SELL | DISAGREE | NO_TRADE | - |
-| 10-23 03:05 | GBPJPY | BUY 65 | SELL 60 | SELL | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
