@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 20:25 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 15:39 UTC · decision system `dual_ai`
+Updated 2026-10-23 20:40 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 15:39 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,5
 - 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
 - 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2292 so far)
+## Latest decisions, NO TRADE included (2294 so far)
 
+- 10-23 20:30 AUDUSD NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:30 UTC: no new 
+- 10-23 20:30 USDJPY NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:30 UTC: no new 
 - 10-23 20:15 GBPUSD NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:15 UTC: no new 
 - 10-23 20:15 EURUSD NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:15 UTC: no new 
 - 10-23 20:00 AUDJPY NO_TRADE: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:00 UTC: no new 
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,5
 - 10-23 19:30 NZDUSD NO_TRADE: risk engine: trading_calendar (Friday 19:30 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 19:15 USDCHF NO_TRADE: risk engine: trading_calendar (Friday 19:15 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 19:15 USDCAD NO_TRADE: risk engine: trading_calendar (Friday 19:15 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-23 19:00 AUDUSD NO_TRADE: risk engine: trading_calendar (Friday 19:00 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-23 19:00 USDJPY NO_TRADE: risk engine: trading_calendar (Friday 19:00 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
@@ -96,14 +96,16 @@ Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z
 
 Agreement trades 99 (adequate) · wins 43 · losses 56 · net $-2,026.63 · expectancy -0.053R · profit factor 0.89 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 116 · the debate's pick if taken: 109 resolved (adequate), expectancy -0.159R · the side it rejected if taken: 114 resolved (adequate), expectancy -0.226R
+Disagreements (not traded; the debate runs in shadow): 116 · the debate's pick if taken: 110 resolved (adequate), expectancy -0.145R · the side it rejected if taken: 115 resolved (adequate), expectancy -0.233R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.144R vs -0.088R as taken (82, adequate) · held 24 h +0.118R vs -0.012R as taken (76, adequate) · stop and target twice as far +0.104R vs -0.012R as taken (76, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.319R vs -0.287R as taken (28, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.146R vs -0.093R as taken (85, adequate) · held 24 h +0.118R vs -0.012R as taken (76, adequate) · stop and target twice as far +0.104R vs -0.012R as taken (76, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.287R vs -0.281R as taken (31, adequate)
 
-Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R · LONDON 26 resolved (insufficient), expectancy +0.125R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 17 resolved (insufficient), expectancy +0.147R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R · LONDON 29 resolved (insufficient), expectancy +0.089R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 17 resolved (insufficient), expectancy +0.147R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-23 20:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-23 20:30 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 20:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 20:15 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 20:00 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-23 19:30 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 19:15 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 19:15 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 19:00 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 19:00 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
