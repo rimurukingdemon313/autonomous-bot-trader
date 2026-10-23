@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 04:23 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 22:52 UTC · decision system `dual_ai`
+Updated 2026-10-23 04:27 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-22 22:52 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,490.21 | $-1,180.06 | $-1,509.79 | $-1,509.79 | 2 | 92 (adequate) | 43.5% | -0.048R | 0.92 | ACTIVE | RUNNING |
+| $200,000.00 | $198,512.97 | $-1,157.29 | $-1,487.03 | $-1,487.03 | 2 | 92 (adequate) | 43.5% | -0.048R | 0.92 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $197,073.69); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $197,096.46); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 **WARNING: the hard risk gate refused 1 of the last 20 decisions: FINANCING_EXCEEDS_RISK x1.** A refusal by the gate after the risk engine approved is never routine. The latest at 10-23 01:45 UTC; 11 decision(s) since, none refused by the gate.
 
@@ -64,7 +64,7 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $197,0
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 1.7 | 0.8369300000000001 | 0.83778 | 0.83593 | $-75.13 |
+| EURGBP | SELL | 1.7 | 0.8369300000000001 | 0.83778 | 0.83593 | $-52.37 |
 | USDCHF | SELL | 2.21 | 0.821115 | 0.8226 | 0.81912 | $-16.15 |
 
 ## Closed paper trades (latest 20)
