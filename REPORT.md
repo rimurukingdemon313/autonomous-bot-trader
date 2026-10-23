@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 22:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 21:15 UTC · decision system `dual_ai`
+Updated 2026-10-23 22:30 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 21:15 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,5
 - 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
 - 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2304 so far)
+## Latest decisions, NO TRADE included (2306 so far)
 
+- 10-23 22:15 EURGBP NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 2753s old
+- 10-23 22:15 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 2751s old
 - 10-23 22:00 USDCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 3541s old
 - 10-23 22:00 USDCAD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1874s old
 - 10-23 21:45 AUDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 951s old
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,5
 - 10-23 21:00 NZDUSD NO_TRADE: risk engine: quiet_hours (17:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 21:00 UTC: no new 
 - 10-23 20:45 USDCHF NO_TRADE: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:45 UTC: no new 
 - 10-23 20:45 USDCAD NO_TRADE: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:45 UTC: no new 
-- 10-23 20:30 AUDUSD NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:30 UTC: no new 
-- 10-23 20:30 USDJPY NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:30 UTC: no new 
 
 ## Open paper positions
 
@@ -104,6 +104,8 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-23 22:15 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-23 22:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 22:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 22:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 21:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-23 21:00 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 20:45 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 20:45 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 20:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 20:30 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
