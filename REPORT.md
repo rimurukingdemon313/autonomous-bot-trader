@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-23 17:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 15:39 UTC · decision system `dual_ai`
+Updated 2026-10-23 18:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-23 15:39 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,6
 - 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
 - 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2272 so far)
+## Latest decisions, NO TRADE included (2274 so far)
 
+- 10-23 18:00 EURGBP NO_TRADE: risk engine: trading_calendar (Friday 18:00 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
+- 10-23 18:00 NZDUSD NO_TRADE: risk engine: trading_calendar (Friday 18:00 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 17:45 USDCHF NO_TRADE: risk engine: trading_calendar (Friday 17:45 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 17:45 USDCAD NO_TRADE: risk engine: trading_calendar (Friday 17:45 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-23 17:30 AUDUSD NO_TRADE: risk engine: trading_calendar (Friday 17:30 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,6
 - 10-23 17:00 EURCHF NO_TRADE: risk engine: trading_calendar (Friday 17:00 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 - 10-23 16:45 GBPJPY NO_TRADE: risk engine: trading_calendar (Friday 16:45 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 - 10-23 16:45 EURJPY NO_TRADE: risk engine: trading_calendar (Friday 16:45 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
-- 10-23 16:30 EURGBP NO_TRADE: risk engine: trading_calendar (Friday 16:30 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
-- 10-23 16:30 NZDUSD NO_TRADE: risk engine: trading_calendar (Friday 16:30 UTC: no new position on Friday from 12:00 to 24:00 UTC); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
@@ -100,12 +100,14 @@ Agreement trades 97 (adequate) · wins 41 · losses 56 · net $-2,097.19 · expe
 
 Disagreements (not traded; the debate runs in shadow): 116 · the debate's pick if taken: 95 resolved (adequate), expectancy -0.160R · the side it rejected if taken: 100 resolved (adequate), expectancy -0.231R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.088R vs -0.028R as taken (75, adequate) · held 24 h +0.104R vs -0.028R as taken (75, adequate) · stop and target twice as far +0.090R vs -0.028R as taken (75, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.179R vs -0.136R as taken (21, insufficient)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.071R vs -0.012R as taken (76, adequate) · held 24 h +0.118R vs -0.012R as taken (76, adequate) · stop and target twice as far +0.104R vs -0.012R as taken (76, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.117R vs -0.076R as taken (22, insufficient)
 
-Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R · LONDON 26 resolved (insufficient), expectancy +0.125R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 16 resolved (insufficient), expectancy +0.082R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R · LONDON 26 resolved (insufficient), expectancy +0.125R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 17 resolved (insufficient), expectancy +0.147R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-23 18:00 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-23 18:00 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 17:45 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 17:45 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 17:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -116,8 +118,6 @@ Trades taken by session (UTC): ASIA 39 resolved (adequate), expectancy -0.075R �
 | 10-23 17:00 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 16:45 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-23 16:45 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 16:30 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-23 16:30 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
