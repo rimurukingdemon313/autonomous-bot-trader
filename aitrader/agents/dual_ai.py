@@ -67,6 +67,7 @@ from ..data.resample import resample
 from ..decision.synthesis import Decision, decision_id
 from ..llm.free_models import FREE_MODELS_VERSION
 from ..llm.openrouter import OPENROUTER_VERSION
+from ..llm.paid_trial import PAID_TRIAL
 from .llm_trader import MAX_STOP_ATR, agent_digest, no_trade_decision, pre_model_block, trade_decision, with_ai
 from .types import MarketContext
 
@@ -483,7 +484,7 @@ class DualAITrader:
             raise ValueError("the dual-AI desk cannot be backtested honestly: the models may know what happened "
                              "after the decision time")
         v = {**versions, "dual_ai": DUAL_AI_VERSION, "chart": RENDER_VERSION, "openrouter": OPENROUTER_VERSION,
-             "free_models": FREE_MODELS_VERSION}
+             "free_models": FREE_MODELS_VERSION, "paid_trial": PAID_TRIAL.name}
         did = decision_id(ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, v)
         agents = agent_digest(reports)
         rec: dict = {"version": DUAL_AI_VERSION, "symbol": ctx.symbol, "t": ctx.t, "calls": [], "models": {},

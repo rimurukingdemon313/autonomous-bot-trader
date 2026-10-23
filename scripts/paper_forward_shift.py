@@ -126,6 +126,19 @@ def report_md(v: dict, shift: dict) -> str:
                      f"{t.get('exit_reason')} | {t.get('source') or t.get('agent')} | {t.get('rule') or '-'} |")
     if dai.get("active"):
         o, perf = dai.get("openrouter") or {}, dai.get("performance") or {}
+
+        def paid_trial_line(t):
+            if not t.get("models"):
+                return "Paid trial: none (FREE models only)"
+            why = {r: w for r, w in (t.get("not_asked_because") or {}).items() if w}
+            return (f"Paid trial `{t.get('name')}` ({t.get('starts')} to {t.get('ends')}): "
+                    f"{'ACTIVE' if t.get('active') else 'not active'}"
+                    + (f" ({t['stopped']})" if t.get("stopped") else "")
+                    + " · " + " · ".join(f"{'trader 1' if r == 'vision' else 'trader 2'} `{m}` asked first"
+                                         for r, m in (t.get("models") or {}).items())
+                    + f" · spent {money(t.get('spent_total'))} of {money(t.get('total_usd'))}, today "
+                    f"{money(t.get('spent_today'))} of {money(t.get('daily_usd'))} (the key's own reading)"
+                    + "".join(f" · {'trader 1' if r == 'vision' else 'trader 2'} not asked: {w}" for r, w in why.items()))
         rec = dai.get("record") or {}
         pick, lose = rec.get("debate_pick_if_taken") or {}, rec.get("debate_losing_side_if_taken") or {}
 
@@ -138,10 +151,11 @@ def report_md(v: dict, shift: dict) -> str:
         def shadow(s):
             return (f"{s.get('n', 0)} resolved ({s.get('sample', 'none')})"
                     + (f", expectancy {fmt(s.get('expectancy_r'), '{:+.3f}R')}" if s.get("n") else ""))
-        lines += ["", "## Dual AI desk (two free OpenRouter traders; a trade only when they agree)", "",
+        lines += ["", "## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree)", "",
                   f"OpenRouter `{o.get('status')}` · key {'set' if o.get('configured') else 'NOT SET'} · trader 1 "
                   f"`{o.get('vision_model')}` · trader 2 `{o.get('judge_model')}` · debate `{o.get('verifier_model')}` · "
                   f"calls today {o.get('calls_today')}/{o.get('daily_budget')}", "",
+                  paid_trial_line(o.get("paid_trial") or {}), "",
                   f"Agreement trades {perf.get('trades', 0)} ({perf.get('sample', 'none')}) · wins {perf.get('wins', 0)} · "
                   f"losses {perf.get('losses', 0)} · net {money(perf.get('net_pnl'))} · expectancy "
                   f"{fmt(perf.get('expectancy_r'), '{:+.3f}R')} · profit factor {fmt(perf.get('profit_factor'), '{:.2f}')}"
@@ -209,13 +223,16 @@ def main() -> int:
     cfg = ServiceConfig.from_env()
     if cfg.mode != "PAPER_FORWARD":
         raise SystemExit("this script runs MODE=PAPER_FORWARD only")
+    from aitrader.llm.paid_trial import PAID_TRIAL
     from aitrader.service.runtime import Runtime
     pub = Path(a.publish)
     pub.mkdir(parents=True, exist_ok=True)
     rt = Runtime(cfg)
     shift = {"started": f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC",
              "decision_mode": rt.orch.brain.config.decision_mode,
-             "llm": ("openrouter (free models)" if rt.orch.brain.config.decision_mode == "dual_ai"
+             "llm": (("openrouter (free models"
+                      + (f"; paid trial {PAID_TRIAL.name} first while its caps allow)" if PAID_TRIAL.models else ")"))
+                     if rt.orch.brain.config.decision_mode == "dual_ai"
                      else rt.llm.config.public().get("model") or "none")}
     rep = rt.execution.reconcile()
     print(json.dumps({"reconcile": rep, "gate": rt.gate.status().get("risk_status")}, default=str), flush=True)

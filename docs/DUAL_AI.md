@@ -195,6 +195,50 @@ a swing exists only after its two confirming bars have closed. Every mark also t
 (`chart_marks`), so no model has to read a price off pixels, and a text-only model gets the same chart.
 The last chart per pair is on the dashboard and saved under `DATA_DIR/charts/` (newest 300).
 
+## The paid trial (owner, 2026-10-23, `aitrader/llm/paid_trial.py`)
+
+The owner put $10 on the OpenRouter key: "use it for the models, but make it last a week; cheap, but not stupid".
+For the trading week Monday 26 to Friday 30 October (the window closes as Saturday 31 begins), each trader's
+seat asks a paid model first, and the FREE models of that seat stay its fallbacks. The debate and Trader 1's
+numbers fallback stay FREE. Nothing else changes: the prompts, the agreement rule, the risk engine, the gate and
+the sizes are the same code.
+
+They were chosen on the live catalog that day by the Artificial Analysis intelligence index OpenRouter lists, the
+price, and one real trading question each (side branch `dual-ai-check-results`, c0bfa28):
+
+| seat | model | index | $ per million in / out | measured |
+|---|---|---|---|---|
+| Trader 1 (reads the chart) | `xiaomi/mimo-v2.6-pro` | 46.3, the strongest cheap model that reads images | 0.435 / 0.87 | 21 s, $0.0025 for a 4k-token question |
+| Trader 2 (independent, another lab) | `anthropic/claude-haiku-5.5` | 43.4 | 0.10 / 0.50 | 5 s, $0.0006 |
+
+The free models that traded scored 22.9 (`nemotron-3-ultra`) and 25.7 (`inkling-small`). At the traders' real
+prompt size, about 15k tokens, a decision costs about $0.009, and up to 100 decisions a day about $0.90. (The
+author of this code is a Claude model from Anthropic, and Trader 2 is one too: it was chosen on the numbers above,
+and Trader 1 is from another lab so that an agreement is between two different minds.)
+
+What keeps the spend inside the owner's $10:
+
+- **Caps, read from the key itself.** $9.00 in all (everything the key ever spent counts) and $1.80 per UTC day.
+  Both are read from GET /key (`usage`, `usage_daily`), plus what this process spent since that read, plus the
+  most the next call could cost (30k tokens in, its max_tokens out). If either reading is missing, nothing paid
+  is asked. A new UTC day is read before anything paid is asked that day.
+- **Price as declared.** A paid model is asked only while the catalog lists it at or below its declared prices
+  (Trader 1 0.50 / 1.00, Trader 2 0.12 / 0.60, no per-item charge). A reply that costs more than $0.03 is
+  discarded, and it ends the trial for the process.
+- **Stops.** A 402 (credits spent) ends the trial, and the FREE models answer that same decision. So does
+  `OPENROUTER_PAID_TRIAL=off`, which the owner can set at any time; nothing in the environment can start, widen or
+  extend the trial. Spend on the key beyond what this process's paid replies account for (a call whose cost is
+  unknown is counted at its most), plus $0.05, still stops every request (PAID_USAGE). For that reason, do not
+  run the live check (`dual-ai-check`) during a shift while the trial runs: its paid calls would stop the shift's
+  bot, safely but needlessly.
+- **Recorded.** Every call records its model and its cost. Decisions carry `paid_trial` in their versions, and the
+  shift report shows the trial's state and spend, as the key reads it.
+
+H6, registered before the trial's first trade: an agreement trade with both seats paid, against the trades of the
+free seats. Compared at the end of the week on the trades it produced, with the sample labelled. Fewer than 30
+trades is inconclusive, and no decision is taken on it alone. H5 (`nemotron-3-ultra` out) is judged on the trades
+with a FREE model in Trader 2's seat only.
+
 ## Free models only
 
 One key, `OPENROUTER_API_KEY`, powers all three roles. A model is used only if **all** hold
@@ -206,7 +250,7 @@ One key, `OPENROUTER_API_KEY`, powers all three roles. A model is used only if *
 - it writes text only (audio/image generators are billed per item; embedding/rerank models write vectors);
 - no price in its description; not a router, safety/guard classifier, embedding, rerank or speech model.
 
-At run time: a reply that reports a cost above zero, or one served by another model, is discarded and that
+Outside the paid trial (above), at run time: a reply that reports a cost above zero, or one served by another model, is discarded and that
 model is never used again; if the key's spent credit (GET /key `usage`) ever rises while the bot runs, **no
 further request is made** (`PAID_USAGE_STOPPED`). Use this key for this bot only. There is never a paid
 fallback: no free model, no call, NO_TRADE (`AI_UNAVAILABLE`-class).

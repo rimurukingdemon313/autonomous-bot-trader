@@ -11,12 +11,17 @@ Configuration, environment only (a local `.env` file is read by `python -m aitra
                                     $10), read from GET /key, less a margin
     OPENROUTER_VISION_MODEL         optional pin for Agent 1; used only while the catalog lists it as FREE
     OPENROUTER_JUDGE_MODEL          optional pin for Agent 2; same rule
+    OPENROUTER_PAID_TRIAL           "off" ends the owner's paid trial (paid_trial.PAID_TRIAL) at once; nothing in
+                                    the environment can start, widen or extend it
 
 What this client guarantees:
 
-- FREE ONLY. Models come from `free_models.select` (every listed price exactly zero). A reply whose `model`
-  is not the requested model, or whose usage reports a cost above zero, is rejected and that model is
-  excluded for the rest of the process. Never a paid fallback: no free model -> no call -> NO_TRADE.
+- FREE ONLY, but for one declared exception. Models come from `free_models.select` (every listed price exactly
+  zero). A reply whose `model` is not the requested model, or a FREE model's reply whose usage reports a cost
+  above zero, is rejected and that model is excluded for the rest of the process. Never a paid fallback: no free
+  model -> no call -> NO_TRADE. The exception is the owner's funded test, `paid_trial.PAID_TRIAL`: inside its
+  window and its caps (read from the key's own spend), its paid model for a trader's seat is asked first and the
+  FREE models remain the fallbacks. Outside them nothing is paid.
 - Bounded. Every request has a timeout; retries are bounded with exponential backoff and jitter; a 429
   honours Retry-After; a spent free daily quota stops all calls until the next UTC day; a daily call budget
   caps everything.
@@ -31,7 +36,9 @@ What this client guarantees:
   input; for any other model it is left out (the same chart's marks travel as numbers in the text).
 - Paid usage stops everything. GET /key is read with the catalog; if the key's spent credit (`usage`) ever rises
   above what it was when this process first read it, no further request is made (PAID_USAGE). Use this key
-  for this bot only, or that check will stop the bot when another application spends from it.
+  for this bot only, or that check will stop the bot when another application spends from it. During the paid
+  trial the rise allowed is what this process's paid replies cost (a call whose cost is unknown counted at its
+  most), plus UNACCOUNTED_TOLERANCE_USD: anything beyond that still stops everything.
 - Fails closed. Nothing raises to the caller: every outcome is a `CallResult`; `ok=False` means NO_TRADE.
 - The key is never logged, returned or shown: `public()` gives only whether it is set and its last 4 characters.
 """
@@ -53,6 +60,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 from .free_models import Selection, select, supports_image
+from .paid_trial import PAID_ROLES, PAID_TRIAL, UNACCOUNTED_TOLERANCE_USD, PaidTrial, call_reserve
 from .provider import extract_json
 
 #: 1.6.0 (live run): a malformed or impossible answer from one model is never repaired and that model is not asked
@@ -77,7 +85,11 @@ from .provider import extract_json
 #:        time the decision has left, whichever is less (a 180 s wait began with less left let a slow model overrun
 #:        the decision's budget). A lone request cut short by that deadline is not held against the model: it never
 #:        had its own timeout.
-OPENROUTER_VERSION = "openrouter-1.8.0"
+#: 1.9.0 (owner, 2026-10-23: "$10 on the account, make it last a week; cheap, but not stupid"): the paid trial
+#:        (paid_trial.PAID_TRIAL). Within its window and caps a trader's paid model is asked first, the FREE models
+#:        after it; every call records its cost. A paid reply above its declared price, a 402, or
+#:        OPENROUTER_PAID_TRIAL=off ends the trial; the debate and the numbers fallback stay FREE.
+OPENROUTER_VERSION = "openrouter-1.9.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -117,6 +129,7 @@ class OpenRouterConfig:
     daily_budget: int = 900
     vision_pin: str = ""
     judge_pin: str = ""
+    paid_trial_off: bool = False
     app_name: str = "autonomous-bot-trader (paper forward)"
 
     @property
@@ -138,14 +151,16 @@ class OpenRouterConfig:
                    max_retries=max(0, min(6, num("OPENROUTER_MAX_RETRIES", 3, int))),
                    daily_budget=max(1, num("OPENROUTER_DAILY_CALL_BUDGET", 900, int)),
                    vision_pin=(e.get("OPENROUTER_VISION_MODEL") or "").strip(),
-                   judge_pin=(e.get("OPENROUTER_JUDGE_MODEL") or "").strip())
+                   judge_pin=(e.get("OPENROUTER_JUDGE_MODEL") or "").strip(),
+                   paid_trial_off=(e.get("OPENROUTER_PAID_TRIAL") or "").strip().lower() in ("off", "0", "false", "no"))
 
     def public(self) -> dict:
         k = self.api_key
         return {"provider": "openrouter", "configured": self.configured, "base_url": self.base_url,
                 "key_hint": ("…" + k[-4:]) if self.configured and len(k) >= 8 else None,
                 "timeout_s": self.timeout_s, "max_retries": self.max_retries, "daily_budget": self.daily_budget,
-                "vision_pin": self.vision_pin or None, "judge_pin": self.judge_pin or None}
+                "vision_pin": self.vision_pin or None, "judge_pin": self.judge_pin or None,
+                "paid_trial_off": self.paid_trial_off}
 
 
 @dataclass
@@ -164,13 +179,14 @@ class CallResult:
     cached: bool = False
     tokens: int | None = None
     tried: list = field(default_factory=list)  # [(model, status)] for every model asked before this one
+    cost: float | None = None  # USD the reply reported (0 for a FREE model)
 
     def record(self) -> dict:
         """What a decision keeps of the call: never the key, never the prompt."""
         return {"role": self.role, "model": self.model, "status": self.status, "ok": self.ok, "error": self.error,
                 "request_id": self.request_id, "provider_id": self.provider_id, "attempts": self.attempts,
                 "latency_ms": round(self.latency_ms, 1), "cached": self.cached, "tokens": self.tokens,
-                "tried": [{"model": m, "status": st} for m, st in self.tried]}
+                "cost": self.cost, "tried": [{"model": m, "status": st} for m, st in self.tried]}
 
 
 def _base(model_id: str) -> str:
@@ -180,8 +196,9 @@ def _base(model_id: str) -> str:
 class OpenRouterClient:
     def __init__(self, config: OpenRouterConfig, transport: Transport | None = None,
                  clock: Callable[[], float] = time.time, sleep: Callable[[float], None] = time.sleep,
-                 catalog_refresh_s: float = 3600) -> None:
+                 catalog_refresh_s: float = 3600, trial: PaidTrial | None = None) -> None:
         self.config = config
+        self.trial = PAID_TRIAL if trial is None else trial
         self.transport = transport or _http
         self.clock, self.sleep = clock, sleep
         self.catalog_refresh_s = catalog_refresh_s
@@ -202,6 +219,16 @@ class OpenRouterClient:
         self._usage0: float | None = None
         self._paid_usage: str | None = None
         self._key_checked_at = -1e18
+        # the paid trial: what this process's paid calls cost (reported) and reserved (cost unknown, at their most),
+        # the key's spend at its last read, and why each seat's paid model is not being asked
+        self._paid_spent = 0.0
+        self._paid_reserved = 0.0
+        self._paid_at_read = 0.0
+        self._usage_now: float | None = None
+        self._usage_daily: float | None = None
+        self._usage_read_day = ""
+        self._trial_stop: str | None = None
+        self._trial_why: dict[str, str | None] = {}
 
     # ── the catalog and the FREE selection ───────────────────────────────
 
@@ -249,18 +276,24 @@ class OpenRouterClient:
                 self.key_info = {**self.key_info, "checked": int(now), "ok": False,
                                  "status": "KEY_REJECTED" if status in (401, 403) else f"HTTP_{status}"}
                 return self.key_info
-            usage = data.get("usage")
-            usage = float(usage) if isinstance(usage, (int, float)) and not isinstance(usage, bool) else None
+            usage = _usd(data.get("usage"))
+            daily = _usd(data.get("usage_daily"))
             if usage is not None:
+                ours = self._paid_spent + self._paid_reserved  # what this process's paid calls can account for
+                allowed = ours + (UNACCOUNTED_TOLERANCE_USD if ours > 0 else 0.0)
                 if self._usage0 is None:
                     self._usage0 = usage
-                elif usage > self._usage0 + 1e-9:
+                elif usage > self._usage0 + allowed + 1e-9:
                     self._paid_usage = (f"the key's spent credit rose from {self._usage0} to {usage} while this bot "
-                                        "ran: no further request is made")
+                                        f"ran (its own paid calls account for {ours:.4f}): no further request is made")
+            self._usage_now, self._usage_daily = usage, daily
+            self._usage_read_day = _day(now) if usage is not None and daily is not None else ""
+            self._paid_at_read = self._paid_spent + self._paid_reserved
             free_tier = data.get("is_free_tier")
             quota = (FREE_TIER_DAILY if free_tier is True else CREDIT_TIER_DAILY if free_tier is False else FREE_TIER_DAILY)
             self.key_info = {"checked": int(now), "ok": True, "is_free_tier": free_tier if isinstance(free_tier, bool) else None,
-                             "usage_at_start": self._usage0, "usage": usage, "daily_quota": quota - QUOTA_MARGIN,
+                             "usage_at_start": self._usage0, "usage": usage, "usage_daily": daily,
+                             "daily_quota": quota - QUOTA_MARGIN,
                              "label_set": bool(data.get("label"))}
             return self.key_info
 
@@ -279,16 +312,76 @@ class OpenRouterClient:
                                  excluded=set(self._excluded) | resting)
         return self._selection
 
-    def models_for(self, role: str) -> list[str]:
-        """The ranked FREE models for a role, the configured pin first when the catalog lists it as FREE."""
+    def models_for(self, role: str, max_tokens: int = 3000) -> list[str]:
+        """The ranked FREE models for a role, the configured pin first when the catalog lists it as FREE; the paid
+        trial's model for a trader's seat before them while the trial is open and its caps allow one more call."""
         with self._lock:
             sel = self.refresh_models()
             self.check_key()
+            pm = self.trial.models.get(role)
+            if (pm is not None and self.trial.active(self.clock()) and self._catalog_model(pm.id) is not None
+                    and self._usage_read_day != _day(self.clock()) and self.clock() - self._key_checked_at >= 60):
+                self.check_key(force=True)  # a new UTC day: its spend is read before anything paid is asked
             ranked = [r["id"] for r in getattr(sel, {"vision": "vision", "judge": "judge"}.get(role, "verifier"))]
             pin = {"vision": self.config.vision_pin, "judge": self.config.judge_pin}.get(role, "")
             if pin and pin in ranked:
                 ranked = [pin] + [m for m in ranked if m != pin]
-            return ranked
+            paid = self._paid_for(role, max_tokens)
+            return [paid] + [m for m in ranked if m != paid] if paid else ranked
+
+    def _catalog_model(self, model: str) -> dict | None:
+        return next((x for x in self._catalog if isinstance(x, dict) and x.get("id") == model), None)
+
+    def _spend(self) -> tuple[float, float] | None:
+        """(spent by the trial in all, spent today), USD: the key's own reading plus this process's paid calls since
+        it. None when the key's spend has not been read today: then nothing paid is asked."""
+        if self._usage_now is None or self._usage_daily is None or self._usage_read_day != _day(self.clock()):
+            return None
+        pending = self._paid_spent + self._paid_reserved - self._paid_at_read
+        return self._usage_now - self.trial.usage_baseline + pending, self._usage_daily + pending
+
+    def _paid_for(self, role: str, max_tokens: int) -> str | None:
+        """The trial's paid model for `role` if it may be asked now; else None, and why is kept for the dashboard."""
+        pm = self.trial.models.get(role) if role in PAID_ROLES else None
+        if pm is None:
+            return None
+        now = self.clock()
+        m = self._catalog_model(pm.id)
+        spend = self._spend()
+        until = self._cooldown.get(pm.id, (0.0, ""))
+        why = ("switched off (OPENROUTER_PAID_TRIAL=off)" if self.config.paid_trial_off else
+               "outside its window" if not self.trial.active(now) else
+               self._trial_stop or self._excluded.get(pm.id) or
+               (f"resting: {until[1]}" if until[0] > now else None) or pm.priced_as_declared(m))
+        if why is None and spend is None:
+            why = "the key's spend (usage, usage_daily) is not read for today: nothing paid is asked without it"
+        if why is None:
+            total, today = spend
+            r = call_reserve(m, max_tokens)
+            if total + r > self.trial.total_usd + 1e-12:
+                why = f"its total is spent: ${total:.4f} of ${self.trial.total_usd:.2f} (next call up to ${r:.4f})"
+            elif today + r > self.trial.daily_usd + 1e-12:
+                why = f"today's share is spent: ${today:.4f} of ${self.trial.daily_usd:.2f} (next call up to ${r:.4f})"
+        self._trial_why[role] = why
+        return None if why else pm.id
+
+    def _is_paid(self, role: str, model: str) -> bool:
+        pm = self.trial.models.get(role) if role in PAID_ROLES else None
+        return pm is not None and pm.id == model
+
+    def _stop_trial(self, why: str) -> None:
+        with self._lock:
+            self._trial_stop = self._trial_stop or f"stopped: {why}"
+
+    def trial_status(self) -> dict:
+        with self._lock:
+            spend = self._spend()
+            return {**self.trial.public(), "active": self.trial.active(self.clock()) and not self.config.paid_trial_off
+                    and not self._trial_stop, "stopped": self._trial_stop,
+                    "spent_total": None if spend is None else round(spend[0], 4),
+                    "spent_today": None if spend is None else round(spend[1], 4),
+                    "spent_by_this_process": round(self._paid_spent, 4),
+                    "reserved_unconfirmed": round(self._paid_reserved, 4), "not_asked_because": dict(self._trial_why)}
 
     def selection(self) -> dict:
         with self._lock:
@@ -364,7 +457,7 @@ class OpenRouterClient:
 
     def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=420.0,
               avoid_soft=False) -> CallResult:
-        ranked = self.models_for(role)
+        ranked = self.models_for(role, max_tokens)
         if self._paid_usage:  # the key check that refresh ran may have just found it
             return CallResult(False, "PAID_USAGE", role, error=self._paid_usage)
         models = [m for m in ranked if m not in avoid][:max_models]
@@ -383,6 +476,11 @@ class OpenRouterClient:
                                   f"(last: {last.status})", attempts=last.attempts, tried=tried)
             res = self._one_model(role, model, messages, validate, max_tokens, deadline)
             res.tried = list(tried)
+            if not res.ok and self._is_paid(role, model) and res.status in ("PAID_TRIAL_STOPPED", "NOT_AS_PRICED",
+                                                                            "WRONG_MODEL"):
+                tried.append((model, res.status))  # the trial ends; the FREE models of the role answer as before
+                last = res
+                continue
             if res.ok or res.status in (
                     "NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "NOT_FREE", "WRONG_MODEL", "DATA_POLICY"):
                 return res  # an answer, or a reason no other model would fix
@@ -401,6 +499,8 @@ class OpenRouterClient:
         if self._supports(model, "reasoning"):  # bounded thinking, so the answer fits after it
             body["reasoning"] = {"effort": "medium"}
         headers = {**self._headers(), "X-Request-Id": rid}
+        paid = self._is_paid(role, model)
+        reserve = call_reserve(self._catalog_model(model) or {}, max_tokens) if paid else 0.0
         t0 = time.perf_counter()
         attempts = 0
         status_txt = "UNAVAILABLE"
@@ -415,6 +515,7 @@ class OpenRouterClient:
                     return CallResult(False, "BUDGET", role, model, error=f"daily call budget "
                                       f"{self.daily_budget} reached", request_id=rid, attempts=attempts)
                 self._calls += 1
+                self._paid_reserved += reserve  # its cost is unknown until it replies: counted at its most
             attempts += 1
             timeout = min(self.config.timeout_s, max(1.0, deadline - self.clock()))  # never past the role's deadline
             timed_out = False
@@ -426,8 +527,11 @@ class OpenRouterClient:
                 timed_out = isinstance(exc, TimeoutError) or isinstance(getattr(exc, "reason", None), TimeoutError)
             lat = (time.perf_counter() - t0) * 1000
             msg = _error_message(payload)
+            if paid and 400 <= code < 500:  # refused before any work: nothing is billed for it
+                with self._lock:
+                    self._paid_reserved = max(0.0, self._paid_reserved - reserve)
             if code == 200 and isinstance(payload, dict) and not payload.get("error"):
-                return self._parse(role, model, payload, validate, rid, attempts, lat)
+                return self._parse(role, model, payload, validate, rid, attempts, lat, reserve if paid else None)
             if code == 200:  # the provider failed behind a 200 ("ResourceExhausted"...): this model is busy
                 status_txt, err = "UPSTREAM_ERROR", f"upstream error: {msg}"
                 break
@@ -441,6 +545,10 @@ class OpenRouterClient:
                 return CallResult(False, "MODEL_RESTRICTED", role, model, error=f"HTTP 403: {msg}", request_id=rid,
                                   attempts=attempts, latency_ms=lat)
             if code == 402:
+                if paid:  # the owner's credits are spent: the trial ends, the FREE models answer
+                    self._stop_trial(f"HTTP 402 on {model}: {msg[:120]}")
+                    return CallResult(False, "PAID_TRIAL_STOPPED", role, model, error=f"HTTP 402 (credits): {msg}",
+                                      request_id=rid, attempts=attempts, latency_ms=lat)
                 return CallResult(False, "BUDGET", role, model, error=f"HTTP 402 (credits): {msg}", request_id=rid,
                                   attempts=attempts, latency_ms=lat)
             if "data policy" in msg.lower() or "privacy" in msg.lower():
@@ -492,7 +600,7 @@ class OpenRouterClient:
         return CallResult(False, status_txt, role, model, error=err, request_id=rid, attempts=attempts,
                           latency_ms=(time.perf_counter() - t0) * 1000)
 
-    def _parse(self, role, model, payload, validate, rid, attempts, lat) -> CallResult:
+    def _parse(self, role, model, payload, validate, rid, attempts, lat, reserve=None) -> CallResult:
         served = str(payload.get("model") or "")
         usage = payload.get("usage") or {}
         cost = usage.get("cost")
@@ -501,6 +609,23 @@ class OpenRouterClient:
         except (TypeError, ValueError):
             cost_v = 0.0
         tokens = usage.get("total_tokens") if isinstance(usage.get("total_tokens"), int) else None
+        if reserve is not None:  # a paid seat: its reported cost replaces the reserve (an unreported one stays reserved)
+            with self._lock:
+                if cost is not None and cost_v >= 0:
+                    self._paid_reserved = max(0.0, self._paid_reserved - reserve)
+                    self._paid_spent += cost_v
+            if served and _base(served) != _base(model):
+                self._stop_trial(f"{model} was served by {served}")
+                return CallResult(False, "WRONG_MODEL", role, model, error=f"requested {model}, served {served}: "
+                                  "discarded, and the paid trial ends", request_id=rid, attempts=attempts,
+                                  latency_ms=lat, provider_id=payload.get("id"), tokens=tokens, cost=cost_v)
+            if cost_v > self.trial.max_call_usd:
+                self._stop_trial(f"one reply of {model} cost ${cost_v:.4f}, above the declared ${self.trial.max_call_usd}")
+                return CallResult(False, "NOT_AS_PRICED", role, model, error=f"the reply cost ${cost_v:.4f}, above the "
+                                  f"declared most of ${self.trial.max_call_usd} a call: discarded, and the paid trial "
+                                  "ends", request_id=rid, attempts=attempts, latency_ms=lat,
+                                  provider_id=payload.get("id"), tokens=tokens, cost=cost_v)
+            return self._answer(role, model, payload, validate, rid, attempts, lat, tokens, cost_v)
         if served and _base(served) != _base(model):
             with self._lock:
                 self._excluded[model] = f"served by {served}, not the requested free model"
@@ -512,7 +637,11 @@ class OpenRouterClient:
                 self._excluded[model] = f"a reply reported cost {cost_v}"
             return CallResult(False, "NOT_FREE", role, model, error=f"the reply reported cost {cost_v}: discarded, "
                               "and this model is not used again", request_id=rid, attempts=attempts, latency_ms=lat,
-                              provider_id=payload.get("id"), tokens=tokens)
+                              provider_id=payload.get("id"), tokens=tokens, cost=cost_v)
+        return self._answer(role, model, payload, validate, rid, attempts, lat, tokens, 0.0)
+
+    def _answer(self, role, model, payload, validate, rid, attempts, lat, tokens, cost_v) -> CallResult:
+        """The reply's JSON, used as given or not at all."""
         finish = None
         try:
             choice = payload["choices"][0]
@@ -531,13 +660,14 @@ class OpenRouterClient:
             why = ("the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)"
                    if finish == "length" else "no JSON object in the reply")
             return CallResult(False, f"INVALID: {why}", role, model, request_id=rid,
-                              attempts=attempts, latency_ms=lat, provider_id=payload.get("id"), tokens=tokens)
+                              attempts=attempts, latency_ms=lat, provider_id=payload.get("id"), tokens=tokens,
+                              cost=cost_v)
         problem = validate(data)
         if problem:
             return CallResult(False, f"INVALID: {problem}", role, model, data=data, request_id=rid, attempts=attempts,
-                              latency_ms=lat, provider_id=payload.get("id"), tokens=tokens)
+                              latency_ms=lat, provider_id=payload.get("id"), tokens=tokens, cost=cost_v)
         return CallResult(True, "OK", role, model, data=data, request_id=rid, attempts=attempts, latency_ms=lat,
-                          provider_id=payload.get("id"), tokens=tokens)
+                          provider_id=payload.get("id"), tokens=tokens, cost=cost_v)
 
     # ── status for the dashboard (never the key) ─────────────────────────
 
@@ -560,7 +690,16 @@ class OpenRouterClient:
                     "judge_model": sel["judge"][0]["id"] if sel["judge"] else None,
                     "verifier_model": sel["verifier"][0]["id"] if sel["verifier"] else None,
                     "selection": {k: (v[:5] if isinstance(v, list) else v) for k, v in sel.items()},
+                    "paid_trial": self.trial_status(),
                     "model_stats": {m: {"ok": s[0], "failed": s[1]} for m, s in self._stats.items()}}
+
+
+def _usd(v) -> float | None:
+    return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and v == v else None
+
+
+def _day(t: float) -> str:
+    return datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d")
 
 
 def _about_the_key(msg: str) -> bool:

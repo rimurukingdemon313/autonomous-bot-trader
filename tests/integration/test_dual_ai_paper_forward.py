@@ -256,6 +256,7 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     total = f"| ${pf['account']['total_pnl']:,.2f} |"  # the real account, as it is, after the rule that trades
     assert "| Account | Equity |" not in head and "| Account | Equity |" in md and total in md.split(head)[1]
     assert "| DEBATE |" in md and "| AGREE |" in md  # each closed trade carries its rule
+    assert "Paid trial `paid-trial-2026-10-26`" in md and "(the key's own reading)" in md  # its spend is shown
     with pytest.raises(sqlite3.DatabaseError, match="immutable"):  # and the old rule's trades cannot be deleted
         with rt.db.tx() as c:
             c.execute("DELETE FROM trades WHERE decision_id LIKE 'old-DEBATE-%'")
