@@ -12,7 +12,8 @@ MARKET DATA (completed bars, live quote)
                                     numbers, on a text model)
   -> TRADER 2  (independent)        reads raw OHLC, both timeframes, costs,
                                     the chart and Trader 1's analysis      -> BUY or SELL, its own levels
-  -> same side?      AGREE          a trade, on the more confident trader's levels (Trader 1 on a tie)
+  -> same side?      AGREE          a trade, on Trader 1's levels (dual-ai 1.10.0; Trader 2's own levels are
+                                    followed forward in shadow, never traded)
      opposite side?  DISAGREE       NO TRADE. One debate still runs IN SHADOW: a third model reads both analyses,
                                     the data and the chart and picks BUY or SELL; its pick and the side it rejected
                                     are followed forward as if taken, never traded. Never a second round.
@@ -40,7 +41,11 @@ cost too large for the stop, reward:risk below its minimum (1.2), the daily loss
 exposure, an open position on the pair, every hard rule. The traders are told the per-trade limits (minimum stop
 distance at this spread, minimum reward:risk) so their levels can be executed; they cannot change them.
 
-### Levels the risk engine can accept (dual-ai 1.4.0, 2026-10-14)
+### Levels the risk engine can accept (dual-ai 1.4.0, 2026-10-14; replaced by 1.10.0)
+
+Since dual-ai 1.10.0 (2026-10-25, H3 below) a trade is always on Trader 1's levels. When they fall outside the
+risk engine's limits, it refuses them (followed forward), and Trader 2's are no longer used instead.
+What 1.4.0 did, for the record:
 
 On 2026-10-14, 27 of 51 agreements were refused by the risk engine for their levels (reward:risk below 1.2, or
 costs above a quarter of the stop); in 13 of them the other trader's own levels respected those limits. When both
@@ -347,9 +352,25 @@ read per version as well as together.
 |---|---|---|
 | H1 structure "range (mixed swings)" loses; a clear H1 structure (up or down) wins | range 21: 33% won, -0.18 R; clear 20: +0.43 R | each group has 20+ trades and range is 0.3 R or more below clear. **Adopted early by the operator (2026-10-19, risk 1.12.0)**: since then the range group is the refused agreements, followed forward; the rule is reversed if they do not do 0.3 R or more worse than the trades taken, over 20+ of each |
 | Chasing loses: a BUY with H1 RSI above 65, a SELL below 35 | 7 trades: 29% won, -0.30 R; the rest +0.20 R | 15+ chasing trades, 0.3 R or more below the rest |
-| Trader 2's levels lose when used | 7 trades: 29% won, -0.24 R; Trader 1's 34: +0.19 R | 15+ trades on Trader 2's levels, 0.3 R or more below |
+| Trader 2's levels lose when used | 7 trades: 29% won, -0.24 R; Trader 1's 34: +0.19 R | 15+ trades on Trader 2's levels, 0.3 R or more below. **Adopted 2026-10-25 (dual-ai 1.10.0), as registered**: from 2026-10-19, 21 trades on Trader 2's levels at -0.57 R against 37 on Trader 1's at +0.06 R. Every agreement since, followed forward: 55 at -0.38 R (31% won) against 129 at +0.07 R (46%). It held whichever model sat as Trader 2 (ultra 12 at -0.52 R, the others 9 at -0.64 R). Trader 2's own levels are now the shadow (`DUAL_AI_T2_LEVELS`, `trader2_levels_in_shadow`) |
 | Holding 24 h beats the 8 h exit | shadow, 19 trades: +0.39 R vs +0.13 R | 30+ paired trades in shadow, 0.15 R or more better. **Adopted early by the operator (2026-10-20, dual-ai 1.7.0)** at 31 pairs, +0.19 R (7 better, none worse), of which 3 opened after registration; since then the 8 h exit is the shadow (HOLD8H) |
 | Agreements refused for reward:risk under 1.2 would have paid | shadow, 34: +0.15 R, 59% won | 50+ in shadow and still positive; it would loosen a limit, so it needs the most |
+
+Read on 2026-10-25, over the trades opened from 2026-10-19:
+
+- **H1, the structure rule.** As registered, its refused agreements were followed forward and set against the
+  trades taken. Counted once per pair while one would still be open, 28 refused for structure alone did
+  +0.24 R; the 58 taken did -0.17 R. By the letter, that reverses the rule.
+  - That comparison mixes in Trader 2's levels, which 1.10.0 no longer trades.
+  - On Trader 1's levels the refused did worse than the taken: 21 at -0.07 R against 37 at +0.06 R. That is
+    0.12 R, short of the 0.3 R that would confirm the rule.
+  - 7 of the 28 came from one Tuesday morning (20 Oct, 00:15-09:15 UTC), 6 of them winners. Without them, the
+    other 21 did +0.01 R.
+  - The rule stays, the operator's call to overrule. It is judged again on Trader 1's levels only, with the
+    same threshold.
+- **Chasing.** It cannot be judged from the record: the decisions do not store H1 RSI.
+- **Reward:risk refused under 1.2.** 47 in shadow at +0.25 R (62% won), against the 50+ registered. Loosening
+  a limit is the operator's decision even then.
 
 Already adopted the same day, with a reason beyond the numbers: no trade against a currency already held (the
 account would bet against itself); the overlap, late Friday and the weekend closed (operator); High-impact news

@@ -29,8 +29,11 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #: 1.4.0: NOT_ASKED (dual-ai 1.6.0's name for a decision refused before the traders were asked) counts as
 #:        unavailable, as MARKET_UNAVAILABLE did before it.
 #: 1.5.0: the shadow exit closed at 8 h (HOLD8H, forward 1.2.0) beside the others: the exit before dual-ai 1.7.0.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.5.0"
+#: 1.6.0: an agreement's trade on Trader 2's own levels, followed forward in shadow since dual-ai 1.10.0 (the desk
+#:        trades on Trader 1's), against the trade taken: H3 stays measured after its adoption.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.6.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
+T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
@@ -102,6 +105,7 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
     shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: []}
     taken: dict = {}                                   # decision id -> (net R as taken, session)
     exits: dict = {n: {} for n in EXIT_FAMILIES.values()}  # variant -> {base decision id: net R}
+    t2_levels: dict = {}  # agreement decision id -> net R on Trader 2's own levels (never traded)
     for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_):
         out = r.get("outcome") or {}
         if out.get("status") != "RESOLVED" or out.get("net_r") is None:
@@ -113,6 +117,8 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             taken[r["decision_id"]] = (float(out["net_r"]), r.get("session"))
         elif fam in EXIT_FAMILIES and r.get("base_decision_id"):
             exits[EXIT_FAMILIES[fam]][r["base_decision_id"]] = float(out["net_r"])
+        elif fam == T2LEVELS_FAMILY:
+            t2_levels[str(r["decision_id"]).rsplit(":", 1)[0]] = float(out["net_r"])
 
     def against_taken(variant: dict) -> dict:
         pairs = [(taken[k][0], v) for k, v in variant.items() if k in taken]
@@ -144,6 +150,10 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             "debate_losing_side_if_taken": {**_r(shadow[LOSER_FAMILY]), "note": "the side the debate rejected, "
                                             "followed forward as if taken, after costs: if it does better than the "
                                             "side picked, the debate is choosing the wrong side"},
+            "trader2_levels_in_shadow": {**against_taken(t2_levels), "every_agreement": _r(list(t2_levels.values())),
+                                         "note": "since dual-ai 1.10.0 a trade is on Trader 1's levels; the same "
+                                                 "agreement on Trader 2's own levels, followed forward and never "
+                                                 "traded. difference_r > 0 would mean Trader 2's levels did better"},
             "exits_in_shadow": {**{n: against_taken(v) for n, v in exits.items()},
                                 "note": "each trade taken, followed again under another exit on the same entry, "
                                         "after costs; difference_r > 0 means that exit would have done better "

@@ -148,6 +148,33 @@ def test_a_trade_taken_is_followed_forward_under_shadow_exits_never_executed(tmp
     assert set(rec["exits_in_shadow"]) >= {"BE1R", "HOLD24H", "WIDE2X", "HOLD8H"} and "LATE" in rec["taken_by_session"]
 
 
+def test_a_trade_is_placed_on_trader_1s_levels_and_trader_2s_are_followed_in_shadow(tmp_path, monkeypatch):
+    # dual-ai 1.10.0 (H3): Trader 2 surer, with its own levels; the trade is on Trader 1's, Trader 2's are measured
+    base = desk_reply(c1=70)
+
+    def reply(role, body):
+        if role == "trader2":
+            p = packet_of(body)
+            q, atr = p["quote"], p["chart_marks"]["atr_h1"]
+            return answer("BUY", q["bid"], q["ask"], atr, confidence=95, stop_atr=1.5, target_atr=3.0)
+        return base(role, body)
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch, reply)
+    cycles(rt, clock)
+    (pos,) = rt.broker.positions()
+    rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    (taken,) = [r for r in rows if r["family"] == "DUAL_AI"]
+    (t2,) = [r for r in rows if r["family"] == "DUAL_AI_T2_LEVELS"]
+    assert t2["decision_id"] == taken["decision_id"] + ":t2-levels" and t2["route"] == "COUNTERFACTUAL"
+    assert t2["executed"] is False and t2["side"] == taken["side"] == 1
+    assert abs(t2["entry"] - t2["stop"]) == pytest.approx(1.5 * abs(taken["entry"] - taken["stop"]), rel=0.02)
+    assert pos.stop == pytest.approx(taken["stop"]) and len(rt.broker.positions()) == 1  # Trader 1's, and one trade
+    dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (taken["decision_id"],))["payload"])
+    assert dec["ai"]["dual_ai"]["consensus"]["levels_from"] == "trader1"
+    assert dec["ai"]["dual_ai"]["consensus"]["more_confident"] == "trader2"
+    rec = dual_ai_stats.record(rt.db)
+    assert "trader2_levels_in_shadow" in rec and "every_agreement" in rec["trader2_levels_in_shadow"]
+
+
 def test_the_traders_plan_for_8h_and_the_trade_stays_open_up_to_24h_never_past_the_friday_close(tmp_path,
                                                                                                monkeypatch):
     # dual-ai 1.7.0 (registered hypothesis H4): of 31 trades followed again in shadow, holding 24 h did better in 7

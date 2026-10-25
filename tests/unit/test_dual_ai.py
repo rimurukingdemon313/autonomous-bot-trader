@@ -59,12 +59,20 @@ def think(reply, c=None, **ckw):
 
 # ── agreement ───────────────────────────────────────────────────────────
 
-def test_same_side_is_an_agreement_and_a_trade_candidate_with_the_more_confident_traders_levels():
+def test_same_side_is_an_agreement_and_a_trade_candidate_on_trader_1s_levels_even_when_trader_2_is_surer():
+    # dual-ai 1.10.0 (H3, judged as registered): Trader 2's levels lost when used (21 trades, -0.57 R)
     d, fake = think(scripted(t1=("BUY", 87), t2=("BUY", 91)))
     assert d.decision == "BUY" and d.family == FAMILY and d.signal_class is None  # the orchestrator stamps the class
     rec = d.ai["dual_ai"]
-    assert rec["consensus"]["rule"] == "AGREE" and rec["consensus"]["levels_from"] == "trader2"
-    assert d.stop_loss == pytest.approx(ASK - 1.2 * ATR) and d.take_profit == pytest.approx(ASK + 2.4 * ATR)
+    assert rec["consensus"]["rule"] == "AGREE" and rec["consensus"]["levels_from"] == "trader1"
+    assert rec["consensus"]["more_confident"] == "trader2"  # named for the record, no longer deciding the levels
+    assert d.stop_loss == pytest.approx(ASK - 1.0 * ATR) and d.take_profit == pytest.approx(ASK + 2.0 * ATR)
+    (sh,) = rec["shadow"]  # Trader 2's own levels, followed forward and never traded
+    assert sh["family"] == "DUAL_AI_T2_LEVELS" and sh["trader"] == "trader2" and sh["direction"] == "BUY"
+    assert sh["stop_loss"] == pytest.approx(ASK - 1.2 * ATR) and sh["take_profit"] == pytest.approx(ASK + 2.4 * ATR)
+    assert sh["hold_minutes"] == d.max_hold_minutes  # held as the trade is
+    (cf,) = counterfactual_decisions(d)
+    assert cf.id == d.id + ":t2-levels" and cf.family == "DUAL_AI_T2_LEVELS" and cf.stop_loss == sh["stop_loss"]
     assert d.entry == ASK  # a market order at the executable price; the size is the risk engine's alone
     assert [c["role"] for c in fake.calls] == ["trader1", "trader2"] and len(fake.calls) == 2
     assert fake.calls[0]["model"] == VISION and fake.calls[1]["model"] == TRADER  # two different models
@@ -131,10 +139,11 @@ def test_an_unusable_debate_is_the_same_no_trade_with_nothing_to_follow_and_no_s
     assert len(fake.calls) == 3
 
 
-def test_an_agreement_is_a_trade_with_nothing_followed_in_shadow():
+def test_an_agreements_only_shadow_is_trader_2s_own_levels_never_a_debate_side():
     d, _ = think(scripted(t1=("BUY", 60), t2=("BUY", 99)))
     assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["rule"] == "AGREE"
-    assert counterfactual_decisions(d) == [] and "shadow" not in d.ai["dual_ai"]
+    assert [c.family for c in counterfactual_decisions(d)] == ["DUAL_AI_T2_LEVELS"]
+    assert all(c.decision == "BUY" for c in counterfactual_decisions(d))  # the side agreed, on the other levels
 
 
 def test_an_agreement_never_calls_the_debate_and_no_decision_makes_more_than_three_calls():
@@ -190,8 +199,9 @@ def test_validators_accept_a_well_formed_answer_and_check_the_debate():
 
 def test_resolve_is_the_desk_rule():
     a, b = answer("BUY", BID, ASK, ATR, confidence=70), answer("BUY", BID, ASK, ATR, confidence=71)
-    assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader2"}
-    assert resolve(b, a)["levels_from"] == "trader1"
+    assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader1",
+                             "more_confident": "trader2"}
+    assert resolve(b, a)["levels_from"] == "trader1" and resolve(b, a)["more_confident"] == "trader1"
     s = answer("SELL", BID, ASK, ATR)
     for verdict in (None, {"direction": "SELL"}, {"direction": "BUY"}):
         r = resolve(a, s, verdict)
@@ -400,25 +410,29 @@ def lim_ctx():
     return c
 
 
-def test_when_the_more_confident_traders_levels_are_inside_the_limits_the_other_traders_own_are_used():
-    # found live (2026-10-14): 27 of 51 agreements refused for their levels; in 13 the other trader's respected them
+def test_trader_1s_levels_inside_the_limits_are_left_to_the_risk_engine_never_replaced_by_trader_2s():
+    # 1.4.0 used Trader 2's levels then; 1.10.0 does not (H3): the risk engine refuses, and the refusal is measured
     tight = answer("BUY", BID, ASK, ATR, confidence=90, stop_atr=1.0, target_atr=1.0)  # reward:risk 1.0 < 1.2
     d, _ = think(scripted(trader1=tight, t2=("BUY", 70)), lim_ctx())
     rec = d.ai["dual_ai"]
-    assert d.decision == "BUY" and rec["consensus"]["levels_from"] == "trader2" and "levels_reason" in rec["consensus"]
-    assert d.stop_loss == pytest.approx(ASK - 1.2 * ATR) and d.take_profit == pytest.approx(ASK + 2.4 * ATR)  # as given
+    assert d.decision == "BUY" and rec["consensus"]["levels_from"] == "trader1" and "levels_reason" not in rec["consensus"]
+    assert d.stop_loss == pytest.approx(ASK - 1.0 * ATR) and d.take_profit == pytest.approx(ASK + 1.0 * ATR)  # as given
+    assert rec["shadow"][0]["take_profit"] == pytest.approx(ASK + 2.4 * ATR)  # Trader 2's, in shadow only
 
 
-def test_the_more_confident_traders_levels_stay_when_they_fit_or_when_neither_does():
-    d, _ = think(scripted(t1=("BUY", 90), t2=("BUY", 70)), lim_ctx())
-    assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # both fit: confidence decides, as before
+def test_trader_1s_levels_stay_when_they_fit_or_when_neither_does():
+    d, _ = think(scripted(t1=("BUY", 70), t2=("BUY", 90)), lim_ctx())
+    assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # both fit: Trader 1's, whoever is surer
     tight1 = answer("BUY", BID, ASK, ATR, confidence=90, stop_atr=1.0, target_atr=1.0)
     tight2 = answer("BUY", BID, ASK, ATR, confidence=70, stop_atr=1.0, target_atr=1.1)
     d, _ = think(scripted(trader1=tight1, trader2=tight2), lim_ctx())
     assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # the risk engine decides
     assert "levels_reason" not in d.ai["dual_ai"]["consensus"]
-    d, _ = think(scripted(trader1=tight1, t2=("BUY", 70)))  # no published limits: no preference
+    d, _ = think(scripted(trader1=tight1, t2=("BUY", 70)))  # no published limits: Trader 1's, as always
     assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"
+    same = answer("BUY", BID, ASK, ATR, confidence=70, stop_atr=1.0, target_atr=2.0)
+    d, _ = think(scripted(t1=("BUY", 80), trader2=same))  # the same levels as Trader 1: no shadow to follow
+    assert "shadow" not in d.ai["dual_ai"]
 
 
 def test_fits_limits_reads_the_published_limits_at_the_executable_price():

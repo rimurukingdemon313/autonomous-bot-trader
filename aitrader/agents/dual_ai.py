@@ -108,13 +108,26 @@ from .types import MarketContext
 #:        On the same 60 trades followed in shadow, the levels as taken held 24 h did +$4,360 better than the
 #:        trades did; stop and target twice as far (the closest measure of H1 levels) +$2,289. The H1 path
 #:        stays, named by EXECUTION_TF; the Friday cut of every time exit and hold_minutes stay.
-DUAL_AI_VERSION = "dual-ai-1.9.0"
+#: 1.10.0 (owner, 2026-10-25: "look at every trade, why it loses, and fix it"): a trade is always on Trader 1's
+#:         levels (LEVELS_FROM). Registered hypothesis H3 (2026-10-17, from 7 trades): Trader 2's levels lose when
+#:         used. Judged as registered, on the trades opened from 2026-10-19: on Trader 2's levels 21 trades at -0.57 R
+#:         against 37 on Trader 1's at +0.06 R (threshold: 15+ trades, 0.3 R below). Every agreement since, followed
+#:         forward: 55 at -0.38 R (31% won) against 129 at +0.07 R (46%). It held whichever model sat as Trader 2.
+#:         Both traders still decide together whether there is a trade (the same side). Trader 2's own levels are
+#:         followed forward in shadow (DUAL_AI_T2_LEVELS), never traded. Trader 1's levels outside the risk engine's
+#:         limits are refused by it, and no longer replaced by Trader 2's (1.4.0).
+DUAL_AI_VERSION = "dual-ai-1.10.0"
+#: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
+LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
 PICK_FAMILY, PICK_SUFFIX = "DUAL_AI_DEBATE_PICK", ":debate-pick"
 LOSER_FAMILY, LOSER_SUFFIX = "DUAL_AI_DEBATE_LOSER", ":debate-loser"
-SHADOW = {PICK_FAMILY: (PICK_SUFFIX, "DEBATE_PICK_NOT_TRADED"), LOSER_FAMILY: (LOSER_SUFFIX, "LOST_THE_DEBATE")}
+#: an agreement's trade on Trader 2's own levels (1.10.0): followed forward beside the trade on Trader 1's, never traded
+T2LEVELS_FAMILY, T2LEVELS_SUFFIX = "DUAL_AI_T2_LEVELS", ":t2-levels"
+SHADOW = {PICK_FAMILY: (PICK_SUFFIX, "DEBATE_PICK_NOT_TRADED"), LOSER_FAMILY: (LOSER_SUFFIX, "LOST_THE_DEBATE"),
+          T2LEVELS_FAMILY: (T2LEVELS_SUFFIX, "TRADER2_LEVELS_NOT_TRADED")}
 SIDES = ("BUY", "SELL")
 ENTRY_TOL_ATR = 1.0       # a market order: a stated entry further than this from the executable price is a misread
 MAX_TARGET_ATR = 15.0
@@ -319,12 +332,13 @@ def hold_minutes(timeframe: str, t: int) -> int:
 
 
 def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
-    """The desk's rule, pure: whose side and whose levels. Same side: a trade, on the more confident trader's levels
-    (Trader 1 on a tie). Opposite sides: no trade, whatever the debate says; the debate's pick (when it answered)
-    and the side it rejected are named for the shadow record only."""
+    """The desk's rule, pure: whose side and whose levels. Same side: a trade, on Trader 1's levels (1.10.0; the more
+    confident trader is named for the record). Opposite sides: no trade, whatever the debate says; the debate's pick
+    (when it answered) and the side it rejected are named for the shadow record only."""
     if t1["direction"] == t2["direction"]:
         lead = "trader1" if t1["confidence"] >= t2["confidence"] else "trader2"
-        return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": lead}
+        return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": LEVELS_FROM,
+                "more_confident": lead}
     pick = None if verdict is None else "trader1" if verdict["direction"] == t1["direction"] else "trader2"
     return {"outcome": "NO_TRADE", "rule": "DISAGREE", "direction": None, "levels_from": None,
             "debate_pick": None if verdict is None else verdict["direction"], "pick_from": pick,
@@ -620,13 +634,11 @@ class DualAITrader:
         res = resolve(t1, t2)
         if res["outcome"] != "TRADE":
             return stop(f"the desk's rule gave no trade ({res['rule']})", res["rule"])
-        traders, lim = {"trader1": t1, "trader2": t2}, (ctx.costs or {}).get("risk_engine_limits")
-        other = "trader2" if res["levels_from"] == "trader1" else "trader1"
-        if not fits_limits(traders[res["levels_from"]], px, lim) and fits_limits(traders[other], px, lim):
-            res = {**res, "levels_from": other,
-                   "levels_reason": f"the more confident trader's levels are inside the risk engine's per-trade limits; "
-                                    f"{other}'s own levels respect them"}
+        traders = {"trader1": t1, "trader2": t2}
         lead = traders[res["levels_from"]]
+        if (float(t2["stop_loss"]), float(t2["take_profit"])) != (float(t1["stop_loss"]), float(t1["take_profit"])):
+            # Trader 2's own levels, followed forward beside the trade and never traded: H3 stays measured
+            rec["shadow"] = [_shadow_side(t2, "trader2", T2LEVELS_FAMILY, exit_after)]
         rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3),
                             "stop_loss": float(lead["stop_loss"]), "take_profit": float(lead["take_profit"])}
         hit = _lesson(ctx, 1 if res["direction"] == "BUY" else -1)
@@ -675,5 +687,6 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LOSER_FAMILY", "LOSER_SUFFIX", "PICK_FAMILY", "PICK_SUFFIX",
+__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX", "PICK_FAMILY",
+           "PICK_SUFFIX", "T2LEVELS_FAMILY", "T2LEVELS_SUFFIX",
            "build_chart", "check_levels", "counterfactual_decisions", "resolve", "validate_trader", "validate_verifier"]
