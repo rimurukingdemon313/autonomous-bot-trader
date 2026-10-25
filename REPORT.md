@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-25 19:00 UTC**, run 429, version `radar-1.0.0`. State from: cache. Quotes this hour: 2391.
+Updated **2026-10-25 20:00 UTC**, run 430, version `radar-1.0.0`. State from: cache. Quotes this hour: 2391.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-25 19:00 UTC**, run 429, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 17.96
+- days: 18.0
 - run_coverage: 0.9931
 - closed_positions: 89
 - open_positions: 1
-- utilisation: 0.1131
+- utilisation: 0.113
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -0.9979
-- book_excess_pct: -1.0278
-- ann_excess_deployed_pct: -186.024
-- ann_excess_deployed_costs_x1.5_pct: -325.976
-- ann_excess_deployed_costs_x2_pct: -465.928
+- book_pnl_pct: -0.9992
+- book_excess_pct: -1.0292
+- ann_excess_deployed_pct: -185.891
+- ann_excess_deployed_costs_x1.5_pct: -325.554
+- ann_excess_deployed_costs_x2_pct: -465.217
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.2492
-- max_dd_pct: 0.9979
-- t_excess_daily: -3.247
+- book_excess_without_best_coin_pct: -1.2506
+- max_dd_pct: 0.9992
+- t_excess_daily: -3.245
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IRYS | mexc | gate | 2026-10-25 19:00 | 273.2% | 0.0 | 0.0 | 17.0 | **-17.0** |
+| IRYS | mexc | gate | 2026-10-25 19:00 | 273.2% | 0.1 | -2.8 | 17.0 | **-19.7** |
 
 ## Closed positions (89)
 
@@ -78,6 +78,5 @@ Updated **2026-10-25 19:00 UTC**, run 429, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| IRYS | mexc | gate | 273.2% | 19.1% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
