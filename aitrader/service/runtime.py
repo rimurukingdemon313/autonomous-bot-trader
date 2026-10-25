@@ -51,7 +51,7 @@ from ..regime.model import RegimeModel
 from ..risk.engine import RiskEngine
 from ..risk.hard_gate import HardRiskGate
 from ..decision.edge_status import PAPER_MODES
-from ..learning import dual_ai_stats, paper_metrics
+from ..learning import blame, dual_ai_stats, paper_metrics
 from ..version import stamp
 from .config import ServiceConfig, ServiceConfigError
 
@@ -844,8 +844,22 @@ class Runtime:
         out["removed_trades"] = [{**o, "rule": paper_metrics.rule_of(o)} for o in outcomes
                                  if o.get("decision_id") in removed]
         out["performance"] = paper_metrics.report(kept)
+        # who lost it, the market or us: every closed trade checked against what the system controls (learning.blame)
+        verdicts: dict = {}
+        try:
+            hp = self.cfg.hard_profile
+            seen = blame.from_journal(self.db, kept, per_trade_risk=hp.risk_per_trade, max_quote_age_s=hp.max_quote_age_s)
+            verdicts = {v["decision_id"]: v for v in seen.pop("per_trade")}
+            gone = blame.from_journal(self.db, [o for o in outcomes if o.get("decision_id") in removed],
+                                      per_trade_risk=hp.risk_per_trade, max_quote_age_s=hp.max_quote_age_s)
+            gone.pop("per_trade")
+            out["blame"] = {**seen, "removed_trades": gone}
+        except Exception as exc:  # noqa: BLE001 - shown as unavailable, never as "the market"
+            out["blame"] = {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
         out["open_positions"] = self._live_positions()
-        out["recent_trades"] = [{**o, "rule": paper_metrics.rule_of(o)} for o in kept[-20:][::-1]]
+        out["recent_trades"] = [{**o, "rule": paper_metrics.rule_of(o),
+                                 "blame": (verdicts.get(o.get("decision_id")) or {}).get("verdict")}
+                                for o in kept[-20:][::-1]]
         out["pipeline"] = [json.loads(e["payload"]) for e in
                            self.db.query("SELECT payload FROM events WHERE type='PIPELINE' ORDER BY seq DESC LIMIT 20")]
         # every decision, NO_TRADE included, with its reason: shows the system is reading the market at all

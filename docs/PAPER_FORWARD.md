@@ -151,6 +151,31 @@ broker other than the paper broker exists.
   stay in the journal and are listed apart (`removed_trades`). One exists: the 4 trades of the retired debate
   rule (2026-10-15, +$1,416.51). Made after the day's reference was taken, it gives that one day's loss limit the
   same headroom; the gate's floors are otherwise unchanged.
+- Who lost it, the market or us (`aitrader/learning/blame.py`, owner 2026-10-25: "if we lose, let it be the
+  market"). Every closed trade is checked against what the system controls, from its own journal, and
+  `REPORT.md` shows the result under the account, with a column on each closed trade. The checks:
+  - the rules and the hard gate approved it, with every check passed;
+  - its data was not flagged, and the fill's quote was within the gate's age;
+  - it was sized within the per-trade risk;
+  - both traders chose its side;
+  - it closed by its time exit, and was not open over a weekend;
+  - its costs were as planned (1.5 times, plus $5).
+
+  A trade that fails one is **ours**, a defect, named with the check it failed. A check that cannot be read
+  counts as ours too. A trade that passes them all is the market's: at its stop within the plan, by its time
+  exit, or stopped beyond the plan (a gap or the spread at the stop, named, with the rollover marked).
+  - On the first 99 agreement trades, to 2026-10-23, all 56 losses ($-18,545.89) were the market's: 50 at the
+    stop within the plan, 5 by the time exit, and 1 beyond it (GBPJPY, $-644.82 against $498.95, in the
+    rollover).
+  - The 4 trades of the retired debate rule are ours (not both traders' choice), and were already taken out of
+    the account.
+  - A loss being the market's says the system did what it is built to do. It does not say the trade had an
+    edge: that is what the expectancy, over enough trades, measures.
+- Risk 1.14.0 and orchestrator 1.23.0 (found while building that check): the risk engine measured the quote's age
+  from the decision time. On a quote read after a 5-minute answer it read "age -297s", so it could never find a
+  stale price; only the hard gate, on its own clock, could. The quote is now asked for, and its age judged, at
+  the moment the position would open. A quote stamped more than 5 s after that is refused, as the gate refuses
+  it.
 
 ## Decision systems
 

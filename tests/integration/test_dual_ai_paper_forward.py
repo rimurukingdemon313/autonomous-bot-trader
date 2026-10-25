@@ -257,6 +257,14 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert "| Account | Equity |" not in head and "| Account | Equity |" in md and total in md.split(head)[1]
     assert "| DEBATE |" in md and "| AGREE |" in md  # each closed trade carries its rule
     assert "Paid trial `paid-trial-2026-10-26`" in md and "(the key's own reading)" in md  # its spend is shown
+    # who lost it: the two trades written straight into the journal passed no check (no verdict, no gate): ours
+    b = pf["blame"]
+    assert (b["trades"], b["losses"], b["market_losses"], b["ours_losses"], b["ours_loss_usd"]) == (3, 2, 0, 2, -450.0)
+    assert "## Who lost it: the market or us" in md and "**the market 0**" in md and "**us 2**" in md
+    assert "**WARNING: 2 trade(s) failed a check: a defect, not the market.**" in md
+    assert "RULES: no approving risk verdict" in md and "| **us** |" in md
+    won_row = next(t for t in pf["recent_trades"] if t["decision_id"] == won["decision_id"])
+    assert won_row["blame"] == "MARKET"  # the trade through the real pipeline passes every check
     with pytest.raises(sqlite3.DatabaseError, match="immutable"):  # and the old rule's trades cannot be deleted
         with rt.db.tx() as c:
             c.execute("DELETE FROM trades WHERE decision_id LIKE 'old-DEBATE-%'")

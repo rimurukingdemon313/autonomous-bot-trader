@@ -104,7 +104,10 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         traders with 0 s left after 13-14 min on the pair before). And the risk engine judges the time rules and
 #:         the news window at the moment the position would open, after the traders answered (risk 1.13.0), with the
 #:         calendar read again then. A replay's clock is the bar time: a backtest decides exactly as before.
-ORCHESTRATOR_VERSION = "orchestrator-1.22.0"
+#: 1.23.0 (owner, 2026-10-25: "if we lose, let it be the market"): the quote the risk engine sizes and checks is asked
+#:         for at the moment the position would open (risk 1.14.0 measures its age there), not at the decision time. A
+#:         live feed ignores the time asked; a replay's clock is the bar time, so a backtest is unchanged.
+ORCHESTRATOR_VERSION = "orchestrator-1.23.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -440,11 +443,12 @@ class Orchestrator:
             # A model's answer takes minutes: the size comes from the price now, the one the hard gate verifies at
             # submission, never from the quote read before the decision (live 2026-10-13, EURJPY: sized on the old
             # price, refused by the gate at $523 > $500). A replay returns the same quote at t: nothing changes there.
-            fresh = self.feed.quote(symbol, t)
+            # The time rules, the news window and the quote's age are judged when the position would open: now, the
+            # traders answered (the quote is asked for at that moment, so a feed that stamps by the time asked agrees).
+            opens_at = max(t, int(self.clock()))
+            fresh = self.feed.quote(symbol, opens_at)
             if fresh is not None:
                 quote = fresh
-            # the time rules and the news window are judged when the position would open: now, the traders answered
-            opens_at = max(t, int(self.clock()))
             news = self.news.for_symbol(symbol, opens_at) if self.news is not None else ctx.news
             structure = ctx.market_map.get("structure") if isinstance(ctx.market_map, dict) else None
             verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags,

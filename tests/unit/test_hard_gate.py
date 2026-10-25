@@ -763,11 +763,35 @@ def test_the_time_rules_are_judged_when_the_position_would_open_never_earlier_th
     d = SimpleNamespace(id="o", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
     q = Quote("EURUSD", BID, ASK, at(11, 50))
     assert eng.evaluate(d, acct, spec, q, at(11, 50)).approved  # as before: judged at the decision time
-    late = eng.evaluate(d, acct, spec, q, at(11, 50), opens_at=at(12, 2))
+    q_open = Quote("EURUSD", BID, ASK, at(12, 2))  # the quote is read again when the traders answered (1.13.0)
+    late = eng.evaluate(d, acct, spec, q_open, at(11, 50), opens_at=at(12, 2))
     assert not late.approved and any("trading_calendar" in r and "12:02" in r for r in late.reasons)
     q2 = Quote("EURUSD", BID, ASK, at(12, 5))
     early = eng.evaluate(d, acct, spec, q2, at(12, 5), opens_at=at(11, 55))  # never before the decision began
     assert not early.approved and any("trading_calendar" in r for r in early.reasons)
+
+
+def test_the_quotes_age_is_judged_when_the_position_would_open():
+    # live 2026-10-23: "age -297s" on a quote read after a 5-minute answer: from the decision time the check could
+    # never find a stale price. Measured at the opening, a quote from the decision time is too old by then.
+    from datetime import datetime, timezone
+    _, _, eng, acct = _cal((2026, 10, 15, 11, 0))
+    at = lambda h, m, s=0: int(datetime(2026, 10, 15, h, m, s, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="q", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    fresh = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5)), at(11, 0), opens_at=at(11, 5))
+    assert fresh.approved and any(c.name == "quote" and "age 0s at opening" in c.detail for c in fresh.checks)
+    old = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 0)), at(11, 0), opens_at=at(11, 5))
+    assert not old.approved and any("quote" in r and "age 300s at opening" in r for r in old.reasons)
+    lim = eng.limits.max_quote_age_s
+    edge = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5) - lim), at(11, 0), opens_at=at(11, 5))
+    assert edge.approved  # exactly at the limit: still fresh
+    ahead = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5, 6)), at(11, 0), opens_at=at(11, 5))
+    assert not ahead.approved and any("quote" in r for r in ahead.reasons)  # stamped after the opening: not of now
+    near = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5, 5)), at(11, 0), opens_at=at(11, 5))
+    assert near.approved  # within the gate's own 5 s tolerance
+    replay = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 0)), at(11, 0))
+    assert replay.approved  # no opening time given: the decision time, as before
 
 
 def test_limits_without_a_calendar_never_check_one_and_a_calendar_is_validated():

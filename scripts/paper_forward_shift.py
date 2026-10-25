@@ -40,6 +40,39 @@ def fmt(x, spec: str) -> str:
     return "n/a" if x is None else spec.format(x)
 
 
+def blame_lines(b: dict) -> list[str]:
+    """Who lost it, the market or us (aitrader/learning/blame.py): every closed trade checked."""
+    if not b:
+        return []
+    if b.get("available") is False:
+        return [f"**Who lost it: not checked** ({b.get('reason')}): no loss is called the market's without the check.", ""]
+    kinds = b.get("market_by_kind") or {}
+    say = {"STOP": "at the stop, within the plan", "TIME_EXIT": "by the time exit", "STOP_BEYOND_PLAN":
+           "stopped beyond the plan (a gap or the spread at the stop)"}
+    out = ["## Who lost it: the market or us", "",
+           f"Losses {b.get('losses', 0)}, {money(b.get('loss_usd'))}: **the market {b.get('market_losses', 0)}** ("
+           + ", ".join(f"{say.get(k, k)} {x['n']}" for k, x in kinds.items()) + f") · **us {b.get('ours_losses', 0)}**"
+           + (f" ({money(b.get('ours_loss_usd'))})" if b.get("ours_losses") else "") + ". Every closed trade is checked: "
+           "the rules and the gate approved it, its data and the fill's quote were fresh, it was sized within the "
+           "per-trade risk, both traders chose its side, it closed on time and not over a weekend, its costs were as "
+           "planned. A check that cannot be read counts as ours.", ""]
+    if b.get("ours"):
+        out += [f"**WARNING: {b['ours']} trade(s) failed a check: a defect, not the market.**", ""]
+        out += [f"- {datetime.fromtimestamp(t['closed'], timezone.utc):%m-%d %H:%M} {t.get('symbol')} {t.get('direction')} "
+                f"{money(t.get('net_pnl'))}: " + "; ".join(t.get("faults") or []) for t in b.get("ours_trades") or []]
+        out.append("")
+    for t in b.get("beyond_plan") or []:
+        out += [f"Beyond the plan, the market's: {datetime.fromtimestamp(t['closed'], timezone.utc):%m-%d %H:%M} "
+                f"{t.get('symbol')} {t.get('direction')} lost {money(-t['net_pnl'])} against a planned "
+                f"{money(t.get('planned_max_loss'))}{' in the rollover' if 'rollover' in (t.get('market') or '') else ''}.", ""]
+    gone = b.get("removed_trades") or {}
+    if gone.get("trades"):
+        out += [f"The {gone['trades']} trade(s) taken out of the account, checked the same way: {gone.get('ours', 0)} ours"
+                + (f" ({'; '.join(sorted({f for t in gone.get('ours_trades') or [] for f in t.get('faults') or []}))})"
+                   if gone.get("ours") else "") + ".", ""]
+    return out
+
+
 def report_md(v: dict, shift: dict) -> str:
     a, o = v.get("account") or {}, (v.get("performance") or {}).get("overall") or {}
     lines = [
@@ -89,6 +122,7 @@ def report_md(v: dict, shift: dict) -> str:
         lines += [f"Equity includes declared operator adjustments of {money(a['adjustments_total'])} "
                   f"(without them: {money(a.get('equity_before_adjustments'))}); P&L today excludes them. "
                   + "; ".join(f"`{x['id']}`: {x.get('reason')}" for x in v.get("adjustments") or []) + ".", ""]
+    lines += blame_lines(v.get("blame") or {})
     # found live (2026-10-14): the gate refused every approved trade for twelve hours, one line among many below
     def gate_code(reason: str) -> str:
         m = re.search(r"reason=([A-Z_]+)", reason)
@@ -118,12 +152,14 @@ def report_md(v: dict, shift: dict) -> str:
     for p in v.get("open_positions") or []:
         lines.append(f"| {p['symbol']} | {p['side']} | {p['qty']} | {p['entry']} | {p['stop']} | {p['target']} | {money(p.get('pnl'))} |")
     lines += ["", "## Closed paper trades (latest 20)", "",
-              "| Closed | Symbol | Side | Net | R | Costs | Exit | Source | Rule |", "|---|---|---|---|---|---|---|---|---|"]
+              "| Closed | Symbol | Side | Net | R | Costs | Exit | Source | Rule | Lost to |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
     for t in v.get("recent_trades") or []:
         when = datetime.fromtimestamp(t["closed"], timezone.utc).strftime("%m-%d %H:%M")
         lines.append(f"| {when} | {t['symbol']} | {t['direction']} | {money(t.get('net_pnl'))} | "
                      f"{fmt(t.get('r'), '{:+.2f}')} | {money(t.get('costs_total'))} | "
-                     f"{t.get('exit_reason')} | {t.get('source') or t.get('agent')} | {t.get('rule') or '-'} |")
+                     f"{t.get('exit_reason')} | {t.get('source') or t.get('agent')} | {t.get('rule') or '-'} | "
+                     f"{'**us**' if t.get('blame') == 'OURS' else '-' if (t.get('net_pnl') or 0) >= 0 else 'the market' if t.get('blame') == 'MARKET' else '?'} |")
     if dai.get("active"):
         o, perf = dai.get("openrouter") or {}, dai.get("performance") or {}
 

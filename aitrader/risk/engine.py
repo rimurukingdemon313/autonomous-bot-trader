@@ -78,7 +78,13 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   at the moment the position would open, after the traders answered, not when the decision began: an answer takes
 #:   up to ~12 min, so a decision begun at 11:50 could open a position in the 12:00 overlap. Unset: the decision time,
 #:   as before. The quote's age is still measured from the decision time.
-RISK_VERSION = "risk-1.13.0"
+#: 1.14.0 (owner, 2026-10-25: "if we lose, let it be the market"): the quote's age is measured at the opening too. From
+#:   the decision time it read "age -297s" on a quote taken after a 5-minute answer, so this check could never find a
+#:   stale price (only the hard gate, on its own clock, could). A quote stamped more than QUOTE_FUTURE_S after the
+#:   opening is refused, as the gate refuses it. It only ever refuses.
+RISK_VERSION = "risk-1.14.0"
+#: a quote stamped this far after the moment of opening is not a quote of now (the hard gate's own tolerance)
+QUOTE_FUTURE_S = 5
 NEW_YORK = ZoneInfo("America/New_York")
 #: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
 PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
@@ -536,8 +542,11 @@ class RiskEngine:
         eq = account.equity
         ok &= add(self._c_equity(account))
         ok &= check("spec", spec is not None and spec.tradable, "instrument spec missing or not tradable" if not (spec and spec.tradable) else "ok")
-        fresh = quote is not None and quote.bid > 0 and quote.ask >= quote.bid and now - quote.time <= L.max_quote_age_s
-        ok &= check("quote", fresh, "no quote" if quote is None else f"age {now - quote.time}s, bid {quote.bid}, ask {quote.ask}")
+        age = None if quote is None else opens - quote.time  # at the moment the position would open
+        fresh = (quote is not None and quote.bid > 0 and quote.ask >= quote.bid
+                 and -QUOTE_FUTURE_S <= age <= L.max_quote_age_s)
+        ok &= check("quote", fresh, "no quote" if quote is None else
+                    f"age {age}s at opening (max {L.max_quote_age_s}s), bid {quote.bid}, ask {quote.ask}")
         if not ok:
             return v
 
