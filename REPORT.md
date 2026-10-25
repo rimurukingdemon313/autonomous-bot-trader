@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-25 22:44 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-25 17:59 UTC · decision system `dual_ai`
+Updated 2026-10-25 22:59 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-25 17:59 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -51,8 +51,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
 - 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2692 so far)
+## Latest decisions, NO TRADE included (2694 so far)
 
+- 10-25 22:45 AUDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2925 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2925 minutes old [data: latest bar closed 2925 minutes ago]
+- 10-25 22:45 USDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2985 minutes ago; STALE_DATA: last closed bar is 2985 minutes old [data: latest bar closed 2985 minutes ago]
 - 10-25 22:30 GBPUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2910 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2910 minutes old [data: latest bar closed 2910 minutes ago]
 - 10-25 22:30 EURUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2910 minutes ago; STALE_DATA: last closed bar is 2910 minutes old [data: latest bar closed 2910 minutes ago]
 - 10-25 22:15 AUDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2895 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2895 minutes old [data: latest bar closed 2895 minutes ago]
@@ -63,8 +65,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-25 21:45 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2865 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2865 minutes old [data: latest bar closed 2865 minutes ago]
 - 10-25 21:30 USDCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2850 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2850 minutes old [data: latest bar closed 2850 minutes ago]
 - 10-25 21:30 USDCAD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2850 minutes ago; STALE_DATA: last closed bar is 2850 minutes old [data: latest bar closed 2850 minutes ago]
-- 10-25 21:15 AUDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2835 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2835 minutes old [data: latest bar closed 2835 minutes ago]
-- 10-25 21:15 USDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2895 minutes ago; STALE_DATA: last closed bar is 2895 minutes old [data: latest bar closed 2895 minutes ago]
 
 ## Open paper positions
 
@@ -114,6 +114,8 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-25 22:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-25 22:45 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 22:30 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 22:30 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 22:15 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -124,8 +126,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-25 21:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 21:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 21:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-25 21:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-25 21:15 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
