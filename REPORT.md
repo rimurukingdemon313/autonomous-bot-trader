@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-25 09:03 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-25 06:48 UTC · decision system `dual_ai`
+Updated 2026-10-25 09:18 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-25 06:48 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -43,8 +43,10 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,5
 - 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
 - 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2584 so far)
+## Latest decisions, NO TRADE included (2586 so far)
 
+- 10-25 09:15 EURGBP NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2115 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 12273s old [data: latest bar closed 2115 minutes ago]
+- 10-25 09:15 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2115 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 12272s old [data: latest bar closed 2115 minutes ago]
 - 10-25 09:00 USDCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2100 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 13143s old [data: latest bar closed 2100 minutes ago]
 - 10-25 09:00 USDCAD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2100 minutes ago; STALE_DATA: quote is 13142s old; STALE_DATA: last closed bar is 2100 minutes old [data: latest bar closed 2100 minutes ago]
 - 10-25 08:45 AUDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2085 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 10474s old [data: latest bar closed 2085 minutes ago]
@@ -55,8 +57,6 @@ Equity includes declared operator adjustments of $1,416.51 (without them: $196,5
 - 10-25 08:15 EURCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2055 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 8674s old [data: latest bar closed 2055 minutes ago]
 - 10-25 08:00 GBPJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2040 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 124266s old [data: latest bar closed 2040 minutes ago]
 - 10-25 08:00 EURJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2040 minutes ago; STALE_DATA: quote is 9545s old; STALE_DATA: last closed bar is 2040 minutes old [data: latest bar closed 2040 minutes ago]
-- 10-25 07:45 EURGBP NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2025 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 6872s old [data: latest bar closed 2025 minutes ago]
-- 10-25 07:45 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2025 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 6871s old [data: latest bar closed 2025 minutes ago]
 
 ## Open paper positions
 
@@ -98,12 +98,14 @@ Agreement trades 99 (adequate) · wins 43 · losses 56 · net $-2,026.63 · expe
 
 Disagreements (not traded; the debate runs in shadow): 116 · the debate's pick if taken: 110 resolved (adequate), expectancy -0.145R · the side it rejected if taken: 115 resolved (adequate), expectancy -0.233R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.118R vs -0.065R as taken (86, adequate) · held 24 h +0.032R vs -0.088R as taken (82, adequate) · stop and target twice as far +0.048R vs -0.064R as taken (80, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.206R vs -0.199R as taken (32, adequate)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.118R vs -0.065R as taken (86, adequate) · held 24 h +0.019R vs -0.100R as taken (83, adequate) · stop and target twice as far +0.048R vs -0.064R as taken (80, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.206R vs -0.199R as taken (32, adequate)
 
 Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R · LONDON 30 resolved (adequate), expectancy +0.163R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 17 resolved (insufficient), expectancy +0.147R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-25 09:15 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-25 09:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 09:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 09:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 08:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -114,8 +116,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-25 08:15 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 08:00 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 08:00 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-25 07:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-25 07:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
