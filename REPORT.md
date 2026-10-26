@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-26 12:31 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 10:45 UTC · decision system `dual_ai`
+Updated 2026-10-26 12:46 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 10:45 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $197,569.92 | $-403.44 | $-2,430.08 | $-2,430.08 | 3 | 102 (adequate) | 43.1% | -0.057R | 0.88 | ACTIVE | RUNNING |
+| $200,000.00 | $197,404.90 | $-568.47 | $-2,595.10 | $-2,595.10 | 3 | 102 (adequate) | 43.1% | -0.057R | 0.88 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $196,153.41); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $195,988.38); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -51,8 +51,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 02:48 GBPUSD BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY GBPUSD would bet against an open position: USDCHF BUY is long USD; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH
 - 10-26 02:30 AUDJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2802 so far)
+## Latest decisions, NO TRADE included (2804 so far)
 
+- 10-26 12:45 AUDUSD NO_TRADE: risk engine: trading_calendar (Monday 12:45 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3): the model was not consulted
+- 10-26 12:45 USDJPY NO_TRADE: risk engine: trading_calendar (Monday 12:45 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3): the model was not consulted
 - 10-26 12:30 GBPUSD NO_TRADE: risk engine: trading_calendar (Monday 12:30 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3): the model was not consulted
 - 10-26 12:30 EURUSD NO_TRADE: risk engine: trading_calendar (Monday 12:30 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was n
 - 10-26 12:15 AUDJPY NO_TRADE: risk engine: trading_calendar (Monday 12:15 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 408.23 is less than the n
@@ -63,16 +65,14 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 11:45 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 52: M15 shows four consecutive bearish BOS with bearish displacement and price below today's low, confirming bearish intraday structure.
 - 10-26 11:30 USDCHF BUY: BUY USDCHF on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 62: Both timeframes print bullish structure with a series of bullish BOS and an untested demand order block below, so continuation buys ca
 - 10-26 11:30 USDCAD NO_TRADE: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
-- 10-26 11:16 AUDUSD BUY: BUY AUDUSD on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 60: Both timeframes are bullish and price has retraced into the demand zone near 0.70299-0.70309 after a bullish structure break, offering
-- 10-26 11:15 USDJPY BUY: BUY USDJPY on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 58: M15 bullish structure with consecutive BOS and a freshly tested demand OB at 157.265-157.342 favors continuation longs over fading the
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | BUY | 3.38 | 0.8386699999999999 | 0.8378 | 0.8402 | $-194.07 |
+| EURGBP | BUY | 3.38 | 0.8386699999999999 | 0.8378 | 0.8402 | $-148.91 |
 | USDCAD | SELL | 3.83 | 1.4014149999999999 | 1.4028 | 1.3994 | $-16.40 |
-| EURCHF | BUY | 2.48 | 0.9244 | 0.9231 | 0.9263 | $93.06 |
+| EURCHF | BUY | 2.48 | 0.9244 | 0.9231 | 0.9263 | $-117.14 |
 
 ## Closed paper trades (latest 20)
 
@@ -117,6 +117,8 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-26 12:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-26 12:45 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 12:30 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 12:30 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 12:15 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -127,8 +129,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-26 11:45 | NZDUSD | SELL 52 | SELL 65 | - | AGREE | SELL | REJECTED |
 | 10-26 11:30 | USDCHF | BUY 62 | BUY 60 | - | AGREE | BUY | REJECTED |
 | 10-26 11:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-26 11:16 | AUDUSD | BUY 60 | BUY 62 | - | AGREE | BUY | REJECTED |
-| 10-26 11:15 | USDJPY | BUY 58 | BUY 65 | - | AGREE | BUY | REJECTED |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
