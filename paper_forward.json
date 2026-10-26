@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 196179.72,
+  "equity": 196132.04,
   "balance": 196240.59,
-  "total_pnl": -3820.28,
-  "today_pnl": -1793.65,
+  "total_pnl": -3867.96,
+  "today_pnl": -1841.33,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 194763.21,
+  "equity_before_adjustments": 194715.52,
   "day_reference": 197973.36734622458,
-  "drawdown_from_start": -3820.28,
+  "drawdown_from_start": -3867.96,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -668,12 +668,12 @@
    "side": "SELL",
    "qty": 1.04,
    "entry": 110.574,
-   "current": 110.56700000000001,
+   "current": 110.604,
    "stop": 110.713,
    "target": 110.251,
-   "r_now": 0.05,
+   "r_now": -0.216,
    "opened": 1793036768.0,
-   "pnl": 4.66,
+   "pnl": -19.97,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -685,12 +685,12 @@
    "side": "SELL",
    "qty": 0.64,
    "entry": 0.9251,
-   "current": 0.9252900000000001,
+   "current": 0.9251900000000001,
    "stop": 0.92635,
    "target": 0.92293,
-   "r_now": -0.152,
+   "r_now": -0.072,
    "opened": 1793036742.0,
-   "pnl": -14.71,
+   "pnl": -6.97,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -702,12 +702,12 @@
    "side": "SELL",
    "qty": 1.54,
    "entry": 1.33523,
-   "current": 1.3355599999999999,
+   "current": 1.33576,
    "stop": 1.3365,
    "target": 1.3333,
-   "r_now": -0.26,
+   "r_now": -0.417,
    "opened": 1793032361.0,
-   "pnl": -50.82,
+   "pnl": -81.62,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -2464,6 +2464,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPUSD",
+   "decision": "NO_TRADE",
+   "t": 1793037622,
+   "reason": "blocked before consulting the model: EXPOSURE: a GBPUSD position is already open",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1793037621,
+   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+   "data_flags": []
+  },
+  {
    "symbol": "AUDJPY",
    "decision": "SELL",
    "t": 1793036742,
@@ -2616,23 +2630,9 @@
    "t": 1793026816,
    "reason": "risk engine: trading_calendar (Monday 15:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "EURGBP",
-   "decision": "NO_TRADE",
-   "t": 1793025922,
-   "reason": "risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "NZDUSD",
-   "decision": "NO_TRADE",
-   "t": 1793025921,
-   "reason": "risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 2842,
+ "decisions_total": 2844,
  "shift": {
   "started": "2026-10-26 16:22 UTC",
   "decision_mode": "dual_ai",
@@ -3049,110 +3049,69 @@
    }
   },
   "last_analysis": {
-   "decision_id": "d9d11089c8606545974dd84f",
-   "symbol": "AUDJPY",
-   "t": 1793036742,
-   "decision": "SELL",
-   "reason": "SELL AUDJPY on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 62: Shorting a corrective retrace into the tested supply order block and equal-highs liquidity while the M15 trend is down gives the higher-probability side. Stop above the open bearish FVG at 110.713 clears all overlapping highs and in",
+   "decision_id": "5d778a04dbb4f0091a26cb84",
+   "symbol": "GBPUSD",
+   "t": 1793037622,
+   "decision": "NO_TRADE",
+   "reason": "blocked before consulting the model: EXPOSURE: a GBPUSD position is already open",
    "consensus": {
-    "desk_confidence": 0.55,
-    "direction": "SELL",
-    "levels_from": "trader1",
-    "more_confident": "trader1",
-    "outcome": "TRADE",
-    "rule": "AGREE",
-    "stop_loss": 110.713,
-    "take_profit": 110.251
+    "outcome": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a GBPUSD position is already open",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "xiaomi/mimo-v2.6-pro",
-    "trader2": "anthropic/claude-haiku-5.5"
-   },
-   "trader1": {
-    "confidence": 62,
-    "direction": "SELL",
-    "entry": 110.581,
-    "invalidation": 110.713,
-    "liquidity": "equal highs stacked overhead at 110.628 and 110.666 act as inducement/sell-side fuel above, while the buy-side sweep of lows at 110.479 has already been paid out; the draw is the equal lows at 110.251 and the 110.376 low resting below",
-    "market_structure": "M15 bearish sequence intact: bearish CHoCH at 110.575 and bearish BOS at 110.479 after the LH at 110.623; the rebound from the 110.376 LL is a corrective pullback now stalling at the tested supply order block 110.507-110.628, with a fresh LL at 110.518 keeping the downtrend alive; H4 is a range so the downside is a swing play, not a trend extension",
-    "momentum": "volatility is low (ATR percentile 12, M15 ATR 0.071) and the last M15 bars are small-bodied churn inside the supply block, so momentum is fading into resistance rather than expanding; an open bearish FVG 110.669-110.713 caps any squeeze higher",
-    "reason": "Shorting a corrective retrace into the tested supply order block and equal-highs liquidity while the M15 trend is down gives the higher-probability side. Stop above the open bearish FVG at 110.713 clears all overlapping highs and invalidates the bearish read. Target the equal lows at 110.251, reachable within 480 minutes at current volatility, for roughly 2.5R. Main risk is the H4 range and the bullish low sweep, hence only moderate confidence.",
-    "reversal_probability": 35,
-    "risk_reward": 2.5,
-    "stop_loss": 110.713,
-    "take_profit": 110.251,
-    "trend": "M15 DOWN (LH+LL) is the dominant signal; H4 RANGE (mixed swings, bearish CHoCH at 110.356 / bullish CHoCH at 110.447) offers no opposing impulse, so the shorter-timeframe trend governs"
-   },
-   "trader2": {
-    "confidence": 55,
-    "direction": "SELL",
-    "entry": 110.581,
-    "invalidation": 110.628,
-    "liquidity": "Equal highs at 110.628 and 110.666 sit overhead as sell-side fuel. The 110.479 sweep is already used, and the 110.376 and 110.251 lows rest below as the draw.",
-    "market_structure": "M15 is down (LH 110.623, LL 110.518 after the bearish BOS at 110.479), and price is rebounding into the tested supply OB 110.507-110.628. H4 is a mixed range, so this is a swing short within a range, not a trend trade.",
-    "momentum": "Volatility is LOW (ATR percentile 12) and the last M15 bars are small-bodied churn under the supply zone, so upside momentum is fading. The open bearish FVG 110.669-110.713 caps any squeeze.",
-    "reason": "The M15 downtrend is intact and price is retracing into tested supply with overhead equal highs. The stop at 110.70 clears the bearish FVG and the minimum stop distance, and the target at the 110.422 support (3 touches) gives about 1.3R. Confidence is moderate because H4 is ranging, volatility is low, and the market is unfamiliar to the desk's model.",
-    "reversal_probability": 40,
-    "risk_reward": 1.31,
-    "stop_loss": 110.7,
-    "take_profit": 110.425,
-    "trend": "M15 DOWN dominates. H4 is RANGE with bearish and bullish CHoCHs both recent, so there is no strong opposing impulse but no clean trend either."
-   },
+   "models": {},
+   "trader1": null,
+   "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793036742,
-    "bytes": 30428,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1793036700,
-    "last_bar_open": 1793035800,
-    "sha256": "43c10703cbc97a487b008f758326a5b36f856e59b9e218ec5e2a401e91be5ecb",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.00439785,
-     "error": null,
-     "latency_ms": 14911.9,
-     "model": "xiaomi/mimo-v2.6-pro",
-     "ok": true,
-     "provider_id": "gen-1793036743-Kigai3GYGTaEKHg5SrPs",
-     "request_id": "ffcaec30f5f54b5993931b86ee17f284",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 8703,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0020363,
-     "error": null,
-     "latency_ms": 8456.3,
-     "model": "anthropic/claude-haiku-5.5",
-     "ok": true,
-     "provider_id": "gen-1793036758-kJh8PqXPuwl01Btl2Ag6",
-     "request_id": "1aabde06189e4435a64d7e0058129b11",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 15507,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.10.0",
-   "risk": {
-    "approved": true,
-    "reasons": [],
-    "qty": 1.04
-   }
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "5d778a04dbb4f0091a26cb84",
+    "symbol": "GBPUSD",
+    "t": 1793037622,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a GBPUSD position is already open",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: EXPOSURE: a GBPUSD position is already open",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
+   {
+    "decision_id": "0e2671dbfc112b3f18882b57",
+    "symbol": "EURUSD",
+    "t": 1793037621,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
    {
     "decision_id": "d9d11089c8606545974dd84f",
     "symbol": "AUDJPY",
@@ -3784,216 +3743,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.10.0",
     "risk": null
-   },
-   {
-    "decision_id": "fc5af7db6f74f2645318d8a5",
-    "symbol": "GBPUSD",
-    "t": 1793032324,
-    "decision": "SELL",
-    "reason": "SELL GBPUSD on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 58: Selling the retest of the tested supply order block at 1.33488-1.33572 aligns with the bearish H4 CHoCH/BOS and the repeated sweeps of the 1.33549 highs. Stop above the 1.33626/1.33629 resistance cluster invalidates the short, while",
-    "consensus": {
-     "desk_confidence": 0.55,
-     "direction": "SELL",
-     "levels_from": "trader1",
-     "more_confident": "trader1",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 1.3365,
-     "take_profit": 1.3333
-    },
-    "models": {
-     "trader1": "xiaomi/mimo-v2.6-pro",
-     "trader2": "anthropic/claude-haiku-5.5"
-    },
-    "trader1": {
-     "confidence": 58,
-     "direction": "SELL",
-     "entry": 1.33524,
-     "invalidation": 1.3365,
-     "liquidity": "Equal highs sit far above at 1.33887/1.33955/1.33998; nearer-term sell-side liquidity rests below at the 1.33296 day low and the open bullish FVG 1.33383-1.33406, while repeated sweeps of the 1.33549 highs show buy-side liquidity was taken and rejected.",
-     "market_structure": "H4 bearish CHoCH (1.33785) and bearish BOS (1.33617); M15 shows mixed swings but the latest leg is a bearish sweep of the 1.33549 highs followed by bearish displacement and price is now retracing into the tested supply order block 1.33488-1.33572 after printing the 1.33296 LL.",
-     "momentum": "Three recent bearish displacement candles and repeated high sweeps argue sellers still control the swings; the bounce off 1.33296 is corrective and stalling under the tested supply block, though the short-term recovery keeps momentum mixed.",
-     "reason": "Selling the retest of the tested supply order block at 1.33488-1.33572 aligns with the bearish H4 CHoCH/BOS and the repeated sweeps of the 1.33549 highs. Stop above the 1.33626/1.33629 resistance cluster invalidates the short, while the target at 1.33330 aims just above the 1.33296 day low and the open bullish FVG. Ranging context and the strong bounce off the low cap confidence, hence a moderate 58.",
-     "reversal_probability": 42,
-     "risk_reward": 1.54,
-     "stop_loss": 1.3365,
-     "take_profit": 1.3333,
-     "trend": "Both M15 and H4 are labelled range/mixed, but the higher-timeframe structure breaks are bearish and price trades below the previous day and week pivots, giving the downside the edge."
-    },
-    "trader2": {
-     "confidence": 55,
-     "direction": "SELL",
-     "entry": 1.33524,
-     "invalidation": 1.33626,
-     "liquidity": "Buy-side was swept at the 1.33549 highs and rejected. Sell-side rests below at the 1.33296 day low and the open bullish FVG 1.33383-1.33406. Equal highs sit far above at 1.33885 and higher.",
-     "market_structure": "H1 is in a bearish sequence (LH+LL) with a bearish BOS at 1.33435, and H4 has a bearish CHoCH at 1.33785 and BOS at 1.33617. M15 and M5 are range-bound, and price is retracing into the tested supply block 1.33488-1.33572.",
-     "momentum": "Bearish displacement after the sweep favours sellers, but the M5 bullish CHoCH and the bounce from 1.33296 show short-term recovery and mixed momentum.",
-     "reason": "Selling the retest of the tested M15 supply block at 1.33488-1.33572 aligns with the H1 downtrend and the bearish H4 CHoCH/BOS. The stop sits above the 1.33626 resistance cluster and the target at 1.33300 sits just above the 1.33296 day low. Range context and an unfamiliar regime keep confidence moderate at 55.",
-     "reversal_probability": 40,
-     "risk_reward": 1.93,
-     "stop_loss": 1.3364,
-     "take_profit": 1.333,
-     "trend": "H1 is down and H4 is bearish on structure, but M15 and H4 are both labelled range, and the regime is unfamiliar, which lowers conviction."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1793032324,
-     "bytes": 29934,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1793032200,
-     "last_bar_open": 1793031300,
-     "sha256": "2f798cb9d6ae29a05ad01c56331d8cd24b2035c4febe5f5b043aeb927339b358",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.004072905,
-      "error": null,
-      "latency_ms": 27805.1,
-      "model": "xiaomi/mimo-v2.6-pro",
-      "ok": true,
-      "provider_id": "gen-1793032326-iVwfJlH5JQmfODfH2jXu",
-      "request_id": "a8ac73e576dd40168b29a082e3d63b0b",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 8332,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0020397,
-      "error": null,
-      "latency_ms": 6881.0,
-      "model": "anthropic/claude-haiku-5.5",
-      "ok": true,
-      "provider_id": "gen-1793032354-HtmIhLqjFp31oWLHh2eG",
-      "request_id": "c1d1204b232b4d03abbb80573aa4d93b",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 16405,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.10.0",
-    "risk": {
-     "approved": true,
-     "reasons": [],
-     "qty": 1.54
-    }
-   },
-   {
-    "decision_id": "2c91a89911d1f8eaea5b243e",
-    "symbol": "EURUSD",
-    "t": 1793032218,
-    "decision": "SELL",
-    "reason": "SELL EURUSD on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 58: Higher timeframe is down with a bearish CHoCH and the M15's last two structure breaks were bearish, so the path of least resistance is lower. The untested supply block at 1.11957-1.12007 and the 1.11926-1.11998 resistance shelf cap ",
-    "consensus": {
-     "desk_confidence": 0.55,
-     "direction": "SELL",
-     "levels_from": "trader1",
-     "more_confident": "trader1",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 1.12027,
-     "take_profit": 1.1159
-    },
-    "models": {
-     "trader1": "xiaomi/mimo-v2.6-pro",
-     "trader2": "anthropic/claude-haiku-5.5"
-    },
-    "trader1": {
-     "confidence": 58,
-     "direction": "SELL",
-     "entry": 1.11856,
-     "invalidation": 1.12027,
-     "liquidity": "Untested supply order block 1.11957-1.12007 overhead plus stacked sell-side resistance (1.11926/1.11944/1.11974/1.11998); buy-side EQH at 1.12196/1.12296 sits far above, while today's low 1.11769 is the nearest downside draw after the bullish low sweeps at 1.11919",
-     "market_structure": "H4 downtrend with LH+LL and bearish CHoCH at 1.12171; M15 bearish BOS at 1.11919 and 1.11894 confirmed, only a weak HL at 1.11794 attempting to base after the LL at 1.11769",
-     "momentum": "Bearish displacement 10 bars ago drove price to 1.11769; current bounce is corrective on low M1 volume with price stalling under 1.11869, and H1 ATR 0.0009 keeps the path open for a fresh leg lower",
-     "reason": "Higher timeframe is down with a bearish CHoCH and the M15's last two structure breaks were bearish, so the path of least resistance is lower. The untested supply block at 1.11957-1.12007 and the 1.11926-1.11998 resistance shelf cap any rally, making a short from current price acceptable with a stop above the block. Target 1.11590 is below today's low 1.11769 and reachable within 8 hours given H1 ATR near 9 pips. The bullish low sweeps and the 1.11794 HL are the main counter-argument, hence only moderate confidence.",
-     "reversal_probability": 42,
-     "risk_reward": 1.56,
-     "stop_loss": 1.12027,
-     "take_profit": 1.1159,
-     "trend": "H4 DOWN (LH+LL), M15 RANGE (mixed swings) but with the latest confirmed breaks bearish \u2014 trend alignment favors shorts into strength"
-    },
-    "trader2": {
-     "confidence": 55,
-     "direction": "SELL",
-     "entry": 1.11856,
-     "invalidation": 1.1202,
-     "liquidity": "Price is retracing into stacked resistance: untested M15 supply OB 1.11957-1.12007, plus 1.11926/1.11944/1.11974 S/R. Open bearish FVG 1.12082-1.12133 is mitigated, and H1 bearish FVG 1.12197 sits above. Sell-side draw is the 1.11769 low and the 1.116 area below it.",
-     "market_structure": "H4 is down (LH+LL). H1 printed a bearish CHoCH at 1.11932 two bars ago. M15 is in a mixed range with bearish BOS at 1.11919 and 1.11894, and the 1.11769 low is fresh. M5 has only a minor bullish CHoCH at 1.11844.",
-     "momentum": "The bounce from 1.11769 is corrective and small, on low-activity M1 bars, with a stall near 1.11869. Momentum is not yet bullish on M15 or H1, so the bounce has not reversed the bearish displacement.",
-     "reason": "H4 is down with a fresh H1 bearish CHoCH, and price is retracing into the untested supply OB and the 1.11926-1.11974 resistance shelf. A stop above 1.12020 sits beyond the OB, and the 1.116 target is below the 1.11769 low and reachable within 480 minutes. The M5 bullish CHoCH and the open bullish FVG at 1.11832-1.11857 are the main counter-argument, so confidence is moderate.",
-     "reversal_probability": 40,
-     "risk_reward": 1.56,
-     "stop_loss": 1.1202,
-     "take_profit": 1.116,
-     "trend": "Higher-timeframe trend is down, and the most recent H1 and M15 structure breaks are bearish. The short fits the trend, but the regime is TRANSITION and the risk agent flags an unfamiliar state, so size and confidence should stay modest."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1793032218,
-     "bytes": 29277,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1793032200,
-     "last_bar_open": 1793031300,
-     "sha256": "ae7d55ad675f1ba2ac6a6d9043f1cb5b71f8249705b9e7bf92f3ce7eef101007",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.00479109,
-      "error": null,
-      "latency_ms": 94393.6,
-      "model": "xiaomi/mimo-v2.6-pro",
-      "ok": true,
-      "provider_id": "gen-1793032221-tt6BjBh8prnyguCCDreu",
-      "request_id": "f6af27ce76084f37be0eb6e1f45682f5",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 9102,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0022214,
-      "error": null,
-      "latency_ms": 8730.8,
-      "model": "anthropic/claude-haiku-5.5",
-      "ok": true,
-      "provider_id": "gen-1793032316-dQ7lBWpONmdUxXaWTK3n",
-      "request_id": "950223cce7184eb0ae43ca71c614b4bb",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 16634,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.10.0",
-    "risk": {
-     "approved": false,
-     "reasons": [
-      "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
-     ],
-     "qty": 0.0
-    }
    }
   ],
   "open_positions": [
@@ -4003,12 +3752,12 @@
     "side": "SELL",
     "qty": 1.04,
     "entry": 110.574,
-    "current": 110.56700000000001,
+    "current": 110.604,
     "stop": 110.713,
     "target": 110.251,
-    "r_now": 0.05,
+    "r_now": -0.216,
     "opened": 1793036768.0,
-    "pnl": 4.66,
+    "pnl": -19.97,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4020,12 +3769,12 @@
     "side": "SELL",
     "qty": 0.64,
     "entry": 0.9251,
-    "current": 0.9252900000000001,
+    "current": 0.9251900000000001,
     "stop": 0.92635,
     "target": 0.92293,
-    "r_now": -0.152,
+    "r_now": -0.072,
     "opened": 1793036742.0,
-    "pnl": -14.71,
+    "pnl": -6.97,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4037,12 +3786,12 @@
     "side": "SELL",
     "qty": 1.54,
     "entry": 1.33523,
-    "current": 1.3355599999999999,
+    "current": 1.33576,
     "stop": 1.3365,
     "target": 1.3333,
-    "r_now": -0.26,
+    "r_now": -0.417,
     "opened": 1793032361.0,
-    "pnl": -50.82,
+    "pnl": -81.62,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4704,13 +4453,13 @@
     "DEBATE": 5,
     "DISAGREE": 118,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 1059,
+    "NOT_ASKED": 1061,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 11
    },
    "agreement_rate": 0.769,
    "decisions_with_both_traders": 533,
-   "unavailable": 1985
+   "unavailable": 1987
   },
   "recent_trades": [
    {
@@ -5436,8 +5185,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793036715,
+  "last_cycle": 1793037618,
   "last_cycle_error": null,
-  "cycles": 6
+  "cycles": 7
  }
 }
