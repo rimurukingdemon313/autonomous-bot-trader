@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-26 16:00 UTC**, run 450, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
+Updated **2026-10-26 17:00 UTC**, run 451, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,28 @@ Updated **2026-10-26 16:00 UTC**, run 450, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 18.83
+- days: 18.88
 - run_coverage: 0.9934
 - closed_positions: 96
-- open_positions: 1
-- utilisation: 0.1127
+- open_positions: 2
+- utilisation: 0.1129
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.1147
-- book_excess_pct: -1.1455
-- ann_excess_deployed_pct: -198.318
-- ann_excess_deployed_costs_x1.5_pct: -342.486
-- ann_excess_deployed_costs_x2_pct: -486.654
+- book_pnl_pct: -1.1168
+- book_excess_pct: -1.1563
+- ann_excess_deployed_pct: -199.782
+- ann_excess_deployed_costs_x1.5_pct: -345.134
+- ann_excess_deployed_costs_x2_pct: -490.486
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.3669
-- max_dd_pct: 1.1147
-- t_excess_daily: -3.345
+- book_excess_without_best_coin_pct: -1.3777
+- max_dd_pct: 1.1168
+- t_excess_daily: -3.351
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IRYS | mexc | gate | 2026-10-26 16:00 | 271.1% | 0.0 | 0.0 | 17.0 | **-17.0** |
+| IRYS | mexc | gate | 2026-10-26 16:00 | 271.1% | 1.5 | 11.1 | 17.0 | **-4.4** |
+| BTW | gate | mexc | 2026-10-26 17:00 | 45.1% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (96)
 
@@ -78,6 +79,7 @@ Updated **2026-10-26 16:00 UTC**, run 450, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| IRYS | mexc | gate | 271.1% | 20.6% |
+| IRYS | mexc | gate | 294.9% | 238.3% |
+| BTW | gate | mexc | 45.1% | 1610.7% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
