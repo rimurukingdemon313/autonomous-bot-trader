@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-26 14:01 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 10:45 UTC · decision system `dual_ai`
+Updated 2026-10-26 14:16 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 10:45 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -51,8 +51,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 02:48 GBPUSD BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY GBPUSD would bet against an open position: USDCHF BUY is long USD; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH
 - 10-26 02:30 AUDJPY SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2814 so far)
+## Latest decisions, NO TRADE included (2816 so far)
 
+- 10-26 14:15 AUDUSD NO_TRADE: risk engine: trading_calendar (Monday 14:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
+- 10-26 14:15 USDJPY NO_TRADE: risk engine: trading_calendar (Monday 14:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-26 14:00 GBPUSD NO_TRADE: risk engine: trading_calendar (Monday 14:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-26 14:00 EURUSD NO_TRADE: risk engine: trading_calendar (Monday 14:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-26 13:45 AUDJPY NO_TRADE: risk engine: trading_calendar (Monday 13:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -63,8 +65,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 13:15 NZDUSD NO_TRADE: risk engine: trading_calendar (Monday 13:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-26 13:00 USDCHF NO_TRADE: risk engine: trading_calendar (Monday 13:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-26 13:00 USDCAD NO_TRADE: blocked before consulting the model: EXPOSURE: a USDCAD position is already open
-- 10-26 12:45 AUDUSD NO_TRADE: risk engine: trading_calendar (Monday 12:45 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3): the model was not consulted
-- 10-26 12:45 USDJPY NO_TRADE: risk engine: trading_calendar (Monday 12:45 UTC: no new position from 12:00 to 16:00 UTC); open_positions (3 open, max 3): the model was not consulted
 
 ## Open paper positions
 
@@ -114,6 +114,8 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-26 14:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-26 14:15 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 14:00 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 14:00 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 13:45 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -124,8 +126,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-26 13:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 13:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 13:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-26 12:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-26 12:45 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
