@@ -184,13 +184,42 @@ def test_a_price_for_a_feature_the_client_never_uses_does_not_keep_the_model_out
     def spy(m, body):
         bodies.append(body)
         return None
-    fake = Fake(cat=catalog(pj=paid(PJ, web_search="0.01")), reply=spy)
+    # and then (1.2.0) input_cache_write_1h: only what a request can be charged is checked, whatever else is listed
+    unused = dict(web_search="0.01", input_cache_write="0.0000005", input_cache_write_1h="0.0000002",
+                  image_output="0.04", audio="0.0001", internal_reasoning_effort="?", discount="-1")
+    fake = Fake(cat=catalog(pj=paid(PJ, **unused)), reply=spy)
     c, _ = client(fake)
     assert ask(c, "judge").model == PJ and c.trial_status()["not_asked_because"]["judge"] is None
-    assert call_reserve(paid(PJ, web_search="0.01"), 1000) == pytest.approx(call_reserve(paid(PJ), 1000))
+    assert call_reserve(paid(PJ, **unused), 1000) == pytest.approx(call_reserve(paid(PJ), 1000))
+    assert call_reserve(paid(PJ, request="0.001", image="0.002"), 1000) == pytest.approx(
+        call_reserve(paid(PJ), 1000) + 0.003)  # what a request can be charged per item is reserved
+    for k, v in (("input_cache_read", "0.0000011"), ("internal_reasoning", "0.0000021"), ("image", "0.001"),
+                 ("request", "nan?")):  # and those prices are still checked against the declared ones
+        assert paid(PJ, **{k: v}) and TRIAL.models["judge"].priced_as_declared(paid(PJ, **{k: v})), k
     for b in bodies:  # and no request can be charged for it: none asks for a search
         assert not {"plugins", "web_search_options"} & set(b) and not b["model"].endswith(":online")
     assert ask(client(Fake(cat=catalog(pj=paid(PJ, image="0.01"))))[0], "judge").model == TRADER  # an image is sent
+
+
+#: the two models exactly as the public catalog priced them on 2026-10-26 (dual-ai-check-results a2879b4)
+LIVE_PRICING = {
+    "anthropic/claude-haiku-5.5": {"prompt": "0.0000001", "completion": "0.0000005", "web_search": "0.01",
+                                   "input_cache_read": "0.00000001", "input_cache_write": "0.000000125",
+                                   "input_cache_write_1h": "0.0000002",
+                                   "overrides": [{"min_prompt_tokens": 100000, "prompt": "0.0000005",
+                                                  "completion": "0.0000025", "input_cache_read": "0.00000005",
+                                                  "input_cache_write": "0.000000625", "input_cache_write_1h": "0.000001"}]},
+    "xiaomi/mimo-v2.6-pro": {"prompt": "0.000000435", "completion": "0.00000087", "input_cache_read": "0.0000000036"},
+}
+
+
+def test_the_declared_trials_models_pass_on_their_live_catalog_prices_and_a_call_stays_under_its_cap():
+    for role, m in PAID_TRIAL.models.items():
+        live = {"id": m.id, "pricing": LIVE_PRICING[m.id]}
+        assert m.priced_as_declared(live) is None, (role, m.priced_as_declared(live))
+        assert call_reserve(live, 12000) <= PAID_TRIAL.max_call_usd  # the most a call can cost, under the cap
+    # Haiku's dearer tier starts at 100k prompt tokens; a trader's prompt is under a third of that
+    assert PROMPT_TOKENS_RESERVE < LIVE_PRICING["anthropic/claude-haiku-5.5"]["overrides"][0]["min_prompt_tokens"]
 
 
 def test_a_paid_model_missing_from_the_catalog_is_not_asked():

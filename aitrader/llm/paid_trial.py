@@ -20,22 +20,28 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
-#: 1.1.0 (live, 2026-10-26): a price for a feature the client never uses (NEVER_USED: web search) no longer keeps a
-#:        model out. Trader 2's anthropic/claude-haiku-5.5 lists web_search at $0.01 a search, charged only when a
-#:        search is asked for; the client never asks for one, and the seat ran on the free models all Monday morning.
-PAID_TRIAL_VERSION = "paid-trial-1.1.0"
+#: 1.1.0 (live, 2026-10-26): a price for a feature the client never uses (web search) no longer keeps a model out.
+#:        Trader 2's anthropic/claude-haiku-5.5 lists web_search at $0.01 a search; the seat ran on the free models
+#:        all Monday morning.
+#: 1.2.0 (live, the same day): the next price it lists, input_cache_write_1h, kept it out again; a list of the prices
+#:        never used was the wrong way round. Only the prices a request from this client can be charged are checked
+#:        (CHARGED_*). Every other price is for a feature no request asks for, such as web search, prompt-cache writes,
+#:        or image or audio output, so it neither keeps a model out nor counts in a call's reserve. What a reply really
+#:        cost is still checked on every reply (max_call_usd) and against the key's own spend.
+PAID_TRIAL_VERSION = "paid-trial-1.2.0"
 #: the seats a paid model may take: the two traders. The debate and the numbers fallback are never paid.
 PAID_ROLES = ("vision", "judge")
 #: a call is reserved at this many prompt tokens (the traders' prompts measured 8k-26k, chart included) plus its
 #: max_tokens of output, so a cap is never crossed by the call that reaches it
 PROMPT_TOKENS_RESERVE = 30_000
-#: catalog prices charged per token; every other listed price is charged per item (request, image, web search)
-PER_TOKEN = frozenset({"prompt", "completion", "internal_reasoning", "input_cache_read", "input_cache_write",
-                       "input_audio", "audio"})
-#: catalog prices for features the client never uses, so a call can never be charged them: web search is billed per
-#: search only when the request asks for one (a `plugins` / `web_search_options` field, or an ":online" model), and
-#: no request this client builds ever does
-NEVER_USED = frozenset({"web_search"})
+#: the prices a request from this client can be charged. Per token in: the prompt, and a provider's own automatic
+#: prompt-cache read (never dearer than the prompt). Per token out: the completion and its reasoning. Per item: the
+#: request, and each image sent (the chart). Nothing else is ever asked for: no web search (no `plugins`, no
+#: `web_search_options`, no ":online" model), no cache_control breakpoints (so no cache writes), no image or audio out.
+CHARGED_PER_IN_TOKEN = frozenset({"prompt", "input_cache_read"})
+CHARGED_PER_OUT_TOKEN = frozenset({"completion", "internal_reasoning"})
+CHARGED_PER_ITEM = frozenset({"request", "image"})
+CHARGED = CHARGED_PER_IN_TOKEN | CHARGED_PER_OUT_TOKEN | CHARGED_PER_ITEM
 #: the key's spend may run ahead of what this process's paid replies reported by at most this before every request
 #: stops (a reply lost to a timeout is still billed; it is reserved at its most until the next key read)
 UNACCOUNTED_TOLERANCE_USD = 0.05
@@ -46,39 +52,43 @@ class PaidModel:
     id: str
     max_in_per_m: float     # USD per million prompt tokens, at most
     max_out_per_m: float    # USD per million completion tokens, at most
-    max_item_usd: float = 0.0  # every per-item price it lists (request, image, web search), at most
+    max_item_usd: float = 0.0  # each per-item price a request can be charged (the request, an image), at most
 
     def priced_as_declared(self, catalog_model: dict | None) -> str | None:
-        """None when the catalog lists this model at or below the declared prices; else why it is not."""
+        """None when the catalog lists every price a request can be charged at or below the declared ones; else why."""
         if not isinstance(catalog_model, dict):
             return f"{self.id} is not in the catalog"
         pricing = catalog_model.get("pricing")
         if not isinstance(pricing, dict) or "prompt" not in pricing or "completion" not in pricing:
             return f"{self.id} lists no prompt and completion price"
         for k, v in pricing.items():
-            if k in NEVER_USED:
-                continue
+            if k not in CHARGED:
+                continue  # a feature no request from this client asks for: it cannot be charged
             try:
                 p = float(v)
             except (TypeError, ValueError):
                 return f"{self.id} lists an unreadable {k} price {v!r}"
             if p < 0 or p != p:
                 return f"{self.id} lists a variable {k} price {v!r}"
-            limit = (self.max_in_per_m / 1e6 if k == "prompt" else
-                     self.max_out_per_m / 1e6 if k in PER_TOKEN else self.max_item_usd)
-            if k in PER_TOKEN and k not in ("prompt", "completion"):
-                limit = max(self.max_in_per_m, self.max_out_per_m) / 1e6
+            limit = (self.max_in_per_m / 1e6 if k in CHARGED_PER_IN_TOKEN else
+                     self.max_out_per_m / 1e6 if k in CHARGED_PER_OUT_TOKEN else self.max_item_usd)
             if p > limit + 1e-15:
                 return f"{self.id} lists {k} at {p:g}, above the declared {limit:g}"
         return None
 
 
 def call_reserve(catalog_model: dict, max_tokens: int) -> float:
-    """The most one call can cost, in USD: PROMPT_TOKENS_RESERVE prompt tokens, max_tokens out, every item price."""
+    """The most one call can cost, in USD: PROMPT_TOKENS_RESERVE tokens in and max_tokens out, each at the dearest
+    price it can be charged, and every per-item price a request can be charged."""
     pricing = catalog_model.get("pricing") or {}
-    f = lambda k: float(pricing.get(k) or 0.0)  # noqa: E731
-    items = sum(float(v or 0.0) for k, v in pricing.items() if k not in PER_TOKEN and k not in NEVER_USED)
-    return PROMPT_TOKENS_RESERVE * f("prompt") + max_tokens * max(f("completion"), f("internal_reasoning")) + items
+
+    def f(k):
+        try:
+            return max(0.0, float(pricing.get(k) or 0.0))
+        except (TypeError, ValueError):
+            return 0.0
+    return (PROMPT_TOKENS_RESERVE * max(f(k) for k in CHARGED_PER_IN_TOKEN)
+            + max_tokens * max(f(k) for k in CHARGED_PER_OUT_TOKEN) + sum(f(k) for k in CHARGED_PER_ITEM))
 
 
 @dataclass(frozen=True)
@@ -139,5 +149,5 @@ PAID_TRIAL = PaidTrial(
 )
 
 
-__all__ = ["NEVER_USED", "NO_TRIAL", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION", "PROMPT_TOKENS_RESERVE",
+__all__ = ["CHARGED", "NO_TRIAL", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION", "PROMPT_TOKENS_RESERVE",
            "UNACCOUNTED_TOLERANCE_USD", "PaidModel", "PaidTrial", "call_reserve"]

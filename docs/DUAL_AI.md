@@ -228,10 +228,13 @@ What keeps the spend inside the owner's $10:
   most the next call could cost (30k tokens in, its max_tokens out). If either reading is missing, nothing paid
   is asked. A new UTC day is read before anything paid is asked that day.
 - **Price as declared.** A paid model is asked only while the catalog lists it at or below its declared prices
-  (Trader 1 0.50 / 1.00, Trader 2 0.12 / 0.60, no per-item charge). A price for a feature the client never
-  uses (web search, billed only when a request asks for one, which none does) is not one it can be charged:
-  paid-trial 1.1.0, after Trader 2's model was kept out all Monday morning by its $0.01 web-search price. A
-  reply that costs more than $0.03 is
+  (Trader 1 0.50 / 1.00, Trader 2 0.12 / 0.60, no per-item charge). Only the prices a request from this
+  client can be charged are checked: the prompt, the completion and its reasoning, a provider's automatic
+  cache read, the request and each image (`CHARGED_*`). Web search, prompt-cache writes and image or audio
+  output are never asked for, so their prices cannot be charged. This was paid-trial 1.2.0, on Monday
+  26 October: first Haiku's $0.01 web-search price, then its cache-write price, kept Trader 2's seat on
+  the free models all morning. Haiku's dearer tier from 100k prompt tokens is out of reach, because a
+  trader's prompt is 8k-26k. A reply that costs more than $0.03 is
   discarded, and it ends the trial for the process.
 - **Stops.** A 402 (credits spent) ends the trial, and the FREE models answer that same decision. So does
   `OPENROUTER_PAID_TRIAL=off`, which the owner can set at any time; nothing in the environment can start, widen or
