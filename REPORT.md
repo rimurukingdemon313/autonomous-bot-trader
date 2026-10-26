@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-26 21:38 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 16:22 UTC · decision system `dual_ai`
+Updated 2026-10-26 21:53 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 16:22 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $196,527.55 | $-1,445.82 | $-3,472.45 | $-3,472.45 | 3 | 106 (adequate) | 41.5% | -0.087R | 0.82 | ACTIVE | RUNNING |
+| $200,000.00 | $196,524.30 | $-1,449.07 | $-3,475.70 | $-3,475.70 | 3 | 106 (adequate) | 41.5% | -0.087R | 0.82 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $195,111.04); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $195,107.78); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -51,8 +51,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 10:00 USDJPY BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY USDJPY would bet against an open position: GBPJPY SELL is long JPY
 - 10-26 09:47 GBPUSD SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2872 so far)
+## Latest decisions, NO TRADE included (2874 so far)
 
+- 10-26 21:45 EURGBP NO_TRADE: risk engine: quiet_hours (17:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
+- 10-26 21:45 NZDUSD NO_TRADE: risk engine: quiet_hours (17:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
 - 10-26 21:30 USDCHF NO_TRADE: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
 - 10-26 21:30 USDCAD NO_TRADE: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
 - 10-26 21:15 AUDUSD NO_TRADE: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
@@ -63,15 +65,13 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 20:45 EURCHF NO_TRADE: blocked before consulting the model: EXPOSURE: a EURCHF position is already open
 - 10-26 20:30 GBPJPY NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
 - 10-26 20:30 EURJPY NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
-- 10-26 20:15 EURGBP NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
-- 10-26 20:15 NZDUSD NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); open_positions (3 open, max 3): the model w
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDJPY | SELL | 1.04 | 110.574 | 110.713 | 110.251 | $82.53 |
-| EURCHF | SELL | 0.64 | 0.9251 | 0.92635 | 0.92293 | $70.45 |
+| AUDJPY | SELL | 1.04 | 110.574 | 110.713 | 110.251 | $102.50 |
+| EURCHF | SELL | 0.64 | 0.9251 | 0.92635 | 0.92293 | $47.22 |
 | GBPUSD | SELL | 1.54 | 1.33523 | 1.3365 | 1.3333 | $133.98 |
 
 ## Closed paper trades (latest 20)
@@ -117,6 +117,8 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-26 21:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-26 21:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 21:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 21:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 21:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -127,8 +129,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-26 20:45 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 20:30 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 20:30 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-26 20:15 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-26 20:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
