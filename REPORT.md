@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-26 00:00 UTC**, run 434, version `radar-1.0.0`. State from: cache. Quotes this hour: 2391.
+Updated **2026-10-26 01:00 UTC**, run 435, version `radar-1.0.0`. State from: cache. Quotes this hour: 2391.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-26 00:00 UTC**, run 434, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 18.17
-- run_coverage: 0.9931
+- days: 18.21
+- run_coverage: 0.9932
 - closed_positions: 93
 - open_positions: 1
-- utilisation: 0.1134
+- utilisation: 0.1133
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.0724
-- book_excess_pct: -1.1026
-- ann_excess_deployed_pct: -196.725
-- ann_excess_deployed_costs_x1.5_pct: -340.748
-- ann_excess_deployed_costs_x2_pct: -484.77
+- book_pnl_pct: -1.077
+- book_excess_pct: -1.1073
+- ann_excess_deployed_pct: -197.146
+- ann_excess_deployed_costs_x1.5_pct: -340.875
+- ann_excess_deployed_costs_x2_pct: -484.605
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.3241
-- max_dd_pct: 1.0724
-- t_excess_daily: -3.205
+- book_excess_without_best_coin_pct: -1.3287
+- max_dd_pct: 1.077
+- t_excess_daily: -3.222
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IRYS | mexc | gate | 2026-10-26 00:00 | 279.4% | 0.0 | 0.0 | 17.0 | **-17.0** |
+| IRYS | mexc | gate | 2026-10-26 00:00 | 279.4% | 4.0 | -13.1 | 17.0 | **-26.1** |
 
 ## Closed positions (93)
 
@@ -78,6 +78,6 @@ Updated **2026-10-26 00:00 UTC**, run 434, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| IRYS | mexc | gate | 279.4% | 441.3% |
+| IRYS | mexc | gate | 283.0% | 260.6% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
