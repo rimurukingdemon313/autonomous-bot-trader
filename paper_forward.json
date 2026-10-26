@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 197963.38,
+  "equity": 198023.38,
   "balance": 197687.34,
-  "total_pnl": -2036.62,
-  "today_pnl": -9.98,
+  "total_pnl": -1976.62,
+  "today_pnl": 50.01,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 196546.87,
+  "equity_before_adjustments": 196606.86,
   "day_reference": 197973.36734622458,
-  "drawdown_from_start": -2036.62,
+  "drawdown_from_start": -1976.62,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -685,12 +685,12 @@
    "side": "BUY",
    "qty": 2.48,
    "entry": 0.9244,
-   "current": 0.92501,
+   "current": 0.92521,
    "stop": 0.9231,
    "target": 0.9263,
-   "r_now": 0.469,
+   "r_now": 0.623,
    "opened": 1792976684.0,
-   "pnl": 183.09,
+   "pnl": 243.08,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -2163,6 +2163,19 @@
   {
    "decision": "BUY",
    "edge_status": "EXPERIMENTAL",
+   "id": "965ec302038b1afb901eb68a",
+   "mode": "PAPER_FORWARD",
+   "reason": "currency_conflict: BUY USDCHF would bet against an open position: USDCAD SELL is short USD",
+   "stages": [
+    "AI DECISION",
+    "RISK REJECTED"
+   ],
+   "symbol": "USDCHF",
+   "t": 1793014218
+  },
+  {
+   "decision": "BUY",
+   "edge_status": "EXPERIMENTAL",
    "id": "415a1402765f781cd5168866",
    "mode": "PAPER_FORWARD",
    "reason": "quote: age 100s at opening (max 90s), bid 0.70325, ask 0.70335",
@@ -2418,22 +2431,16 @@
    ],
    "symbol": "EURJPY",
    "t": 1792980919
-  },
-  {
-   "decision": "BUY",
-   "edge_status": "EXPERIMENTAL",
-   "id": "237d9745cbaf68df17968b0f",
-   "mode": "PAPER_FORWARD",
-   "reason": "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)",
-   "stages": [
-    "AI DECISION",
-    "RISK REJECTED"
-   ],
-   "symbol": "EURGBP",
-   "t": 1792980196
   }
  ],
  "last_decisions": [
+  {
+   "symbol": "USDCHF",
+   "decision": "BUY",
+   "t": 1793014218,
+   "reason": "BUY USDCHF on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 62: Both timeframes print bullish structure with a series of bullish BOS and an untested demand order block below, so continuation buys ca",
+   "data_flags": []
+  },
   {
    "symbol": "USDCAD",
    "decision": "NO_TRADE",
@@ -2594,16 +2601,9 @@
    "t": 1793003419,
    "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 405.00 is less than the next trade's risk 496.71: it would refuse the trade): the model was not consult",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPUSD",
-   "decision": "NO_TRADE",
-   "t": 1793002520,
-   "reason": "risk engine: open_positions (3 open, max 3); gate_open_risk (the hard risk gate's open-risk room 438.43 is less than the next trade's risk 496.63: it would refuse the trade): the model was not consult",
-   "data_flags": []
   }
  ],
- "decisions_total": 2793,
+ "decisions_total": 2794,
  "shift": {
   "started": "2026-10-26 10:45 UTC",
   "decision_mode": "dual_ai",
@@ -2628,22 +2628,27 @@
    "paid_trial_off": false,
    "version": "openrouter-1.9.0",
    "status": "READY",
-   "calls_today": 17,
+   "calls_today": 18,
    "last_call": {
-    "t": 1793014250,
-    "role": "vision",
-    "model": "xiaomi/mimo-v2.6-pro",
+    "t": 1793014328,
+    "role": "judge",
+    "model": "dots-studio/dots-3-note-preview:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "45a4e155b40f4180ba80aaf64b2be012",
-    "provider_id": "gen-1793014219-Wki9StW9GfxaDoMlGIax",
+    "request_id": "79b0a7461aa24bcc8155cc3026bfc332",
+    "provider_id": "gen-1793014250-OkLjxMAzpcAexP79Ojqk",
     "attempts": 1,
-    "latency_ms": 31494.7,
+    "latency_ms": 78086.6,
     "cached": false,
-    "tokens": 8611,
-    "cost": 0.00432477,
-    "tried": []
+    "tokens": 22248,
+    "cost": 0.0,
+    "tried": [
+     {
+      "model": "google/gemma-4-31b-it:free",
+      "status": "RATE_LIMITED"
+     }
+    ]
    },
    "key": {
     "checked": 1793014219,
@@ -2658,8 +2663,8 @@
    "paid_usage": null,
    "data_policy": null,
    "vision_model": "nvidia/nemotron-3.5-super-vl:free",
-   "judge_model": "google/gemma-4-31b-it:free",
-   "verifier_model": "dots-studio/dots-3-note-preview:free",
+   "judge_model": "dots-studio/dots-3-note-preview:free",
+   "verifier_model": "xingchen-agi/xing4.0-29b-a4b:free",
    "selection": {
     "vision": [
      {
@@ -2673,19 +2678,6 @@
       "structured": true,
       "reasoning": true,
       "family": "nvidia",
-      "expires": null
-     },
-     {
-      "id": "google/gemma-4-31b-it:free",
-      "name": "Google: Gemma 4 31B (free)",
-      "score": 64.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 14.7,
-      "params_b": 31.0,
-      "structured": true,
-      "reasoning": true,
-      "family": "google",
       "expires": null
      },
      {
@@ -2729,19 +2721,6 @@
      }
     ],
     "judge": [
-     {
-      "id": "google/gemma-4-31b-it:free",
-      "name": "Google: Gemma 4 31B (free)",
-      "score": 40.7,
-      "context": 262144,
-      "image": true,
-      "intelligence_index": 14.7,
-      "params_b": 31.0,
-      "structured": true,
-      "reasoning": true,
-      "family": "google",
-      "expires": null
-     },
      {
       "id": "dots-studio/dots-3-note-preview:free",
       "name": "Dots Studio: Dots3-Note Preview (free)",
@@ -2793,22 +2772,22 @@
       "reasoning": true,
       "family": "nvidia",
       "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "name": "NVIDIA: Nemotron 3.5 Lightning (free)",
+      "score": 25.9,
+      "context": 1000000,
+      "image": false,
+      "intelligence_index": 12.9,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
      }
     ],
     "verifier": [
-     {
-      "id": "dots-studio/dots-3-note-preview:free",
-      "name": "Dots Studio: Dots3-Note Preview (free)",
-      "score": 31.0,
-      "context": 512000,
-      "image": true,
-      "intelligence_index": null,
-      "params_b": null,
-      "structured": true,
-      "reasoning": true,
-      "family": "dots-studio",
-      "expires": "2026-12-31"
-     },
      {
       "id": "xingchen-agi/xing4.0-29b-a4b:free",
       "name": "XingChen: Xing4.0 29B A4B (free)",
@@ -2860,11 +2839,24 @@
       "reasoning": true,
       "family": "nvidia",
       "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+      "name": "NVIDIA: Nemotron 3 Super (free)",
+      "score": 25.8,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": 12.8,
+      "params_b": 120.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
      }
     ],
     "free_total": 11,
     "catalog_total": 467,
-    "refreshed": 1793014250.6335225,
+    "refreshed": 1793015122.6949048,
     "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
@@ -2896,10 +2888,10 @@
     },
     "active": true,
     "stopped": null,
-    "spent_total": 0.1659,
-    "spent_today": 0.1582,
+    "spent_total": 0.1894,
+    "spent_today": 0.1817,
     "spent_by_this_process": 0.023,
-    "reserved_unconfirmed": 0.0,
+    "reserved_unconfirmed": 0.0235,
     "not_asked_because": {
      "vision": null,
      "judge": "anthropic/claude-haiku-5.5 lists input_cache_write_1h at 2e-07, above the declared 0"
@@ -2927,7 +2919,7 @@
      "failed": 3
     },
     "dots-studio/dots-3-note-preview:free": {
-     "ok": 3,
+     "ok": 4,
      "failed": 0
     }
    }
@@ -3012,30 +3004,246 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1793013300,
     "last_bar_available": 1793014200
+   },
+   "NZDUSD": {
+    "t": 1793015121,
+    "decision_id": "a2082f7d71cc6d0ea341cdec",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 29275,
+    "sha256": "689fc6c262b26f565bce743740441ef14e9730e59d1b9c0e55bb904ae2a54dbc",
+    "as_of": 1793015121,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793014200,
+    "last_bar_available": 1793015100
    }
   },
   "last_analysis": {
-   "decision_id": "71cebeb8c2873aff6c5fa6ca",
-   "symbol": "USDCAD",
-   "t": 1793014217,
-   "decision": "NO_TRADE",
-   "reason": "blocked before consulting the model: EXPOSURE: a USDCAD position is already open",
+   "decision_id": "965ec302038b1afb901eb68a",
+   "symbol": "USDCHF",
+   "t": 1793014218,
+   "decision": "BUY",
+   "reason": "BUY USDCHF on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 62: Both timeframes print bullish structure with a series of bullish BOS and an untested demand order block below, so continuation buys carry the higher probability despite three high sweeps. I buy at market (ask 0.82628) inside the entry",
    "consensus": {
-    "outcome": "NO_TRADE",
-    "reason": "blocked before consulting the model: EXPOSURE: a USDCAD position is already open",
-    "rule": "NOT_ASKED"
+    "desk_confidence": 0.6,
+    "direction": "BUY",
+    "levels_from": "trader1",
+    "more_confident": "trader1",
+    "outcome": "TRADE",
+    "rule": "AGREE",
+    "stop_loss": 0.8252,
+    "take_profit": 0.828
    },
-   "models": {},
-   "trader1": null,
-   "trader2": null,
+   "models": {
+    "trader1": "xiaomi/mimo-v2.6-pro",
+    "trader2": "dots-studio/dots-3-note-preview:free"
+   },
+   "trader1": {
+    "confidence": 62,
+    "direction": "BUY",
+    "entry": 0.82628,
+    "invalidation": 0.82529,
+    "liquidity": "Equal lows at 0.82353/0.82184 remain below as downside liquidity, but the untested demand order block (0.82460-0.82522) and open bullish FVG (0.82412-0.82446) sit directly under price as a demand cushion; the recent high sweeps (0.82577, 0.82614 x2) are the main bearish caveat, though price has absorbed them and held.",
+    "market_structure": "Bullish on both timeframes: M15 shows a clean HH/HL sequence with bullish CHoCH at 0.82372 and three bullish BOS (0.82455, 0.82554, 0.82577); H4 confirmed bullish CHoCH (0.82432) and BOS (0.82558), with price holding above all broken structure.",
+    "momentum": "M15 ATR 0.00052 with the last three M15 bars closing up and pressing at the top of the 20-bar range (position 0.96); M1/M5 grinding higher with closes near highs, showing persistent bullish pressure rather than reversal displacement.",
+    "reason": "Both timeframes print bullish structure with a series of bullish BOS and an untested demand order block below, so continuation buys carry the higher probability despite three high sweeps. I buy at market (ask 0.82628) inside the entry zone, stop just under the last HL at 0.82529 (placed 0.82520 to clear min stop distance and keep cost share under 25%). Target 0.8280 clears the previous week high 0.8270 and H4 R 0.82704, reachable within 8 hours at current H1 ATR. Risk is the repeated high sweeps rejecting into the OB; that is why confidence is only moderate.",
+    "reversal_probability": 35,
+    "risk_reward": 1.59,
+    "stop_loss": 0.8252,
+    "take_profit": 0.828,
+    "trend": "UP (HH+HL) on M15 and H4; regime labelled RANGING but the swing sequence and structure breaks are unambiguously bullish."
+   },
+   "trader2": {
+    "confidence": 60,
+    "direction": "BUY",
+    "entry": 0.82628,
+    "invalidation": 0.82529,
+    "liquidity": "Recent high sweeps at 0.82614 and 0.82577 represent bearish liquidity grabs, but key equal lows remain far below, and untested demand order blocks sit underneath as a support cushion.",
+    "market_structure": "Bullish across all timeframes (M15, H1, H4) with a sequence of higher highs and higher lows, confirmed by a bullish CHoCH and multiple bullish BOS breaks.",
+    "momentum": "M15 and M5 show persistent bullish pressure with closes near the highs, and price is holding at the top of the 20-bar range (position 0.96).",
+    "reason": "The bullish structure is intact across M15, H1, and H4 with higher highs and bullish breaks, making continuation the higher-probability path despite recent high sweeps. We buy at market (ask 0.82628) with a stop below the last swing low at 0.8252 and target 0.8280 for a 1.59 reward-to-risk ratio.",
+    "reversal_probability": 35,
+    "risk_reward": 1.59,
+    "stop_loss": 0.8252,
+    "take_profit": 0.828,
+    "trend": "UP (HH+HL) on M15, H1, and H4, with the price holding above all major broken structure levels."
+   },
    "verifier": null,
-   "chart": null,
-   "calls": [],
-   "trader1_input": null,
+   "chart": {
+    "annotate_version": "chart-annotate-1.0.0",
+    "as_of": 1793014218,
+    "bytes": 30707,
+    "execution_timeframe": "M15",
+    "height": 1000,
+    "higher_timeframe": "H4",
+    "last_bar_available": 1793014200,
+    "last_bar_open": 1793013300,
+    "sha256": "cd394ca34ae610280b4f4e9d6ad53644a4b0ff4641add312060f1e4e9492b942",
+    "version": "chart-render-1.0.0",
+    "width": 1280
+   },
+   "calls": [
+    {
+     "attempts": 1,
+     "cached": false,
+     "cost": 0.00432477,
+     "error": null,
+     "latency_ms": 31494.7,
+     "model": "xiaomi/mimo-v2.6-pro",
+     "ok": true,
+     "provider_id": "gen-1793014219-Wki9StW9GfxaDoMlGIax",
+     "request_id": "45a4e155b40f4180ba80aaf64b2be012",
+     "role": "vision",
+     "status": "OK",
+     "tokens": 8611,
+     "tried": []
+    },
+    {
+     "attempts": 1,
+     "cached": false,
+     "cost": 0.0,
+     "error": null,
+     "latency_ms": 78086.6,
+     "model": "dots-studio/dots-3-note-preview:free",
+     "ok": true,
+     "provider_id": "gen-1793014250-OkLjxMAzpcAexP79Ojqk",
+     "request_id": "79b0a7461aa24bcc8155cc3026bfc332",
+     "role": "judge",
+     "status": "OK",
+     "tokens": 22248,
+     "tried": [
+      {
+       "model": "google/gemma-4-31b-it:free",
+       "status": "RATE_LIMITED"
+      }
+     ]
+    }
+   ],
+   "trader1_input": "image",
    "version": "dual-ai-1.10.0",
-   "risk": null
+   "risk": {
+    "approved": false,
+    "reasons": [
+     "currency_conflict: BUY USDCHF would bet against an open position: USDCAD SELL is short USD"
+    ],
+    "qty": 0.0
+   }
   },
   "analyses": [
+   {
+    "decision_id": "965ec302038b1afb901eb68a",
+    "symbol": "USDCHF",
+    "t": 1793014218,
+    "decision": "BUY",
+    "reason": "BUY USDCHF on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 62: Both timeframes print bullish structure with a series of bullish BOS and an untested demand order block below, so continuation buys carry the higher probability despite three high sweeps. I buy at market (ask 0.82628) inside the entry",
+    "consensus": {
+     "desk_confidence": 0.6,
+     "direction": "BUY",
+     "levels_from": "trader1",
+     "more_confident": "trader1",
+     "outcome": "TRADE",
+     "rule": "AGREE",
+     "stop_loss": 0.8252,
+     "take_profit": 0.828
+    },
+    "models": {
+     "trader1": "xiaomi/mimo-v2.6-pro",
+     "trader2": "dots-studio/dots-3-note-preview:free"
+    },
+    "trader1": {
+     "confidence": 62,
+     "direction": "BUY",
+     "entry": 0.82628,
+     "invalidation": 0.82529,
+     "liquidity": "Equal lows at 0.82353/0.82184 remain below as downside liquidity, but the untested demand order block (0.82460-0.82522) and open bullish FVG (0.82412-0.82446) sit directly under price as a demand cushion; the recent high sweeps (0.82577, 0.82614 x2) are the main bearish caveat, though price has absorbed them and held.",
+     "market_structure": "Bullish on both timeframes: M15 shows a clean HH/HL sequence with bullish CHoCH at 0.82372 and three bullish BOS (0.82455, 0.82554, 0.82577); H4 confirmed bullish CHoCH (0.82432) and BOS (0.82558), with price holding above all broken structure.",
+     "momentum": "M15 ATR 0.00052 with the last three M15 bars closing up and pressing at the top of the 20-bar range (position 0.96); M1/M5 grinding higher with closes near highs, showing persistent bullish pressure rather than reversal displacement.",
+     "reason": "Both timeframes print bullish structure with a series of bullish BOS and an untested demand order block below, so continuation buys carry the higher probability despite three high sweeps. I buy at market (ask 0.82628) inside the entry zone, stop just under the last HL at 0.82529 (placed 0.82520 to clear min stop distance and keep cost share under 25%). Target 0.8280 clears the previous week high 0.8270 and H4 R 0.82704, reachable within 8 hours at current H1 ATR. Risk is the repeated high sweeps rejecting into the OB; that is why confidence is only moderate.",
+     "reversal_probability": 35,
+     "risk_reward": 1.59,
+     "stop_loss": 0.8252,
+     "take_profit": 0.828,
+     "trend": "UP (HH+HL) on M15 and H4; regime labelled RANGING but the swing sequence and structure breaks are unambiguously bullish."
+    },
+    "trader2": {
+     "confidence": 60,
+     "direction": "BUY",
+     "entry": 0.82628,
+     "invalidation": 0.82529,
+     "liquidity": "Recent high sweeps at 0.82614 and 0.82577 represent bearish liquidity grabs, but key equal lows remain far below, and untested demand order blocks sit underneath as a support cushion.",
+     "market_structure": "Bullish across all timeframes (M15, H1, H4) with a sequence of higher highs and higher lows, confirmed by a bullish CHoCH and multiple bullish BOS breaks.",
+     "momentum": "M15 and M5 show persistent bullish pressure with closes near the highs, and price is holding at the top of the 20-bar range (position 0.96).",
+     "reason": "The bullish structure is intact across M15, H1, and H4 with higher highs and bullish breaks, making continuation the higher-probability path despite recent high sweeps. We buy at market (ask 0.82628) with a stop below the last swing low at 0.8252 and target 0.8280 for a 1.59 reward-to-risk ratio.",
+     "reversal_probability": 35,
+     "risk_reward": 1.59,
+     "stop_loss": 0.8252,
+     "take_profit": 0.828,
+     "trend": "UP (HH+HL) on M15, H1, and H4, with the price holding above all major broken structure levels."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793014218,
+     "bytes": 30707,
+     "execution_timeframe": "M15",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793014200,
+     "last_bar_open": 1793013300,
+     "sha256": "cd394ca34ae610280b4f4e9d6ad53644a4b0ff4641add312060f1e4e9492b942",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.00432477,
+      "error": null,
+      "latency_ms": 31494.7,
+      "model": "xiaomi/mimo-v2.6-pro",
+      "ok": true,
+      "provider_id": "gen-1793014219-Wki9StW9GfxaDoMlGIax",
+      "request_id": "45a4e155b40f4180ba80aaf64b2be012",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 8611,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 78086.6,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1793014250-OkLjxMAzpcAexP79Ojqk",
+      "request_id": "79b0a7461aa24bcc8155cc3026bfc332",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 22248,
+      "tried": [
+       {
+        "model": "google/gemma-4-31b-it:free",
+        "status": "RATE_LIMITED"
+       }
+      ]
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.10.0",
+    "risk": {
+     "approved": false,
+     "reasons": [
+      "currency_conflict: BUY USDCHF would bet against an open position: USDCAD SELL is short USD"
+     ],
+     "qty": 0.0
+    }
+   },
    {
     "decision_id": "71cebeb8c2873aff6c5fa6ca",
     "symbol": "USDCAD",
@@ -3908,112 +4116,6 @@
      ],
      "qty": 0.0
     }
-   },
-   {
-    "decision_id": "43091d3e9f8c76f510665ffc",
-    "symbol": "GBPUSD",
-    "t": 1793008065,
-    "decision": "SELL",
-    "reason": "SELL GBPUSD on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 68: Both timeframes agree on bearish structure with a fresh M15 BOS and H4 CHoCH/BOS, and price sits just above the day low with untested supply overhead. Selling the bid targets the 1.33445 break and continuation toward 1.3318-1.3296 l",
-    "consensus": {
-     "desk_confidence": 0.65,
-     "direction": "SELL",
-     "levels_from": "trader1",
-     "more_confident": "trader1",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 1.33629,
-     "take_profit": 1.3318
-    },
-    "models": {
-     "trader1": "xiaomi/mimo-v2.6-pro",
-     "trader2": "dots-studio/dots-3-note-preview:free"
-    },
-    "trader1": {
-     "confidence": 68,
-     "direction": "SELL",
-     "entry": 1.33484,
-     "invalidation": 1.33629,
-     "liquidity": "Equal highs stacked overhead (1.33813/1.33887/1.33955/1.33998) after bearish sweeps of 1.33794 highs; the nearest downside liquidity is the day low 1.33445 and the previous week low 1.32961.",
-     "market_structure": "M15 shows a clean sequence of bearish BOS (1.33740, 1.33679, 1.33629, 1.33558) with LH/LL swings and price pressing the day low at 1.33445; H4 has printed a bearish CHoCH at 1.33785 and BOS at 1.33617.",
-     "momentum": "Recent bearish displacement candles on M15 and H1 with price closing near lows; the only bullish displacement (13 bars ago) was fully retraced, and the untested supply order block 1.33545-1.33609 plus open bearish FVGs above cap any bounce.",
-     "reason": "Both timeframes agree on bearish structure with a fresh M15 BOS and H4 CHoCH/BOS, and price sits just above the day low with untested supply overhead. Selling the bid targets the 1.33445 break and continuation toward 1.3318-1.3296 liquidity. Stop above the 1.33629 BOS/supply zone keeps risk valid at 14.5 pips for ~30 pips of reward. Main risk is a short-term oversold bounce off the day low, hence moderate confidence.",
-     "reversal_probability": 32,
-     "risk_reward": 2.1,
-     "stop_loss": 1.33629,
-     "take_profit": 1.3318,
-     "trend": "M15 DOWN (LH+LL) aligned with a bearish H4 structure break inside a broader range; D1 is still elevated at the 0.85 range position, leaving room lower."
-    },
-    "trader2": {
-     "confidence": 65,
-     "direction": "SELL",
-     "entry": 1.33484,
-     "invalidation": 1.33629,
-     "liquidity": "Equal highs stacked overhead (1.33813/1.33887/1.33955/1.33998) after bearish sweeps of 1.33794 highs; the nearest downside liquidity is the day low 1.33445 and the previous week low 1.32961.",
-     "market_structure": "M15 shows a clean sequence of bearish BOS (1.33740, 1.33679, 1.33629, 1.33558) with LH/LL swings and price pressing the day low at 1.33445; H4 has printed a bearish CHoCH at 1.33785 and BOS at 1.33617.",
-     "momentum": "Recent bearish displacement candles on M15 and H1 with price closing near lows; the only bullish displacement (13 bars ago) was fully retraced, and the untested supply order block 1.33545-1.33609 plus open bearish FVGs above cap any bounce.",
-     "reason": "Both timeframes agree on bearish structure with a fresh M15 BOS and H4 CHoCH/BOS, and price sits just above the day low with untested supply overhead. Selling the bid targets the 1.33445 break and continuation toward 1.3318-1.3296 liquidity. Stop above the 1.33629 BOS/supply zone keeps risk valid at 14.5 pips for ~30 pips of reward. Main risk is a short-term oversold bounce off the day low, hence moderate confidence.",
-     "reversal_probability": 32,
-     "risk_reward": 2.1,
-     "stop_loss": 1.33629,
-     "take_profit": 1.3318,
-     "trend": "M15 DOWN (LH+LL) aligned with a bearish H4 structure break inside a broader range; D1 is still elevated at the 0.85 range position, leaving room lower."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1793008065,
-     "bytes": 30489,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1793007900,
-     "last_bar_open": 1793007000,
-     "sha256": "318b3aaabc0c4e64177165405a23960c8c504d243f6355109056d7f3649c0b32",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.00384192,
-      "error": null,
-      "latency_ms": 5842.6,
-      "model": "xiaomi/mimo-v2.6-pro",
-      "ok": true,
-      "provider_id": "gen-1793008067-n6Y07xJ1YAkS81lF5eAq",
-      "request_id": "985d521ef5224b51a5b347cc14eeb8f7",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 8059,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 74695.3,
-      "model": "dots-studio/dots-3-note-preview:free",
-      "ok": true,
-      "provider_id": "gen-1793008073-It1PH3T7m3Mdh3el7QGs",
-      "request_id": "e37389cb7f0f4f0bb4785ae19376c350",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 21972,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.10.0",
-    "risk": {
-     "approved": false,
-     "reasons": [
-      "structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)"
-     ],
-     "qty": 0.0
-    }
    }
   ],
   "open_positions": [
@@ -4040,12 +4142,12 @@
     "side": "BUY",
     "qty": 2.48,
     "entry": 0.9244,
-    "current": 0.92501,
+    "current": 0.92521,
     "stop": 0.9231,
     "target": 0.9263,
-    "r_now": 0.469,
+    "r_now": 0.623,
     "opened": 1792976684.0,
-    "pnl": 183.09,
+    "pnl": 243.08,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4703,7 +4805,7 @@
     }
    },
    "decisions_by_rule": {
-    "AGREE": 398,
+    "AGREE": 399,
     "DEBATE": 5,
     "DISAGREE": 118,
     "MARKET_UNAVAILABLE": 887,
@@ -4712,7 +4814,7 @@
     "TRADER2_UNAVAILABLE": 11
    },
    "agreement_rate": 0.764,
-   "decisions_with_both_traders": 521,
+   "decisions_with_both_traders": 522,
    "unavailable": 1948
   },
   "recent_trades": [
@@ -5439,8 +5541,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793013316,
+  "last_cycle": 1793014215,
   "last_cycle_error": null,
-  "cycles": 2
+  "cycles": 3
  }
 }
