@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-26 00:49 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-25 23:34 UTC · decision system `dual_ai`
+Updated 2026-10-26 01:04 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-25 23:34 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $197,973.37 | $0.00 | $-2,026.63 | $-2,026.63 | 0 | 99 (adequate) | 43.4% | -0.053R | 0.89 | ACTIVE | RUNNING |
+| $200,000.00 | $197,916.17 | $-57.19 | $-2,083.83 | $-2,083.83 | 1 | 99 (adequate) | 43.4% | -0.053R | 0.89 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $196,556.85); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $196,499.66); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -30,6 +30,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Last decisions (decision → risk → paper execution)
 
+- 10-26 01:00 EURCHF BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-23 11:22 GBPJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-23 11:00 EURGBP SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL EURGBP would bet against an open position: GBPUSD SELL is short GBP; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down
 - 10-23 10:15 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
@@ -49,10 +50,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-23 05:30 EURJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-23 05:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 - 10-23 04:40 GBPUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPUSD would bet against an open position: USDCHF SELL is short USD; EURGBP SELL is long GBP
-- 10-23 04:15 NZDUSD BUY: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (2710 so far)
+## Latest decisions, NO TRADE included (2711 so far)
 
+- 10-26 01:00 EURCHF BUY: BUY EURCHF on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 58: M15 shows clean bullish structure with successive BOS and price holding above 5-touch support at 0.92396 and the mitigated bullish FVG
 - 10-26 00:45 GBPJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 3045 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 3045 minutes old [data: latest bar closed 3045 minutes ago]
 - 10-26 00:45 EURJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 3045 minutes ago; STALE_DATA: last closed bar is 3045 minutes old [data: latest bar closed 3045 minutes ago]
 - 10-26 00:30 EURGBP NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 3030 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 3030 minutes old [data: latest bar closed 3030 minutes ago]
@@ -64,12 +65,12 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-25 23:45 GBPUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2985 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2985 minutes old [data: latest bar closed 2985 minutes ago]
 - 10-25 23:45 EURUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2985 minutes ago; STALE_DATA: last closed bar is 2985 minutes old [data: latest bar closed 2985 minutes ago]
 - 10-25 23:30 GBPJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2970 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: last closed bar is 2970 minutes old [data: latest bar closed 2970 minutes ago]
-- 10-25 23:30 EURJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 2970 minutes ago; STALE_DATA: last closed bar is 2970 minutes old [data: latest bar closed 2970 minutes ago]
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
+| EURCHF | BUY | 2.48 | 0.9244 | 0.9231 | 0.9263 | $-57.19 |
 
 ## Closed paper trades (latest 20)
 
@@ -98,9 +99,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree)
 
-OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `xingchen-agi/xing4.0-29b-a4b:free` · calls today 8/900
 
-Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): ACTIVE · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent n/a of $9.00, today n/a of $1.80 (the key's own reading)
+Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): ACTIVE · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.04 of $9.00, today $0.03 of $1.80 (the key's own reading) · trader 2 not asked: anthropic/claude-haiku-5.5 lists web_search at 0.01, above the declared 0
 
 Agreement trades 99 (adequate) · wins 43 · losses 56 · net $-2,026.63 · expectancy -0.053R · profit factor 0.89 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
@@ -114,6 +115,7 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-26 01:00 | EURCHF | BUY 58 | BUY 55 | - | AGREE | BUY | APPROVED |
 | 10-26 00:45 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 00:45 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-26 00:30 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -125,7 +127,6 @@ Trades taken by session (UTC): ASIA 45 resolved (adequate), expectancy -0.206R �
 | 10-25 23:45 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 23:45 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-25 23:30 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-25 23:30 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
