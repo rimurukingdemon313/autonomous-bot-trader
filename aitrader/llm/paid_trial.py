@@ -20,7 +20,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
-PAID_TRIAL_VERSION = "paid-trial-1.0.0"
+#: 1.1.0 (live, 2026-10-26): a price for a feature the client never uses (NEVER_USED: web search) no longer keeps a
+#:        model out. Trader 2's anthropic/claude-haiku-5.5 lists web_search at $0.01 a search, charged only when a
+#:        search is asked for; the client never asks for one, and the seat ran on the free models all Monday morning.
+PAID_TRIAL_VERSION = "paid-trial-1.1.0"
 #: the seats a paid model may take: the two traders. The debate and the numbers fallback are never paid.
 PAID_ROLES = ("vision", "judge")
 #: a call is reserved at this many prompt tokens (the traders' prompts measured 8k-26k, chart included) plus its
@@ -29,6 +32,10 @@ PROMPT_TOKENS_RESERVE = 30_000
 #: catalog prices charged per token; every other listed price is charged per item (request, image, web search)
 PER_TOKEN = frozenset({"prompt", "completion", "internal_reasoning", "input_cache_read", "input_cache_write",
                        "input_audio", "audio"})
+#: catalog prices for features the client never uses, so a call can never be charged them: web search is billed per
+#: search only when the request asks for one (a `plugins` / `web_search_options` field, or an ":online" model), and
+#: no request this client builds ever does
+NEVER_USED = frozenset({"web_search"})
 #: the key's spend may run ahead of what this process's paid replies reported by at most this before every request
 #: stops (a reply lost to a timeout is still billed; it is reserved at its most until the next key read)
 UNACCOUNTED_TOLERANCE_USD = 0.05
@@ -49,6 +56,8 @@ class PaidModel:
         if not isinstance(pricing, dict) or "prompt" not in pricing or "completion" not in pricing:
             return f"{self.id} lists no prompt and completion price"
         for k, v in pricing.items():
+            if k in NEVER_USED:
+                continue
             try:
                 p = float(v)
             except (TypeError, ValueError):
@@ -68,7 +77,7 @@ def call_reserve(catalog_model: dict, max_tokens: int) -> float:
     """The most one call can cost, in USD: PROMPT_TOKENS_RESERVE prompt tokens, max_tokens out, every item price."""
     pricing = catalog_model.get("pricing") or {}
     f = lambda k: float(pricing.get(k) or 0.0)  # noqa: E731
-    items = sum(float(v or 0.0) for k, v in pricing.items() if k not in PER_TOKEN)
+    items = sum(float(v or 0.0) for k, v in pricing.items() if k not in PER_TOKEN and k not in NEVER_USED)
     return PROMPT_TOKENS_RESERVE * f("prompt") + max_tokens * max(f("completion"), f("internal_reasoning")) + items
 
 
@@ -130,5 +139,5 @@ PAID_TRIAL = PaidTrial(
 )
 
 
-__all__ = ["NO_TRIAL", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION", "PROMPT_TOKENS_RESERVE",
+__all__ = ["NEVER_USED", "NO_TRIAL", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION", "PROMPT_TOKENS_RESERVE",
            "UNACCOUNTED_TOLERANCE_USD", "PaidModel", "PaidTrial", "call_reserve"]

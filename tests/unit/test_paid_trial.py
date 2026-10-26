@@ -177,6 +177,22 @@ def test_a_price_above_the_declared_one_keeps_the_paid_model_out(pv, field):
     assert field in c.trial_status()["not_asked_because"]["vision"]
 
 
+def test_a_price_for_a_feature_the_client_never_uses_does_not_keep_the_model_out():
+    # live 2026-10-26: anthropic/claude-haiku-5.5 lists web_search at $0.01 a search; the seat ran free all morning
+    bodies = []
+
+    def spy(m, body):
+        bodies.append(body)
+        return None
+    fake = Fake(cat=catalog(pj=paid(PJ, web_search="0.01")), reply=spy)
+    c, _ = client(fake)
+    assert ask(c, "judge").model == PJ and c.trial_status()["not_asked_because"]["judge"] is None
+    assert call_reserve(paid(PJ, web_search="0.01"), 1000) == pytest.approx(call_reserve(paid(PJ), 1000))
+    for b in bodies:  # and no request can be charged for it: none asks for a search
+        assert not {"plugins", "web_search_options"} & set(b) and not b["model"].endswith(":online")
+    assert ask(client(Fake(cat=catalog(pj=paid(PJ, image="0.01"))))[0], "judge").model == TRADER  # an image is sent
+
+
 def test_a_paid_model_missing_from_the_catalog_is_not_asked():
     fake = Fake(cat=catalog()[:3] + [paid(PJ)])
     c, _ = client(fake)
