@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 196263.25,
+  "equity": 196135.56,
   "balance": 195897.91,
-  "total_pnl": -3736.75,
-  "today_pnl": -186.66,
+  "total_pnl": -3864.44,
+  "today_pnl": -314.35,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 194846.74,
+  "equity_before_adjustments": 194719.04,
   "day_reference": 196449.9105557703,
-  "drawdown_from_start": -3736.75,
+  "drawdown_from_start": -3864.44,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -668,12 +668,12 @@
    "side": "BUY",
    "qty": 2.37,
    "entry": 157.825,
-   "current": 157.82500000000002,
+   "current": 157.755,
    "stop": 157.543,
    "target": 158.254,
-   "r_now": 0.0,
+   "r_now": -0.248,
    "opened": 1793084471.0,
-   "pnl": 0.0,
+   "pnl": -104.52,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -702,12 +702,12 @@
    "side": "SELL",
    "qty": 0.64,
    "entry": 0.9251,
-   "current": 0.92379,
+   "current": 0.9240900000000001,
    "stop": 0.92635,
    "target": 0.92293,
-   "r_now": 1.048,
+   "r_now": 0.808,
    "opened": 1793036742.0,
-   "pnl": 101.22,
+   "pnl": 78.04,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -2476,6 +2476,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "AUDUSD",
+   "decision": "NO_TRADE",
+   "t": 1793089824,
+   "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDJPY",
+   "decision": "NO_TRADE",
+   "t": 1793089823,
+   "reason": "blocked before consulting the model: EXPOSURE: a USDJPY position is already open",
+   "data_flags": []
+  },
+  {
    "symbol": "GBPUSD",
    "decision": "NO_TRADE",
    "t": 1793088924,
@@ -2628,23 +2642,9 @@
    "t": 1793079922,
    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1793079067,
-   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "USDJPY",
-   "decision": "SELL",
-   "t": 1793079022,
-   "reason": "SELL USDJPY on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 55: M15 has printed a fresh LH/LL sequence and price is retesting the broken demand block 157.581-157.667 as resistance, offering a shor",
-   "data_flags": []
   }
  ],
- "decisions_total": 2958,
+ "decisions_total": 2960,
  "shift": {
   "started": "2026-10-27 03:33 UTC",
   "decision_mode": "dual_ai",
@@ -3049,9 +3049,9 @@
    }
   },
   "last_analysis": {
-   "decision_id": "3f38d64183a9912785b88049",
-   "symbol": "GBPUSD",
-   "t": 1793088924,
+   "decision_id": "ea71d23e54e1793bc5f1b3b9",
+   "symbol": "AUDUSD",
+   "t": 1793089824,
    "decision": "NO_TRADE",
    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
    "consensus": {
@@ -3070,6 +3070,48 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "ea71d23e54e1793bc5f1b3b9",
+    "symbol": "AUDUSD",
+    "t": 1793089824,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
+   {
+    "decision_id": "fbf1bf8681caca330f285fcd",
+    "symbol": "USDJPY",
+    "t": 1793089823,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a USDJPY position is already open",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: EXPOSURE: a USDJPY position is already open",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
    {
     "decision_id": "3f38d64183a9912785b88049",
     "symbol": "GBPUSD",
@@ -3279,131 +3321,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.10.0",
     "risk": null
-   },
-   {
-    "decision_id": "0bfa378ffa55de69f88c3b04",
-    "symbol": "AUDUSD",
-    "t": 1793084471,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.10.0",
-    "risk": null
-   },
-   {
-    "decision_id": "46326a31ee314f18f3a5946d",
-    "symbol": "USDJPY",
-    "t": 1793084418,
-    "decision": "BUY",
-    "reason": "BUY USDJPY on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 60: Bullish M15 structure (4 bullish BOS, HH 157.835) aligned with a bullish H4 CHoCH, price holding above PDH and an untested demand OB/FVG below. Swept equal lows below are cleared, leaving liquidity stacked overhead at 157.835/157.918/",
-    "consensus": {
-     "desk_confidence": 0.52,
-     "direction": "BUY",
-     "levels_from": "trader1",
-     "more_confident": "trader1",
-     "outcome": "TRADE",
-     "rule": "AGREE",
-     "stop_loss": 157.543,
-     "take_profit": 158.254
-    },
-    "models": {
-     "trader1": "xiaomi/mimo-v2.6-pro",
-     "trader2": "anthropic/claude-haiku-5.5"
-    },
-    "trader1": {
-     "confidence": 60,
-     "direction": "BUY",
-     "entry": 157.819,
-     "invalidation": 157.543,
-     "liquidity": "Equal lows at 157.543/157.416/157.369 were swept twice (bullish) and now sit protected below; buy-side liquidity rests above at today's high 157.835 and inside the open bearish FVGs 157.886-157.918 and 157.991-158.012, with room up to the prior week high 158.604.",
-     "market_structure": "M15 prints a clean bullish sequence: four consecutive bullish BOS (157.504, 157.597, 157.642, 157.735) with HH at 157.835 and HLs holding above the untested demand OB 157.555-157.638; H4 has printed a bullish CHoCH at 157.16 and is pushing back through the 157.753/157.565 pivots.",
-     "momentum": "Recent displacement is bullish: M5 rallied 157.61 to 157.835 with closes near highs, the bullish FVG 157.616-157.652 remains open and unmitigated, and ATR is rising off a low percentile so volatility has room to expand to the upside.",
-     "reason": "Bullish M15 structure (4 bullish BOS, HH 157.835) aligned with a bullish H4 CHoCH, price holding above PDH and an untested demand OB/FVG below. Swept equal lows below are cleared, leaving liquidity stacked overhead at 157.835/157.918/158.012 into the H4 range high 158.254. Long at the ask with invalidation below the triple equal low 157.543, which is the level that negates the bullish sequence. Volatility is low but rising, so a 0.43 extension is realistic within 480 minutes.",
-     "reversal_probability": 35,
-     "risk_reward": 1.57,
-     "stop_loss": 157.543,
-     "take_profit": 158.254,
-     "trend": "Both timeframes are labelled range, but the swing structure is making higher highs and higher lows and price sits above PDH 157.642, so the internal flow is bullish while the H4 range 156.07-158.25 targets its upper boundary."
-    },
-    "trader2": {
-     "confidence": 52,
-     "direction": "BUY",
-     "entry": 157.819,
-     "invalidation": 157.735,
-     "liquidity": "Equal lows at 157.543 and 157.416 were swept and are now below price. The high at 157.835 has been taken, and the bearish FVG 157.886-157.918 and 157.991-158.012 sit overhead as the next liquidity pool, with the round number 158.0 in between.",
-     "market_structure": "M15 and H1 both print bullish BOS (H1 BOS at 157.767 at 06:00, M15 BOS at 157.735), with HH at 157.835 and HLs holding above the untested demand OB 157.555-157.638. H4 is still a range, with a bullish CHoCH at 157.16.",
-     "momentum": "M15 rallied from 157.42 to 157.835 over about 12 hours, and the last three bars are consolidating at 157.78-157.82 rather than rolling over. M1 shows only a small pullback and ATR is low at percentile 29, so the move is not yet exhausted.",
-     "reason": "Bullish M15 and H1 BOS, price above PDH, and equal lows swept below, favour a continuation buy. The 157.835 high was a sweep-and-pullback, so the edge is modest and the H4 range caps the upside. The stop sits beneath the 157.735 BOS level, which is the level that voids the bullish sequence. The target is the round number 158.0 at the bearish FVG, giving about 1.9R after costs.",
-     "reversal_probability": 45,
-     "risk_reward": 1.93,
-     "stop_loss": 157.725,
-     "take_profit": 158.0,
-     "trend": "H1 is up (HH and HL) and price is above PDH 157.642. H4 is ranging, so the bias is a short-term bullish continuation inside a wider range."
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1793084418,
-     "bytes": 30383,
-     "execution_timeframe": "M15",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1793084400,
-     "last_bar_open": 1793083500,
-     "sha256": "8bb3ccef58b6a724236ce8bac0493c0b07afd42283d69dbeb613bb3b4bcaca1f",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.004908975,
-      "error": null,
-      "latency_ms": 39972.1,
-      "model": "xiaomi/mimo-v2.6-pro",
-      "ok": true,
-      "provider_id": "gen-1793084420-N7LTVxuOa2PoxqFZStcd",
-      "request_id": "b1438adb9aa647238b8171b1d8d8b5b0",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 9381,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0023194,
-      "error": null,
-      "latency_ms": 10008.9,
-      "model": "anthropic/claude-haiku-5.5",
-      "ok": true,
-      "provider_id": "gen-1793084460-RHnhxgyUbLD5NRZdTChH",
-      "request_id": "6305dd0bc94546a4b5721bb77f577031",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 16550,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.10.0",
-    "risk": {
-     "approved": true,
-     "reasons": [],
-     "qty": 2.37
-    }
    }
   ],
   "open_positions": [
@@ -3413,12 +3330,12 @@
     "side": "BUY",
     "qty": 2.37,
     "entry": 157.825,
-    "current": 157.82500000000002,
+    "current": 157.755,
     "stop": 157.543,
     "target": 158.254,
-    "r_now": 0.0,
+    "r_now": -0.248,
     "opened": 1793084471.0,
-    "pnl": 0.0,
+    "pnl": -104.52,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -3447,12 +3364,12 @@
     "side": "SELL",
     "qty": 0.64,
     "entry": 0.9251,
-    "current": 0.92379,
+    "current": 0.9240900000000001,
     "stop": 0.92635,
     "target": 0.92293,
-    "r_now": 1.048,
+    "r_now": 0.808,
     "opened": 1793036742.0,
-    "pnl": 101.22,
+    "pnl": 78.04,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4124,13 +4041,13 @@
     "DEBATE": 5,
     "DISAGREE": 122,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 1164,
+    "NOT_ASKED": 1166,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 11
    },
    "agreement_rate": 0.767,
    "decisions_with_both_traders": 544,
-   "unavailable": 2090
+   "unavailable": 2092
   },
   "recent_trades": [
    {
@@ -4856,8 +4773,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793088917,
+  "last_cycle": 1793089818,
   "last_cycle_error": null,
-  "cycles": 19
+  "cycles": 20
  }
 }
