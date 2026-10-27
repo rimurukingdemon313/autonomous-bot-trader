@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-26 23:00 UTC**, run 457, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
+Updated **2026-10-27 00:00 UTC**, run 458, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-10-26 23:00 UTC**, run 457, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 19.12
+- days: 19.17
 - run_coverage: 0.9935
 - closed_positions: 97
 - open_positions: 1
 - utilisation: 0.1131
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.1147
-- book_excess_pct: -1.146
-- ann_excess_deployed_pct: -194.554
-- ann_excess_deployed_costs_x1.5_pct: -337.371
-- ann_excess_deployed_costs_x2_pct: -480.188
+- book_pnl_pct: -1.1246
+- book_excess_pct: -1.1559
+- ann_excess_deployed_pct: -195.86
+- ann_excess_deployed_costs_x1.5_pct: -338.4
+- ann_excess_deployed_costs_x2_pct: -480.941
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.3674
+- book_excess_without_best_coin_pct: -1.3773
 - max_dd_pct: 1.1386
-- t_excess_daily: -3.346
+- t_excess_daily: -3.344
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| BTW | gate | mexc | 2026-10-26 17:00 | 45.1% | 15.9 | 8.5 | 17.0 | **7.4** |
+| BTW | gate | mexc | 2026-10-26 17:00 | 45.1% | 17.5 | -12.9 | 17.0 | **-12.4** |
 
 ## Closed positions (97)
 
@@ -78,6 +78,6 @@ Updated **2026-10-26 23:00 UTC**, run 457, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| BTW | gate | mexc | 64.7% | 115.2% |
+| BTW | gate | mexc | 62.9% | 167.3% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
