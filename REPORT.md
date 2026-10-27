@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-27 02:28 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 21:57 UTC · decision system `dual_ai`
+Updated 2026-10-27 02:43 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-26 21:57 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -16,9 +16,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $196,284.55 | $-165.36 | $-3,715.45 | $-3,715.45 | 3 | 107 (adequate) | 41.1% | -0.094R | 0.82 | ACTIVE | RUNNING |
+| $200,000.00 | $196,230.44 | $-219.47 | $-3,769.56 | $-3,769.56 | 3 | 107 (adequate) | 41.1% | -0.094R | 0.82 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $194,868.04); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $194,813.93); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -51,8 +51,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-26 11:00 EURUSD SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL EURUSD would bet against an open position: EURCHF BUY is long EUR; USDCAD SELL is short USD
 - 10-26 10:15 USDCAD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (2910 so far)
+## Latest decisions, NO TRADE included (2912 so far)
 
+- 10-27 02:30 GBPUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a GBPUSD position is already open
+- 10-27 02:30 EURUSD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-27 02:15 AUDJPY NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-27 02:15 EURCHF NO_TRADE: blocked before consulting the model: EXPOSURE: a EURCHF position is already open
 - 10-27 02:01 GBPJPY NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
@@ -63,16 +65,14 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-27 01:30 USDCAD NO_TRADE: the traders disagree (Trader 1 BUY 58, Trader 2 SELL 55): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 - 10-27 01:15 AUDUSD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-27 01:15 USDJPY NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
-- 10-27 01:00 GBPUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a GBPUSD position is already open
-- 10-27 01:00 EURUSD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURJPY | SELL | 0.96 | 176.0845 | 176.235 | 175.827 | $-9.68 |
+| EURJPY | SELL | 0.96 | 176.0845 | 176.235 | 175.827 | $-48.38 |
 | EURCHF | SELL | 0.64 | 0.9251 | 0.92635 | 0.92293 | $23.97 |
-| GBPUSD | SELL | 1.54 | 1.33523 | 1.3365 | 1.3333 | $133.98 |
+| GBPUSD | SELL | 1.54 | 1.33523 | 1.3365 | 1.3333 | $118.58 |
 
 ## Closed paper trades (latest 20)
 
@@ -117,6 +117,8 @@ Trades taken by session (UTC): ASIA 47 resolved (adequate), expectancy -0.187R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-27 02:30 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-27 02:30 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-27 02:15 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-27 02:15 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-27 02:01 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -127,8 +129,6 @@ Trades taken by session (UTC): ASIA 47 resolved (adequate), expectancy -0.187R �
 | 10-27 01:30 | USDCAD | BUY 58 | SELL 55 | SELL | DISAGREE | NO_TRADE | - |
 | 10-27 01:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-27 01:15 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-27 01:00 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-27 01:00 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
