@@ -73,6 +73,28 @@ def blame_lines(b: dict) -> list[str]:
     return out
 
 
+def period_lines(p: dict | None) -> list[str]:
+    """The account of the setup now trading (aitrader/broker/periods.py), first: its own trades, from its start."""
+    if not p:
+        return []
+    if p.get("available") is False:
+        return [f"**New account `{p.get('id')}`: not readable** ({p.get('reason')}).", ""]
+    g, b = p.get("performance") or {}, p.get("before") or {}
+    bp = b.get("performance") or {}
+    return [f"## The new account: the setup trading now (from {p['starts'].replace('T', ' ').replace(':00Z', ' UTC')})", "",
+            f"{p.get('setup')}. Opened at the owner's request ({p.get('requested')}): {p.get('reason')}.", "",
+            "| Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |",
+            "|---|---|---|---|---|---|---|---|---|",
+            f"| {money(p.get('start_balance'))} | {money(p.get('equity'))} | {money(p.get('total_pnl'))} | "
+            f"{money(p.get('closed_pnl'))} | {p.get('open', 0)} ({money(p.get('open_pnl'))}) | "
+            f"{g.get('trades', 0)} ({g.get('sample', 'none')}) | {fmt(g.get('win_rate'), '{:.1%}')} | "
+            f"{fmt(g.get('expectancy_r'), '{:+.3f}R')} | {fmt(g.get('profit_factor'), '{:.2f}')} |", "",
+            f"Before it, kept and apart (not in the figures above): {bp.get('trades', 0)} trades, net "
+            f"{money(b.get('closed_pnl'))}" + (f", {b['open']} still open ({money(b.get('open_pnl'))})" if b.get("open") else "")
+            + ". The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account "
+            "below; nothing in it was moved or removed.", ""]
+
+
 def report_md(v: dict, shift: dict) -> str:
     a, o = v.get("account") or {}, (v.get("performance") or {}).get("overall") or {}
     lines = [
@@ -81,6 +103,7 @@ def report_md(v: dict, shift: dict) -> str:
         f"shift started {shift['started']} · decision system `{shift['decision_mode']}`", "",
         f"Research status (historical, unchanged): **{v['research_status']}**. This run measures the system forward; "
         "it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.", ""]
+    lines += period_lines(v.get("period"))
     dai = v.get("dual_ai") or {}
     if dai.get("active"):  # the rule that trades first; two rules are never averaged into one number
         g = dai.get("performance") or {}

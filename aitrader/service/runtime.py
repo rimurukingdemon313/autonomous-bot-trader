@@ -32,7 +32,7 @@ from ..agents.trading_room import member_records
 from ..data.calendar import EconomicCalendar
 from ..memory.history import HistoryDesk
 from ..backtest.metrics import summarise
-from ..broker import adjustments as paper_adjustments
+from ..broker import adjustments as paper_adjustments, periods
 from ..broker.paper import PaperBroker
 from ..decision.synthesis import EvidenceSynthesizer
 from ..execution.engine import ExecutionEngine
@@ -857,8 +857,12 @@ class Runtime:
         except Exception as exc:  # noqa: BLE001 - shown as unavailable, never as "the market"
             out["blame"] = {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
         out["open_positions"] = self._live_positions()
+        # the account of the setup now trading, from the moment it first decided (broker.periods): its own trades only
+        period = periods.current()
+        out["period"] = periods.view(kept, out["open_positions"], period)
         out["recent_trades"] = [{**o, "rule": paper_metrics.rule_of(o),
-                                 "blame": (verdicts.get(o.get("decision_id")) or {}).get("verdict")}
+                                 "blame": (verdicts.get(o.get("decision_id")) or {}).get("verdict"),
+                                 "period": periods.period_of(o, period)}
                                 for o in kept[-20:][::-1]]
         out["pipeline"] = [json.loads(e["payload"]) for e in
                            self.db.query("SELECT payload FROM events WHERE type='PIPELINE' ORDER BY seq DESC LIMIT 20")]

@@ -292,6 +292,12 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert "RULES: no approving risk verdict" in md and "| **us** |" in md
     won_row = next(t for t in pf["recent_trades"] if t["decision_id"] == won["decision_id"])
     assert won_row["blame"] == "MARKET"  # the trade through the real pipeline passes every check
+    # the new account of the setup trading now: its own trades only; the ones before it apart; nothing moved
+    per = pf["period"]
+    assert per["start_balance"] == 200_000.0 and "## The new account: the setup trading now" in md
+    assert per["performance"]["trades"] + per["before"]["performance"]["trades"] == 3
+    assert per["equity"] == pytest.approx(200_000.0 + per["total_pnl"]) and "Before it, kept and apart" in md
+    assert {t["period"] for t in pf["recent_trades"]} <= {per["id"], "before"}
     with pytest.raises(sqlite3.DatabaseError, match="immutable"):  # and the old rule's trades cannot be deleted
         with rt.db.tx() as c:
             c.execute("DELETE FROM trades WHERE decision_id LIKE 'old-DEBATE-%'")

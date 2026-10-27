@@ -688,6 +688,13 @@ MUTANTS = [
      "            if False:\n                continue", ["tests/unit/test_paid_trial.py"]),
     ("trial-reserve-items", "a call's reserve counts every per-item price a request can be charged",
      "aitrader/llm/paid_trial.py", "+ sum(f(k) for k in CHARGED_PER_ITEM))", ")", ["tests/unit/test_paid_trial.py"]),
+    # ── the new account of a setup (aitrader/broker/periods.py) ──
+    ("period-own-trades", "only the trades opened from the period's start move the new account",
+     "aitrader/broker/periods.py", "mine = [o for o in outcomes if (opened(o) or 0.0) >= t0]", "mine = list(outcomes)",
+     ["tests/unit/test_periods.py"]),
+    ("period-unreadable", "a value that cannot be read makes the new account's equity None, never a guess",
+     "aitrader/broker/periods.py", "readable = not closed_unpriced and open_pnl is not None",
+     "readable = open_pnl is not None", ["tests/unit/test_periods.py"]),
     ("trial-declared-caps", "a trial declared beyond the owner's $10 is refused",
      "aitrader/llm/paid_trial.py", 'assert 0 < self.daily_usd <= self.total_usd <= 10.0, "caps: 0 < daily <= total <= the owner\'s $10"',
      "pass", ["tests/unit/test_paid_trial.py"]),

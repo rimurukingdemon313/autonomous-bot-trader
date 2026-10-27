@@ -151,6 +151,17 @@ broker other than the paper broker exists.
   stay in the journal and are listed apart (`removed_trades`). One exists: the 4 trades of the retired debate
   rule (2026-10-15, +$1,416.51). Made after the day's reference was taken, it gives that one day's loss limit the
   same headroom; the gate's floors are otherwise unchanged.
+- The new account (`aitrader/broker/periods.py`, owner 2026-10-27: "I don't want it negative"; chosen over
+  carrying on). The paper account had lost $3,454 under the setups replaced on 23-26 October. A period is a new
+  paper account for the setup trading now: $200,000 from 2026-10-26 16:22 UTC, the first shift with both
+  traders paid and every trade on Trader 1's levels.
+  - Only the trades opened from then move it: by their booked net P/L once closed, by their open P/L while
+    open.
+  - `REPORT.md` shows it first. Under it are the trades before it, kept and apart, and the whole paper journal.
+  - Nothing is moved, removed or reset. The broker's balance, the hard gate and the risk engine keep
+    guarding the whole account, and the risk engine's size after the losing streak is unchanged.
+  - An unreadable value makes its equity None.
+  - The Friday decision on the setup is read from this account.
 - Who lost it, the market or us (`aitrader/learning/blame.py`, owner 2026-10-25: "if we lose, let it be the
   market"). Every closed trade is checked against what the system controls, from its own journal, and
   `REPORT.md` shows the result under the account, with a column on each closed trade. The checks:
