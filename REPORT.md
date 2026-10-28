@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-28 14:37 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-28 13:06 UTC · decision system `dual_ai`
+Updated 2026-10-28 14:52 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-28 13:06 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-28 06:15 EURCHF BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY EURCHF would bet against an open position: EURGBP SELL is short EUR
 - 10-28 06:00 GBPJPY SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL GBPJPY would bet against an open position: USDJPY BUY is short JPY; EURGBP SELL is long GBP
 
-## Latest decisions, NO TRADE included (3199 so far)
+## Latest decisions, NO TRADE included (3201 so far)
 
+- 10-28 14:45 GBPUSD NO_TRADE: risk engine: trading_calendar (Wednesday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
+- 10-28 14:45 EURUSD NO_TRADE: risk engine: trading_calendar (Wednesday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-28 14:30 AUDJPY NO_TRADE: risk engine: trading_calendar (Wednesday 14:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-28 14:30 EURCHF NO_TRADE: risk engine: trading_calendar (Wednesday 14:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-28 14:15 GBPJPY NO_TRADE: risk engine: trading_calendar (Wednesday 14:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -75,8 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-28 13:45 USDCAD NO_TRADE: risk engine: trading_calendar (Wednesday 13:45 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release CAD BOC Monetary Policy Report 1 min ago; High-impact release CAD BOC Rate State
 - 10-28 13:30 AUDUSD NO_TRADE: risk engine: trading_calendar (Wednesday 13:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-28 13:30 USDJPY NO_TRADE: risk engine: trading_calendar (Wednesday 13:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 10-28 13:15 GBPUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a GBPUSD position is already open
-- 10-28 13:15 EURUSD NO_TRADE: risk engine: trading_calendar (Wednesday 13:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 
 ## Open paper positions
 
@@ -126,6 +126,8 @@ Trades taken by session (UTC): ASIA 51 resolved (adequate), expectancy -0.216R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-28 14:45 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-28 14:45 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-28 14:30 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-28 14:30 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-28 14:15 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -136,8 +138,6 @@ Trades taken by session (UTC): ASIA 51 resolved (adequate), expectancy -0.216R �
 | 10-28 13:45 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-28 13:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-28 13:30 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-28 13:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-28 13:15 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
