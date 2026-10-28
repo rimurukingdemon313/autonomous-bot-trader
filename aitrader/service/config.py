@@ -11,7 +11,7 @@ import os
 import dataclasses
 from dataclasses import dataclass, field
 
-from ..risk.engine import (HARD_MAX_RISK_PCT, PAPER_FORWARD_CLEAR_STRUCTURE, PAPER_FORWARD_CLOSED_UTC,
+from ..risk.engine import (HARD_MAX_RISK_PCT, PAPER_FORWARD_CLOSED_UTC,
                            PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, PAPER_FORWARD_NEWS_BLACKOUT_MIN, PAPER_FORWARD_NEWS_IMPACTS,
                            PAPER_FORWARD_QUIET_NY, UNVALIDATED_MAX_RISK_PCT, FundedRules, RiskLimits)
 from ..decision.edge_status import PAPER_MODES
@@ -149,8 +149,8 @@ class ServiceConfig:
                                        closed_weekdays_utc=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC,
                                        closed_utc_windows=PAPER_FORWARD_CLOSED_UTC, no_opposite_currency=True,
                                        news_blackout_min=PAPER_FORWARD_NEWS_BLACKOUT_MIN, news_required=True,
-                                       news_impacts=PAPER_FORWARD_NEWS_IMPACTS,
-                                       require_clear_structure=PAPER_FORWARD_CLEAR_STRUCTURE)
+                                       news_impacts=PAPER_FORWARD_NEWS_IMPACTS)
+            # the H1 structure rule (risk 1.12.0) is off since risk 1.15.0: reversed by its own registered test
         source = e.get("DATA_SOURCE", "yahoo").strip().lower() or "yahoo"
         if source == "auto":
             source = "yahoo"

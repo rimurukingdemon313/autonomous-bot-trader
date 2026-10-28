@@ -82,7 +82,13 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   the decision time it read "age -297s" on a quote taken after a 5-minute answer, so this check could never find a
 #:   stale price (only the hard gate, on its own clock, could). A quote stamped more than QUOTE_FUTURE_S after the
 #:   opening is refused, as the gate refuses it. It only ever refuses.
-RISK_VERSION = "risk-1.14.0"
+#: 1.15.0 (owner, 2026-10-28: "find a solution, just execute"): MODE=PAPER_FORWARD no longer requires a clear H1
+#:   structure. The rule (1.12.0) was adopted early, on the registered condition that the agreements it refused do
+#:   0.3 R or more worse than the trades taken, over 20+ of each, or it is reversed. Judged on Trader 1's levels, the
+#:   only levels traded since dual-ai 1.10.0, from 2026-10-19, and counted once per pair while one would still be
+#:   open: the 34 refused for structure alone did +0.03 R (41% won), the 53 taken -0.05 R. It is reversed.
+#:   `require_clear_structure` and its check stay, for a profile that asks for them.
+RISK_VERSION = "risk-1.15.0"
 #: a quote stamped this far after the moment of opening is not a quote of now (the hard gate's own tolerance)
 QUOTE_FUTURE_S = 5
 NEW_YORK = ZoneInfo("America/New_York")
@@ -98,7 +104,7 @@ PAPER_FORWARD_NEWS_BLACKOUT_MIN = (30, 30)
 PAPER_FORWARD_NEWS_IMPACTS = ("High", "Medium")
 NEWS_IMPACTS = ("High", "Medium", "Low")
 #: MODE=PAPER_FORWARD: no new position unless the pair's H1 structure is a clear trend (not a range)
-PAPER_FORWARD_CLEAR_STRUCTURE = "H1"
+PAPER_FORWARD_CLEAR_STRUCTURE = "H1"  # what MODE=PAPER_FORWARD required from risk 1.12.0 to 1.14.0 (reversed in 1.15.0)
 STRUCTURE_TIMEFRAMES = ("M5", "M15", "H1")  # the market map's structure timeframes
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 

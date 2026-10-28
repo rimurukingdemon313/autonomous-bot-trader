@@ -1010,10 +1010,14 @@ def test_the_structure_is_only_checked_when_the_limits_name_a_timeframe():
             RiskLimits(require_clear_structure=bad)
 
 
-def test_the_paper_forward_service_requires_a_clear_h1_structure_and_plain_paper_does_not():
+def test_the_paper_forward_service_no_longer_requires_a_clear_h1_structure_reversed_by_its_registered_test():
+    # risk 1.15.0: the agreements the rule refused did not do 0.3 R worse than the trades taken (Trader 1's levels,
+    # 34 refused at +0.03 R against 53 taken at -0.05 R), so the rule adopted early on that condition is reversed
     from aitrader.service.config import ServiceConfig
     env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-struct-test", "DASHBOARD_TOKEN": "t"}
-    assert ServiceConfig.from_env(env).risk.require_clear_structure == "H1"
+    cfg = ServiceConfig.from_env(env).risk
+    assert cfg.require_clear_structure is None
+    assert cfg.news_impacts == ("High", "Medium") and cfg.no_opposite_currency  # the other PAPER_FORWARD rules stay
     assert ServiceConfig.from_env({**env, "MODE": "PAPER"}).risk.require_clear_structure is None
 
 
