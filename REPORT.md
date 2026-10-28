@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-10-28 21:00 UTC**, run 503, version `radar-1.0.0`. State from: cache. Quotes this hour: 2409.
+Updated **2026-10-28 22:00 UTC**, run 504, version `radar-1.0.0`. State from: cache. Quotes this hour: 2409.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-10-28 21:00 UTC**, run 503, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 21.04
+- days: 21.08
 - run_coverage: 0.9941
 - closed_positions: 112
 - open_positions: 3
-- utilisation: 0.13
+- utilisation: 0.1304
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.1114
-- book_excess_pct: -1.1657
-- ann_excess_deployed_pct: -156.858
-- ann_excess_deployed_costs_x1.5_pct: -289.503
-- ann_excess_deployed_costs_x2_pct: -422.147
+- book_pnl_pct: -1.1087
+- book_excess_pct: -1.1632
+- ann_excess_deployed_pct: -155.798
+- ann_excess_deployed_costs_x1.5_pct: -287.835
+- ann_excess_deployed_costs_x2_pct: -419.871
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.3871
+- book_excess_without_best_coin_pct: -1.3846
 - max_dd_pct: 1.3124
-- t_excess_daily: -2.98
+- t_excess_daily: -2.965
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| BTW | gate | mexc | 2026-10-27 23:00 | 56.0% | 8.9 | 9.6 | 17.0 | **1.6** |
-| BULLA | mexc | gate | 2026-10-28 06:00 | 73.9% | 182.7 | 234.9 | 17.0 | **400.6** |
-| EVAA | mexc | gate | 2026-10-28 09:00 | 33.0% | 11.5 | -6.1 | 17.0 | **-11.5** |
+| BTW | gate | mexc | 2026-10-27 23:00 | 56.0% | 8.9 | -14.7 | 17.0 | **-22.8** |
+| BULLA | mexc | gate | 2026-10-28 06:00 | 73.9% | 190.6 | 247.6 | 17.0 | **421.2** |
+| EVAA | mexc | gate | 2026-10-28 09:00 | 33.0% | 12.2 | 2.4 | 17.0 | **-2.4** |
 
 ## Closed positions (112)
 
@@ -80,6 +80,6 @@ Updated **2026-10-28 21:00 UTC**, run 503, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 46.9% | 61.3% |
+| EVAA | mexc | gate | 47.7% | 57.6% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
