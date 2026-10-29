@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 194236.81,
+  "equity": 194403.28,
   "balance": 194342.14,
-  "total_pnl": -5763.19,
-  "today_pnl": -684.69,
+  "total_pnl": -5596.72,
+  "today_pnl": -518.21,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 192820.29,
+  "equity_before_adjustments": 192986.77,
   "day_reference": 194921.49120381556,
-  "drawdown_from_start": -5763.19,
+  "drawdown_from_start": -5596.72,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -677,12 +677,12 @@
    "side": "BUY",
    "qty": 3.28,
    "entry": 111.16000000000001,
-   "current": 111.118,
+   "current": 111.16,
    "stop": 110.97,
    "target": 111.414,
-   "r_now": -0.221,
+   "r_now": -0.0,
    "opened": 1793258446.0,
-   "pnl": -86.79,
+   "pnl": -0.0,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -694,12 +694,12 @@
    "side": "SELL",
    "qty": 3.41,
    "entry": 0.8366300000000001,
-   "current": 0.83636,
+   "current": 0.8361599999999999,
    "stop": 0.83748,
    "target": 0.8356,
-   "r_now": 0.318,
+   "r_now": 0.553,
    "opened": 1793241945.0,
-   "pnl": 122.57,
+   "pnl": 213.46,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -711,12 +711,12 @@
    "side": "BUY",
    "qty": 1.12,
    "entry": 0.562885,
-   "current": 0.5616249999999999,
+   "current": 0.5615249999999999,
    "stop": 0.56103,
    "target": 0.5658,
-   "r_now": -0.679,
+   "r_now": -0.733,
    "opened": 1793206858.0,
-   "pnl": -141.12,
+   "pnl": -152.32,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -732,9 +732,9 @@
   "requested": "2026-10-27",
   "start_balance": 200000.0,
   "closed_pnl": -1898.45,
-  "open_pnl": -105.34,
-  "total_pnl": -2003.79,
-  "equity": 197996.21,
+  "open_pnl": 61.14,
+  "total_pnl": -1837.31,
+  "equity": 198162.69,
   "open": 3,
   "unpriced": 0,
   "performance": {
@@ -2607,6 +2607,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPUSD",
+   "decision": "NO_TRADE",
+   "t": 1793259020,
+   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1793259018,
+   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+   "data_flags": []
+  },
+  {
    "symbol": "AUDJPY",
    "decision": "BUY",
    "t": 1793258389,
@@ -2759,23 +2773,9 @@
    "t": 1793249117,
    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPJPY",
-   "decision": "NO_TRADE",
-   "t": 1793248221,
-   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURJPY",
-   "decision": "NO_TRADE",
-   "t": 1793248220,
-   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 3333,
+ "decisions_total": 3335,
  "shift": {
   "started": "2026-10-29 05:53 UTC",
   "decision_mode": "dual_ai",
@@ -3042,18 +3042,7 @@
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
     },
     "version": "free-models-1.4.0",
-    "cooldown": {
-     "google/gemma-4-31b-it:free": {
-      "until": 1793259496,
-      "why": "rate_limited",
-      "in_a_row": 3
-     },
-     "google/gemma-4-26b-a4b-it:free": {
-      "until": 1793259497,
-      "why": "rate_limited",
-      "in_a_row": 3
-     }
-    },
+    "cooldown": {},
     "excluded": {}
    },
    "paid_trial": {
@@ -3230,110 +3219,69 @@
    }
   },
   "last_analysis": {
-   "decision_id": "67a270bc5ab770c698b1180f",
-   "symbol": "AUDJPY",
-   "t": 1793258389,
-   "decision": "BUY",
-   "reason": "BUY AUDJPY on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) BUY 56: Higher timeframe trend is up with bullish BOS and price has pulled back into a confluence of open bullish FVGs and multi-touch support after sweeping range lows. The M15 bearish leg is counter-trend and shows exhaustion at 111.054/110",
+   "decision_id": "267ac528428960547160dc6d",
+   "symbol": "GBPUSD",
+   "t": 1793259020,
+   "decision": "NO_TRADE",
+   "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
    "consensus": {
-    "desk_confidence": 0.52,
-    "direction": "BUY",
-    "levels_from": "trader1",
-    "more_confident": "trader1",
-    "outcome": "TRADE",
-    "rule": "AGREE",
-    "stop_loss": 110.97,
-    "take_profit": 111.414
+    "outcome": "NO_TRADE",
+    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "xiaomi/mimo-v2.6-pro",
-    "trader2": "anthropic/claude-haiku-5.5"
-   },
-   "trader1": {
-    "confidence": 56,
-    "direction": "BUY",
-    "entry": 111.153,
-    "invalidation": 110.97,
-    "liquidity": "Sell-side liquidity was just swept at 111.168/111.135; fresh buy-side rests at EQH 111.414 (2 touches) and PDH 111.498, with deeper EQL pools 110.548/110.498 far below and untouched",
-    "market_structure": "H4 is a clean HH/HL uptrend with bullish BOS at 111.346/110.759; M15 is a mixed range where the latest bearish BOS 111.168 is being faded as the last bar swept the 111.168/111.135 lows, so the pullback looks corrective inside the HTF bullish leg",
-    "momentum": "Bearish M15 displacement 5 bars ago pushed price into the bullish FVG stack (111.109-111.12, 110.985-110.995) and support 111.054 x4 / 111.082 x2, where the low sweep signals seller exhaustion",
-    "reason": "Higher timeframe trend is up with bullish BOS and price has pulled back into a confluence of open bullish FVGs and multi-touch support after sweeping range lows. The M15 bearish leg is counter-trend and shows exhaustion at 111.054/110.985, so the long is taken against the sweep. Stop sits below the bullish FVG low at 110.970, the level that invalidates the bullish read. Target is the EQH buy-side liquidity at 111.414, reachable within 480 minutes at 0.18 H1 ATR volatility.",
-    "reversal_probability": 42,
-    "risk_reward": 1.43,
-    "stop_loss": 110.97,
-    "take_profit": 111.414,
-    "trend": "H4 UP (HH+HL) dominates; M15 RANGE (mixed swings), today's high 111.565 after a bullish run - buying the pullback aligns with the higher timeframe"
-   },
-   "trader2": {
-    "confidence": 52,
-    "direction": "BUY",
-    "entry": 111.153,
-    "invalidation": 111.03,
-    "liquidity": "The 111.168 and 111.135 lows were swept with a bullish signal on M15 and H1, and the 111.135 low is the local floor. Buy-side liquidity sits at EQH 111.414 (2 touches) and PDH 111.498.",
-    "market_structure": "H4 is in a clean HH/HL uptrend with a bullish BOS at 111.346. M15 is a range with a bearish BOS at 111.168, and M5 printed a bullish CHoCH at 111.212 two bars ago, so the lower timeframes are mixed.",
-    "momentum": "M1 is still falling into the 111.149 low, which argues for caution on timing. The M15 and H1 lower-wick rejections at 111.135 point to seller exhaustion at support.",
-    "reason": "H4 remains a bullish HH/HL uptrend and the 111.135 low was swept with rejection on M15 and H1, which favours a long into the 111.414 EQH. Short-term M1 momentum is still negative, so timing is uncertain and confidence is moderate. The stop sits below the 111.054 support cluster, a close below which invalidates the sweep-reversal read. Desk record on mid-confidence trades is near breakeven, so the size should stay small.",
-    "reversal_probability": 45,
-    "risk_reward": 2.12,
-    "stop_loss": 111.03,
-    "take_profit": 111.414,
-    "trend": "The higher-timeframe trend is up, and the long is a pullback buy against the M15 range. Trader 1's bullish read is consistent with this, but I reached it independently from the sweep and the H4 structure."
-   },
+   "models": {},
+   "trader1": null,
+   "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793258389,
-    "bytes": 30139,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1793258100,
-    "last_bar_open": 1793257200,
-    "sha256": "6f8f0bf8e47aa6611d27c7d6d80ce690ec5116c463affaa73f15f894f371bff8",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.00480327,
-     "error": null,
-     "latency_ms": 45943.2,
-     "model": "xiaomi/mimo-v2.6-pro",
-     "ok": true,
-     "provider_id": "gen-1793258391-QQxOVIRInykbpXMVMzXZ",
-     "request_id": "48ec19f967434d2498312597651a3251",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 9155,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0021499,
-     "error": null,
-     "latency_ms": 8174.2,
-     "model": "anthropic/claude-haiku-5.5",
-     "ok": true,
-     "provider_id": "gen-1793258437-1VUmvEG6q5RcljbQol7P",
-     "request_id": "f347557d7d49483eabd7a6be4cf4c0cb",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 16219,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.10.0",
-   "risk": {
-    "approved": true,
-    "reasons": [],
-    "qty": 3.28
-   }
+   "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "267ac528428960547160dc6d",
+    "symbol": "GBPUSD",
+    "t": 1793259020,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
+   {
+    "decision_id": "55b4c4e207788be8e3a2623d",
+    "symbol": "EURUSD",
+    "t": 1793259018,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
    {
     "decision_id": "67a270bc5ab770c698b1180f",
     "symbol": "AUDJPY",
@@ -4318,48 +4266,6 @@
      ],
      "qty": 0.0
     }
-   },
-   {
-    "decision_id": "e00d168d7a91ebc5078a6388",
-    "symbol": "GBPUSD",
-    "t": 1793253623,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.10.0",
-    "risk": null
-   },
-   {
-    "decision_id": "2169d5a10a319fbb1c63657c",
-    "symbol": "EURUSD",
-    "t": 1793253622,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.10.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -4369,12 +4275,12 @@
     "side": "BUY",
     "qty": 3.28,
     "entry": 111.16000000000001,
-    "current": 111.118,
+    "current": 111.16,
     "stop": 110.97,
     "target": 111.414,
-    "r_now": -0.221,
+    "r_now": -0.0,
     "opened": 1793258446.0,
-    "pnl": -86.79,
+    "pnl": -0.0,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4386,12 +4292,12 @@
     "side": "SELL",
     "qty": 3.41,
     "entry": 0.8366300000000001,
-    "current": 0.83636,
+    "current": 0.8361599999999999,
     "stop": 0.83748,
     "target": 0.8356,
-    "r_now": 0.318,
+    "r_now": 0.553,
     "opened": 1793241945.0,
-    "pnl": 122.57,
+    "pnl": 213.46,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4403,12 +4309,12 @@
     "side": "BUY",
     "qty": 1.12,
     "entry": 0.562885,
-    "current": 0.5616249999999999,
+    "current": 0.5615249999999999,
     "stop": 0.56103,
     "target": 0.5658,
-    "r_now": -0.679,
+    "r_now": -0.733,
     "opened": 1793206858.0,
-    "pnl": -141.12,
+    "pnl": -152.32,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -5080,13 +4986,13 @@
     "DEBATE": 5,
     "DISAGREE": 144,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 1477,
+    "NOT_ASKED": 1479,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 11
    },
    "agreement_rate": 0.754,
    "decisions_with_both_traders": 606,
-   "unavailable": 2403
+   "unavailable": 2405
   },
   "recent_trades": [
    {
@@ -5812,8 +5718,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793258118,
+  "last_cycle": 1793259015,
   "last_cycle_error": null,
-  "cycles": 6
+  "cycles": 7
  }
 }
