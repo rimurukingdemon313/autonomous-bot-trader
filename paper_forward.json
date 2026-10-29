@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 194221.0,
+  "equity": 194141.43,
   "balance": 194342.14,
-  "total_pnl": -5779.0,
-  "today_pnl": -700.49,
+  "total_pnl": -5858.57,
+  "today_pnl": -780.06,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 192804.49,
+  "equity_before_adjustments": 192724.92,
   "day_reference": 194921.49120381556,
-  "drawdown_from_start": -5779.0,
+  "drawdown_from_start": -5858.57,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -677,12 +677,12 @@
    "side": "SELL",
    "qty": 3.41,
    "entry": 0.8366300000000001,
-   "current": 0.83666,
+   "current": 0.8368599999999999,
    "stop": 0.83748,
    "target": 0.8356,
-   "r_now": -0.035,
+   "r_now": -0.271,
    "opened": 1793241945.0,
-   "pnl": -13.62,
+   "pnl": -104.39,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -694,12 +694,12 @@
    "side": "BUY",
    "qty": 1.12,
    "entry": 0.562885,
-   "current": 0.561925,
+   "current": 0.562025,
    "stop": 0.56103,
    "target": 0.5658,
-   "r_now": -0.518,
+   "r_now": -0.464,
    "opened": 1793206858.0,
-   "pnl": -107.52,
+   "pnl": -96.32,
    "max_hold_minutes": 1440,
    "timeframe": "M15",
    "method": null,
@@ -715,9 +715,9 @@
   "requested": "2026-10-27",
   "start_balance": 200000.0,
   "closed_pnl": -1898.45,
-  "open_pnl": -121.14,
-  "total_pnl": -2019.59,
-  "equity": 197980.41,
+  "open_pnl": -200.71,
+  "total_pnl": -2099.16,
+  "equity": 197900.84,
   "open": 2,
   "unpriced": 0,
   "performance": {
@@ -2586,6 +2586,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "EURGBP",
+   "decision": "NO_TRADE",
+   "t": 1793256320,
+   "reason": "blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
+   "data_flags": []
+  },
+  {
+   "symbol": "NZDUSD",
+   "decision": "NO_TRADE",
+   "t": 1793256319,
+   "reason": "blocked before consulting the model: EXPOSURE: a NZDUSD position is already open",
+   "data_flags": []
+  },
+  {
    "symbol": "USDCHF",
    "decision": "NO_TRADE",
    "t": 1793255529,
@@ -2738,23 +2752,9 @@
    "t": 1793246417,
    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1793245523,
-   "reason": "blocked before consulting the model: EXPOSURE: a AUDUSD position is already open",
-   "data_flags": []
-  },
-  {
-   "symbol": "USDJPY",
-   "decision": "NO_TRADE",
-   "t": 1793245522,
-   "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 3327,
+ "decisions_total": 3329,
  "shift": {
   "started": "2026-10-29 05:53 UTC",
   "decision_mode": "dual_ai",
@@ -3138,126 +3138,69 @@
    }
   },
   "last_analysis": {
-   "decision_id": "3a3218a9de30e761abc9f65d",
-   "symbol": "USDCHF",
-   "t": 1793255529,
+   "decision_id": "f1bdc9f4695d7e7d24a6ada5",
+   "symbol": "EURGBP",
+   "t": 1793256320,
    "decision": "NO_TRADE",
-   "reason": "the traders disagree (Trader 1 BUY 58, Trader 2 SELL 52): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shadow, not traded",
+   "reason": "blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
    "consensus": {
-    "debate_pick": "SELL",
-    "direction": null,
-    "levels_from": null,
-    "loser": "trader1",
     "outcome": "NO_TRADE",
-    "pick_from": "trader2",
-    "reason": "the traders disagree (Trader 1 BUY 58, Trader 2 SELL 52): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shadow, not traded",
-    "rule": "DISAGREE"
+    "reason": "blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "xiaomi/mimo-v2.6-pro",
-    "trader2": "anthropic/claude-haiku-5.5",
-    "verifier": "dots-studio/dots-3-note-preview:free"
-   },
-   "trader1": {
-    "confidence": 58,
-    "direction": "BUY",
-    "entry": 0.82888,
-    "invalidation": 0.82752,
-    "liquidity": "Three consecutive bullish sweeps of lows (0.82757/0.82741/0.82737) plus an EQL at 0.82712 has been raided; sell-side liquidity is cleared and an open bullish FVG (0.82752-0.82765) sits beneath as support. Buy-side liquidity rests above at today's high 0.82971 and PDH 0.83130.",
-    "market_structure": "M15 is bullish (HH 0.82971 / HL 0.82778) with a bullish CHoCH and the broken supply order block; H4 is ranging but has bullish BOS levels at 0.82558/0.82635 with higher lows forming.",
-    "momentum": "Bullish displacement candles at 06:00 M15 pushed price through the broken supply OB; last two M1 bars show mild profit-taking back to the 0.82871 support, but M15 ATR is expanding and price holds above the reclaimed level.",
-    "reason": "M15 bullish structure with HH/HL, broken supply OB and repeated bullish liquidity sweeps point to continuation; the open bullish FVG at 0.82752-0.82765 is the invalidation floor. Buy-side liquidity is stacked at 0.82971 (today's high) and 0.83130 (PDH) which is reachable within 8 hours on H1 ATR of 0.00111. Stop sits below the bullish FVG low so structure failure negates the idea; H4 range keeps confidence moderate.",
-    "reversal_probability": 38,
-    "risk_reward": 1.75,
-    "stop_loss": 0.8275,
-    "take_profit": 0.8313,
-    "trend": "M15 UP (HH+HL), H4 RANGE but printing higher lows; H4 bullish BOS levels confirm a mild upward bias in the transition regime."
-   },
-   "trader2": {
-    "confidence": 52,
-    "direction": "SELL",
-    "entry": 0.82872,
-    "invalidation": 0.82985,
-    "liquidity": "The 0.82712 EQL and the 0.82735-0.82757 sweeps are already taken, so sell-side liquidity below is mostly cleared. Price is now pressing into the mitigated bearish M15 FVG (0.82903-0.82984), the 0.82902 resistance and the M5 bearish FVG (0.82904-0.82914), which together form the supply cluster above.",
-    "market_structure": "H1 is down (LH 0.82971 / LL 0.82712) with a tested H1 supply OB at 0.82962-0.83066 overhead. M15 is only a short-term up-leg off the 0.82712 low, and the M5 BOS is a small counter-move inside H1 supply.",
-    "momentum": "The M1 and M5 bars show the rally losing steam: the last M1 bars print a pullback from 0.82952 to 0.8287, and M5 closed back at 0.829 after the 0.82952 high. Momentum is short-term, not confirmed on H1.",
-    "reason": "Price is rallying into stacked supply: the M15 mitigated bearish FVG, the M5 bearish FVG, the 0.82902 resistance and the H1 supply OB, while H1 structure is still down. Target 0.82712 is the H1 swing low and EQL, reachable within 480 minutes with about 1.36R. Confidence is moderate because the regime is unfamiliar, volatility is low and the M15 trend is up, so a clean break above 0.82985 invalidates the idea.",
-    "reversal_probability": 55,
-    "risk_reward": 1.36,
-    "stop_loss": 0.8299,
-    "take_profit": 0.82712,
-    "trend": "H4 is range and D1 is flat, but H1 is bearish. Counter-trend to M15 in a TRANSITION regime with low volatility, so conviction is limited."
-   },
-   "verifier": {
-    "confidence": 65,
-    "direction": "SELL",
-    "reason": "The SELL side wins because price is testing a major confluence of resistance (mitigated bearish M15/M5 FVGs, 0.82902 resistance, and H1 supply order block) within a broader H1 down trend. Short-term momentum shows exhaustion on M1/M5, indicating the M15 rally is a counter-trend pullback rather than a trend reversal. The target at 0.82712 is a highly significant H1 swing low and equal low, offering a cleaner path to profit than the buy-side target of 0.8313, which faces multiple heavy resistance levels."
-   },
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793255529,
-    "bytes": 30950,
-    "execution_timeframe": "M15",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1793255400,
-    "last_bar_open": 1793254500,
-    "sha256": "9c822e2f0ad2e64b3386864c577bf1351a40d85eef1d0ffdeb24611ef7d42d15",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.005009025,
-     "error": null,
-     "latency_ms": 46754.2,
-     "model": "xiaomi/mimo-v2.6-pro",
-     "ok": true,
-     "provider_id": "gen-1793255531-dOMTRHdkeBRMzXlEmUE1",
-     "request_id": "c3477aa0d5ec497ebb9dc18fa5ecf512",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 9365,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0022432,
-     "error": null,
-     "latency_ms": 8111.4,
-     "model": "anthropic/claude-haiku-5.5",
-     "ok": true,
-     "provider_id": "gen-1793255577-rJcNv7id7UKgXPKd6ejI",
-     "request_id": "c2674c613d1341caa7a7578020005ed9",
-     "role": "judge",
-     "status": "OK",
-     "tokens": 16592,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0,
-     "error": null,
-     "latency_ms": 65691.3,
-     "model": "dots-studio/dots-3-note-preview:free",
-     "ok": true,
-     "provider_id": "gen-1793255585-LZcSF53LlXstT4AtiVU9",
-     "request_id": "ffd89e5f31c7435294b538c95ca6e696",
-     "role": "verifier",
-     "status": "OK",
-     "tokens": 21522,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "models": {},
+   "trader1": null,
+   "trader2": null,
+   "verifier": null,
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.10.0",
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "f1bdc9f4695d7e7d24a6ada5",
+    "symbol": "EURGBP",
+    "t": 1793256320,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: EXPOSURE: a EURGBP position is already open",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
+   {
+    "decision_id": "c8b0cfa7ecfd3a73ca5cd7f5",
+    "symbol": "NZDUSD",
+    "t": 1793256319,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: EXPOSURE: a NZDUSD position is already open",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: EXPOSURE: a NZDUSD position is already open",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
    {
     "decision_id": "3a3218a9de30e761abc9f65d",
     "symbol": "USDCHF",
@@ -3844,48 +3787,6 @@
     "trader1_input": null,
     "version": "dual-ai-1.10.0",
     "risk": null
-   },
-   {
-    "decision_id": "b739b48e2c8c4d169f728d30",
-    "symbol": "AUDUSD",
-    "t": 1793250920,
-    "decision": "NO_TRADE",
-    "reason": "blocked before consulting the model: EXPOSURE: a AUDUSD position is already open",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "blocked before consulting the model: EXPOSURE: a AUDUSD position is already open",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.10.0",
-    "risk": null
-   },
-   {
-    "decision_id": "aa27592b2000b6daa397a258",
-    "symbol": "USDJPY",
-    "t": 1793250919,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.10.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -3895,12 +3796,12 @@
     "side": "SELL",
     "qty": 3.41,
     "entry": 0.8366300000000001,
-    "current": 0.83666,
+    "current": 0.8368599999999999,
     "stop": 0.83748,
     "target": 0.8356,
-    "r_now": -0.035,
+    "r_now": -0.271,
     "opened": 1793241945.0,
-    "pnl": -13.62,
+    "pnl": -104.39,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -3912,12 +3813,12 @@
     "side": "BUY",
     "qty": 1.12,
     "entry": 0.562885,
-    "current": 0.561925,
+    "current": 0.562025,
     "stop": 0.56103,
     "target": 0.5658,
-    "r_now": -0.518,
+    "r_now": -0.464,
     "opened": 1793206858.0,
-    "pnl": -107.52,
+    "pnl": -96.32,
     "max_hold_minutes": 1440,
     "timeframe": "M15",
     "method": null,
@@ -4463,93 +4364,93 @@
     "rate": 0.414
    },
    "debate_pick_if_taken": {
-    "n": 119,
+    "n": 122,
     "sample": "adequate",
-    "win_rate": 0.395,
-    "expectancy_r": -0.143,
-    "total_r": -17.01,
-    "profit_factor_r": 0.786,
+    "win_rate": 0.385,
+    "expectancy_r": -0.166,
+    "total_r": -20.25,
+    "profit_factor_r": 0.755,
     "note": "on a disagreement (not traded), the side the shadow debate picked, followed forward as if taken, after costs: what standing aside skipped"
    },
    "debate_losing_side_if_taken": {
-    "n": 124,
+    "n": 127,
     "sample": "adequate",
-    "win_rate": 0.387,
-    "expectancy_r": -0.227,
-    "total_r": -28.09,
-    "profit_factor_r": 0.681,
+    "win_rate": 0.402,
+    "expectancy_r": -0.183,
+    "total_r": -23.18,
+    "profit_factor_r": 0.737,
     "note": "the side the debate rejected, followed forward as if taken, after costs: if it does better than the side picked, the debate is choosing the wrong side"
    },
    "trader2_levels_in_shadow": {
-    "n": 10,
+    "n": 11,
     "sample": "insufficient",
-    "win_rate": 0.6,
-    "expectancy_r": 0.484,
-    "total_r": 4.84,
-    "profit_factor_r": 2.109,
-    "as_taken_expectancy_r": 0.309,
-    "difference_r": 0.175,
+    "win_rate": 0.545,
+    "expectancy_r": 0.34,
+    "total_r": 3.74,
+    "profit_factor_r": 1.684,
+    "as_taken_expectancy_r": 0.18,
+    "difference_r": 0.16,
     "every_agreement": {
-     "n": 24,
+     "n": 25,
      "sample": "insufficient",
-     "win_rate": 0.5,
-     "expectancy_r": 0.283,
-     "total_r": 6.8,
-     "profit_factor_r": 1.567
+     "win_rate": 0.48,
+     "expectancy_r": 0.228,
+     "total_r": 5.7,
+     "profit_factor_r": 1.435
     },
     "note": "since dual-ai 1.10.0 a trade is on Trader 1's levels; the same agreement on Trader 2's own levels, followed forward and never traded. difference_r > 0 would mean Trader 2's levels did better"
    },
    "exits_in_shadow": {
     "BE1R": {
-     "n": 102,
+     "n": 103,
      "sample": "adequate",
-     "win_rate": 0.353,
-     "expectancy_r": -0.132,
-     "total_r": -13.5,
-     "profit_factor_r": 0.761,
-     "as_taken_expectancy_r": -0.087,
-     "difference_r": -0.045
+     "win_rate": 0.35,
+     "expectancy_r": -0.142,
+     "total_r": -14.6,
+     "profit_factor_r": 0.746,
+     "as_taken_expectancy_r": -0.097,
+     "difference_r": -0.044
     },
     "HOLD24H": {
-     "n": 102,
+     "n": 103,
      "sample": "adequate",
-     "win_rate": 0.422,
-     "expectancy_r": -0.014,
-     "total_r": -1.44,
-     "profit_factor_r": 0.977,
-     "as_taken_expectancy_r": -0.087,
+     "win_rate": 0.417,
+     "expectancy_r": -0.025,
+     "total_r": -2.55,
+     "profit_factor_r": 0.961,
+     "as_taken_expectancy_r": -0.097,
      "difference_r": 0.073
     },
     "WIDE2X": {
-     "n": 102,
+     "n": 103,
      "sample": "adequate",
-     "win_rate": 0.461,
-     "expectancy_r": 0.023,
-     "total_r": 2.39,
-     "profit_factor_r": 1.048,
-     "as_taken_expectancy_r": -0.087,
-     "difference_r": 0.111
+     "win_rate": 0.456,
+     "expectancy_r": 0.013,
+     "total_r": 1.34,
+     "profit_factor_r": 1.026,
+     "as_taken_expectancy_r": -0.097,
+     "difference_r": 0.11
     },
     "HOLD8H": {
-     "n": 48,
+     "n": 49,
      "sample": "adequate",
-     "win_rate": 0.354,
-     "expectancy_r": -0.239,
-     "total_r": -11.48,
-     "profit_factor_r": 0.615,
-     "as_taken_expectancy_r": -0.202,
+     "win_rate": 0.347,
+     "expectancy_r": -0.258,
+     "total_r": -12.63,
+     "profit_factor_r": 0.592,
+     "as_taken_expectancy_r": -0.221,
      "difference_r": -0.037
     },
     "note": "each trade taken, followed again under another exit on the same entry, after costs; difference_r > 0 means that exit would have done better on these trades. Measured, never traded"
    },
    "taken_by_session": {
     "ASIA": {
-     "n": 51,
+     "n": 52,
      "sample": "adequate",
-     "win_rate": 0.353,
-     "expectancy_r": -0.216,
-     "total_r": -11.01,
-     "profit_factor_r": 0.675
+     "win_rate": 0.346,
+     "expectancy_r": -0.233,
+     "total_r": -12.12,
+     "profit_factor_r": 0.654
     },
     "LONDON": {
      "n": 36,
@@ -4589,13 +4490,13 @@
     "DEBATE": 5,
     "DISAGREE": 141,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 1475,
+    "NOT_ASKED": 1477,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 11
    },
    "agreement_rate": 0.757,
    "decisions_with_both_traders": 602,
-   "unavailable": 2401
+   "unavailable": 2403
   },
   "recent_trades": [
    {
@@ -5321,8 +5222,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793255416,
+  "last_cycle": 1793256316,
   "last_cycle_error": null,
-  "cycles": 3
+  "cycles": 4
  }
 }
