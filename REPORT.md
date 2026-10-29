@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-29 06:53 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 05:53 UTC · decision system `dual_ai`
+Updated 2026-10-29 07:08 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 05:53 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -10,7 +10,7 @@ dual-ai 1.10.0 (a trade on Trader 1's levels) with both traders paid (paid-trial
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $197,900.84 | $-2,099.16 | $-1,898.45 | 2 ($-200.71) | 18 (insufficient) | 38.9% | -0.133R | 0.51 |
+| $200,000.00 | $197,980.41 | $-2,019.59 | $-1,898.45 | 2 ($-121.14) | 18 (insufficient) | 38.9% | -0.133R | 0.51 |
 
 Before it, kept and apart (not in the figures above): 106 trades, net $-3,759.41. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
 
@@ -26,9 +26,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $194,141.43 | $-780.06 | $-5,858.57 | $-5,858.57 | 2 | 124 (adequate) | 41.1% | -0.093R | 0.77 | ACTIVE | RUNNING |
+| $200,000.00 | $194,221.00 | $-700.49 | $-5,779.00 | $-5,779.00 | 2 | 124 (adequate) | 41.1% | -0.093R | 0.77 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $192,724.92); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $192,804.48); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-28 10:32 AUDJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-28 10:01 EURGBP BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY EURGBP would bet against an open position: EURJPY SELL is short EUR; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down 
 
-## Latest decisions, NO TRADE included (3329 so far)
+## Latest decisions, NO TRADE included (3331 so far)
 
+- 10-29 07:02 GBPJPY NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 55): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen BUY: followed forward in shadow
+- 10-29 07:00 EURJPY NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 55): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen BUY: followed forward in shadow
 - 10-29 06:45 EURGBP NO_TRADE: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
 - 10-29 06:45 NZDUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
 - 10-29 06:32 USDCHF NO_TRADE: the traders disagree (Trader 1 BUY 58, Trader 2 SELL 52): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
@@ -75,15 +77,13 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 06:00 EURUSD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-29 05:45 EURGBP NO_TRADE: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
 - 10-29 05:45 NZDUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
-- 10-29 05:30 USDCHF NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 10-29 05:30 USDCAD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURGBP | SELL | 3.41 | 0.8366300000000001 | 0.83748 | 0.8356 | $-104.39 |
-| NZDUSD | BUY | 1.12 | 0.562885 | 0.56103 | 0.5658 | $-96.32 |
+| EURGBP | SELL | 3.41 | 0.8366300000000001 | 0.83748 | 0.8356 | $-13.62 |
+| NZDUSD | BUY | 1.12 | 0.562885 | 0.56103 | 0.5658 | $-107.52 |
 
 ## Closed paper trades (latest 20)
 
@@ -112,13 +112,13 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `thinkingmachines/inkling-small:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 12/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `thinkingmachines/inkling-small:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 20/900
 
-Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): ACTIVE · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.73 of $9.00, today $0.07 of $1.80 (the key's own reading)
+Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): ACTIVE · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.74 of $9.00, today $0.09 of $1.80 (the key's own reading)
 
 Agreement trades 124 (adequate) · wins 51 · losses 73 · net $-5,657.86 · expectancy -0.093R · profit factor 0.77 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 141 · the debate's pick if taken: 122 resolved (adequate), expectancy -0.166R · the side it rejected if taken: 127 resolved (adequate), expectancy -0.183R
+Disagreements (not traded; the debate runs in shadow): 143 · the debate's pick if taken: 122 resolved (adequate), expectancy -0.166R · the side it rejected if taken: 127 resolved (adequate), expectancy -0.183R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.142R vs -0.097R as taken (103, adequate) · held 24 h -0.025R vs -0.097R as taken (103, adequate) · stop and target twice as far +0.013R vs -0.097R as taken (103, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.258R vs -0.221R as taken (49, adequate)
 
@@ -128,6 +128,8 @@ Trades taken by session (UTC): ASIA 52 resolved (adequate), expectancy -0.233R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-29 07:02 | GBPJPY | BUY 55 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
+| 10-29 07:00 | EURJPY | BUY 55 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
 | 10-29 06:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 06:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 06:32 | USDCHF | BUY 58 | SELL 52 | SELL | DISAGREE | NO_TRADE | - |
@@ -138,8 +140,6 @@ Trades taken by session (UTC): ASIA 52 resolved (adequate), expectancy -0.233R �
 | 10-29 06:00 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 05:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 05:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-29 05:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-29 05:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
