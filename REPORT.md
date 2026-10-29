@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-29 07:54 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 05:53 UTC · decision system `dual_ai`
+Updated 2026-10-29 08:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 05:53 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -10,7 +10,7 @@ dual-ai 1.10.0 (a trade on Trader 1's levels) with both traders paid (paid-trial
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $198,091.62 | $-1,908.38 | $-1,898.45 | 3 ($-9.93) | 18 (insufficient) | 38.9% | -0.133R | 0.51 |
+| $200,000.00 | $198,048.80 | $-1,951.20 | $-1,898.45 | 3 ($-52.75) | 18 (insufficient) | 38.9% | -0.133R | 0.51 |
 
 Before it, kept and apart (not in the figures above): 106 trades, net $-3,759.41. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
 
@@ -26,9 +26,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $194,332.21 | $-589.28 | $-5,667.79 | $-5,667.79 | 3 | 124 (adequate) | 41.1% | -0.093R | 0.77 | ACTIVE | RUNNING |
+| $200,000.00 | $194,289.39 | $-632.10 | $-5,710.61 | $-5,710.61 | 3 | 124 (adequate) | 41.1% | -0.093R | 0.77 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $192,915.70); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $192,872.87); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-28 10:47 GBPUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-28 10:32 AUDJPY SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (3337 so far)
+## Latest decisions, NO TRADE included (3339 so far)
 
+- 10-29 08:00 USDCHF NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
+- 10-29 08:00 USDCAD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-29 07:45 AUDUSD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-29 07:45 USDJPY NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-29 07:30 GBPUSD NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
@@ -75,16 +77,14 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 07:00 EURJPY NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 55): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen BUY: followed forward in shadow
 - 10-29 06:45 EURGBP NO_TRADE: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
 - 10-29 06:45 NZDUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
-- 10-29 06:32 USDCHF NO_TRADE: the traders disagree (Trader 1 BUY 58, Trader 2 SELL 52): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
-- 10-29 06:30 USDCAD NO_TRADE: the traders disagree (Trader 1 BUY 62, Trader 2 SELL 55): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shado
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDJPY | BUY | 3.28 | 111.16000000000001 | 110.97 | 111.414 | $-2.07 |
-| EURGBP | SELL | 3.41 | 0.8366300000000001 | 0.83748 | 0.8356 | $77.26 |
-| NZDUSD | BUY | 1.12 | 0.562885 | 0.56103 | 0.5658 | $-85.12 |
+| AUDJPY | BUY | 3.28 | 111.16000000000001 | 110.97 | 111.414 | $12.40 |
+| EURGBP | SELL | 3.41 | 0.8366300000000001 | 0.83748 | 0.8356 | $-13.63 |
+| NZDUSD | BUY | 1.12 | 0.562885 | 0.56103 | 0.5658 | $-51.52 |
 
 ## Closed paper trades (latest 20)
 
@@ -129,6 +129,8 @@ Trades taken by session (UTC): ASIA 52 resolved (adequate), expectancy -0.233R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-29 08:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-29 08:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 07:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 07:45 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 07:30 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -139,8 +141,6 @@ Trades taken by session (UTC): ASIA 52 resolved (adequate), expectancy -0.233R �
 | 10-29 07:00 | EURJPY | BUY 55 | SELL 55 | BUY | DISAGREE | NO_TRADE | - |
 | 10-29 06:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 06:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-29 06:32 | USDCHF | BUY 58 | SELL 52 | SELL | DISAGREE | NO_TRADE | - |
-| 10-29 06:30 | USDCAD | BUY 62 | SELL 55 | SELL | DISAGREE | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
