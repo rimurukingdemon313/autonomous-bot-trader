@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-29 14:14 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 11:29 UTC · decision system `dual_ai`
+Updated 2026-10-29 14:29 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 11:29 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-28 11:30 EURGBP SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL EURGBP would bet against an open position: GBPUSD SELL is short GBP; structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down
 - 10-28 11:30 NZDUSD SELL: AI DECISION → RISK REJECTED — structure: H1 structure is range (mixed swings): no new position without a clear H1 trend (up HH+HL or down LH+LL)
 
-## Latest decisions, NO TRADE included (3387 so far)
+## Latest decisions, NO TRADE included (3389 so far)
 
+- 10-29 14:15 AUDJPY NO_TRADE: risk engine: trading_calendar (Thursday 14:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
+- 10-29 14:15 EURCHF NO_TRADE: risk engine: trading_calendar (Thursday 14:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-29 14:00 GBPJPY NO_TRADE: risk engine: trading_calendar (Thursday 14:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-29 14:00 EURJPY NO_TRADE: risk engine: trading_calendar (Thursday 14:00 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release EUR ECB Press Conference 16 min ago: no new position from 30 min before to 30 min
 - 10-29 13:45 EURGBP NO_TRADE: risk engine: trading_calendar (Thursday 13:45 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release EUR ECB Press Conference 1 min ago: no new position from 30 min before to 30 min 
@@ -75,8 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 13:15 USDJPY NO_TRADE: risk engine: trading_calendar (Thursday 13:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-29 13:00 GBPUSD NO_TRADE: risk engine: trading_calendar (Thursday 13:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 10-29 13:00 EURUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a EURUSD position is already open
-- 10-29 12:45 AUDJPY NO_TRADE: blocked before consulting the model: EXPOSURE: a AUDJPY position is already open
-- 10-29 12:45 EURCHF NO_TRADE: risk engine: trading_calendar (Thursday 12:45 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release EUR Main Refinancing Rate in 29 min; High-impact release EUR Monetary Policy Stat
 
 ## Open paper positions
 
@@ -126,6 +126,8 @@ Trades taken by session (UTC): ASIA 52 resolved (adequate), expectancy -0.233R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-29 14:15 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-29 14:15 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 14:00 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 14:00 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 13:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -136,8 +138,6 @@ Trades taken by session (UTC): ASIA 52 resolved (adequate), expectancy -0.233R �
 | 10-29 13:15 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 13:00 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-29 13:00 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-29 12:45 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-29 12:45 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
