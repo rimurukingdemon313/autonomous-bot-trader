@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-30 20:43 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 15:27 UTC · decision system `dual_ai`
+Updated 2026-10-30 20:58 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 15:27 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 16:15 USDJPY SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL USDJPY would bet against an open position: EURUSD SELL is long USD
 - 10-29 16:00 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (3630 so far)
+## Latest decisions, NO TRADE included (3632 so far)
 
+- 10-30 20:45 EURGBP NO_TRADE: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:45 UTC: no new 
+- 10-30 20:45 NZDUSD NO_TRADE: risk engine: quiet_hours (16:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:45 UTC: no new 
 - 10-30 20:30 USDCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 4574s old
 - 10-30 20:30 USDCAD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 4579s old
 - 10-30 20:15 AUDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3155s old
@@ -75,8 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 19:45 EURCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 382s old; EXPOSURE: a EURCHF position is already open
 - 10-30 19:30 GBPJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 444s old
 - 10-30 19:30 EURJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 372s old
-- 10-30 19:15 EURGBP NO_TRADE: risk engine: trading_calendar (Friday 19:15 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
-- 10-30 19:15 NZDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1114s old
 
 ## Open paper positions
 
@@ -126,6 +126,8 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-30 20:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-30 20:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 20:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 20:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 20:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -136,8 +138,6 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 | 10-30 19:45 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:30 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:30 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 19:15 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 19:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
