@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-30 19:12 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 15:27 UTC · decision system `dual_ai`
+Updated 2026-10-30 19:27 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 15:27 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -10,7 +10,7 @@ dual-ai 1.10.0 (a trade on Trader 1's levels) with both traders paid (paid-trial
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $196,399.54 | $-3,600.46 | $-3,531.02 | 1 ($-69.44) | 30 (adequate) | 33.3% | -0.238R | 0.48 |
+| $200,000.00 | $196,387.75 | $-3,612.25 | $-3,531.02 | 1 ($-81.23) | 30 (adequate) | 33.3% | -0.238R | 0.48 |
 
 Before it, kept and apart (not in the figures above): 106 trades, net $-3,759.41. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
 
@@ -26,9 +26,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $192,640.14 | $-1,358.33 | $-7,359.86 | $-7,359.86 | 1 | 136 (adequate) | 39.7% | -0.120R | 0.74 | ACTIVE | RUNNING |
+| $200,000.00 | $192,628.34 | $-1,370.12 | $-7,371.66 | $-7,371.66 | 1 | 136 (adequate) | 39.7% | -0.120R | 0.74 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $191,223.62); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $191,211.83); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 16:15 USDJPY SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL USDJPY would bet against an open position: EURUSD SELL is long USD
 - 10-29 16:00 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (3618 so far)
+## Latest decisions, NO TRADE included (3620 so far)
 
+- 10-30 19:15 EURGBP NO_TRADE: risk engine: trading_calendar (Friday 19:15 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
+- 10-30 19:15 NZDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1114s old
 - 10-30 19:00 USDCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3715s old
 - 10-30 19:00 USDCAD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3687s old
 - 10-30 18:45 AUDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1115s old
@@ -75,14 +77,12 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 18:15 EURCHF NO_TRADE: blocked before consulting the model: EXPOSURE: a EURCHF position is already open
 - 10-30 18:00 GBPJPY NO_TRADE: risk engine: trading_calendar (Friday 18:00 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 - 10-30 18:00 EURJPY NO_TRADE: risk engine: trading_calendar (Friday 18:00 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
-- 10-30 17:45 EURGBP NO_TRADE: risk engine: trading_calendar (Friday 17:45 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
-- 10-30 17:45 NZDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 754s old
 
 ## Open paper positions
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURCHF | SELL | 0.97 | 0.9195 | 0.9212 | 0.91705 | $-69.44 |
+| EURCHF | SELL | 0.97 | 0.9195 | 0.9212 | 0.91705 | $-81.23 |
 
 ## Closed paper trades (latest 20)
 
@@ -127,6 +127,8 @@ Trades taken by session (UTC): ASIA 55 resolved (adequate), expectancy -0.239R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-30 19:15 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-30 19:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 18:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -137,8 +139,6 @@ Trades taken by session (UTC): ASIA 55 resolved (adequate), expectancy -0.239R �
 | 10-30 18:15 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 18:00 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 18:00 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 17:45 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 17:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
