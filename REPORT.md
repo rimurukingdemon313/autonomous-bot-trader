@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-30 20:12 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 15:27 UTC · decision system `dual_ai`
+Updated 2026-10-30 20:27 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 15:27 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 16:15 USDJPY SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL USDJPY would bet against an open position: EURUSD SELL is long USD
 - 10-29 16:00 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (3626 so far)
+## Latest decisions, NO TRADE included (3628 so far)
 
+- 10-30 20:15 AUDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3155s old
+- 10-30 20:15 USDJPY NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 20:15 UTC: no new 
 - 10-30 20:00 GBPUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 995s old
 - 10-30 20:00 EURUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 633s old
 - 10-30 19:45 AUDJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 2391s old
@@ -75,8 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 19:15 NZDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1114s old
 - 10-30 19:00 USDCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3715s old
 - 10-30 19:00 USDCAD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3687s old
-- 10-30 18:45 AUDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1115s old
-- 10-30 18:45 USDJPY NO_TRADE: risk engine: trading_calendar (Friday 18:45 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 
 ## Open paper positions
 
@@ -116,16 +116,18 @@ Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z
 
 Agreement trades 137 (adequate) · wins 54 · losses 83 · net $-7,414.98 · expectancy -0.123R · profit factor 0.73 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 149 · the debate's pick if taken: 141 resolved (adequate), expectancy -0.190R · the side it rejected if taken: 146 resolved (adequate), expectancy -0.202R
+Disagreements (not traded; the debate runs in shadow): 149 · the debate's pick if taken: 142 resolved (adequate), expectancy -0.196R · the side it rejected if taken: 146 resolved (adequate), expectancy -0.202R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.162R vs -0.123R as taken (120, adequate) · held 24 h -0.070R vs -0.133R as taken (118, adequate) · stop and target twice as far -0.033R vs -0.133R as taken (118, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.258R vs -0.236R as taken (66, adequate)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.176R vs -0.139R as taken (122, adequate) · held 24 h -0.070R vs -0.133R as taken (118, adequate) · stop and target twice as far -0.033R vs -0.133R as taken (118, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.282R vs -0.260R as taken (68, adequate)
 
-Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never traded): -0.110R vs -0.146R as taken (27, insufficient)
+Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never traded): -0.175R vs -0.209R as taken (29, insufficient)
 
-Trades taken by session (UTC): ASIA 57 resolved (adequate), expectancy -0.215R · LONDON 41 resolved (adequate), expectancy -0.006R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
+Trades taken by session (UTC): ASIA 59 resolved (adequate), expectancy -0.244R · LONDON 41 resolved (adequate), expectancy -0.006R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-30 20:15 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-30 20:15 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 20:00 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 20:00 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:45 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -136,8 +138,6 @@ Trades taken by session (UTC): ASIA 57 resolved (adequate), expectancy -0.215R �
 | 10-30 19:15 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:00 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 19:00 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 18:45 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 18:45 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
