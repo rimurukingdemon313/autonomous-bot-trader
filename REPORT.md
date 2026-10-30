@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-30 22:32 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 21:02 UTC · decision system `dual_ai`
+Updated 2026-10-30 22:47 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 21:02 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 16:15 USDJPY SELL: AI DECISION → RISK REJECTED — currency_conflict: SELL USDJPY would bet against an open position: EURUSD SELL is long USD
 - 10-29 16:00 EURUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (3646 so far)
+## Latest decisions, NO TRADE included (3648 so far)
 
+- 10-30 22:45 GBPUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 4534s old
+- 10-30 22:45 EURUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 4533s old
 - 10-30 22:30 AUDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 3695s old
 - 10-30 22:30 EURCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 3693s old
 - 10-30 22:15 GBPJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 2767s old
@@ -75,8 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 21:45 USDCAD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 2640s old
 - 10-30 21:30 AUDUSD NO_TRADE: risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 21:30 UTC: no new 
 - 10-30 21:30 USDJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1846s old
-- 10-30 21:15 GBPUSD NO_TRADE: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 21:15 UTC: no new 
-- 10-30 21:15 EURUSD NO_TRADE: risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)); trading_calendar (Friday 21:15 UTC: no new 
 
 ## Open paper positions
 
@@ -126,6 +126,8 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-30 22:45 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| 10-30 22:45 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 22:30 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 22:30 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 22:15 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -136,8 +138,6 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 | 10-30 21:45 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 21:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 21:30 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 21:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 21:15 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
