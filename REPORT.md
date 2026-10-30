@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-30 04:11 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 22:40 UTC · decision system `dual_ai`
+Updated 2026-10-30 04:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-29 22:40 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 06:15 USDJPY BUY: AI DECISION → RISK REJECTED — currency_conflict: BUY USDJPY would bet against an open position: NZDUSD BUY is short USD
 - 10-29 02:45 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (3499 so far)
+## Latest decisions, NO TRADE included (3500 so far)
 
+- 10-30 04:15 EURJPY NO_TRADE: risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 - 10-30 04:00 EURGBP NO_TRADE: blocked before consulting the model: EXPOSURE: a EURGBP position is already open
 - 10-30 04:00 NZDUSD SELL: SELL NZDUSD on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 55: Price is at the top of the day's range against stacked resistance (R 0.56435 x2, EQH 0.56437, PDH 0.56370 already reclaimed) while H
 - 10-30 03:45 USDCHF NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
@@ -76,7 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 03:01 AUDJPY NO_TRADE: risk engine: open_positions (3 open, max 3): the model was not consulted
 - 10-30 03:00 EURCHF SELL: SELL EURCHF on M15: AGREE: Trader 1 (xiaomi/mimo-v2.6-pro) SELL 58: Both timeframes are bearish with an untested supply block and open bearish FVG overhead, giving a sell-the-rupture edge. Two bullish
 - 10-30 02:45 GBPJPY NO_TRADE: blocked before consulting the model: EXPOSURE: a GBPJPY position is already open
-- 10-30 02:45 EURJPY NO_TRADE: risk engine: news (High-impact release JPY BOJ Policy Rate 16 min ago; High-impact release JPY Monetary Policy Statement 16 min ago; High-impact release JPY BOJ Outlook Report 15 min ago: no new posit
 
 ## Open paper positions
 
@@ -112,9 +112,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `thinkingmachines/inkling-small:free` · debate `google/gemma-4-31b-it:free` · calls today 14/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `thinkingmachines/inkling-small:free` · debate `google/gemma-4-31b-it:free` · calls today 15/900
 
-Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): ACTIVE · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.89 of $9.00, today $0.05 of $1.80 (the key's own reading)
+Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): ACTIVE · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.91 of $9.00, today $0.07 of $1.80 (the key's own reading)
 
 Agreement trades 132 (adequate) · wins 53 · losses 79 · net $-7,106.04 · expectancy -0.113R · profit factor 0.74 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
@@ -128,6 +128,7 @@ Trades taken by session (UTC): ASIA 55 resolved (adequate), expectancy -0.239R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 10-30 04:15 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 04:00 | EURGBP | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 04:00 | NZDUSD | SELL 55 | SELL 52 | - | AGREE | SELL | REJECTED |
 | 10-30 03:45 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
@@ -139,7 +140,6 @@ Trades taken by session (UTC): ASIA 55 resolved (adequate), expectancy -0.239R �
 | 10-30 03:01 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 | 10-30 03:00 | EURCHF | SELL 58 | SELL 55 | - | AGREE | SELL | APPROVED |
 | 10-30 02:45 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 10-30 02:45 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
