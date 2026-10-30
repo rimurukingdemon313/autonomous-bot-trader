@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-30 15:23 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 09:51 UTC · decision system `dual_ai`
+Updated 2026-10-30 15:26 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-30 09:51 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -10,7 +10,7 @@ dual-ai 1.10.0 (a trade on Trader 1's levels) with both traders paid (paid-trial
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $196,423.12 | $-3,576.88 | $-3,531.02 | 1 ($-45.86) | 30 (adequate) | 33.3% | -0.238R | 0.48 |
+| $200,000.00 | $196,411.35 | $-3,588.65 | $-3,531.02 | 1 ($-57.63) | 30 (adequate) | 33.3% | -0.238R | 0.48 |
 
 Before it, kept and apart (not in the figures above): 106 trades, net $-3,759.41. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
 
@@ -26,9 +26,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $192,663.71 | $-1,334.75 | $-7,336.29 | $-7,336.29 | 1 | 136 (adequate) | 39.7% | -0.120R | 0.74 | ACTIVE | RUNNING |
+| $200,000.00 | $192,651.94 | $-1,346.52 | $-7,348.06 | $-7,348.06 | 1 | 136 (adequate) | 39.7% | -0.120R | 0.74 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $191,247.20); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $191,235.42); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -82,7 +82,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| EURCHF | SELL | 0.97 | 0.9195 | 0.9212 | 0.91705 | $-45.86 |
+| EURCHF | SELL | 0.97 | 0.9195 | 0.9212 | 0.91705 | $-57.63 |
 
 ## Closed paper trades (latest 20)
 
