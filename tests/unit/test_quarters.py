@@ -175,3 +175,19 @@ def test_no_rule_reads_a_bar_after_its_signal_bar(rule):
         after = rule(bars(moved, t0))
         # every signal decided at or before bar k is unchanged: o[k+1] differs, but it is not read at bar k
         assert [s for s in base if s.i < k] == [s for s in after if s.i < k]
+
+
+# ── QT-2: the London true open, wider ───────────────────────────────────
+
+def test_the_wide_london_true_open_moves_only_the_stop_the_target_and_the_time_exit():
+    from aitrader.research.discovery import quarters_wide as W
+    t_q1 = ts(2015, 7, 1, 4)
+    mid = np.r_[np.full(72, 1.1005), _session_day((1.1000, 1.1010), 1.1005, 1.0990, 1.0996)]
+    b = bars(mid, t_q1 - 6 * 3600)
+    assert W.london_true_open_wide(b) == Q.london_true_open(b)  # at 1x, 2R, London's end: QT-1's T3 itself
+    t3, = Q.london_true_open(b)
+    w, = W.london_true_open_wide(b, stop_mult=2.0, r=1.5, until=1080)
+    ref = b.c[t3.i]
+    assert (w.i, w.side) == (t3.i, t3.side)  # the same signal
+    assert ref - w.stop == pytest.approx(2 * (ref - t3.stop)) and w.target - ref == pytest.approx(1.5 * (ref - w.stop))
+    assert w.deadline_hour == 16 and w.max_bars == 108  # 12:00 New York, from the 03:00 entry
