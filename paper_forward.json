@@ -50,14 +50,14 @@
   }
  ],
  "account": {
-  "equity": 192901.81,
+  "equity": 192933.26,
   "balance": 192893.96,
-  "total_pnl": -7098.19,
-  "today_pnl": -1096.65,
+  "total_pnl": -7066.74,
+  "today_pnl": -1065.2,
   "adjustments_total": 1416.51,
-  "equity_before_adjustments": 191485.3,
+  "equity_before_adjustments": 191516.75,
   "day_reference": 193998.4630084165,
-  "drawdown_from_start": -7098.19,
+  "drawdown_from_start": -7066.74,
   "max_loss_floor": 180000.0,
   "daily_loss_limit": 10000.0
  },
@@ -677,12 +677,12 @@
    "side": "SELL",
    "qty": 0.97,
    "entry": 0.9195,
-   "current": 0.91969,
+   "current": 0.91979,
    "stop": 0.9212,
    "target": 0.91705,
-   "r_now": -0.112,
+   "r_now": -0.171,
    "opened": 1793329267.0,
-   "pnl": -22.43,
+   "pnl": -34.23,
    "max_hold_minutes": 1019,
    "timeframe": "M15",
    "method": null,
@@ -694,12 +694,12 @@
    "side": "SELL",
    "qty": 3.23,
    "entry": 0.8358300000000001,
-   "current": 0.83576,
+   "current": 0.83566,
    "stop": 0.83672,
    "target": 0.83447,
-   "r_now": 0.079,
+   "r_now": 0.191,
    "opened": 1793322088.0,
-   "pnl": 30.28,
+   "pnl": 73.53,
    "max_hold_minutes": 1139,
    "timeframe": "M15",
    "method": null,
@@ -715,9 +715,9 @@
   "requested": "2026-10-27",
   "start_balance": 200000.0,
   "closed_pnl": -3346.63,
-  "open_pnl": 7.85,
-  "total_pnl": -3338.78,
-  "equity": 196661.22,
+  "open_pnl": 39.3,
+  "total_pnl": -3307.33,
+  "equity": 196692.67,
   "open": 2,
   "unpriced": 0,
   "performance": {
@@ -2594,6 +2594,13 @@
  ],
  "last_decisions": [
   {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1793334619,
+   "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+   "data_flags": []
+  },
+  {
    "symbol": "EURJPY",
    "decision": "NO_TRADE",
    "t": 1793333721,
@@ -2753,16 +2760,9 @@
    "t": 1793323820,
    "reason": "risk engine: open_positions (3 open, max 3): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPJPY",
-   "decision": "NO_TRADE",
-   "t": 1793322923,
-   "reason": "blocked before consulting the model: EXPOSURE: a GBPJPY position is already open",
-   "data_flags": []
   }
  ],
- "decisions_total": 3500,
+ "decisions_total": 3501,
  "shift": {
   "started": "2026-10-30 04:16 UTC",
   "decision_mode": "dual_ai",
@@ -2786,25 +2786,230 @@
    "judge_pin": null,
    "paid_trial_off": false,
    "version": "openrouter-1.9.0",
-   "status": "CATALOG_NOT_READ_YET",
-   "calls_today": 0,
+   "status": "READY",
+   "calls_today": 1,
    "last_call": {},
    "key": {
-    "checked": null
+    "checked": 1793334621,
+    "ok": true,
+    "is_free_tier": false,
+    "usage_at_start": 0.894888679,
+    "usage": 0.894888679,
+    "usage_daily": 0.049989861,
+    "daily_quota": 998,
+    "label_set": true
    },
    "paid_usage": null,
    "data_policy": null,
-   "vision_model": null,
-   "judge_model": null,
-   "verifier_model": null,
+   "vision_model": "nvidia/nemotron-3.5-super-vl:free",
+   "judge_model": "thinkingmachines/inkling-small:free",
+   "verifier_model": "google/gemma-4-31b-it:free",
    "selection": {
-    "vision": [],
-    "judge": [],
-    "verifier": [],
-    "free_total": 0,
-    "catalog_total": 0,
-    "refreshed": 0.0,
-    "error": "catalog not read yet",
+    "vision": [
+     {
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
+      "score": 63.6,
+      "context": 1000000,
+      "image": true,
+      "intelligence_index": 13.6,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "thinkingmachines/inkling-small:free",
+      "name": "Thinking Machines: Inkling Small (free)",
+      "score": 62.9,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.9,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     },
+     {
+      "id": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "score": 62.5,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.5,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 56.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 56.78,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     }
+    ],
+    "judge": [
+     {
+      "id": "thinkingmachines/inkling-small:free",
+      "name": "Thinking Machines: Inkling Small (free)",
+      "score": 38.9,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.9,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     },
+     {
+      "id": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "score": 38.5,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.5,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 32.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 32.53,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 26.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 30.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     }
+    ],
+    "verifier": [
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 33.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 33.53,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 26.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 31.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
+     },
+     {
+      "id": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "score": 29.5,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.5,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     }
+    ],
+    "free_total": 10,
+    "catalog_total": 456,
+    "refreshed": 1793334621.394906,
+    "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
     },
@@ -2826,11 +3031,13 @@
     },
     "active": true,
     "stopped": null,
-    "spent_total": null,
-    "spent_today": null,
+    "spent_total": 0.9184,
+    "spent_today": 0.0735,
     "spent_by_this_process": 0.0,
-    "reserved_unconfirmed": 0.0,
-    "not_asked_because": {}
+    "reserved_unconfirmed": 0.0235,
+    "not_asked_because": {
+     "vision": null
+    }
    },
    "model_stats": {}
   },
@@ -2839,11 +3046,27 @@
    "free_models_only": true,
    "desk": "each trader chooses BUY or SELL; same side -> AGREE, a trade (the more confident trader's levels, or the other's when only those fit the risk limits); opposite sides -> NO TRADE (the debate runs in shadow: measured, never traded); the risk engine sizes and may refuse"
   },
-  "charts": {},
+  "charts": {
+   "GBPUSD": {
+    "t": 1793334620,
+    "decision_id": "978dc6dfd026c7f7b2c874fe",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 29817,
+    "sha256": "49d243c2dc88fdfedf5f7560d6ee515a1c4062d8dff0555a2180367c8c81f23c",
+    "as_of": 1793334620,
+    "execution_timeframe": "M15",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793333700,
+    "last_bar_available": 1793334600
+   }
+  },
   "last_analysis": {
-   "decision_id": "802c1069368fe1429c757e75",
-   "symbol": "EURJPY",
-   "t": 1793333721,
+   "decision_id": "8abdbf1d95120be278add572",
+   "symbol": "EURUSD",
+   "t": 1793334619,
    "decision": "NO_TRADE",
    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
    "consensus": {
@@ -2862,6 +3085,27 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "8abdbf1d95120be278add572",
+    "symbol": "EURUSD",
+    "t": 1793334619,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: currency_exposure (2 open positions share a currency, max 2): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.10.0",
+    "risk": null
+   },
    {
     "decision_id": "802c1069368fe1429c757e75",
     "symbol": "EURJPY",
@@ -3343,27 +3587,6 @@
      "reasons": [],
      "qty": 0.97
     }
-   },
-   {
-    "decision_id": "4c102e11e8869a889f5046e7",
-    "symbol": "GBPJPY",
-    "t": 1793328321,
-    "decision": "NO_TRADE",
-    "reason": "blocked before consulting the model: EXPOSURE: a GBPJPY position is already open",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "blocked before consulting the model: EXPOSURE: a GBPJPY position is already open",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.10.0",
-    "risk": null
    }
   ],
   "open_positions": [
@@ -3373,12 +3596,12 @@
     "side": "SELL",
     "qty": 0.97,
     "entry": 0.9195,
-    "current": 0.91969,
+    "current": 0.91979,
     "stop": 0.9212,
     "target": 0.91705,
-    "r_now": -0.112,
+    "r_now": -0.171,
     "opened": 1793329267.0,
-    "pnl": -22.43,
+    "pnl": -34.23,
     "max_hold_minutes": 1019,
     "timeframe": "M15",
     "method": null,
@@ -3390,12 +3613,12 @@
     "side": "SELL",
     "qty": 3.23,
     "entry": 0.8358300000000001,
-    "current": 0.83576,
+    "current": 0.83566,
     "stop": 0.83672,
     "target": 0.83447,
-    "r_now": 0.079,
+    "r_now": 0.191,
     "opened": 1793322088.0,
-    "pnl": 30.28,
+    "pnl": 73.53,
     "max_hold_minutes": 1139,
     "timeframe": "M15",
     "method": null,
@@ -4067,13 +4290,13 @@
     "DEBATE": 5,
     "DISAGREE": 147,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 1625,
+    "NOT_ASKED": 1626,
     "TRADER1_UNAVAILABLE": 28,
     "TRADER2_UNAVAILABLE": 11
    },
    "agreement_rate": 0.757,
    "decisions_with_both_traders": 625,
-   "unavailable": 2551
+   "unavailable": 2552
   },
   "recent_trades": [
    {
