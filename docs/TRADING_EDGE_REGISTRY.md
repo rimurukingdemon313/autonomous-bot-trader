@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 122 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 123 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -35,6 +35,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
 | ID-2 | FAILED | — | 30 | 0 | 3.552 |
 | QT-1 | FAILED | — | 5 | 0 | 3.566 |
+| QT-2 | FAILED | — | 1 | 0 | 3.568 |
 | R2A | FAILED | — | 2 | 0 | 3.279 |
 | R2B | FAILED | — | 2 | 0 | 3.291 |
 | R2C | FAILED | — | 2 | 0 | 3.301 |
@@ -250,6 +251,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.399 | | | | | | | | | |
 | T3-LONDON-TRUE-OPEN | BOTH | M5 | `see research/preregistrations/QT-1.md` | stop / target / time (bid/ask) | 2405 | -0.054 | -1.73 (3.57) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.968 | | | | | | | | | |
+| T3W-LONDON-TRUE-OPEN-WIDE | BOTH | M5 | `see research/preregistrations/QT-2.md` | stop / target / time (bid/ask) | 2405 | -0.044 | -1.32 (3.57) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
+| ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 3.226 | | | | | | | | | |
 | WF-001 | BOTH | H1 | `knn on 18 features, trade where predicted net R > 0.0` | template T2 | 22539 | -0.116 | -12.62 (3.19) | -0.163 | -0.116 | 18 | **REJECTED** | mean_R_positive, t_above_registry_threshold, positive_fold_share, robust |
 | WF-002 | BOTH | H1 | `stumps on 23 features, trade where predicted net R > 0.0` | template T2 | 1328 | -0.126 | -3.31 (3.20) | -0.095 | -0.126 | 23 | **REJECTED** | mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust |
 | WF-003 | BOTH | M15 | `stumps on 33 features, trade where predicted net R > 0.0` | template T2 | 359 | -0.199 | -2.73 (3.21) | -0.425 | -0.199 | 33 | **REJECTED** | mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust |
