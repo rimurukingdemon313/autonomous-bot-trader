@@ -72,7 +72,7 @@ class FakeOpenRouter:
             return 200, {}, {"data": self.catalog}
         if url.endswith("/key"):
             return 200, {}, {"data": {"label": "test", "usage": self.usage, "is_free_tier": self.free_tier}}
-        self.calls.append({"model": body["model"], "role": role_of(body), "body": body})
+        self.calls.append({"model": body["model"], "role": role_of(body), "body": body, "timeout": timeout})
         out = self.reply(role_of(body), body)
         if isinstance(out, tuple):
             return out

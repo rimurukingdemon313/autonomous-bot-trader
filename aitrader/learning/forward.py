@@ -47,7 +47,9 @@ import numpy as np
 
 #: 1.1.0: shadow exits (break-even at +1R, a longer hold, twice as wide) of a trade taken; walk() honours
 #:        `breakeven_at_r`. A proposal without it resolves exactly as before.
-FORWARD_VERSION = "forward-1.1.0"
+#: 1.2.0: a shadow exit may cut the holding time (`hold_cap_s`): HOLD8H follows a trade taken again closed at 8 h,
+#:        the exit the desk used before dual-ai 1.7.0 held its trades 24 h, so the change stays measured.
+FORWARD_VERSION = "forward-1.2.0"
 EVALUATION_WEEK_MOD = 3  # ISO week % 3 == 2 -> EVALUATION
 PERIODS = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600}
 MAX_BARS = 1500
@@ -197,6 +199,7 @@ EXIT_VARIANTS = {
     "BE1R": {"breakeven_at_r": 1.0},                 # the stop moves to the entry once +1R is reached
     "HOLD24H": {"hold_s": 24 * 3600},                # held up to 24 h instead of its own holding time
     "WIDE2X": {"scale": 2.0, "hold_s": 24 * 3600},   # stop and target twice as far, held up to 24 h
+    "HOLD8H": {"hold_cap_s": 8 * 3600},              # closed at 8 h at the latest: the exit before dual-ai 1.7.0
 }
 
 
@@ -214,6 +217,8 @@ def exit_variants(rec: dict | None, family: str) -> list[dict]:
             r["breakeven_at_r"] = v["breakeven_at_r"]
         if "hold_s" in v:
             r["hold_s"] = min(max(int(rec["hold_s"]), v["hold_s"]), MAX_HOLD_S)
+        if "hold_cap_s" in v:
+            r["hold_s"] = min(int(rec["hold_s"]), v["hold_cap_s"])
         if "scale" in v:
             k = v["scale"]
             r["stop"] = e - side * k * abs(e - rec["stop"])

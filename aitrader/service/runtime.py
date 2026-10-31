@@ -32,6 +32,7 @@ from ..agents.trading_room import member_records
 from ..data.calendar import EconomicCalendar
 from ..memory.history import HistoryDesk
 from ..backtest.metrics import summarise
+from ..broker import adjustments as paper_adjustments, periods
 from ..broker.paper import PaperBroker
 from ..decision.synthesis import EvidenceSynthesizer
 from ..execution.engine import ExecutionEngine
@@ -50,7 +51,7 @@ from ..regime.model import RegimeModel
 from ..risk.engine import RiskEngine
 from ..risk.hard_gate import HardRiskGate
 from ..decision.edge_status import PAPER_MODES
-from ..learning import dual_ai_stats, paper_metrics
+from ..learning import blame, dual_ai_stats, paper_metrics
 from ..version import stamp
 from .config import ServiceConfig, ServiceConfigError
 
@@ -96,7 +97,18 @@ def storage_state(data_dir: str, env=None) -> dict:
 #: and lists journal positions the broker no longer holds; the forward ledger resolves every 5 minutes;
 #: /readyz, /metrics, /api/evidence, /api/lessons.
 #: 1.8.0: /api/dual_ai and /api/dual_ai/chart.png (DECISION_MODE=dual_ai, PAPER_FORWARD only); OpenRouter status.
-SERVICE_VERSION = "service-1.8.0"
+#: 1.9.0: the desk's figures are those of the rule it trades (AGREE); the trades of the debate rule it no longer
+#: trades (retired in dual-ai 1.2.0) are shown apart, never averaged in; every closed trade carries its rule;
+#: the desk's rule text says what runs (a disagreement is NO TRADE).
+#: 1.10.0: PAPER_FORWARD applies the declared operator adjustments (aitrader/broker/adjustments.py) once at
+#: startup; the account shows them (adjustments_total, equity_before_adjustments; today's P&L without them), and
+#: the trades one removed are listed apart (removed_trades), in none of the account's figures.
+SERVICE_VERSION = "service-1.10.0"
+#: the desk's rules that no longer trade: the version that stopped each, what it did, what decides instead. Their
+#: trades stay in the journal (append-only) and are shown as theirs, never as the current rule's.
+RETIRED_DUAL_AI_RULES = {"DEBATE": {"stopped_in": "dual-ai-1.2.0",
+                                    "was": "opposite sides: one debate picked the side and the trade was taken",
+                                    "now": "opposite sides: NO TRADE; the debate runs in shadow, measured, never traded"}}
 #: modes that may decide more often than the evidence system's tested H1 cadence
 FLEX_MODES = MODEL_MODES + ("edges",)
 FAST_DELAY_S = 15       # after a minute boundary, give the broker time to publish the M1/M5 bar
@@ -167,7 +179,8 @@ class Runtime:
         self.execution = ExecutionEngine(self.db, self.broker, self.clock, gate=self.gate,
                                          allow_unvalidated=cfg.mode in PAPER_MODES or cfg.experimental_execute,
                                          max_decision_age_s=cfg.max_decision_age_s,
-                                         paper_forward=cfg.mode == "PAPER_FORWARD")
+                                         paper_forward=cfg.mode == "PAPER_FORWARD",
+                                         quote_wait=bool(getattr(self.feed, "LIVE", False)))
         self.orch = Orchestrator(
             OrchestratorConfig(list(cfg.symbols), mode=cfg.mode, journal="full", events="all",
                                start_balance=cfg.start_balance, experimental_execute=cfg.experimental_execute),
@@ -207,6 +220,7 @@ class Runtime:
                 f"system was tested deciding every {self.decide_every_bars} H1 closes, and a cadence it was never "
                 "tested at would run a system whose trade frequency and overlap were never measured")
         self._reconcile_at_start()
+        self._apply_paper_adjustments()
 
     # ── wiring ──────────────────────────────────────────────────────────
 
@@ -321,6 +335,22 @@ class Runtime:
             self.experience.lessons.setdefault(v["lesson_id"], []).append(v)
         log_event("STARTUP", f"experience restored: {n} closed trades, {shadows} shadow outcomes, "
                              f"{len(self.experience.lessons)} lessons")
+
+    def _apply_paper_adjustments(self) -> None:
+        """PAPER_FORWARD: the operator adjustments declared in aitrader/broker/adjustments.py, each applied once,
+        after reconciliation and before any decision. One that cannot be verified applies nothing and says why."""
+        if self.cfg.mode != "PAPER_FORWARD" or not isinstance(self.broker, PaperBroker):
+            return
+        try:
+            rep = paper_adjustments.apply(self.broker, self.db)
+        except Exception as exc:  # noqa: BLE001 - reported; the account is left as it was
+            rep = [{"status": "ERROR", "why": f"{type(exc).__name__}: {exc}"}]
+        self.health["paper_adjustments"] = rep
+        for r in rep:
+            if r["status"] == "APPLIED":
+                log_event("STARTUP", f"paper adjustment {r['id']} applied: {r['amount']:+.2f}")
+            elif r["status"] in ("NOT_APPLIED", "ERROR"):
+                log_event("STARTUP", f"paper adjustment {r.get('id')} not applied: {r.get('why')}", severity="warning")
 
     def _reconcile_at_start(self) -> None:
         """Before anything can trade: order intents left SUBMITTING/UNKNOWN are resolved by querying the
@@ -783,14 +813,20 @@ class Runtime:
         locked = out["risk_status"] in ("DAILY_LOCK", "MAX_LOSS_LOCK", "KILLED", "FAULT")
         out["bot_status"] = ("RISK LOCK" if killed or locked else "PAUSED" if paused else
                              "STARTING" if out["risk_status"] == "NOT_STARTED" else "RUNNING")
+        adjusted = self.broker.adjustments() if hasattr(self.broker, "adjustments") else []
+        out["adjustments"] = adjusted
         try:
             snap = self.broker.account()
             eq = snap.equity
             start = self.cfg.hard_profile.starting_balance
             day = (gate.get("day") or {})
+            moved = sum(a["amount"] for a in adjusted)
+            # an adjustment made after the day's reference was taken is not the day's trading result
+            moved_today = sum(a["amount"] for a in adjusted if day.get("t") is not None and a["t"] >= day["t"])
             out["account"] = {"equity": round(eq, 2), "balance": round(snap.balance, 2),
                               "total_pnl": round(eq - start, 2),
-                              "today_pnl": round(eq - day["reference"], 2) if day.get("reference") else None,
+                              "today_pnl": round(eq - day["reference"] - moved_today, 2) if day.get("reference") else None,
+                              "adjustments_total": round(moved, 2), "equity_before_adjustments": round(eq - moved, 2),
                               "day_reference": day.get("reference"),
                               "drawdown_from_start": round(min(0.0, eq - start), 2),
                               "max_loss_floor": self.cfg.hard_profile.total_loss_floor,
@@ -802,9 +838,32 @@ class Runtime:
             o = (json.loads(row["payload"]) or {}).get("outcome")
             if o:
                 outcomes.append(o)
-        out["performance"] = paper_metrics.report(outcomes)
+        # trades an operator adjustment took out of the account: listed apart, in none of the account's figures
+        removed = {i for a in adjusted for i in a.get("decision_ids", [])}
+        kept = [o for o in outcomes if o.get("decision_id") not in removed]
+        out["removed_trades"] = [{**o, "rule": paper_metrics.rule_of(o)} for o in outcomes
+                                 if o.get("decision_id") in removed]
+        out["performance"] = paper_metrics.report(kept)
+        # who lost it, the market or us: every closed trade checked against what the system controls (learning.blame)
+        verdicts: dict = {}
+        try:
+            hp = self.cfg.hard_profile
+            seen = blame.from_journal(self.db, kept, per_trade_risk=hp.risk_per_trade, max_quote_age_s=hp.max_quote_age_s)
+            verdicts = {v["decision_id"]: v for v in seen.pop("per_trade")}
+            gone = blame.from_journal(self.db, [o for o in outcomes if o.get("decision_id") in removed],
+                                      per_trade_risk=hp.risk_per_trade, max_quote_age_s=hp.max_quote_age_s)
+            gone.pop("per_trade")
+            out["blame"] = {**seen, "removed_trades": gone}
+        except Exception as exc:  # noqa: BLE001 - shown as unavailable, never as "the market"
+            out["blame"] = {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
         out["open_positions"] = self._live_positions()
-        out["recent_trades"] = outcomes[-20:][::-1]
+        # the account of the setup now trading, from the moment it first decided (broker.periods): its own trades only
+        period = periods.current()
+        out["period"] = periods.view(kept, out["open_positions"], period)
+        out["recent_trades"] = [{**o, "rule": paper_metrics.rule_of(o),
+                                 "blame": (verdicts.get(o.get("decision_id")) or {}).get("verdict"),
+                                 "period": periods.period_of(o, period)}
+                                for o in kept[-20:][::-1]]
         out["pipeline"] = [json.loads(e["payload"]) for e in
                            self.db.query("SELECT payload FROM events WHERE type='PIPELINE' ORDER BY seq DESC LIMIT 20")]
         # every decision, NO_TRADE included, with its reason: shows the system is reading the market at all
@@ -826,10 +885,11 @@ class Runtime:
                      "mode": self.cfg.mode, "live_trading": False, "money": "NOT REAL MONEY",
                      "openrouter": self.openrouter.health(),
                      "rules": {"max_calls_per_decision": 3, "free_models_only": True,
-                               "desk": "each trader chooses BUY or SELL; same side -> AGREE (the more confident "
-                                       "trader's levels); opposite sides -> one DEBATE picks the side; the risk "
-                                       "engine sizes and may refuse; NO_TRADE only when the market or an AI is "
-                                       "unavailable"}}
+                               "desk": "each trader chooses BUY or SELL on the H1 chart; same side and both "
+                                       "confidences 65 or more -> AGREE, a trade on Trader 1's levels; same side "
+                                       "below 65 -> NO TRADE (the trade it would have been is followed in shadow); "
+                                       "opposite sides -> NO TRADE (the debate runs in shadow: measured, never "
+                                       "traded); the risk engine sizes and may refuse"}}
         trader = getattr(self.orch.brain, "dual_ai", None)
         out["charts"] = {s: {"t": c["t"], "decision_id": c["decision_id"], **c["meta"]}
                          for s, c in (dict(trader.charts) if trader is not None else {}).items()}
@@ -846,7 +906,7 @@ class Runtime:
                 "reason": str(p.get("no_trade_reason") or p.get("thesis") or "")[:300],
                 "consensus": rec.get("consensus"), "models": rec.get("models"), "trader1": rec.get("trader1"),
                 "trader2": rec.get("trader2"), "verifier": rec.get("verifier"), "chart": rec.get("chart"),
-                "calls": rec.get("calls"),
+                "calls": rec.get("calls"), "trader1_input": rec.get("trader1_input"), "version": rec.get("version"),
                 "risk": (None if v is None else {"approved": bool(v["approved"]), "reasons": (vp or {}).get("reasons"),
                                                  "qty": (vp or {}).get("qty")})})
             if len(analyses) >= 12:
@@ -859,9 +919,22 @@ class Runtime:
             rec = json.loads(row["payload"]) or {}
             if (rec.get("decision") or {}).get("family") == "DUAL_AI" and rec.get("outcome"):
                 outcomes.append(rec["outcome"])
-        out["performance"] = paper_metrics.summary(outcomes)
+        # two rules are never averaged into one number (docs/VERSIONING.md): the desk's figures are the rule it
+        # trades; a retired rule's trades are listed as theirs; a trade whose rule cannot be read is UNKNOWN
+        by_rule: dict[str, list[dict]] = {}
+        for o in outcomes:
+            by_rule.setdefault(paper_metrics.rule_of(o), []).append({**o, "rule": paper_metrics.rule_of(o)})
+        agree = by_rule.get("AGREE", [])
+        out["performance"] = {**paper_metrics.summary(agree), "rule": "AGREE"}
+        out["performance_by_rule"] = {k: paper_metrics.summary(v) for k, v in sorted(by_rule.items())}
+        out["performance_all_rules"] = paper_metrics.summary(outcomes)  # every desk trade, nothing left out
+        adjusted = self.broker.adjustments() if hasattr(self.broker, "adjustments") else []
+        out["retired_rules"] = {k: {**v, "performance": paper_metrics.summary(by_rule.get(k, [])),
+                                    "trades": by_rule.get(k, [])[::-1],
+                                    "removed_from_account": [a for a in adjusted if a.get("rule") == k]}
+                                for k, v in RETIRED_DUAL_AI_RULES.items()}
         out["record"] = dual_ai_stats.record(self.db)
-        out["recent_trades"] = outcomes[-10:][::-1]
+        out["recent_trades"] = agree[-10:][::-1]
         return out
 
     def _family_of_position(self, position_id) -> str | None:

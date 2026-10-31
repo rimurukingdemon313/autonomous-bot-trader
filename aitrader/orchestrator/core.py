@@ -41,7 +41,7 @@ from ..broker.paper import pip_of
 from ..data.resample import bucket_start
 from ..decision.edge_status import SIGNAL_CLASS, classify, execution_route
 from ..decision.synthesis import Decision
-from ..execution.engine import ExecutionEngine
+from ..execution.engine import QUOTE_WAIT_S, QUOTE_WAIT_TRIES, ExecutionEngine
 from ..features.store import LOOKBACK, compute_at
 from ..learning.experience import Evaluation, ExperienceView, session_of
 from ..learning import dual_ai_stats
@@ -90,7 +90,26 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         read before it; a model's answer can take minutes.
 #: 1.18.0: a dual-AI trade taken is also followed forward under shadow exits (break-even at +1R, held 24 h, twice
 #:         as wide), never traded.
-ORCHESTRATOR_VERSION = "orchestrator-1.18.0"
+#: 1.19.0 (live, 2026-10-16): a model decision is told how long it has before it would be too old to execute
+#:         (`decide_within_s`: the execution engine's maximum decision age less the time execution needs); two were
+#:         refused as stale after a slow shadow debate on the other pair. The account checks that refuse any trade
+#:         now include the hard gate's own open-risk room: when the next trade's risk does not fit in it, the model is
+#:         not asked (six approved trades were refused by the gate for open risk). Both only ever skip a decision.
+#: 1.20.0: the risk engine reads the economic calendar for the pair (account_gates before the model is asked,
+#:         evaluate after): with a news window it refuses a new position around a High-impact release.
+#: 1.21.0: the risk engine reads the pair's market structure (the market map the traders read) when it decides after
+#:         their answer: with require_clear_structure it refuses a new position in a range.
+#: 1.22.0 (live, 2026-10-19): each pair of a cycle decides at its own turn, on the data of that moment: stamped with the
+#:         cycle's start, a later pair began already aged by the earlier pair's model calls (two pairs reached their
+#:         traders with 0 s left after 13-14 min on the pair before). And the risk engine judges the time rules and
+#:         the news window at the moment the position would open, after the traders answered (risk 1.13.0), with the
+#:         calendar read again then. A replay's clock is the bar time: a backtest decides exactly as before.
+#: 1.23.0 (owner, 2026-10-25: "if we lose, let it be the market"): the quote the risk engine sizes and checks is asked
+#:         for at the moment the position would open (risk 1.14.0 measures its age there), not at the decision time. A
+#:         live feed ignores the time asked; a replay's clock is the bar time, so a backtest is unchanged.
+ORCHESTRATOR_VERSION = "orchestrator-1.23.0"
+#: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
+EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
 
 class NullKnowledge:
@@ -215,7 +234,8 @@ class Orchestrator:
             self._review_positions(t, symbols)
         for symbol in symbols if symbols is not None else self.cfg.symbols:
             try:
-                d = self.decide(symbol, t)
+                # its own turn: the pairs are decided one after another, and a model's answer takes minutes
+                d = self.decide(symbol, max(t, int(self.clock())))
                 if d is not None:
                     report["decisions"].append({"symbol": symbol, "decision": d.decision})
             except Exception as exc:  # a crash in one symbol is NO_TRADE for it, and visible
@@ -388,8 +408,15 @@ class Orchestrator:
                 ctx.history = (self.history.brief(fv.values, t) if fv.complete else
                                {"available": False, "reason": "features incomplete at this bar"})
             ctx.trading_allowed = self._trading_allowed()
-            ctx.account_blocks = [f"{c.name} ({c.detail})" for c in self.risk.account_gates(state, symbol, t)
-                                  if not c.passed]
+            ctx.account_blocks = [f"{c.name} ({c.detail})"
+                                  for c in self.risk.account_gates(state, symbol, t, news=ctx.news) if not c.passed]
+            # the hard gate values open risk from each position's current price to its stop, with costs: when the
+            # next trade's risk does not fit in what it leaves, it would refuse it, so the model is not asked
+            room, need = self.execution.gate.open_risk_room(self.broker), self.risk.trade_risk_budget(state)
+            if room is not None and need is not None and room < 0.9 * need:
+                ctx.account_blocks.append(f"gate_open_risk (the hard risk gate's open-risk room {room:.2f} is less than "
+                                          f"the next trade's risk {need:.2f}: it would refuse the trade)")
+            ctx.decide_within_s = max(0.0, t + self.execution.max_decision_age_s - EXECUTION_ALLOWANCE_S - self.clock())
         self._event("ANALYSIS_REQUESTED", {"symbol": symbol, "t": t})
         thought = self.brain.think(ctx, self.versions)
         d = thought.decision
@@ -416,11 +443,16 @@ class Orchestrator:
             # A model's answer takes minutes: the size comes from the price now, the one the hard gate verifies at
             # submission, never from the quote read before the decision (live 2026-10-13, EURJPY: sized on the old
             # price, refused by the gate at $523 > $500). A replay returns the same quote at t: nothing changes there.
-            fresh = self.feed.quote(symbol, t)
+            # The time rules, the news window and the quote's age are judged when the position would open: now, the
+            # traders answered (the quote is asked for at that moment, so a feed that stamps by the time asked agrees).
+            opens_at = max(t, int(self.clock()))
+            fresh = self.feed.quote(symbol, opens_at)
             if fresh is not None:
                 quote = fresh
+            news = self.news.for_symbol(symbol, opens_at) if self.news is not None else ctx.news
+            structure = ctx.market_map.get("structure") if isinstance(ctx.market_map, dict) else None
             verdict = self.risk.evaluate(d, state, spec, quote, t, self.execution.executed_ids(), data_flags=flags,
-                                         swap_per_night=swap)
+                                         swap_per_night=swap, news=news, structure=structure, opens_at=opens_at)
             if not self.db.one("SELECT 1 AS x FROM risk_verdicts WHERE decision_id=?", (d.id,)):
                 self.db.append("risk_verdicts", {"decision_id": d.id, "approved": int(verdict.approved),
                                                  "payload": verdict.as_dict()})

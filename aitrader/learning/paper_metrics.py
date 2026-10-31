@@ -12,7 +12,9 @@ import math
 from collections import defaultdict
 from datetime import datetime, timezone
 
-PAPER_METRICS_VERSION = "paper-metrics-1.0.0"
+#: 1.1.0: `by_rule`: the dual-AI desk's trades by the rule that produced them (AGREE; DEBATE, retired in
+#:        dual-ai 1.2.0); a desk trade whose rule cannot be read is UNKNOWN, never counted as either.
+PAPER_METRICS_VERSION = "paper-metrics-1.1.0"
 MIN_SAMPLE = 30
 
 
@@ -81,10 +83,21 @@ def _rate(rows: list[dict], key: str) -> float | None:
     return sum(xs) / len(xs) if xs else None
 
 
-def breakdown(outcomes: list[dict], key: str) -> dict:
+def rule_of(outcome: dict) -> str:
+    """The dual-AI desk's rule that produced a trade, as its outcome recorded it (AGREE; DEBATE for dual-ai 1.1.0).
+    A desk trade whose rule cannot be read is UNKNOWN, never assumed to be either; another system's trade has none."""
+    rule = (outcome.get("dual_ai") or {}).get("rule")
+    if rule:
+        return str(rule)
+    return "UNKNOWN" if outcome.get("agent") == "DUAL_AI" else "NOT_DUAL_AI"
+
+
+def breakdown(outcomes: list[dict], key) -> dict:
+    """Summaries per group: `key` is an outcome field, or a function of the outcome."""
+    get = key if callable(key) else (lambda o: o.get(key))
     groups: dict[str, list[dict]] = defaultdict(list)
     for o in outcomes:
-        groups[str(o.get(key) or "unknown")].append(o)
+        groups[str(get(o) or "unknown")].append(o)
     keep = ("trades", "sample", "win_rate", "net_pnl", "expectancy_r", "profit_factor")
     return {k: {f: v for f, v in summary(g).items() if f in keep} for k, g in sorted(groups.items())}
 
@@ -93,7 +106,7 @@ def report(outcomes: list[dict]) -> dict:
     return {"version": PAPER_METRICS_VERSION, "overall": summary(outcomes),
             "by_symbol": breakdown(outcomes, "symbol"), "by_direction": breakdown(outcomes, "direction"),
             "by_agent": breakdown(outcomes, "agent"), "by_regime": breakdown(outcomes, "regime"),
-            "by_partition": breakdown(outcomes, "partition")}
+            "by_partition": breakdown(outcomes, "partition"), "by_rule": breakdown(outcomes, rule_of)}
 
 
-__all__ = ["PAPER_METRICS_VERSION", "breakdown", "report", "summary"]
+__all__ = ["PAPER_METRICS_VERSION", "breakdown", "report", "rule_of", "summary"]

@@ -408,6 +408,11 @@ def test_the_dashboard_says_paper_forward_test_not_real_money(tmp_path, monkeypa
     md = report_md({**v, "pipeline": [refused] * 3 + v["pipeline"]}, {"started": "now", "decision_mode": "llm_trader"})
     head = md.split("## Last decisions")[0]
     assert "WARNING: the hard risk gate refused 3 of the last" in head and "PROFILE_CHANGED x3" in head
+    assert "none after it yet" in head  # the refusals are the most recent decisions
+    old = {**refused, "t": refused["t"] - 86400}  # refusals of yesterday, decisions since: said, with the time
+    md = report_md({**v, "pipeline": v["pipeline"] + [old] * 2}, {"started": "now", "decision_mode": "llm_trader"})
+    head = md.split("## Last decisions")[0]
+    assert "PROFILE_CHANGED x2" in head and "none refused by the gate" in head
     html = (runtime_mod.Path(runtime_mod.__file__).parent / "static" / "index.html").read_text()
     assert "PAPER FORWARD TEST" in html and "NOT REAL MONEY" in html
 

@@ -435,7 +435,8 @@ def build(root: Path | str) -> dict:
             continue
         if isinstance(art, dict) and art.get("kind") == "retail":
             retail.append(art)
-    for p in sorted((root / "knowledge").glob("ID-*.json")):
+    # the intraday programs: ID-1, and QT-1 (the Quarters schools, run on ID-1's harness)
+    for p in sorted([*(root / "knowledge").glob("ID-*.json"), *(root / "knowledge").glob("QT-*.json")]):
         art = json.loads(p.read_text())
         if isinstance(art, dict) and "development" in art and "promoted" in art:
             edges += from_intraday(art)

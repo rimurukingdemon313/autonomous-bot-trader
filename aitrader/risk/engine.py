@@ -17,7 +17,7 @@ The AI proposes; this decides whether anything is sent, and at what size
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from math import floor
 from zoneinfo import ZoneInfo
 
@@ -50,10 +50,63 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   longer a field of the evaluation profile. As a profile field it changed the profile's hash, and the hard gate
 #:   (rightly: a profile cannot change during an evaluation) refused every new trade with PROFILE_CHANGED. Trading
 #:   hours are a choice of this engine, not a rule of the evaluation; the profile is back to the run's own.
-RISK_VERSION = "risk-1.6.0"
+#: 1.7.0: with no_weekend_carry (MODE=PAPER_FORWARD), no new position whose maximum holding time would run past the
+#:   Friday close (17:00 New York): the market shuts for two days and reopens where it likes. A decision without a
+#:   holding time is taken to hold 48 h. It only ever refuses an entry.
+#: 1.8.0 (operator's choice, 2026-10-17): a trading calendar of closed UTC weekdays and closed UTC windows in which no
+#:   new position is opened (MODE=PAPER_FORWARD: Friday, like the weekend; and the London/New York overlap, 12:00-16:00
+#:   UTC, the session the desk's trades did worst in: 8 trades, -0.38 R). `trade_risk_budget` states the most the next
+#:   trade would be sized to lose. It only ever refuses an entry; sizes and every other check unchanged.
+#: 1.9.0 (operator, 2026-10-17, after reading every trade): Friday trades again until 12:00 UTC (the one Friday
+#:   so far, all entered before 12:00: 9 trades, +2.88 R) and is closed after it; Saturday and Sunday are stated
+#:   closed days rather than assumed; a calendar window may name its weekday. no_opposite_currency: no new position
+#:   on the opposite side of a currency an open position holds (11 such trades: 36% won, -0.21 R each; the rest
+#:   +0.23 R): the account would bet against itself and pay both trades' costs. Both only ever refuse an entry.
+#: 1.10.0: news_blackout_min: no new position from N minutes before to M minutes after a High-impact scheduled
+#:   release for either currency of the pair (the economic calendar the models already read); news_required: an
+#:   unavailable calendar means scheduled-event risk is unknown, and the engine stands aside. Only ever refuses.
+#: 1.11.0 (operator, 2026-10-19: "do not trade against the news"): news_impacts names the impacts whose releases
+#:   close the window (default High only); MODE=PAPER_FORWARD: High and Medium (the week of 2026-10-19, the UK
+#:   earnings and the flash PMIs are Medium). Low never does. Only ever refuses.
+#: 1.12.0 (operator, 2026-10-19: "do not trade into chop"): require_clear_structure names a timeframe whose market
+#:   structure (features/market_map.py, confirmed swings only) must be a clear trend, up (HH+HL) or down (LH+LL), for a
+#:   new position; a range (mixed swings, or too few swings to tell) or an unreadable structure refuses it.
+#:   MODE=PAPER_FORWARD: H1 (registered hypothesis H1, docs/DUAL_AI.md: of the first 50 agreement trades, the 23 in an
+#:   H1 range won 30%, -0.24 R each; the 27 in a clear H1 trend won 63%, +0.23 R). Checked after the traders answer,
+#:   so a refused agreement is followed forward and the rule stays measured. Only ever refuses.
+#: 1.13.0: evaluate(opens_at=...) judges the time rules (the weekend, quiet hours, the trading calendar, weekend carry)
+#:   at the moment the position would open, after the traders answered, not when the decision began: an answer takes
+#:   up to ~12 min, so a decision begun at 11:50 could open a position in the 12:00 overlap. Unset: the decision time,
+#:   as before. The quote's age is still measured from the decision time.
+#: 1.14.0 (owner, 2026-10-25: "if we lose, let it be the market"): the quote's age is measured at the opening too. From
+#:   the decision time it read "age -297s" on a quote taken after a 5-minute answer, so this check could never find a
+#:   stale price (only the hard gate, on its own clock, could). A quote stamped more than QUOTE_FUTURE_S after the
+#:   opening is refused, as the gate refuses it. It only ever refuses.
+#: 1.15.0 (owner, 2026-10-28: "find a solution, just execute"): MODE=PAPER_FORWARD no longer requires a clear H1
+#:   structure. The rule (1.12.0) was adopted early, on the registered condition that the agreements it refused do
+#:   0.3 R or more worse than the trades taken, over 20+ of each, or it is reversed. Judged on Trader 1's levels, the
+#:   only levels traded since dual-ai 1.10.0, from 2026-10-19, and counted once per pair while one would still be
+#:   open: the 34 refused for structure alone did +0.03 R (41% won), the 53 taken -0.05 R. It is reversed.
+#:   `require_clear_structure` and its check stay, for a profile that asks for them.
+RISK_VERSION = "risk-1.15.0"
+#: a quote stamped this far after the moment of opening is not a quote of now (the hard gate's own tolerance)
+QUOTE_FUTURE_S = 5
 NEW_YORK = ZoneInfo("America/New_York")
 #: MODE=PAPER_FORWARD: no new position from 16:00 to 20:00 New York (an hour before the rollover to the Tokyo open)
 PAPER_FORWARD_QUIET_NY = (16 * 60, 20 * 60)
+#: MODE=PAPER_FORWARD: no new position on Saturday or Sunday (UTC): the market is shut, and that is stated, not assumed
+PAPER_FORWARD_CLOSED_WEEKDAYS_UTC = (5, 6)
+#: MODE=PAPER_FORWARD: no new position in the London/New York overlap, 12:00-16:00 UTC (as learning.forward.session_of),
+#: nor on Friday from 12:00 UTC to the weekend
+PAPER_FORWARD_CLOSED_UTC = ((12 * 60, 16 * 60), (4, 12 * 60, 24 * 60))
+#: MODE=PAPER_FORWARD: no new position from 30 min before to 30 min after a High- or Medium-impact release for the pair
+PAPER_FORWARD_NEWS_BLACKOUT_MIN = (30, 30)
+PAPER_FORWARD_NEWS_IMPACTS = ("High", "Medium")
+NEWS_IMPACTS = ("High", "Medium", "Low")
+#: MODE=PAPER_FORWARD: no new position unless the pair's H1 structure is a clear trend (not a range)
+PAPER_FORWARD_CLEAR_STRUCTURE = "H1"  # what MODE=PAPER_FORWARD required from risk 1.12.0 to 1.14.0 (reversed in 1.15.0)
+STRUCTURE_TIMEFRAMES = ("M5", "M15", "H1")  # the market map's structure timeframes
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 #: No configuration can take per-trade risk above this.
 HARD_MAX_RISK_PCT = 1.0
@@ -102,12 +155,55 @@ class RiskLimits:
     #: It only ever refuses an entry; open positions are managed. Not part of the evaluation profile (1.6.0).
     quiet_ny_start_min: int = 0
     quiet_ny_end_min: int = 0
+    #: no new position whose maximum holding time would run past the Friday close (17:00 New York)
+    no_weekend_carry: bool = False
+    #: no NEW position on these UTC weekdays (0 Monday .. 6 Sunday) or inside these UTC windows: (start, end) minutes
+    #: after 00:00 UTC every day, or (weekday, start, end) on that weekday only; start < end. Open positions are
+    #: managed as usual.
+    closed_weekdays_utc: tuple = ()
+    closed_utc_windows: tuple = ()
+    #: no new position on the opposite side of a currency an open position holds (long EUR while short EUR)
+    no_opposite_currency: bool = False
+    #: (before, after) minutes around a release of one of news_impacts for either currency of the pair: no new
+    #: position; () none. news_required: no calendar, or an unavailable one, refuses every new position (event risk
+    #: unknown). news_impacts always includes High.
+    news_blackout_min: tuple = ()
+    news_required: bool = False
+    news_impacts: tuple = ("High",)
+    #: a timeframe whose market structure must be a clear trend (up or down) for a new position; None: not checked
+    require_clear_structure: str | None = None
 
     def __post_init__(self) -> None:
         for k in ("quiet_ny_start_min", "quiet_ny_end_min"):
             v = getattr(self, k)
             if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v < 1440:
                 raise ValueError(f"{k} must be an integer 0..1439, minutes after midnight New York (got {v!r})")
+        def minute(v) -> bool:
+            return isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 1440
+        if self.news_blackout_min != () and not (
+                isinstance(self.news_blackout_min, tuple) and len(self.news_blackout_min) == 2
+                and all(isinstance(x, int) and not isinstance(x, bool) and 0 <= x <= 720 for x in self.news_blackout_min)):
+            raise ValueError(f"news_blackout_min must be () or (before, after) minutes 0..720 (got {self.news_blackout_min!r})")
+        if not (isinstance(self.news_impacts, tuple) and "High" in self.news_impacts
+                and len(set(self.news_impacts)) == len(self.news_impacts)
+                and all(i in NEWS_IMPACTS for i in self.news_impacts)):
+            raise ValueError(f"news_impacts must be a tuple of distinct impacts from {NEWS_IMPACTS} including High "
+                             f"(got {self.news_impacts!r})")
+        if self.require_clear_structure is not None and self.require_clear_structure not in STRUCTURE_TIMEFRAMES:
+            raise ValueError(f"require_clear_structure must be None or one of {STRUCTURE_TIMEFRAMES} "
+                             f"(got {self.require_clear_structure!r})")
+        if not isinstance(self.closed_weekdays_utc, tuple) or not all(
+                isinstance(d, int) and not isinstance(d, bool) and 0 <= d <= 6 for d in self.closed_weekdays_utc):
+            raise ValueError(f"closed_weekdays_utc must be a tuple of weekdays 0..6 (got {self.closed_weekdays_utc!r})")
+        def window(w) -> bool:
+            if not isinstance(w, tuple) or len(w) not in (2, 3):
+                return False
+            day, a, b = (None, *w) if len(w) == 2 else w
+            day_ok = day is None or (isinstance(day, int) and not isinstance(day, bool) and 0 <= day <= 6)
+            return day_ok and minute(a) and minute(b) and a < b
+        if not isinstance(self.closed_utc_windows, tuple) or not all(window(w) for w in self.closed_utc_windows):
+            raise ValueError("closed_utc_windows must be a tuple of (start, end) or (weekday, start, end): minutes after "
+                             f"00:00 UTC, 0 <= start < end <= 1440, weekday 0..6 (got {self.closed_utc_windows!r})")
 
     def effective_risk_pct(self) -> float:
         pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
@@ -296,13 +392,119 @@ class RiskEngine:
                      f"{ny:%H:%M} New York: no new position from {a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} "
                      f"New York (the rollover to the Tokyo open: the thinnest liquidity of the day)")
 
+    def _c_calendar(self, now: int) -> Check | None:
+        """No new position on a closed UTC weekday or inside a closed UTC window, if the limits set any."""
+        days, windows = self.limits.closed_weekdays_utc, self.limits.closed_utc_windows
+        if not days and not windows:
+            return None
+        u = datetime.fromtimestamp(now, timezone.utc)
+        m = u.hour * 60 + u.minute
+        if u.weekday() in days:
+            return Check("trading_calendar", False, f"{WEEKDAYS[u.weekday()]} (UTC): no new position on "
+                                                    + ", ".join(WEEKDAYS[d] for d in sorted(days)))
+        for w in windows:
+            day, a, b = (None, *w) if len(w) == 2 else w
+            if (day is None or u.weekday() == day) and a <= m < b:
+                on = "" if day is None else f" on {WEEKDAYS[day]}"
+                return Check("trading_calendar", False, f"{WEEKDAYS[u.weekday()]} {u:%H:%M} UTC: no new position{on} from "
+                                                        f"{a // 60:02d}:{a % 60:02d} to {b // 60:02d}:{b % 60:02d} UTC")
+        return Check("trading_calendar", True, f"{WEEKDAYS[u.weekday()]} {u:%H:%M} UTC: open for new positions")
+
+    def _c_news(self, news: dict | None) -> Check | None:
+        """No new position around a release of the limits' impacts (High; Medium too if set) for the pair's currencies,
+        if the limits set a window; with news_required, none without a readable calendar. `news` is the calendar's view
+        for this pair (data.calendar.EconomicCalendar.for_symbol) at the time judged: the decision's start before the
+        model is asked, the moment the position would open after it answered; its events carry minutes_away from it."""
+        L = self.limits
+        if not L.news_blackout_min and not L.news_required:
+            return None
+        feed = (news or {}).get("feed") or {}
+        events = (news or {}).get("events")
+        if news is None or feed.get("status") == "UNAVAILABLE" or events is None:
+            why = "no economic calendar" if news is None else f"the economic calendar is unavailable ({feed.get('reason')})"
+            return Check("news", not L.news_required, f"{why}: scheduled-event risk unknown"
+                         + (", stand aside" if L.news_required else ""))
+        if not L.news_blackout_min:
+            return Check("news", True, f"calendar {feed.get('status')}; no blackout window set")
+        before, after = L.news_blackout_min
+        near = [e for e in events if str(e.get("impact")) in L.news_impacts
+                and isinstance(e.get("minutes_away"), (int, float)) and -after <= e["minutes_away"] <= before]
+        return Check("news", not near,
+                     ("; ".join(f"{e.get('impact')}-impact release {e.get('currency')} {e.get('title')} "
+                                f"{'in ' + str(e['minutes_away']) + ' min' if e['minutes_away'] >= 0 else str(-e['minutes_away']) + ' min ago'}"
+                                for e in near)
+                      + f": no new position from {before} min before to {after} min after") if near else
+                     f"no {'/'.join(L.news_impacts)}-impact release for {', '.join((news or {}).get('currencies') or [])} "
+                     f"within {before} min ahead or {after} min past (calendar {feed.get('status')})")
+
+    def _c_structure(self, structure: dict | None) -> Check | None:
+        """No new position unless the pair's structure on the limits' timeframe is a clear trend, if the limits name
+        one. A range (mixed swings, or too few swings to tell) refuses it, and so does a structure that cannot be read:
+        it cannot be shown to be clear. `structure` is the market map's structure by timeframe at the decision time
+        (features/market_map.py: confirmed swings only, so nothing after the decision is seen)."""
+        tf = self.limits.require_clear_structure
+        if tf is None:
+            return None
+        frame = structure.get(tf) if isinstance(structure, dict) else None
+        trend = frame.get("trend") if isinstance(frame, dict) else None
+        clear = isinstance(trend, str) and trend.startswith(("up", "down"))
+        return Check("structure", clear,
+                     f"{tf} structure {trend}: a clear trend" if clear else
+                     f"{tf} structure is {trend or 'unreadable'}: no new position without a clear {tf} trend "
+                     f"(up HH+HL or down LH+LL)")
+
+    def _c_currency_conflict(self, decision, account: AccountState) -> Check | None:
+        """No new position on the opposite side of a currency an open position holds, if the limits say so. A position
+        whose side cannot be read counts as a conflict: it cannot be shown not to be one."""
+        if not self.limits.no_opposite_currency:
+            return None
+        s, side = decision.instrument, (1 if decision.decision == "BUY" else -1)
+        mine = {s[:3]: side, s[3:]: -side}
+        clash = []
+        for p in account.open_positions:
+            ps, ps_side = str(p.get("symbol") or ""), p.get("side")
+            if ps_side not in (1, -1):
+                clash.append(f"{ps} (side unknown)")
+                continue
+            theirs = {ps[:3]: ps_side, ps[3:]: -ps_side}
+            clash += [f"{ps} {'BUY' if ps_side > 0 else 'SELL'} is {'long' if theirs[c] > 0 else 'short'} {c}"
+                      for c, d in mine.items() if theirs.get(c) == -d]
+        return Check("currency_conflict", not clash,
+                     f"{decision.decision} {s} would bet against an open position: " + "; ".join(clash) if clash else
+                     "no open position on the opposite side of either currency")
+
+    def trade_risk_budget(self, account: AccountState) -> float | None:
+        """The most the next trade would be sized to lose (before lot rounding), from the same rule evaluate() sizes
+        with; None without a positive equity."""
+        eq = account.equity
+        if eq is None or not eq > 0:
+            return None
+        L = self.limits
+        mult = streak_multiplier(account.closed_r, L.loss_streak_step, L.loss_streak_floor)
+        budget = eq * L.effective_risk_pct() * mult / 100
+        return min(budget, L.hard.risk_per_trade * mult) if L.hard is not None else budget
+
+    def _c_weekend_carry(self, decision, now: int) -> Check | None:
+        """No new position that could still be open at the Friday close (17:00 New York), if the limits say so."""
+        if not self.limits.no_weekend_carry:
+            return None
+        hold_s = (int(getattr(decision, "max_hold_minutes", 0) or 0) * 60
+                  or int(getattr(decision, "max_hold_hours", 0) or 0) * 3600 or 48 * 3600)
+        ny = datetime.fromtimestamp(now, NEW_YORK)
+        close = (ny + timedelta(days=(4 - ny.weekday()) % 7)).replace(hour=17, minute=0, second=0, microsecond=0)
+        closed = ny.weekday() == 5 or (ny.weekday() == 4 and ny >= close) or (ny.weekday() == 6 and ny.hour < 17)
+        latest = datetime.fromtimestamp(now + hold_s, NEW_YORK)
+        return Check("weekend_carry", not closed and latest <= close,
+                     f"{ny:%a %H:%M} New York: the market is closed for the weekend" if closed else
+                     f"held up to {hold_s // 60} min it could still be open at the Friday close ({close:%a %H:%M} New York)")
+
     def _c_weekend(self, now: int) -> Check | None:
         if self.limits.funded and self.limits.funded.no_weekend_holding:
             wd = datetime.fromtimestamp(now, timezone.utc)
             return Check("funded_weekend", not (wd.weekday() == 4 and wd.hour >= 16), "no new positions late Friday")
         return None
 
-    def account_gates(self, account: AccountState, instrument: str, now: int) -> list[Check]:
+    def account_gates(self, account: AccountState, instrument: str, now: int, news: dict | None = None) -> list[Check]:
         """The checks that refuse ANY new trade on `instrument` whatever its levels: the same
         definitions evaluate() applies. Used to avoid asking a model for a trade the account cannot
         take (a spent daily loss limit, full positions); evaluate() still decides every trade."""
@@ -310,16 +512,20 @@ class RiskEngine:
         if not out[-1].passed:
             return out
         out += [self._c_daily(account), self._c_weekly(account), self._c_drawdown(account)[0]]
-        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_quiet_hours(now)) if c is not None]
+        out += [c for c in (self._c_funded_total(account), self._c_weekend(now), self._c_quiet_hours(now),
+                            self._c_calendar(now), self._c_news(news)) if c is not None]
         out += self._c_positions(account, instrument)
         return out
 
     def evaluate(self, decision, account: AccountState, spec: InstrumentSpec | None, quote: Quote | None,
                  now: int, executed_ids: set[str] | frozenset = frozenset(),
-                 data_flags: tuple[str, ...] | list[str] = (), swap_per_night: float = 0.0) -> RiskVerdict:
+                 data_flags: tuple[str, ...] | list[str] = (), swap_per_night: float = 0.0,
+                 news: dict | None = None, structure: dict | None = None,
+                 opens_at: int | None = None) -> RiskVerdict:
         L = self.limits
         v = RiskVerdict(decision.id, False)
         checks = v.checks
+        opens = now if opens_at is None else max(now, int(opens_at))  # when the position would open: the time rules
 
         def check(name: str, ok: bool, detail: str) -> bool:
             checks.append(Check(name, bool(ok), detail))
@@ -342,8 +548,11 @@ class RiskEngine:
         eq = account.equity
         ok &= add(self._c_equity(account))
         ok &= check("spec", spec is not None and spec.tradable, "instrument spec missing or not tradable" if not (spec and spec.tradable) else "ok")
-        fresh = quote is not None and quote.bid > 0 and quote.ask >= quote.bid and now - quote.time <= L.max_quote_age_s
-        ok &= check("quote", fresh, "no quote" if quote is None else f"age {now - quote.time}s, bid {quote.bid}, ask {quote.ask}")
+        age = None if quote is None else opens - quote.time  # at the moment the position would open
+        fresh = (quote is not None and quote.bid > 0 and quote.ask >= quote.bid
+                 and -QUOTE_FUTURE_S <= age <= L.max_quote_age_s)
+        ok &= check("quote", fresh, "no quote" if quote is None else
+                    f"age {age}s at opening (max {L.max_quote_age_s}s), bid {quote.bid}, ask {quote.ask}")
         if not ok:
             return v
 
@@ -389,8 +598,13 @@ class RiskEngine:
         ok = ok and v.halt is None
         for c in self._c_positions(account, decision.instrument):
             ok &= add(c)
-        ok &= add(self._c_weekend(now))
-        ok &= add(self._c_quiet_hours(now))
+        ok &= add(self._c_currency_conflict(decision, account))
+        ok &= add(self._c_weekend(opens))
+        ok &= add(self._c_quiet_hours(opens))
+        ok &= add(self._c_calendar(opens))
+        ok &= add(self._c_news(news))
+        ok &= add(self._c_structure(structure))
+        ok &= add(self._c_weekend_carry(decision, opens))
         if not ok:
             return v
 

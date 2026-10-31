@@ -85,6 +85,22 @@ def test_blocking_conditions_force_no_trade_whatever_the_evidence(kw, code):
     assert th.decision.no_trade_reason.startswith("blocked:")
 
 
+@pytest.mark.parametrize("news,unknown", [
+    (None, "no economic calendar connected"),
+    ({"feed": {"status": "UNAVAILABLE", "reason": "last copy is 80 h old"}, "events": None}, "last copy is 80 h old"),
+    ({"feed": {"status": "FRESH", "age_min": 3}, "events": []}, None),
+    ({"feed": {"status": "CACHED", "age_min": 70}, "events": [{"minutes_away": 300, "impact": "High"}]}, None),
+])
+def test_event_risk_is_unknown_only_when_no_calendar_was_read(news, unknown):
+    c = ctx(analogs={"T1:BUY": analog("T1:BUY", 0.5, 0.02)})
+    c.news = news
+    said = [o.message for o in brain().think(c, V).reports["risk"].objections if o.code == "EVENT_RISK_UNKNOWN"]
+    if unknown is None:
+        assert said == []  # a calendar was read: the traders are never told there is none
+    else:
+        assert len(said) == 1 and unknown in said[0] and "unknown, not zero" in said[0]
+
+
 def test_a_crashing_agent_fails_closed():
     class Broken(AdversarialAnalyst):
         def analyze(self, ctx, candidates):

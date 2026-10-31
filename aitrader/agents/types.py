@@ -16,7 +16,9 @@ from ..regime.model import RegimeState
 
 #: 1.1.0: an independent Reviewer runs before synthesis (evidence-quality checks moved
 #: from the Adversary, same codes and severities; four new MINOR quality checks).
-AGENT_VERSION = "agents-1.1.0"
+#: 1.2.0: the risk analyst's EVENT_RISK_UNKNOWN follows the pair's calendar view: raised when no
+#: calendar was read, never when one was (it told the traders none was connected while they read it).
+AGENT_VERSION = "agents-1.2.0"
 
 SEVERITIES = ("BLOCKING", "MAJOR", "MINOR")
 
@@ -202,6 +204,8 @@ class MarketContext:
     # draws its chart from them) and the declared cost estimate at the decision quote.
     bars: dict = field(default_factory=dict)
     costs: dict | None = None
+    #: seconds left, when the decision starts, before it would be too old to execute; None: no limit is known
+    decide_within_s: float | None = None
 
     def as_dict(self) -> dict:
         return {

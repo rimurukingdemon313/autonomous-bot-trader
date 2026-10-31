@@ -12,7 +12,11 @@ MARKET DATA (completed bars, live quote)
                                     numbers, on a text model)
   -> TRADER 2  (independent)        reads raw OHLC, both timeframes, costs,
                                     the chart and Trader 1's analysis      -> BUY or SELL, its own levels
-  -> same side?      AGREE          a trade, on the more confident trader's levels (Trader 1 on a tie)
+  -> same side?      AGREE          a trade, on Trader 1's levels (dual-ai 1.10.0; Trader 2's own levels are
+                                    followed forward in shadow, never traded), only when BOTH state a
+                                    confidence of 65 or more (dual-ai 1.12.0)
+     same side, a confidence under 65?
+                     LOW_CONFIDENCE NO TRADE. The trade it would have been is followed forward in shadow
      opposite side?  DISAGREE       NO TRADE. One debate still runs IN SHADOW: a third model reads both analyses,
                                     the data and the chart and picks BUY or SELL; its pick and the side it rejected
                                     are followed forward as if taken, never traded. Never a second round.
@@ -32,13 +36,27 @@ MARKET DATA (completed bars, live quote)
 
 Each trader **must** choose BUY or SELL. When the market is mixed, it chooses the stronger side and says how
 strong in its confidence (0-100). A refusal is not an answer: a reply of `NO_TRADE` (or anything other than
-BUY/SELL) is malformed. Confidence never changes a size and is not a gate; it is recorded and compared with
-outcomes.
+BUY/SELL) is malformed. Confidence never changes a size. Since dual-ai 1.12.0 it is a gate that can only
+remove a trade: an agreement is traded only when both traders state 65 or more (below). The traders are not
+told the floor, so it cannot move what they state.
 
 The risk engine still blocks whatever it blocks: impossible stop or target, invalid price or size, a spread or
 cost too large for the stop, reward:risk below its minimum (1.2), the daily loss limit, the maximum drawdown,
 exposure, an open position on the pair, every hard rule. The traders are told the per-trade limits (minimum stop
 distance at this spread, minimum reward:risk) so their levels can be executed; they cannot change them.
+
+### Levels the risk engine can accept (dual-ai 1.4.0, 2026-10-14; replaced by 1.10.0)
+
+Since dual-ai 1.10.0 (2026-10-25, H3 below) a trade is always on Trader 1's levels. When they fall outside the
+risk engine's limits, it refuses them (followed forward), and Trader 2's are no longer used instead.
+What 1.4.0 did, for the record:
+
+On 2026-10-14, 27 of 51 agreements were refused by the risk engine for their levels (reward:risk below 1.2, or
+costs above a quarter of the stop); in 13 of them the other trader's own levels respected those limits. When both
+traders choose the same side and the more confident one's levels fall inside the risk engine's published
+per-trade limits (`RiskEngine.trade_limits`: minimum stop distance and minimum reward:risk, at the executable
+price) while the other's respect them, the other's levels are used (`consensus.levels_reason` says so). Both
+sets are the traders' own and are never edited; the risk engine still decides with the live quote.
 
 ### What the losses showed, and what is measured now (2026-10-14)
 
@@ -52,8 +70,79 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   moved to the entry once +1R is reached (`DUAL_AI_EXIT_BE1R`, from the bar after the one that reached it), held
   24 h (`..._HOLD24H`), and with stop and target twice as far, held 24 h (`..._WIDE2X`: costs half the share
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
-  entries; the report prints the comparison.
+  entries; the report prints the comparison. Since forward 1.2.0 also closed at 8 h (`..._HOLD8H`): the exit
+  the trades had before dual-ai 1.7.0.
+- **The chart: H1, held up to 48 h** (dual-ai 1.11.0, owner, 2026-10-31: "a longer timeframe, H1 for
+  example"). The desk reads H1 with H4 above it, plans and holds a trade up to 48 h, and every time exit
+  closes by 16:00 New York on Friday; the traders are told the time a trade really has. Over the 479
+  agreements followed forward on M15 the desk earned +0.06 R a trade before costs and paid 0.19 R in them:
+  the costs, not the direction, were the loss. The same agreements with stop and target twice as far (the
+  closest measure of H1 levels, `WIDE2X`) did +0.10 R a trade better on 118 pairs (-0.03 R against -0.13 R),
+  their costs falling from 0.18 R to 0.09 R of the risk. The M15 path stays, named by `EXECUTION_TF`.
+  - Before it (dual-ai 1.9.0, 2026-10-22): asked for a bigger timeframe, the desk was set to trade H1 (1.8.0)
+    and set back to M15 before 1.8.0 traded live, keeping the 24 h time exit. On the 60 trades followed in
+    shadow then, the levels as taken held 24 h did +$4,360 better than the trades did, and stop and target
+    twice as far +$2,289. With the 24 h hold in place, the wider levels are what was left to gain.
+- **Both traders sure: 65 or more** (dual-ai 1.12.0, owner, 2026-10-31: "the AI enters only when it is very
+  confident"). An agreement is a trade only when both traders state a confidence of 65 or more; below it,
+  it is NO_TRADE (`LOW_CONFIDENCE`), and the trade it would have been is followed forward in shadow
+  (`DUAL_AI_LOW_CONFIDENCE`, `low_confidence_in_shadow`; the report prints it). It only ever removes a trade.
+  What the forward record says, honestly:
+  - Over 479 agreements on M15, the lower of the two confidences under 60 lost -0.25 R a trade (182), and
+    60 or more lost -0.05 R (297): Welch t 1.8.
+  - With stop and target twice as far (the H1-like levels of 1.11.0), the agreements at 65 or more did
+    +0.33 R a trade (34), against -0.18 R below (84).
+  - These are small samples, read from the same record, and confidences come from several model pairs,
+    each calibrated its own way. The paid pair of the week to 30 October stated under 60 in 98 of its 109
+    agreements. So this is a floor the owner asked for, not a proven edge.
+  - It is reviewed when the shadow has 30 resolved trades. If those do better than the trades taken, the
+    floor costs money, and that is reported.
+- **Time exit: 24 h** (dual-ai 1.7.0, operator, 2026-10-20): an M15 trade stays open up to 24 h, not 8 h, and
+  always closes by 16:00 New York on Friday, an hour before the weekend close (so the weekend rule never refuses
+  a trade for it). The traders still plan their levels for 8 h, as in the trades that measured it. Of 31 trades
+  followed again held 24 h, 24 ended the same (stop or target inside 8 h), 7 did better (6 reached their
+  target after the 8 h exit had closed them early) and none did worse: +0.19 R a trade. Only 3 of the 31 were
+  opened after the hypothesis was registered, so it is adopted before its threshold, on the operator's word;
+  HOLD8H keeps the old exit measured, and the change is reversed if, over 30 trades, it does 0.15 R or more worse.
 - **By session**: `taken_by_session` splits the trades taken by UTC session.
+- **Closed days and hours** (risk 1.8.0/1.9.0, operator, 2026-10-17): no new position in the London/New York overlap,
+  12:00-16:00 UTC, on Friday from 12:00 UTC, nor on Saturday or Sunday; the traders are not asked then.
+- **Scheduled news** (risk 1.10.0, Medium since 1.11.0): no new position from 30 min before to 30 min after a High-
+  or Medium-impact release for the pair's currencies; without a readable calendar the desk stands aside. The
+  traders are not asked then. Low impact never closes the window. Medium was added on the operator's word
+  (2026-10-19, "do not trade against the news"), not on a measured loss: that week the UK earnings (Tue) and the
+  flash PMIs (Fri) were Medium, and a High-only window let a trade open into them. Of the 50 trades before it, 5
+  were held through a Medium release (mostly speeches: 40% won, -0.30 R), too few to say more.
+- **What the traders are told about event risk** (agents 1.2.0, from the first shift started after 2026-10-19
+  13:00 UTC): the risk analyst raises EVENT_RISK_UNKNOWN only when no calendar was read for the pair. Until then it
+  was raised on every decision, so Trader 2 read the calendar and, beside it, "no economic calendar connected";
+  every trade before that shift was decided with both lines.
+- **Never against itself** (risk 1.9.0): a trade on the opposite side of a currency an open position holds is refused
+  (11 such trades so far: 36% won, -0.21 R each; the rest +0.23 R). Refused trades are still followed forward.
+- **Not in chop** (risk 1.12.0, operator, 2026-10-19): no new position unless the pair's H1 structure (the market map
+  the traders read, confirmed swings only) is a clear trend, up (HH+HL) or down (LH+LL); a range (mixed swings, or too
+  few swings to tell) or an unreadable structure refuses it. Of the first 50 agreement trades, the 23 opened in an H1
+  range won 30%, -0.24 R each (-$2,395); the 27 in a clear trend won 63%, +0.23 R (+$2,894), with or against it
+  alike (with 11: +0.36 R; against 16: +0.15 R). This is hypothesis H1 below, adopted before its threshold because the
+  operator asked; it is checked after the traders answer, so every refused agreement is followed forward and the rule
+  is judged on what the trades it refused would have done.
+- **Time budget** (dual-ai 1.5.0, orchestrator 1.19.0): each decision is told how long it has before it would be
+  too old to execute (the execution engine's 900 s, less the quote wait and a margin). A trader is asked only
+  while its answer can still execute, and never for longer than is left; the shadow debate waits at most
+  120 s. Live (2026-10-16), a debate that waited 420 s on a busy model made the next pair's agreement 1103 s
+  old, and it was refused as stale.
+- **Each pair at its own turn** (orchestrator 1.22.0, openrouter 1.8.0, risk 1.13.0, 2026-10-19): the pairs of a
+  cycle are decided one after another, and each now decides on the data of its own turn with its whole budget.
+  Stamped with the cycle's start, the second pair began already aged by the first one's model calls: that day
+  two pairs reached their traders with 0 s left after 13-14 min on the pair before. A model request never waits
+  past its role's deadline (a 180 s wait could begin with less left), and a lone request cut short by it is not
+  held against the model. The time rules (the trading calendar, quiet hours, the weekend) and the news window
+  are judged when the position would open, after the traders answered: an answer takes minutes, and a decision
+  begun at 11:50 could otherwise open a position in the 12:00 overlap, or 20 minutes before a release.
+- **The gate's open-risk room** (orchestrator 1.19.0, gate 1.2.0): the hard gate values open positions to their
+  stops from the current price, so profitable ones count for more than their planned risk. When the next
+  trade's risk does not fit in what is left, the traders are not asked: the gate would refuse it (six approved
+  trades were, on 2026-10-16).
 - **Quiet hours** (risk 1.6.0, the risk engine's own limit for MODE=PAPER_FORWARD): no new position from 16:00 to 20:00 New York
   (DST-aware; 23:00-03:00 Baghdad in summer), an hour before the 17:00 rollover to the Tokyo open, when
   liquidity is thinnest and spreads widest. Split by session, the first 14 trades were: Asia +$88 (3), London
@@ -92,7 +181,8 @@ standing aside is right is measured, not assumed. The prompts are unchanged, so 
 | rule | when | models asked |
 |---|---|---|
 | `DISAGREE` | the traders chose opposite sides: stand aside (the debate runs in shadow; if it gives no usable answer, nothing is followed) | 3 |
-| `MARKET_UNAVAILABLE` | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine's account checks already refuse any trade | none |
+| `LOW_CONFIDENCE` | the same side, but not both at 65 or more (dual-ai 1.12.0): the trade it would have been, on Trader 1's levels and held as a trade, is followed forward (`DUAL_AI_LOW_CONFIDENCE`) | 2 |
+| `NOT_ASKED` (`MARKET_UNAVAILABLE` before dual-ai 1.6.0) | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine already refuses any trade (the calendar, a news window, full positions); the reason names the rule that refused | none |
 | `AI_UNAVAILABLE` | `OPENROUTER_API_KEY` not set | none |
 | `NO_CHART` | not enough completed bars to draw the chart | none |
 | `TRADER1_UNAVAILABLE` / `TRADER2_UNAVAILABLE` | that trader's model gave no usable answer: unavailable, rate-limited, quota spent, malformed, impossible levels (for Trader 1: no vision model, and then no text model reading the chart's numbers) | 1 / 2 |
@@ -122,7 +212,8 @@ Every model asked before the one that answered is recorded on the call with its 
 after it change nothing, and the same bars always give the same bytes (both are tested).
 
 - header: instrument, timeframes, time, bid/ask/spread, trend per panel, ATR(14), volatility and its percentile;
-- upper panel, execution timeframe (M15 with at least 60 completed bars, else H1), last 100 candles: confirmed
+- upper panel, execution timeframe (H1 since dual-ai 1.11.0; M15 when `EXECUTION_TF` names it and it has at
+  least 60 completed bars), last 100 candles: confirmed
   swings labelled HH/HL/LH/LL, BOS/CHoCH breaks, the order block (tested/broken), fair value gaps
   (open/mitigated), equal highs/lows (liquidity), sweeps, displacement candles, support/resistance clusters,
   previous day/week high/low, bid and ask lines, and the ENTRY ZONE (±1 H1 ATR around the price);
@@ -133,6 +224,56 @@ Every mark is computed by walking forward (`charts/annotate.py`, the same detect
 a swing exists only after its two confirming bars have closed. Every mark also travels as numbers
 (`chart_marks`), so no model has to read a price off pixels, and a text-only model gets the same chart.
 The last chart per pair is on the dashboard and saved under `DATA_DIR/charts/` (newest 300).
+
+## The paid trial (owner, 2026-10-23, `aitrader/llm/paid_trial.py`)
+
+The owner put $10 on the OpenRouter key: "use it for the models, but make it last a week; cheap, but not stupid".
+For the trading week Monday 26 to Friday 30 October (the window closes as Saturday 31 begins), each trader's
+seat asks a paid model first, and the FREE models of that seat stay its fallbacks. The debate and Trader 1's
+numbers fallback stay FREE. Nothing else changes: the prompts, the agreement rule, the risk engine, the gate and
+the sizes are the same code.
+
+They were chosen on the live catalog that day by the Artificial Analysis intelligence index OpenRouter lists, the
+price, and one real trading question each (side branch `dual-ai-check-results`, c0bfa28):
+
+| seat | model | index | $ per million in / out | measured |
+|---|---|---|---|---|
+| Trader 1 (reads the chart) | `xiaomi/mimo-v2.6-pro` | 46.3, the strongest cheap model that reads images | 0.435 / 0.87 | 21 s, $0.0025 for a 4k-token question |
+| Trader 2 (independent, another lab) | `anthropic/claude-haiku-5.5` | 43.4 | 0.10 / 0.50 | 5 s, $0.0006 |
+
+The free models that traded scored 22.9 (`nemotron-3-ultra`) and 25.7 (`inkling-small`). At the traders' real
+prompt size, about 15k tokens, a decision costs about $0.009, and up to 100 decisions a day about $0.90. (The
+author of this code is a Claude model from Anthropic, and Trader 2 is one too: it was chosen on the numbers above,
+and Trader 1 is from another lab so that an agreement is between two different minds.)
+
+What keeps the spend inside the owner's $10:
+
+- **Caps, read from the key itself.** $9.00 in all (everything the key ever spent counts) and $1.80 per UTC day.
+  Both are read from GET /key (`usage`, `usage_daily`), plus what this process spent since that read, plus the
+  most the next call could cost (30k tokens in, its max_tokens out). If either reading is missing, nothing paid
+  is asked. A new UTC day is read before anything paid is asked that day.
+- **Price as declared.** A paid model is asked only while the catalog lists it at or below its declared prices
+  (Trader 1 0.50 / 1.00, Trader 2 0.12 / 0.60, no per-item charge). Only the prices a request from this
+  client can be charged are checked: the prompt, the completion and its reasoning, a provider's automatic
+  cache read, the request and each image (`CHARGED_*`). Web search, prompt-cache writes and image or audio
+  output are never asked for, so their prices cannot be charged. This was paid-trial 1.2.0, on Monday
+  26 October: first Haiku's $0.01 web-search price, then its cache-write price, kept Trader 2's seat on
+  the free models all morning. Haiku's dearer tier from 100k prompt tokens is out of reach, because a
+  trader's prompt is 8k-26k. A reply that costs more than $0.03 is
+  discarded, and it ends the trial for the process.
+- **Stops.** A 402 (credits spent) ends the trial, and the FREE models answer that same decision. So does
+  `OPENROUTER_PAID_TRIAL=off`, which the owner can set at any time; nothing in the environment can start, widen or
+  extend the trial. Spend on the key beyond what this process's paid replies account for (a call whose cost is
+  unknown is counted at its most), plus $0.05, still stops every request (PAID_USAGE). For that reason, do not
+  run the live check (`dual-ai-check`) during a shift while the trial runs: its paid calls would stop the shift's
+  bot, safely but needlessly.
+- **Recorded.** Every call records its model and its cost. Decisions carry `paid_trial` in their versions, and the
+  shift report shows the trial's state and spend, as the key reads it.
+
+H6, registered before the trial's first trade: an agreement trade with both seats paid, against the trades of the
+free seats. Compared at the end of the week on the trades it produced, with the sample labelled. Fewer than 30
+trades is inconclusive, and no decision is taken on it alone. H5 (`nemotron-3-ultra` out) is judged on the trades
+with a FREE model in Trader 2's seat only.
 
 ## Free models only
 
@@ -145,12 +286,12 @@ One key, `OPENROUTER_API_KEY`, powers all three roles. A model is used only if *
 - it writes text only (audio/image generators are billed per item; embedding/rerank models write vectors);
 - no price in its description; not a router, safety/guard classifier, embedding, rerank or speech model.
 
-At run time: a reply that reports a cost above zero, or one served by another model, is discarded and that
+Outside the paid trial (above), at run time: a reply that reports a cost above zero, or one served by another model, is discarded and that
 model is never used again; if the key's spent credit (GET /key `usage`) ever rises while the bot runs, **no
 further request is made** (`PAID_USAGE_STOPPED`). Use this key for this bot only. There is never a paid
 fallback: no free model, no call, NO_TRADE (`AI_UNAVAILABLE`-class).
 
-### Selection (declared score, from catalog fields only, never from trading results)
+### Selection (declared score, from catalog fields only, never from trading results, with one declared exception)
 
 - capability = the catalog's independent Artificial Analysis intelligence index (else from the parameter
   count, at most 12);
@@ -162,13 +303,22 @@ fallback: no free model, no call, NO_TRADE (`AI_UNAVAILABLE`-class).
 
 With only two suitable models, the stronger reasoner of the two is reused for the debate.
 
+**One declared exception, from the desk's own record (free-models 1.4.0, operator, 2026-10-23):**
+`RECORD_EXCLUDED` takes a model out of every seat, each with the forward record that put it there; nothing adds
+to it automatically, and a pin cannot bring it back. Its one entry is `nvidia/nemotron-3-ultra-550b-a55b:free`.
+In Trader 2's seat its 125 agreements, followed forward, won 30% at -0.35 R each; the 175 agreements with
+another model in that seat (when it was busy) won 50% at +0.09 R. Within 3 h of each other the gap was -0.39 R
+(standard error 0.15), and it was worse on 6 of the 8 days both sat. Of the 92 agreement trades to 04:20 UTC that
+day, the 47 it sat in made -$2,739.99 and the other 45 +$1,321.48: more than the account's whole loss (-$1,418.51). The next free model in the ranking takes
+the seat, as it already did whenever this one was busy.
+
 **Picks on the live catalog, 2026-10-10 19:14 UTC** (458 models, 14 qualifying free, 6 with image input;
 `research/results/openrouter-free-models.json`):
 
 | role | model | why |
 |---|---|---|
 | Trader 1 (vision) | `thinkingmachines/inkling-small:free` | highest intelligence index of the free image models (25.7), 1M context, reasoning; fallback `thinkingmachines/inkling:free` (25.0) |
-| Trader 2 (independent) | `nvidia/nemotron-3-ultra-550b-a55b:free` | the strongest free reasoner of another family (22.9; 550B, 1M context); text only, so it reads the chart's marks as numbers |
+| Trader 2 (independent) | `nvidia/nemotron-3-ultra-550b-a55b:free` | the strongest free reasoner of another family (22.9; 550B, 1M context); text only, so it reads the chart's marks as numbers. **Excluded since free-models 1.4.0** (above) |
 | Debate | `google/gemma-4-26b-a4b-it:free` | a third family, sees the chart image (16.7) |
 
 The catalog changes; the selection is recomputed hourly and on failures. Optional pins
@@ -221,6 +371,52 @@ Trader 2 and the debate are shown this record from LEARNING weeks only (every th
 is never learned from). Nothing moves a rule, a size or a limit; the desk's trades are never averaged with
 another mode's.
 
+## Hypotheses under test (registered 2026-10-17, before the data that will judge them)
+
+Read from the first 41 agreement trades. Many splits were tried that day, so a split that looks strong may be
+chance; none of these is a rule. Each is judged on agreement trades opened from 2026-10-19 only, never on the
+trades it was found in, and adopted (as a risk-engine refusal) only if it holds there. Agents 1.2.0 (what Trader 2
+is told about event risk) began on 2026-10-19, inside that window: the trades keep their version stamp and are
+read per version as well as together.
+
+| Hypothesis | Found in (41 trades) | Adopt if, on new trades |
+|---|---|---|
+| H1 structure "range (mixed swings)" loses; a clear H1 structure (up or down) wins | range 21: 33% won, -0.18 R; clear 20: +0.43 R | each group has 20+ trades and range is 0.3 R or more below clear. **Adopted early by the operator (2026-10-19, risk 1.12.0)**: since then the range group is the refused agreements, followed forward; the rule is reversed if they do not do 0.3 R or more worse than the trades taken, over 20+ of each. **Reversed 2026-10-28 (risk 1.15.0)** on that condition: on Trader 1's levels, counted once per pair, 34 refused for structure alone did +0.03 R against 53 taken at -0.05 R |
+| Chasing loses: a BUY with H1 RSI above 65, a SELL below 35 | 7 trades: 29% won, -0.30 R; the rest +0.20 R | 15+ chasing trades, 0.3 R or more below the rest |
+| Trader 2's levels lose when used | 7 trades: 29% won, -0.24 R; Trader 1's 34: +0.19 R | 15+ trades on Trader 2's levels, 0.3 R or more below. **Adopted 2026-10-25 (dual-ai 1.10.0), as registered**: from 2026-10-19, 21 trades on Trader 2's levels at -0.57 R against 37 on Trader 1's at +0.06 R. Every agreement since, followed forward: 55 at -0.38 R (31% won) against 129 at +0.07 R (46%). It held whichever model sat as Trader 2 (ultra 12 at -0.52 R, the others 9 at -0.64 R). Trader 2's own levels are now the shadow (`DUAL_AI_T2_LEVELS`, `trader2_levels_in_shadow`) |
+| Holding 24 h beats the 8 h exit | shadow, 19 trades: +0.39 R vs +0.13 R | 30+ paired trades in shadow, 0.15 R or more better. **Adopted early by the operator (2026-10-20, dual-ai 1.7.0)** at 31 pairs, +0.19 R (7 better, none worse), of which 3 opened after registration; since then the 8 h exit is the shadow (HOLD8H) |
+| Agreements refused for reward:risk under 1.2 would have paid | shadow, 34: +0.15 R, 59% won | 50+ in shadow and still positive; it would loosen a limit, so it needs the most |
+
+Read on 2026-10-25, over the trades opened from 2026-10-19:
+
+- **H1, the structure rule.** As registered, its refused agreements were followed forward and set against the
+  trades taken. Counted once per pair while one would still be open, 28 refused for structure alone did
+  +0.24 R; the 58 taken did -0.17 R. By the letter, that reverses the rule.
+  - That comparison mixes in Trader 2's levels, which 1.10.0 no longer trades.
+  - On Trader 1's levels the refused did worse than the taken: 21 at -0.07 R against 37 at +0.06 R. That is
+    0.12 R, short of the 0.3 R that would confirm the rule.
+  - 7 of the 28 came from one Tuesday morning (20 Oct, 00:15-09:15 UTC), 6 of them winners. Without them, the
+    other 21 did +0.01 R.
+  - The rule stays, the operator's call to overrule. It is judged again on Trader 1's levels only, with the
+    same threshold.
+  - Judged again on 2026-10-28, on Trader 1's levels only: 34 refused (once per pair) at +0.03 R against 53 taken
+    at -0.05 R. Not 0.3 R worse, so the rule is reversed (risk 1.15.0). The H1 structure of every decision is
+    still recorded, so the trades now taken in a range can be read apart.
+- **Chasing.** It cannot be judged from the record: the decisions do not store H1 RSI.
+- **Reward:risk refused under 1.2.** 47 in shadow at +0.25 R (62% won), against the 50+ registered. Loosening
+  a limit is the operator's decision even then.
+
+Already adopted the same day, with a reason beyond the numbers: no trade against a currency already held (the
+account would bet against itself); the overlap, late Friday and the weekend closed (operator); High-impact news
+windows (event risk). These are still measured: risk-refused trades are followed forward. On 2026-10-19 the
+operator added Medium-impact news windows (risk 1.11.0) and H1 above (risk 1.12.0): both only ever refuse. On
+2026-10-20, H4 (the 24 h time exit, dual-ai 1.7.0): it changes when a trade is closed, never its size or levels.
+On 2026-10-23, H5 (free-models 1.4.0): `nemotron-3-ultra` no longer sits as Trader 2 (Selection, above). It
+changes which free model answers, never a rule, a size or a level. It is judged on the first 30 agreement trades
+taken under free-models 1.4.0: kept if their average is above the -0.14 R a trade made with that model in the
+seat (47 trades), and reviewed otherwise. Like every split read from the same data, part of the gap may be
+chance: the models that took the seat can be expected to do worse than their +0.09 R so far.
+
 ## Configuration and activation
 
 Local (`.env` is in `.gitignore`; the environment always wins over the file):
@@ -244,8 +440,24 @@ requests never pile up. On a key without credits (50 a day) set `PF_DECISION_INT
 
 The dashboard's DUAL AI DESK panel (`/api/dual_ai`, `/api/dual_ai/chart.png?symbol=`) shows the OpenRouter
 status, the three models, the last analysis with both traders' answers and the debate, the risk engine's
-verdict, the open paper positions, AI trades, wins, losses, expectancy, profit factor and drawdown. The key is
-shown only as `…` and its last four characters, and is never logged, stored or returned.
+verdict, the open paper positions, and the desk's trades: wins, losses, net P&L, expectancy, profit factor and
+drawdown. The key is shown only as `…` and its last four characters, and is never logged, stored or returned.
+
+**One figure per rule.** Two rules are never averaged into one number ([VERSIONING.md](VERSIONING.md)). The
+desk's figures (`performance`, `recent_trades`, and the head of `REPORT.md`) are those of the rule it trades:
+AGREE. The trades of the debate rule, which traded on a disagreement until dual-ai 1.2.0 stopped it, are shown
+apart under `retired_rules` with their own figures; `performance_by_rule` has every rule, and
+`performance_all_rules` every desk trade, nothing left out. Every closed trade carries its `rule`
+(`paper_metrics.rule_of`, from `outcome.dual_ai.rule`); a desk trade whose rule cannot be read is `UNKNOWN`,
+never counted as agreement.
+
+**The retired rule's trades removed from the account (operator's request, 2026-10-15).** The journal is
+append-only: no trade is ever deleted from it. The 4 debate-rule trades were taken out of the paper account by a
+declared adjustment (`aitrader/broker/adjustments.py`): their net P/L as the broker booked it (−$1,416.51) is
+put back once, journaled (`PAPER_ADJUSTMENT`), and every report shows it beside the equity, with the equity it
+replaced. They are listed apart (`removed_trades`, `retired_rules.DEBATE.removed_from_account`) and are in none
+of the account's figures. The desk's own learning record still holds them: what the debate did is a fact the
+traders are shown.
 
 ## Live check (the real services, on demand)
 

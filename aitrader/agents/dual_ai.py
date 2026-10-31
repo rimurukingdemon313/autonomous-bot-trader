@@ -31,8 +31,9 @@ and a stated confidence never changes a size.
 
 NO_TRADE is a market opinion here in one case only: the traders disagree (DISAGREE). Otherwise it means the
 decision could not be made at all:
-- MARKET_UNAVAILABLE: stale or bad data, no quote, a position already open on the pair, trading paused, or the
-  risk engine's account checks already refuse any trade (nothing is spent asking);
+- NOT_ASKED (MARKET_UNAVAILABLE before 1.6.0): stale or bad data, no quote, a position already open on the pair,
+  trading paused, or the risk engine already refuses any trade (the calendar, a news window, full positions);
+  nothing is spent asking, and the reason says which;
 - AI_UNAVAILABLE: no OpenRouter key configured;
 - NO_CHART, or a trader gave no usable answer (unavailable, quota spent, malformed): no decision is made on one
   trader alone, and a reply is never repaired;
@@ -56,14 +57,17 @@ import dataclasses
 import json
 import math
 import threading
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from ..charts.render import RENDER_VERSION, Chart, render_chart
 from ..data.resample import resample
 from ..decision.synthesis import Decision, decision_id
 from ..llm.free_models import FREE_MODELS_VERSION
 from ..llm.openrouter import OPENROUTER_VERSION
+from ..llm.paid_trial import PAID_TRIAL, PAID_TRIAL_VERSION
 from .llm_trader import MAX_STOP_ATR, agent_digest, no_trade_decision, pre_model_block, trade_decision, with_ai
 from .types import MarketContext
 
@@ -77,21 +81,92 @@ from .types import MarketContext
 #:        vision model gives a usable answer, Trader 1 reads the same chart from its numbers (every mark at its exact
 #:        price) on a text model of the third pool, never one already asked for the decision; recorded as
 #:        trader1_input "numbers" (else "image"). The image prompt is unchanged.
-DUAL_AI_VERSION = "dual-ai-1.3.0"
+#: 1.4.0 (live, 2026-10-14: 27 of 51 agreements refused by the risk engine for their levels; in 13 the other
+#:        trader's own levels respected its limits): when both choose the same side and the more confident trader's
+#:        levels fall inside the risk engine's published per-trade limits (RiskEngine.trade_limits: minimum stop
+#:        distance, minimum reward:risk, at the executable price) while the other's respect them, the other's are
+#:        used. Both are the traders' own, never edited; the risk engine still decides.
+#: 1.5.0 (live, 2026-10-16: two agreements refused as stale, 933 s and 1103 s old, after the other pair's shadow
+#:        debate waited 420 s on a busy model): every call has a time budget. A trader is asked only while the
+#:        decision can still execute in time (MarketContext.decide_within_s), and never for longer than is left;
+#:        the shadow debate, measurement only, waits at most SHADOW_DEBATE_DEADLINE_S. Prompts are unchanged.
+#: 1.6.0 (operator, 2026-10-19): a decision refused before the traders are asked is NOT_ASKED, with the refusal
+#:        as its reason ("risk engine: trading_calendar (...)"); it read "market unavailable for a decision", 88
+#:        times that day, when the market was there and a rule had refused. Record only: nothing decides by it.
+#: 1.7.0 (operator, 2026-10-20: "find the fix for the losses"): an M15 trade stays open up to 24 h (TIME_EXIT_MINUTES),
+#:        not 8 h, and always closes an hour before the Friday close. Registered hypothesis H4: of 31 trades followed
+#:        again in shadow with the same levels, holding 24 h did better in 7 and worse in none (+0.19 R a trade): the
+#:        8 h exit closed trades still running toward their targets, and 6 of the 7 reached them. The traders still
+#:        plan their levels for HOLD_MINUTES, as in those trades; the old 8 h exit is followed in shadow (HOLD8H).
+#: 1.8.0 (operator, 2026-10-22: "a bigger timeframe, keep it free"): the desk trades the H1 chart (EXECUTION_TF), H4
+#:        above it, not M15. All 79 agreement trades so far were M15: their round-trip costs took a median 16% of
+#:        each trade's risk, about what the desk lost per trade (-0.05 R), and in shadow the same trades with stop
+#:        and target twice as far did +0.07 R better (60 pairs). On H1 the traders set wider levels from the larger
+#:        structure, so the same costs are a far smaller share. A trade is planned and held up to 48 h, closed by
+#:        16:00 New York on Friday; the traders are told the time it really has.
+#: 1.9.0 (operator, 2026-10-22, before 1.8.0 traded live): back to the M15 chart, keeping the 24 h time exit.
+#:        On the same 60 trades followed in shadow, the levels as taken held 24 h did +$4,360 better than the
+#:        trades did; stop and target twice as far (the closest measure of H1 levels) +$2,289. The H1 path
+#:        stays, named by EXECUTION_TF; the Friday cut of every time exit and hold_minutes stay.
+#: 1.10.0 (owner, 2026-10-25: "look at every trade, why it loses, and fix it"): a trade is always on Trader 1's
+#:         levels (LEVELS_FROM). Registered hypothesis H3 (2026-10-17, from 7 trades): Trader 2's levels lose when
+#:         used. Judged as registered, on the trades opened from 2026-10-19: on Trader 2's levels 21 trades at -0.57 R
+#:         against 37 on Trader 1's at +0.06 R (threshold: 15+ trades, 0.3 R below). Every agreement since, followed
+#:         forward: 55 at -0.38 R (31% won) against 129 at +0.07 R (46%). It held whichever model sat as Trader 2.
+#:         Both traders still decide together whether there is a trade (the same side). Trader 2's own levels are
+#:         followed forward in shadow (DUAL_AI_T2_LEVELS), never traded. Trader 1's levels outside the risk engine's
+#:         limits are refused by it, and no longer replaced by Trader 2's (1.4.0).
+#: 1.11.0 (owner, 2026-10-31: "a longer timeframe, H1 for example"): the desk trades the H1 chart again, H4 above it
+#:         (EXECUTION_TF, the 1.8.0 path), planned and held up to 48 h and closed by 16:00 New York on Friday. What
+#:         1.9.0 weighed is now settled by more trades: the 24 h hold it kept is in place, and on top of it the same
+#:         agreements with stop and target twice as far (the closest measure of H1 levels, WIDE2X) did +0.10 R a
+#:         trade better on 118 pairs (-0.03 R against -0.13 R), because costs fall from 0.18 R to 0.09 R of the risk.
+#:         Over 479 agreements followed forward the desk earned +0.06 R before costs and paid 0.19 R in them: on M15
+#:         the costs, not the direction, were the loss. The M15 path stays, named by EXECUTION_TF.
+#: 1.12.0 (owner, 2026-10-31: "the AI enters only when it is very confident"): an agreement is a trade only when
+#:         BOTH traders state a confidence of MIN_CONFIDENCE or more; below it, the agreement is NO_TRADE
+#:         (LOW_CONFIDENCE), and the trade it would have been (Trader 1's levels, held as a trade) is followed forward
+#:         in shadow (DUAL_AI_LOW_CONFIDENCE), never traded, so the floor stays measured. It only ever removes a
+#:         trade. In the forward record (479 agreements on M15) the lower of the two confidences under 60 lost
+#:         -0.25 R a trade (182) against -0.05 R at 60 or more (297), Welch t 1.8; and with stop and target twice as
+#:         far, the H1-like levels of 1.11.0, the agreements at 65 or more did +0.33 R (34) against -0.18 R below
+#:         (84). Small samples and one model pair's calibration among several: a floor the owner asked for, kept
+#:         honest by its shadow. The traders are not told it, so it cannot move what they state.
+DUAL_AI_VERSION = "dual-ai-1.12.0"
+#: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
+LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
 #: The two sides of a disagreement, followed forward under their own names (never traded): the side the shadow
 #: debate picked, and the side it rejected. Never mixed with the trades taken, in any statistic or lesson scope.
 PICK_FAMILY, PICK_SUFFIX = "DUAL_AI_DEBATE_PICK", ":debate-pick"
 LOSER_FAMILY, LOSER_SUFFIX = "DUAL_AI_DEBATE_LOSER", ":debate-loser"
-SHADOW = {PICK_FAMILY: (PICK_SUFFIX, "DEBATE_PICK_NOT_TRADED"), LOSER_FAMILY: (LOSER_SUFFIX, "LOST_THE_DEBATE")}
+#: an agreement's trade on Trader 2's own levels (1.10.0): followed forward beside the trade on Trader 1's, never traded
+T2LEVELS_FAMILY, T2LEVELS_SUFFIX = "DUAL_AI_T2_LEVELS", ":t2-levels"
+#: an agreement below the confidence floor (1.12.0): the trade it would have been, followed forward, never traded
+LOWCONF_FAMILY, LOWCONF_SUFFIX = "DUAL_AI_LOW_CONFIDENCE", ":low-confidence"
+SHADOW = {PICK_FAMILY: (PICK_SUFFIX, "DEBATE_PICK_NOT_TRADED"), LOSER_FAMILY: (LOSER_SUFFIX, "LOST_THE_DEBATE"),
+          T2LEVELS_FAMILY: (T2LEVELS_SUFFIX, "TRADER2_LEVELS_NOT_TRADED"),
+          LOWCONF_FAMILY: (LOWCONF_SUFFIX, "BELOW_THE_CONFIDENCE_FLOOR")}
+#: an agreement is a trade only when both traders state at least this confidence (1.12.0)
+MIN_CONFIDENCE = 65
 SIDES = ("BUY", "SELL")
 ENTRY_TOL_ATR = 1.0       # a market order: a stated entry further than this from the executable price is a misread
 MAX_TARGET_ATR = 15.0
 RR_ABS_TOL, RR_REL_TOL = 0.25, 0.20
-HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}
+HOLD_MINUTES = {"M15": 8 * 60, "H1": 48 * 60}  # the holding time the traders plan their levels for
+#: how long a position may stay open before its time exit (1.7.0); never past an hour before the Friday close
+TIME_EXIT_MINUTES = {"M15": 24 * 60, "H1": 48 * 60}
+NEW_YORK = ZoneInfo("America/New_York")
+FRIDAY_LAST_EXIT_NY = 16 * 60  # 16:00 New York, an hour before the 17:00 close
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
+#: the chart the desk trades on: "H1" always H1 (1.8.0, again since 1.11.0); "M15" (1.9.0) when it has MIN_EXEC_BARS,
+#: else H1
+EXECUTION_TF = "H1"
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
+CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
+SHADOW_DEBATE_DEADLINE_S = 120.0  # the shadow debate is measurement only: it never holds up the next decision long
+MIN_CALL_S = 30.0                # less time left than this: the trader is not asked (its answer would come too late)
 #: Trader 1 reads the chart as numbers on a text model only when no vision model gave a usable answer, never after
 #: a stop that another model would not fix (no key, budget or quota spent, spend on the key, a policy block)
 NO_FALLBACK = frozenset({"NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "PAID_USAGE", "NOT_FREE",
@@ -260,17 +335,53 @@ TRADER_KEYS = ("direction", "entry", "stop_loss", "take_profit", "confidence", "
 VERIFY_KEYS = ("direction", "confidence", "reason")
 
 
+def time_exit_minutes(timeframe: str, t: int) -> int:
+    """How long a trade opened at `t` may stay open: TIME_EXIT_MINUTES for its execution timeframe, cut so it closes
+    by 16:00 New York on Friday, an hour before the weekend close, so the weekend-carry rule never refuses a trade
+    for its time exit alone (new positions stop at 12:00 UTC on Friday, so the cut never leaves an M15 trade less
+    than its 8 h). The traders are told the shorter of this and HOLD_MINUTES (hold_minutes)."""
+    full = TIME_EXIT_MINUTES.get(timeframe, TIME_EXIT_MINUTES["H1"])
+    ny = datetime.fromtimestamp(t, NEW_YORK)
+    friday = (ny + timedelta(days=(4 - ny.weekday()) % 7)).replace(
+        hour=FRIDAY_LAST_EXIT_NY // 60, minute=FRIDAY_LAST_EXIT_NY % 60, second=0, microsecond=0)
+    left = int((friday.timestamp() - t) // 60)
+    return min(full, left) if left > 0 else full
+
+
+def hold_minutes(timeframe: str, t: int) -> int:
+    """The holding time the traders plan their levels for: HOLD_MINUTES, never longer than the trade can stay open."""
+    return min(HOLD_MINUTES.get(timeframe, HOLD_MINUTES["H1"]), time_exit_minutes(timeframe, t))
+
+
 def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
-    """The desk's rule, pure: whose side and whose levels. Same side: a trade, on the more confident trader's levels
-    (Trader 1 on a tie). Opposite sides: no trade, whatever the debate says; the debate's pick (when it answered)
-    and the side it rejected are named for the shadow record only."""
+    """The desk's rule, pure: whose side and whose levels. Same side, both at MIN_CONFIDENCE or more: a trade, on
+    Trader 1's levels (1.10.0; the more confident trader is named for the record). Same side below it: no trade
+    (1.12.0), the side they agreed on named for the shadow record. Opposite sides: no trade, whatever the debate
+    says; the debate's pick (when it answered) and the side it rejected are named for the shadow record only."""
     if t1["direction"] == t2["direction"]:
         lead = "trader1" if t1["confidence"] >= t2["confidence"] else "trader2"
-        return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": lead}
+        if min(t1["confidence"], t2["confidence"]) < MIN_CONFIDENCE:
+            return {"outcome": "NO_TRADE", "rule": "LOW_CONFIDENCE", "direction": None, "agreed": t1["direction"],
+                    "levels_from": None, "more_confident": lead, "floor": MIN_CONFIDENCE}
+        return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": LEVELS_FROM,
+                "more_confident": lead}
     pick = None if verdict is None else "trader1" if verdict["direction"] == t1["direction"] else "trader2"
     return {"outcome": "NO_TRADE", "rule": "DISAGREE", "direction": None, "levels_from": None,
             "debate_pick": None if verdict is None else verdict["direction"], "pick_from": pick,
             "loser": None if pick is None else "trader2" if pick == "trader1" else "trader1"}
+
+
+def fits_limits(t: dict, px: dict, lim: dict | None) -> bool:
+    """Whether a trader's own levels respect the risk engine's published per-trade limits at the executable price.
+    Used only to choose between the two traders' levels when both chose the same side: the risk engine still
+    decides, with the live quote at the time. Unknown limits give no preference."""
+    if not lim:
+        return True
+    side = 1 if t["direction"] == "BUY" else -1
+    e = px["ask"] if side > 0 else px["bid"]
+    stop = abs(e - float(t["stop_loss"]))
+    return stop > 0 and stop >= float(lim["min_stop_distance"]) and (
+        abs(float(t["take_profit"]) - e) / stop >= float(lim["min_reward_risk"]))
 
 
 def _shadow_side(t: dict, who: str, family: str, hold: int) -> dict:
@@ -281,12 +392,13 @@ def _shadow_side(t: dict, who: str, family: str, hold: int) -> dict:
 # ── the data each trader reads ──────────────────────────────────────────
 
 def chart_frames(ctx: MarketContext):
-    """(execution bars, higher-timeframe bars) from the context's completed bars: M15 execution when there
-    is enough of it, else H1; H4 resampled from H1 as the higher timeframe."""
+    """(execution bars, higher-timeframe bars) from the context's completed bars: M15 when EXECUTION_TF names it and
+    there is enough of it, else H1; H4 resampled from H1 as the higher timeframe."""
     bars = ctx.bars or {}
     h1 = bars.get("H1")
     m15 = bars.get("M15")
-    ex = m15 if m15 is not None and len(m15.as_of(ctx.t)) >= MIN_EXEC_BARS["M15"] else h1
+    ex = (m15 if EXECUTION_TF == "M15" and m15 is not None and len(m15.as_of(ctx.t)) >= MIN_EXEC_BARS["M15"]
+          else h1)
     htf = None
     if h1 is not None and len(h1):
         try:
@@ -412,7 +524,7 @@ class DualAITrader:
             raise ValueError("the dual-AI desk cannot be backtested honestly: the models may know what happened "
                              "after the decision time")
         v = {**versions, "dual_ai": DUAL_AI_VERSION, "chart": RENDER_VERSION, "openrouter": OPENROUTER_VERSION,
-             "free_models": FREE_MODELS_VERSION}
+             "free_models": FREE_MODELS_VERSION, "paid_trial": f"{PAID_TRIAL.name}:{PAID_TRIAL_VERSION}"}
         did = decision_id(ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, v)
         agents = agent_digest(reports)
         rec: dict = {"version": DUAL_AI_VERSION, "symbol": ctx.symbol, "t": ctx.t, "calls": [], "models": {},
@@ -443,7 +555,7 @@ class DualAITrader:
             return stop("OPENROUTER_API_KEY is not set: the traders cannot be asked", "AI_UNAVAILABLE")
         blocked = pre_model_block(ctx, reports, _Configured(True))
         if blocked:
-            return stop("market unavailable for a decision: " + blocked[0], "MARKET_UNAVAILABLE", blocked[1])
+            return stop(blocked[0], "NOT_ASKED", blocked[1])
         try:
             chart = build_chart(ctx)
         except (ValueError, TypeError) as exc:
@@ -451,16 +563,33 @@ class DualAITrader:
         rec["chart"] = chart.meta
         self._keep_chart(ctx, chart, did)
         px = {"bid": float(ctx.bid), "ask": float(ctx.ask), "atr": float(ctx.atr)}
-        hold = HOLD_MINUTES.get(chart.meta["execution_timeframe"], HOLD_MINUTES["H1"])
+        hold = hold_minutes(chart.meta["execution_timeframe"], ctx.t)
         rec["hold_minutes"] = hold
+        rec["time_exit_minutes"] = exit_after = time_exit_minutes(chart.meta["execution_timeframe"], ctx.t)
         key = f"{ctx.symbol}|{ctx.t}|{chart.meta['sha256'][:16]}"
+        started = time.monotonic()
 
         def why(r) -> str:
             return f"{r.status}{': ' + r.error if r.error else ''}"
 
+        def budget(cap: float) -> float | None:
+            """Seconds a call may take: its cap, or what is left before the decision would be too old to execute;
+            None when too little is left to ask at all."""
+            if ctx.decide_within_s is None:
+                return cap
+            rest = ctx.decide_within_s - (time.monotonic() - started)
+            return min(cap, rest) if rest >= MIN_CALL_S else None
+
+        def late(who: str) -> str:
+            return (f"{who} was not asked: too little time left before the decision would be too old to execute "
+                    f"({ctx.decide_within_s:.0f} s at the start)")
+
         # Trader 1: the chart image
+        dl = budget(CALL_DEADLINE_S)
+        if dl is None:
+            return stop(late("Trader 1") + ": no decision", "TRADER1_UNAVAILABLE")
         r1 = client.chat_json("vision", trader1_messages(ctx, chart, hold), lambda d: validate_trader(d, px),
-                              dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"])
+                              dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"], deadline_s=dl)
         rec["calls"].append(r1.record())
         rec["models"]["trader1"] = r1.model
         rec["trader1_input"] = "image"
@@ -470,9 +599,13 @@ class DualAITrader:
             # chart from its numbers on a text model of the third pool (Trader 2's best model stays Trader 2's),
             # never one already asked for this decision; a reply is still used as given or not at all
             asked = tuple(m for m in [*(m for m, _ in r1.tried), r1.model] if m)
+            dl = budget(CALL_DEADLINE_S)
+            if dl is None:
+                return stop(f"{failed}; {late('the chart as numbers')}: no decision on one trader alone",
+                            "TRADER1_UNAVAILABLE")
             r1 = client.chat_json("trader1_numbers", trader1_numbers_messages(ctx, chart, hold),
                                   lambda d: validate_trader(d, px), dedupe_key=key + "|trader1-numbers",
-                                  max_tokens=MAX_TOKENS["vision"], avoid=asked)
+                                  max_tokens=MAX_TOKENS["vision"], avoid=asked, deadline_s=dl)
             rec["calls"].append(r1.record())
             rec["models"]["trader1"] = r1.model
             rec["trader1_input"] = "numbers"
@@ -484,9 +617,12 @@ class DualAITrader:
         t1 = r1.data
 
         # Trader 2: independent, on a different model
+        dl = budget(CALL_DEADLINE_S)
+        if dl is None:
+            return stop(late("Trader 2") + ": no decision on one trader alone", "TRADER2_UNAVAILABLE")
         r2 = client.chat_json("judge", trader2_messages(ctx, reports, chart, t1, hold),
                               lambda d: validate_trader(d, px), dedupe_key=key + "|trader2",
-                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,))
+                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,), deadline_s=dl)
         rec["calls"].append(r2.record())
         rec["models"]["trader2"] = r2.model
         if r2.data is not None:
@@ -499,28 +635,44 @@ class DualAITrader:
         if t1["direction"] != t2["direction"]:
             # opposite sides: no trade. One debate (a third model when one exists, never a second round) runs in
             # shadow: its pick and the side it rejected are followed forward as if taken, never traded.
-            r3 = client.chat_json("verifier", verify_messages(ctx, reports, chart, t1, t2, hold), validate_verifier,
-                                  dedupe_key=key + "|verifier", max_tokens=MAX_TOKENS["verifier"],
-                                  avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True)
-            rec["calls"].append(r3.record())
-            rec["models"]["verifier"] = r3.model
-            if r3.data is not None:
-                rec["verifier"] = _clean(r3.data, VERIFY_KEYS)
-            res = resolve(t1, t2, r3.data if r3.ok else None)
+            dl = budget(SHADOW_DEBATE_DEADLINE_S)
+            r3 = None if dl is None else client.chat_json(
+                "verifier", verify_messages(ctx, reports, chart, t1, t2, hold), validate_verifier,
+                dedupe_key=key + "|verifier", max_tokens=MAX_TOKENS["verifier"],
+                avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True, deadline_s=dl)
+            if r3 is not None:
+                rec["calls"].append(r3.record())
+                rec["models"]["verifier"] = r3.model
+                if r3.data is not None:
+                    rec["verifier"] = _clean(r3.data, VERIFY_KEYS)
+            res = resolve(t1, t2, r3.data if r3 is not None and r3.ok else None)
             rec["consensus"] = res
             if res["pick_from"]:
                 sides = {"trader1": t1, "trader2": t2}
                 rec["shadow"] = [_shadow_side(sides[res["pick_from"]], res["pick_from"], PICK_FAMILY, hold),
                                  _shadow_side(sides[res["loser"]], res["loser"], LOSER_FAMILY, hold)]
             seen = (f"the debate ({r3.model}) would have chosen {res['debate_pick']}: followed forward in shadow, "
-                    "not traded" if res["pick_from"] else f"the shadow debate gave no usable answer ({why(r3)})")
+                    "not traded" if res["pick_from"] else late("the shadow debate") if r3 is None else
+                    f"the shadow debate gave no usable answer ({why(r3)})")
             return stop(f"the traders disagree (Trader 1 {t1['direction']} {t1['confidence']}, Trader 2 "
                         f"{t2['direction']} {t2['confidence']}): no trade unless both choose the same side; {seen}",
                         "DISAGREE")
         res = resolve(t1, t2)
+        if res["rule"] == "LOW_CONFIDENCE":
+            # the same side, but not both surely enough: no trade. The trade it would have been, on Trader 1's
+            # levels and held as a trade, is followed forward in shadow, so the floor stays measured
+            rec["consensus"] = res
+            rec["shadow"] = [_shadow_side(t1, "trader1", LOWCONF_FAMILY, exit_after)]
+            return stop(f"both traders chose {res['agreed']}, but not both at {MIN_CONFIDENCE} or more (Trader 1 "
+                        f"{t1['confidence']}, Trader 2 {t2['confidence']}): no trade unless both are that sure; "
+                        "followed forward in shadow, not traded", "LOW_CONFIDENCE")
         if res["outcome"] != "TRADE":
             return stop(f"the desk's rule gave no trade ({res['rule']})", res["rule"])
-        lead = t1 if res["levels_from"] == "trader1" else t2
+        traders = {"trader1": t1, "trader2": t2}
+        lead = traders[res["levels_from"]]
+        if (float(t2["stop_loss"]), float(t2["take_profit"])) != (float(t1["stop_loss"]), float(t1["take_profit"])):
+            # Trader 2's own levels, followed forward beside the trade and never traded: H3 stays measured
+            rec["shadow"] = [_shadow_side(t2, "trader2", T2LEVELS_FAMILY, exit_after)]
         rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3),
                             "stop_loss": float(lead["stop_loss"]), "take_profit": float(lead["take_profit"])}
         hit = _lesson(ctx, 1 if res["direction"] == "BUY" else -1)
@@ -530,7 +682,7 @@ class DualAITrader:
         story = (f"{res['rule']}: Trader 1 ({r1.model}) {t1['direction']} {t1['confidence']}: {t1['reason']} | "
                  f"Trader 2 ({r2.model}) {t2['direction']} {t2['confidence']}: {t2['reason']}")
         p = {"action": res["direction"], "timeframe": chart.meta["execution_timeframe"],
-             "stop": float(lead["stop_loss"]), "target": float(lead["take_profit"]), "max_hold_minutes": hold,
+             "stop": float(lead["stop_loss"]), "target": float(lead["take_profit"]), "max_hold_minutes": exit_after,
              "thesis": story[:500],
              "invalidation": (f"price trades through {lead['invalidation']}" if _num(lead.get("invalidation"))
                               else str(lead["invalidation"])[:200] if _text(lead.get("invalidation"))
@@ -569,5 +721,7 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LOSER_FAMILY", "LOSER_SUFFIX", "PICK_FAMILY", "PICK_SUFFIX",
+__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
+           "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE", "PICK_FAMILY", "PICK_SUFFIX", "T2LEVELS_FAMILY",
+           "T2LEVELS_SUFFIX",
            "build_chart", "check_levels", "counterfactual_decisions", "resolve", "validate_trader", "validate_verifier"]

@@ -1,0 +1,192 @@
+{
+ "code_sha256": "7247efc8dd77b2e07a947799a3feb3c23992da6e1c8cd222a5bfa79fa5761a93",
+ "sha256": "d4cbe656bbb0c7a08907673f6ee9859bde1a724849766558d57e390b88a8d46b",
+ "spec": {
+  "cost_grid": [
+   1.25,
+   1.5,
+   2.0
+  ],
+  "costs": {
+   "commission_pips_rt": 0.7,
+   "markup_pa": 1.5,
+   "max_cost_to_risk": 0.25,
+   "max_spread_to_stop": 0.25,
+   "min_reward_risk": 1.2,
+   "min_stop_spreads": 3.0,
+   "slippage_pips": 0.1,
+   "spread_mult": 1.0
+  },
+  "hypotheses": {
+   "Q1-QUARTER-FADE": [
+    "price",
+    "quarter_fade",
+    [
+     "EURUSD",
+     "GBPUSD",
+     "USDJPY",
+     "AUDUSD",
+     "USDCAD",
+     "USDCHF",
+     "NZDUSD"
+    ],
+    {
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ],
+     "stop": [
+      10.0,
+      12.5,
+      15.0
+     ]
+    }
+   ],
+   "Q2-QUARTER-BREAK": [
+    "price",
+    "quarter_break",
+    [
+     "EURUSD",
+     "GBPUSD",
+     "USDJPY",
+     "AUDUSD",
+     "USDCAD",
+     "USDCHF",
+     "NZDUSD"
+    ],
+    {
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ],
+     "stop": [
+      10.0,
+      12.5,
+      15.0
+     ]
+    }
+   ],
+   "T1-DAILY-AMD": [
+    "time",
+    "daily_amd",
+    [
+     "EURUSD",
+     "GBPUSD",
+     "USDJPY",
+     "AUDUSD",
+     "USDCAD",
+     "USDCHF",
+     "NZDUSD",
+     "XAUUSD"
+    ],
+    {
+     "buf": [
+      0.05,
+      0.1,
+      0.2
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "T2-NY-TRUE-OPEN": [
+    "time",
+    "ny_true_open",
+    [
+     "EURUSD",
+     "GBPUSD",
+     "USDJPY",
+     "AUDUSD",
+     "USDCAD",
+     "USDCHF",
+     "NZDUSD",
+     "XAUUSD"
+    ],
+    {
+     "buf": [
+      0.05,
+      0.1,
+      0.2
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ],
+   "T3-LONDON-TRUE-OPEN": [
+    "time",
+    "london_true_open",
+    [
+     "EURUSD",
+     "GBPUSD",
+     "USDJPY",
+     "AUDUSD",
+     "USDCAD",
+     "USDCHF",
+     "NZDUSD",
+     "XAUUSD"
+    ],
+    {
+     "buf": [
+      0.05,
+      0.1,
+      0.2
+     ],
+     "r": [
+      1.5,
+      2.0,
+      2.5
+     ]
+    }
+   ]
+  },
+  "intraday_version": "id-1.0.0",
+  "judge": {
+   "beats_matched_random_welch_t": 2.0,
+   "costs_x1.5_net_r": "> 0",
+   "grid_positive_share": 0.75,
+   "net_r": "> 0",
+   "profit_factor": 1.2,
+   "symbols_positive_share": 0.6,
+   "t_day": "max(3.0, registry Bonferroni)",
+   "three_month_windows_profitable": 0.6
+  },
+  "periods": {
+   "development": [
+    "2009-01-01",
+    "2014-01-01"
+   ],
+   "holdout": "sealed: fx-majors 2017-01 on, opened only through ID-1's holdout procedure",
+   "validation": [
+    "2014-01-01",
+    "2017-01-01"
+   ]
+  },
+  "program": "QT-1",
+  "promote": {
+   "beats_matched_random_welch_t": 2.0,
+   "min_trades": 300,
+   "net_r": "> 0",
+   "profit_factor": 1.1,
+   "symbols_positive_share": 0.6,
+   "t_day": 2.0
+  },
+  "quarter_pips": 25.0,
+  "random_seeds": [
+   11,
+   12,
+   13
+  ],
+  "risk_pct": 0.5,
+  "slippage_stress_pips": 0.3,
+  "t_required_validation": 3.5661,
+  "version": "qt-1.0.0"
+ }
+}

@@ -12,8 +12,8 @@ import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.dual_ai import (
-    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, validate_trader,
-    validate_verifier,
+    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, time_exit_minutes,
+    validate_trader, validate_verifier,
 )
 
 from tests.integration.test_pipeline import market
@@ -59,12 +59,20 @@ def think(reply, c=None, **ckw):
 
 # ── agreement ───────────────────────────────────────────────────────────
 
-def test_same_side_is_an_agreement_and_a_trade_candidate_with_the_more_confident_traders_levels():
+def test_same_side_is_an_agreement_and_a_trade_candidate_on_trader_1s_levels_even_when_trader_2_is_surer():
+    # dual-ai 1.10.0 (H3, judged as registered): Trader 2's levels lost when used (21 trades, -0.57 R)
     d, fake = think(scripted(t1=("BUY", 87), t2=("BUY", 91)))
     assert d.decision == "BUY" and d.family == FAMILY and d.signal_class is None  # the orchestrator stamps the class
     rec = d.ai["dual_ai"]
-    assert rec["consensus"]["rule"] == "AGREE" and rec["consensus"]["levels_from"] == "trader2"
-    assert d.stop_loss == pytest.approx(ASK - 1.2 * ATR) and d.take_profit == pytest.approx(ASK + 2.4 * ATR)
+    assert rec["consensus"]["rule"] == "AGREE" and rec["consensus"]["levels_from"] == "trader1"
+    assert rec["consensus"]["more_confident"] == "trader2"  # named for the record, no longer deciding the levels
+    assert d.stop_loss == pytest.approx(ASK - 1.0 * ATR) and d.take_profit == pytest.approx(ASK + 2.0 * ATR)
+    (sh,) = rec["shadow"]  # Trader 2's own levels, followed forward and never traded
+    assert sh["family"] == "DUAL_AI_T2_LEVELS" and sh["trader"] == "trader2" and sh["direction"] == "BUY"
+    assert sh["stop_loss"] == pytest.approx(ASK - 1.2 * ATR) and sh["take_profit"] == pytest.approx(ASK + 2.4 * ATR)
+    assert sh["hold_minutes"] == d.max_hold_minutes  # held as the trade is
+    (cf,) = counterfactual_decisions(d)
+    assert cf.id == d.id + ":t2-levels" and cf.family == "DUAL_AI_T2_LEVELS" and cf.stop_loss == sh["stop_loss"]
     assert d.entry == ASK  # a market order at the executable price; the size is the risk engine's alone
     assert [c["role"] for c in fake.calls] == ["trader1", "trader2"] and len(fake.calls) == 2
     assert fake.calls[0]["model"] == VISION and fake.calls[1]["model"] == TRADER  # two different models
@@ -77,9 +85,29 @@ def test_on_equal_confidence_trader_1s_levels_are_used():
     assert d.stop_loss == pytest.approx(BID + 1.0 * ATR)
 
 
-def test_a_low_confidence_agreement_is_still_a_candidate_the_risk_engine_decides():
-    d, _ = think(scripted(t1=("BUY", 41), t2=("BUY", 38)))
-    assert d.decision == "BUY" and d.ai["view"]["confidence"] == pytest.approx(0.38)
+def test_an_agreement_below_the_confidence_floor_is_no_trade_and_the_trade_it_would_have_been_is_followed():
+    # dual-ai 1.12.0 (owner, 2026-10-31): the AI enters only when it is very confident: both traders at 65 or more
+    from aitrader.agents.dual_ai import LOWCONF_FAMILY, MIN_CONFIDENCE
+    assert MIN_CONFIDENCE == 65
+    d, fake = think(scripted(t1=("BUY", 80), t2=("BUY", 64)))  # one trader short of the floor is enough
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and not d.is_trade and d.stop_loss is None and d.take_profit is None
+    assert rec["consensus"]["rule"] == "LOW_CONFIDENCE" and rec["consensus"]["outcome"] == "NO_TRADE"
+    assert rec["consensus"]["agreed"] == "BUY" and rec["consensus"]["floor"] == 65
+    assert "not both at 65 or more (Trader 1 80, Trader 2 64)" in d.no_trade_reason
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"]  # no debate: they agreed
+    (sh,) = rec["shadow"]  # the trade it would have been: Trader 1's levels, held as a trade
+    assert sh["family"] == LOWCONF_FAMILY and sh["trader"] == "trader1" and sh["direction"] == "BUY"
+    assert sh["stop_loss"] == pytest.approx(ASK - 1.0 * ATR) and sh["take_profit"] == pytest.approx(ASK + 2.0 * ATR)
+    assert sh["hold_minutes"] == rec["time_exit_minutes"]
+    (cf,) = counterfactual_decisions(d)
+    assert cf.id == d.id + ":low-confidence" and cf.family == LOWCONF_FAMILY and cf.decision == "BUY"
+    assert cf.ai_verdict == "BELOW_THE_CONFIDENCE_FLOOR" and cf.edge_status == "EXPERIMENTAL"
+    d, _ = think(scripted(t1=("SELL", 41), t2=("SELL", 38)))  # both under it
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "LOW_CONFIDENCE"
+    d, _ = think(scripted(t1=("BUY", 65), t2=("BUY", 65)))  # both at it: a trade candidate, the risk engine decides
+    assert d.decision == "BUY" and d.ai["view"]["confidence"] == pytest.approx(0.65)
+    assert d.ai["dual_ai"]["consensus"]["rule"] == "AGREE"
 
 
 def test_trader_1_sees_the_chart_image_and_trader_2_gets_the_data_the_marks_and_trader_1s_analysis():
@@ -131,10 +159,11 @@ def test_an_unusable_debate_is_the_same_no_trade_with_nothing_to_follow_and_no_s
     assert len(fake.calls) == 3
 
 
-def test_an_agreement_is_a_trade_with_nothing_followed_in_shadow():
-    d, _ = think(scripted(t1=("BUY", 60), t2=("BUY", 99)))
+def test_an_agreements_only_shadow_is_trader_2s_own_levels_never_a_debate_side():
+    d, _ = think(scripted(t1=("BUY", 70), t2=("BUY", 99)))
     assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["rule"] == "AGREE"
-    assert counterfactual_decisions(d) == [] and "shadow" not in d.ai["dual_ai"]
+    assert [c.family for c in counterfactual_decisions(d)] == ["DUAL_AI_T2_LEVELS"]
+    assert all(c.decision == "BUY" for c in counterfactual_decisions(d))  # the side agreed, on the other levels
 
 
 def test_an_agreement_never_calls_the_debate_and_no_decision_makes_more_than_three_calls():
@@ -190,8 +219,16 @@ def test_validators_accept_a_well_formed_answer_and_check_the_debate():
 
 def test_resolve_is_the_desk_rule():
     a, b = answer("BUY", BID, ASK, ATR, confidence=70), answer("BUY", BID, ASK, ATR, confidence=71)
-    assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader2"}
-    assert resolve(b, a)["levels_from"] == "trader1"
+    assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader1",
+                             "more_confident": "trader2"}
+    assert resolve(b, a)["levels_from"] == "trader1" and resolve(b, a)["more_confident"] == "trader1"
+    low = answer("BUY", BID, ASK, ATR, confidence=64)
+    for x, y in ((a, low), (low, a), (low, low)):  # the same side, one or both under the floor: no trade
+        r = resolve(x, y)
+        assert r["outcome"] == "NO_TRADE" and r["rule"] == "LOW_CONFIDENCE" and r["direction"] is None
+        assert r["agreed"] == "BUY" and r["levels_from"] is None and r["floor"] == 65
+    at = answer("BUY", BID, ASK, ATR, confidence=65)
+    assert resolve(at, at)["outcome"] == "TRADE"  # at the floor is enough
     s = answer("SELL", BID, ASK, ATR)
     for verdict in (None, {"direction": "SELL"}, {"direction": "BUY"}):
         r = resolve(a, s, verdict)
@@ -218,8 +255,22 @@ def test_when_trading_is_paused_nothing_is_asked():
     c = desk_ctx()
     c.trading_allowed = False
     d, fake = think(scripted(), c)
-    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "MARKET_UNAVAILABLE"
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "NOT_ASKED"
     assert fake.calls == []
+
+
+def test_a_refusal_before_the_traders_are_asked_says_which_rule_refused_never_that_the_market_was_missing():
+    # found in the 2026-10-19 report: 88 decisions read "market unavailable for a decision: risk engine:
+    # trading_calendar (...)": the market was there, a rule had refused
+    c = desk_ctx()
+    c.account_blocks = ["trading_calendar (Monday 12:00 UTC: no new position from 12:00 to 16:00 UTC)"]
+    d, fake = think(scripted(), c)
+    assert d.decision == "NO_TRADE" and fake.calls == []
+    assert d.ai["dual_ai"]["consensus"]["rule"] == "NOT_ASKED"
+    assert d.no_trade_reason.startswith("risk engine: trading_calendar (Monday 12:00 UTC")
+    assert "market unavailable" not in d.no_trade_reason
+    from aitrader.learning.dual_ai_stats import UNAVAILABLE
+    assert "NOT_ASKED" in UNAVAILABLE and "MARKET_UNAVAILABLE" in UNAVAILABLE  # the old name still counted
 
 
 def test_without_a_key_nothing_is_asked():
@@ -271,6 +322,38 @@ def test_the_traders_are_told_the_risk_engines_own_limits():
     for call in fake.calls:
         assert packet_of(call["body"])["costs"]["risk_engine_limits"]["min_stop_distance"] == lim["min_stop_distance"]
     assert "min_stop_distance" in fake.calls[0]["body"]["messages"][0]["content"]
+
+
+def deadlines(reply, within):
+    """The wall-clock budget each call was given, by role."""
+    brain, fake = desk(reply)
+    c = desk_ctx()
+    c.decide_within_s = within
+    asked = {}
+    real = brain.dual_ai.client.chat_json
+
+    def spy(role, *a, **kw):
+        asked[role] = kw.get("deadline_s")
+        return real(role, *a, **kw)
+    brain.dual_ai.client.chat_json = spy
+    return brain.think(c, V).decision, asked, fake
+
+
+def test_with_too_little_time_left_no_trader_is_asked_and_it_is_no_trade():
+    # found live (2026-10-16): two agreements were refused as stale (933 s, 1103 s old) after the other pair's shadow
+    # debate waited 420 s on a busy model. An answer that would come too late to execute is not asked for.
+    d, asked, fake = deadlines(scripted(), within=10)
+    assert d.decision == "NO_TRADE" and asked == {} and not fake.calls
+    assert d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE" and "too old to execute" in d.no_trade_reason
+
+
+def test_every_call_ends_before_the_decision_would_be_too_old_and_the_shadow_debate_waits_briefly():
+    d, asked, _ = deadlines(scripted(t1=("BUY", 80), t2=("SELL", 70)), within=300)
+    assert d.decision == "NO_TRADE" and set(asked) == {"vision", "judge", "verifier"}
+    assert 250 < asked["vision"] <= 300 and asked["judge"] <= 300  # never longer than is left
+    assert asked["verifier"] <= 120  # measurement only: it never holds up the next decision long
+    _, free, _ = deadlines(scripted(t1=("BUY", 80), t2=("SELL", 70)), within=None)
+    assert free == {"vision": 420.0, "judge": 420.0, "verifier": 120.0}  # no known limit: the caps
 
 
 def test_when_one_vision_model_answers_badly_another_trader_1_model_is_asked():
@@ -340,3 +423,114 @@ def test_when_the_numbers_reply_is_unusable_too_it_is_no_trade_naming_both():
     d = brain.think(desk_ctx(), V).decision
     assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
     assert "vision" in d.no_trade_reason and "on the chart's numbers: INVALID" in d.no_trade_reason
+
+
+
+# ── an agreement uses levels the risk engine can accept, when one trader has them ──
+
+LIM = {"min_reward_risk": 1.2, "min_stop_distance": 0.0003}
+
+
+def lim_ctx():
+    c = desk_ctx()
+    c.costs = {**c.costs, "risk_engine_limits": LIM}
+    return c
+
+
+def test_trader_1s_levels_inside_the_limits_are_left_to_the_risk_engine_never_replaced_by_trader_2s():
+    # 1.4.0 used Trader 2's levels then; 1.10.0 does not (H3): the risk engine refuses, and the refusal is measured
+    tight = answer("BUY", BID, ASK, ATR, confidence=90, stop_atr=1.0, target_atr=1.0)  # reward:risk 1.0 < 1.2
+    d, _ = think(scripted(trader1=tight, t2=("BUY", 70)), lim_ctx())
+    rec = d.ai["dual_ai"]
+    assert d.decision == "BUY" and rec["consensus"]["levels_from"] == "trader1" and "levels_reason" not in rec["consensus"]
+    assert d.stop_loss == pytest.approx(ASK - 1.0 * ATR) and d.take_profit == pytest.approx(ASK + 1.0 * ATR)  # as given
+    assert rec["shadow"][0]["take_profit"] == pytest.approx(ASK + 2.4 * ATR)  # Trader 2's, in shadow only
+
+
+def test_trader_1s_levels_stay_when_they_fit_or_when_neither_does():
+    d, _ = think(scripted(t1=("BUY", 70), t2=("BUY", 90)), lim_ctx())
+    assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # both fit: Trader 1's, whoever is surer
+    tight1 = answer("BUY", BID, ASK, ATR, confidence=90, stop_atr=1.0, target_atr=1.0)
+    tight2 = answer("BUY", BID, ASK, ATR, confidence=70, stop_atr=1.0, target_atr=1.1)
+    d, _ = think(scripted(trader1=tight1, trader2=tight2), lim_ctx())
+    assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"  # the risk engine decides
+    assert "levels_reason" not in d.ai["dual_ai"]["consensus"]
+    d, _ = think(scripted(trader1=tight1, t2=("BUY", 70)))  # no published limits: Trader 1's, as always
+    assert d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"
+    same = answer("BUY", BID, ASK, ATR, confidence=70, stop_atr=1.0, target_atr=2.0)
+    d, _ = think(scripted(t1=("BUY", 80), trader2=same))  # the same levels as Trader 1: no shadow to follow
+    assert "shadow" not in d.ai["dual_ai"]
+
+
+def test_fits_limits_reads_the_published_limits_at_the_executable_price():
+    from aitrader.agents.dual_ai import fits_limits
+    ok = answer("SELL", BID, ASK, ATR, stop_atr=1.0, target_atr=1.5)
+    assert fits_limits(ok, PX, LIM) and fits_limits(ok, PX, None)
+    assert not fits_limits(answer("SELL", BID, ASK, ATR, stop_atr=1.0, target_atr=1.1), PX, LIM)  # reward:risk 1.1
+    assert not fits_limits(answer("SELL", BID, ASK, ATR, stop_atr=0.2, target_atr=0.5), PX, LIM)  # stop 0.0002 < 0.0003
+
+
+@pytest.mark.parametrize("when,tf,minutes", [
+    ((2026, 10, 19, 10, 0), "M15", 24 * 60),   # Monday: the whole 24 h
+    ((2026, 10, 22, 22, 0), "M15", 22 * 60),   # Thursday night: closed by Friday 16:00 New York (20:00 UTC)
+    ((2026, 10, 23, 11, 0), "M15", 9 * 60),    # Friday morning: 9 h to 20:00 UTC, still more than the 8 h planned
+    ((2026, 11, 13, 11, 0), "M15", 10 * 60),   # after the clocks change: 16:00 New York is 21:00 UTC
+    ((2026, 10, 19, 10, 0), "H1", 48 * 60),    # an H1 trade (dual-ai 1.8.0): 48 h on Monday
+    ((2026, 10, 21, 22, 0), "H1", 46 * 60),    # Wednesday night: to Friday 20:00 UTC
+    ((2026, 10, 22, 22, 0), "H1", 22 * 60),    # Thursday night
+    ((2026, 10, 23, 8, 0), "H1", 12 * 60),     # Friday morning
+])
+def test_a_trade_stays_open_up_to_24h_and_closes_an_hour_before_the_friday_close(when, tf, minutes):
+    from datetime import datetime, timezone
+    assert time_exit_minutes(tf, int(datetime(*when, tzinfo=timezone.utc).timestamp())) == minutes
+
+
+def test_a_time_exit_never_makes_the_weekend_rule_refuse_a_trade():
+    # the weekend-carry rule reads the trade's own holding time: closing by Friday 16:00 New York keeps Thursday
+    # night and Friday morning tradeable, as they were with the 8 h exit
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+    from aitrader.risk.engine import RiskEngine, RiskLimits
+    eng = RiskEngine(RiskLimits(no_weekend_carry=True))
+    for when in ((2026, 10, 22, 22, 0), (2026, 10, 23, 11, 0), (2026, 10, 21, 9, 0), (2026, 10, 21, 22, 0)):
+        t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+        for tf in ("M15", "H1"):  # a 48 h H1 trade on Wednesday night too: it closes by Friday 16:00 New York
+            d = SimpleNamespace(max_hold_minutes=time_exit_minutes(tf, t), max_hold_hours=None)
+            assert eng._c_weekend_carry(d, t).passed, (when, tf)
+
+
+def m15_ctx():
+    """desk_ctx with enough completed M15 bars for the chart to execute on M15."""
+    import numpy as np
+    from aitrader.data.bars import BarSeries
+    c = desk_ctx()
+    h = market("EURUSD", T - 3600 * 200, 200, 7, 1.10)
+    n = len(h)
+    cols = {f: getattr(h, f) for f in ("bid_open", "bid_high", "bid_low", "bid_close", "ask_open", "ask_high",
+                                       "ask_low", "ask_close", "ticks", "spread_mean", "spread_max")}
+    c.bars = {**c.bars, "M15": BarSeries.from_columns("EURUSD", "M15", "test",
+                                                      open_time=T - 900 * (n + 1) + 900 * np.arange(n), **cols)}
+    return c
+
+
+def test_the_desk_trades_h1_held_up_to_48h_and_the_m15_path_stays_when_named():
+    # dual-ai 1.11.0 (owner, 2026-10-31): on M15 the costs were the loss (+0.06 R before them, 0.19 R in them); the
+    # same agreements with stop and target twice as far, the closest measure of H1 levels, did +0.10 R better
+    from aitrader.agents import dual_ai
+    assert dual_ai.EXECUTION_TF == "H1"
+    d, fake = think(scripted(), m15_ctx())  # M15 bars are there, and the desk still reads H1
+    rec = d.ai["dual_ai"]
+    assert rec["chart"]["execution_timeframe"] == "H1" and rec["chart"]["higher_timeframe"] == "H4"
+    assert d.decision == "BUY" and d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("H1", T)
+    assert rec["hold_minutes"] == min(48 * 60, rec["time_exit_minutes"])  # T is a Friday: told the time it has
+    assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {rec["hold_minutes"]}
+    assert packet_of(fake.calls[1]["body"])["execution_bars"]["timeframe"] == "H1"
+    try:  # M15 when named (1.9.0): planned for 8 h, held up to 24 h
+        dual_ai.EXECUTION_TF = "M15"
+        d, fake = think(scripted(), m15_ctx())
+        rec = d.ai["dual_ai"]
+        assert rec["chart"]["execution_timeframe"] == "M15" and d.decision == "BUY"
+        assert d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("M15", T) > 8 * 60
+        assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60} == {rec["hold_minutes"]}
+    finally:
+        dual_ai.EXECUTION_TF = "H1"

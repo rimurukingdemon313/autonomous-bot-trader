@@ -77,6 +77,8 @@ def _http(url: str) -> dict:
 class YahooFeed:
     #: Fields this source never provides: excluded from the completeness check, and recorded.
     unavailable_features = ("tick_activity",)
+    #: live prices, stamped by Yahoo: the next one is seconds away when the last is late (exec 1.8.0 waits for it)
+    LIVE = True
 
     def __init__(self, symbols, clock: Callable[[], float], fetch: Callable[[str], dict] | None = None,
                  spreads_pips: dict | None = None) -> None:

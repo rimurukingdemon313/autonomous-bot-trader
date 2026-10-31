@@ -56,7 +56,13 @@ from ..risk.hard_gate import HardRiskGate, TradeProposal
 #:        provenance (source, agent, edge status, confidence, expected costs, equity at entry).
 #: 1.7.0: the model classes are every signal class except the deterministic ones (EVIDENCE, EDGE), so a new
 #:        model mode (DUAL_AI) is covered by this check without being listed: fail closed, not open.
-EXECUTION_VERSION = "exec-1.7.0"
+#: 1.8.0 (live, 2026-10-15: Yahoo stamped AUDUSD 97 s and EURGBP 257 s old, and the hard gate refused two approved
+#:        trades as MARKET_DATA_STALE): a quote older than the gate's limit is waited for, bounded (up to 6 x 15 s),
+#:        before the final checks and the gate, on a LIVE feed only (a replay or a backtest has no next price to
+#:        wait for). A read retried; nothing has been sent; the gate still decides.
+EXECUTION_VERSION = "exec-1.8.0"
+#: a public feed stamps its price itself and can lag the gate's limit by a minute or two
+QUOTE_WAIT_S, QUOTE_WAIT_TRIES = 15, 6
 #: Signal classes a language model originates. They are SHADOW by route; refused here as a second check.
 DETERMINISTIC_SIGNAL_CLASSES = frozenset({"EVIDENCE", "EDGE"})
 MODEL_SIGNAL_CLASSES = frozenset(SIGNAL_CLASS.values()) - DETERMINISTIC_SIGNAL_CLASSES
@@ -79,7 +85,8 @@ def client_id_for(decision_id: str) -> str:
 class ExecutionEngine:
     def __init__(self, db: Database, broker, clock: Callable[[], int], *, gate: HardRiskGate,
                  allow_unvalidated: bool = False, max_decision_age_s: int = 900, max_entry_drift_r: float = 0.25,
-                 max_entry_slippage_r: float = 0.2, paper_forward: bool = False) -> None:
+                 max_entry_slippage_r: float = 0.2, paper_forward: bool = False, quote_wait: bool = False,
+                 sleep: Callable[[float], None] = time.sleep) -> None:
         if paper_forward and not isinstance(broker, PaperBroker):
             raise ValueError("PAPER_FORWARD executes on the paper broker only: there is no other broker for it")
         self.paper_forward = paper_forward
@@ -96,6 +103,7 @@ class ExecutionEngine:
         self.max_decision_age_s = max_decision_age_s
         self.max_entry_drift_r = max_entry_drift_r
         self.max_entry_slippage_r = max_entry_slippage_r
+        self.quote_wait, self.sleep = quote_wait, sleep
 
     def _pause(self, reason: str) -> None:
         """Execution uncertainty stops new trading until an operator looks: a pause can only make it safer."""
@@ -171,6 +179,23 @@ class ExecutionEngine:
                         f"{self.max_entry_drift_r}R): not chased")
         return None
 
+    def _await_fresh_quote(self, symbol: str) -> int:
+        """Wait, bounded, while the broker's quote is older than the gate's limit: a public feed's next price is
+        usually seconds away. Returns the waits taken. A read, retried with a fixed bound; nothing is sent here, and
+        the final checks and the gate then read the quote again and decide."""
+        if not self.quote_wait:
+            return 0
+        max_age = self.gate.profile.max_quote_age_s
+        for i in range(QUOTE_WAIT_TRIES):
+            try:
+                q = self.broker.quote(symbol)
+            except BrokerError:
+                return i
+            if q is None or self.clock() - q.time <= max_age:
+                return i
+            self.sleep(QUOTE_WAIT_S)
+        return QUOTE_WAIT_TRIES
+
     # ── the one write path ──────────────────────────────────────────────
 
     def execute(self, decision, verdict, meta: dict | None = None) -> ExecutionResult:
@@ -194,6 +219,10 @@ class ExecutionEngine:
                                                **{k: v for k, v in payload.items() if k != "history"}}, ref=cid, conn=c)
         except sqlite3.IntegrityError:  # a concurrent request for the same decision got there first
             return ExecutionResult(decision.id, "DUPLICATE", "intent already exists; not resent")
+        waited = self._await_fresh_quote(decision.instrument)
+        if waited:
+            self.db.event("QUOTE_WAIT", {"intent": cid, "decision": decision.id, "waited_s": waited * QUOTE_WAIT_S},
+                          ref=cid)
         problem = self._final_checks(decision, verdict)
         if problem:
             self._set_status(cid, "BLOCKED", {"reason": problem})

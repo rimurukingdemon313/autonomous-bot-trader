@@ -22,7 +22,8 @@ from aitrader.memory.db import Database
 from aitrader.risk.engine import AccountState, InstrumentSpec, Quote, RiskEngine, RiskLimits, RiskVerdict
 from aitrader.risk.hard_gate import (CLEAR_KILL_CONFIRMATION, RESET_CONFIRMATION, HardRiskGate, Permit,
                                      TradeProposal)
-from aitrader.risk.engine import PAPER_FORWARD_QUIET_NY
+from aitrader.risk.engine import (PAPER_FORWARD_CLOSED_UTC, PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, PAPER_FORWARD_NEWS_IMPACTS,
+                                  PAPER_FORWARD_QUIET_NY)
 from aitrader.risk.profile import FTMO_200K, PAPER_FORWARD_200K, HardRiskProfile, ProfileError, loss_per_lot
 
 T0 = 1_768_298_400  # Tuesday 2026-01-13 10:00 UTC (11:00 in Prague, winter time)
@@ -710,3 +711,412 @@ def test_the_paper_forward_service_has_the_quiet_hours_and_the_running_evaluatio
     assert (cfg.risk.quiet_ny_start_min, cfg.risk.quiet_ny_end_min) == PAPER_FORWARD_QUIET_NY == (960, 1200)
     paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
     assert (paper.risk.quiet_ny_start_min, paper.risk.quiet_ny_end_min) == (0, 0)
+    assert cfg.risk.no_weekend_carry is True and paper.risk.no_weekend_carry is False
+
+
+# ── the trading calendar (operator, 2026-10-17): not in the London/New York overlap, not on Friday after 12:00 UTC,
+#    not on Saturday or Sunday ──
+
+def _cal(when, days=PAPER_FORWARD_CLOSED_WEEKDAYS_UTC, windows=PAPER_FORWARD_CLOSED_UTC, closed_r=()):
+    from datetime import datetime, timezone
+    t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="c", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=list(closed_r))
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, closed_weekdays_utc=days,
+                                closed_utc_windows=windows))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t), eng.account_gates(acct, "EURUSD", t), eng, acct
+
+
+@pytest.mark.parametrize("when,blocked", [
+    ((2026, 10, 16, 1, 8), False),    # Friday 01:08 UTC: the USDJPY entry of 2026-10-16 (+0.99 R) trades again
+    ((2026, 10, 16, 11, 59), False),  # Friday, the last minute open
+    ((2026, 10, 16, 12, 0), True),    # Friday from 12:00 UTC: closed to the weekend
+    ((2026, 10, 16, 16, 30), True),   # Friday afternoon, after the overlap too
+    ((2026, 10, 16, 23, 59), True),   # Friday night
+    ((2026, 10, 17, 9, 0), True),     # Saturday: a closed day, stated
+    ((2026, 10, 18, 22, 0), True),    # Sunday night (UTC): still a closed day
+    ((2026, 10, 15, 9, 30), False),   # Thursday, London
+    ((2026, 10, 15, 11, 59), False),  # a minute before the overlap
+    ((2026, 10, 15, 12, 0), True),    # the London/New York overlap opens
+    ((2026, 10, 15, 14, 1), True),    # inside it: the EURUSD/EURJPY entries stopped out on 2026-10-16
+    ((2026, 10, 15, 15, 59), True),   # its last minute
+    ((2026, 10, 15, 16, 0), False),   # New York alone
+    ((2026, 10, 19, 1, 0), False),    # Monday night (UTC): the week trades again
+])
+def test_no_new_position_in_the_overlap_on_friday_afternoon_or_at_the_weekend(when, blocked):
+    v, gates, _, _ = _cal(when)
+    assert v.approved is (not blocked), v.reasons
+    (cal,) = [c for c in gates if c.name == "trading_calendar"]
+    assert cal.passed is (not blocked)  # the model is not even asked when it is closed
+    if blocked:
+        assert any("trading_calendar" in r for r in v.reasons)
+
+
+def test_the_time_rules_are_judged_when_the_position_would_open_never_earlier_than_the_decision():
+    # the traders' answer takes minutes: a decision begun at 11:50 is approved at 12:02, inside the overlap
+    from datetime import datetime, timezone
+    _, _, eng, acct = _cal((2026, 10, 15, 11, 50))
+    at = lambda h, m: int(datetime(2026, 10, 15, h, m, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="o", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    q = Quote("EURUSD", BID, ASK, at(11, 50))
+    assert eng.evaluate(d, acct, spec, q, at(11, 50)).approved  # as before: judged at the decision time
+    q_open = Quote("EURUSD", BID, ASK, at(12, 2))  # the quote is read again when the traders answered (1.13.0)
+    late = eng.evaluate(d, acct, spec, q_open, at(11, 50), opens_at=at(12, 2))
+    assert not late.approved and any("trading_calendar" in r and "12:02" in r for r in late.reasons)
+    q2 = Quote("EURUSD", BID, ASK, at(12, 5))
+    early = eng.evaluate(d, acct, spec, q2, at(12, 5), opens_at=at(11, 55))  # never before the decision began
+    assert not early.approved and any("trading_calendar" in r for r in early.reasons)
+
+
+def test_the_quotes_age_is_judged_when_the_position_would_open():
+    # live 2026-10-23: "age -297s" on a quote read after a 5-minute answer: from the decision time the check could
+    # never find a stale price. Measured at the opening, a quote from the decision time is too old by then.
+    from datetime import datetime, timezone
+    _, _, eng, acct = _cal((2026, 10, 15, 11, 0))
+    at = lambda h, m, s=0: int(datetime(2026, 10, 15, h, m, s, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="q", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    fresh = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5)), at(11, 0), opens_at=at(11, 5))
+    assert fresh.approved and any(c.name == "quote" and "age 0s at opening" in c.detail for c in fresh.checks)
+    old = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 0)), at(11, 0), opens_at=at(11, 5))
+    assert not old.approved and any("quote" in r and "age 300s at opening" in r for r in old.reasons)
+    lim = eng.limits.max_quote_age_s
+    edge = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5) - lim), at(11, 0), opens_at=at(11, 5))
+    assert edge.approved  # exactly at the limit: still fresh
+    ahead = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5, 6)), at(11, 0), opens_at=at(11, 5))
+    assert not ahead.approved and any("quote" in r for r in ahead.reasons)  # stamped after the opening: not of now
+    near = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 5, 5)), at(11, 0), opens_at=at(11, 5))
+    assert near.approved  # within the gate's own 5 s tolerance
+    replay = eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, at(11, 0)), at(11, 0))
+    assert replay.approved  # no opening time given: the decision time, as before
+
+
+def test_limits_without_a_calendar_never_check_one_and_a_calendar_is_validated():
+    v, gates, _, _ = _cal((2026, 10, 16, 13, 0), (), ())
+    assert v.approved and not [c for c in gates if c.name == "trading_calendar"]
+    for bad in ((7,), (-1,), (True,), ("4",), [4]):
+        with pytest.raises(ValueError):
+            RiskLimits(closed_weekdays_utc=bad)
+    for bad in (((960, 720),), ((0, 1441),), ((-1, 60),), [(720, 960)], ((720,),), ((720.0, 960),), ((7, 0, 60),),
+                ((True, 0, 60),), ((4, 720, 1440, 0),)):
+        with pytest.raises(ValueError):
+            RiskLimits(closed_utc_windows=bad)
+
+
+def test_the_paper_forward_service_has_the_calendar_and_the_currency_rule_and_plain_paper_does_not():
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-cal-test", "DASHBOARD_TOKEN": "t"}
+    cfg = ServiceConfig.from_env(env)
+    assert cfg.risk.closed_weekdays_utc == (5, 6) and cfg.risk.closed_utc_windows == ((720, 960), (4, 720, 1440))
+    assert cfg.risk.no_opposite_currency is True
+    assert cfg.hard_profile.sha256().startswith("98db6393b13e")  # the evaluation's profile is untouched
+    paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
+    assert paper.risk.closed_weekdays_utc == () and paper.risk.closed_utc_windows == ()
+    assert paper.risk.no_opposite_currency is False
+
+
+def _against(side, symbol, held, rule=True):
+    """A new `side` `symbol` trade while `held` ((symbol, side) pairs) are open."""
+    from datetime import datetime, timezone
+    t = int(datetime(2026, 10, 15, 9, 30, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec(symbol, 100_000, 0.01, 0.01, 50, 1.0)
+    s = 1 if side == "BUY" else -1
+    entry = ASK if s > 0 else BID
+    d = SimpleNamespace(id="x", decision=side, instrument=symbol, stop_loss=entry - 0.0020 * s,
+                        take_profit=entry + 0.0040 * s)
+    opens = [{"symbol": sym, "side": sd, "qty": 1.0, "notional": 100_000.0, "risk_amount": 100.0} for sym, sd in held]
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[], open_positions=opens)
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, no_opposite_currency=rule))
+    return eng.evaluate(d, acct, spec, Quote(symbol, BID, ASK, t), t)
+
+
+@pytest.mark.parametrize("side,symbol,held,ok", [
+    ("SELL", "EURUSD", [("USDCAD", -1)], False),  # long USD while USDCAD SELL is short USD: 2026-10-15 13:33-ish
+    ("BUY", "USDCAD", [("USDCAD", -1)], False),   # the same pair, the other way
+    ("BUY", "EURUSD", [("USDCAD", -1)], True),    # short USD again: aligned
+    ("BUY", "EURGBP", [("USDCAD", -1)], True),    # no currency in common
+    ("SELL", "EURUSD", [("AUDJPY", 1), ("USDCHF", -1)], False),  # one clash among several is enough
+    ("SELL", "EURUSD", [("USDCAD", 0)], False),   # a side that cannot be read is not assumed harmless
+])
+def test_no_new_position_on_the_opposite_side_of_a_currency_already_held(side, symbol, held, ok):
+    # read from every trade (2026-10-17): 11 trades opened against a currency an open position held won 36%, -0.21 R
+    # each; the others +0.23 R. The account would bet against itself and pay both trades' costs.
+    v = _against(side, symbol, held)
+    assert v.approved is ok, v.reasons
+    if not ok:
+        assert any("currency_conflict" in r for r in v.reasons)
+
+
+def test_the_currency_rule_is_only_checked_when_the_limits_say_so():
+    assert _against("SELL", "EURUSD", [("USDCAD", -1)], rule=False).approved
+
+
+def test_the_next_trades_risk_budget_is_what_the_engine_sizes_to():
+    v, _, eng, acct = _cal((2026, 10, 15, 9, 30))
+    budget = eng.trade_risk_budget(acct)
+    assert v.approved and budget == pytest.approx(500.0) and 0.9 * budget <= v.risk_amount <= budget
+    _, _, eng2, after_losses = _cal((2026, 10, 15, 9, 30), closed_r=(-1, -1, -1))
+    assert eng2.trade_risk_budget(after_losses) == pytest.approx(250.0)  # the loss streak halves it, never raises it
+    richer = dataclasses.replace(after_losses, equity=400_000.0)  # where the profile's fixed $500 is what binds
+    assert eng2.trade_risk_budget(richer) == pytest.approx(250.0)  # halved too: never the full 500 after losses
+
+
+def test_the_gates_open_risk_room_is_what_authorize_counts_and_reading_it_writes_nothing():
+    e = env()
+    e.gate.observe(e.broker)
+    assert e.gate.open_risk_room(e.broker) == pytest.approx(FTMO_200K.max_open_risk)  # nothing open
+    for i in range(3):
+        assert execute(e, f"p{i}").status == "FILLED"
+    state = e.db.one("SELECT value, sha256 FROM risk_gate_state")
+    logged = len(e.db.query("SELECT 1 FROM risk_gate_log"))
+    room = e.gate.open_risk_room(e.broker)
+    assert e.db.one("SELECT value, sha256 FROM risk_gate_state") == state
+    assert len(e.db.query("SELECT 1 FROM risk_gate_log")) == logged
+    assert 485 <= room < 600  # 3 x 485 counted: a 4th of 485 fits
+    assert execute(e, "p3").status == "FILLED"
+    room = e.gate.open_risk_room(e.broker)
+    assert room < 485 and execute(e, "p4").status == "BLOCKED"  # less room than a trade: authorize refuses it
+
+
+# ── scheduled news: no new position around a High-impact release (risk 1.10.0) ──
+
+def _news(events=(), status="FRESH", window=(30, 30), required=True, news="given", impacts=("High",)):
+    from datetime import datetime, timezone
+    t = int(datetime(2026, 10, 15, 9, 30, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="n", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    view = None if news is None else {"feed": {"status": status, "reason": "HTTP 429" if status == "UNAVAILABLE" else None},
+                                      "currencies": ["EUR", "USD"],
+                                      "events": None if status == "UNAVAILABLE" else list(events)}
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, news_blackout_min=window,
+                                news_required=required, news_impacts=impacts))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t, news=view), eng.account_gates(acct, "EURUSD", t,
+                                                                                                    news=view)
+
+
+def _ev(mins, impact="High", title="Non-Farm Employment Change", ccy="USD"):
+    return {"minutes_away": mins, "currency": ccy, "title": title, "impact": impact}
+
+
+@pytest.mark.parametrize("events,ok", [
+    ([_ev(20)], False),                      # 20 min before a High-impact release
+    ([_ev(-20)], False),                     # 20 min after it: the spike is still settling
+    ([_ev(30)], False), ([_ev(-30)], False),  # the window's edges are inside
+    ([_ev(31)], True), ([_ev(-31)], True),   # outside it
+    ([_ev(5, impact="Medium")], True),       # only High impact closes the window
+    ([_ev(90), _ev(-120)], True),            # far from both
+    ([], True),                              # a calendar with nothing near
+])
+def test_no_new_position_around_a_high_impact_release(events, ok):
+    v, gates = _news(events)
+    assert v.approved is ok, v.reasons
+    (n,) = [c for c in gates if c.name == "news"]
+    assert n.passed is ok  # refused before the model is asked
+    if not ok:
+        assert any("High-impact release" in r for r in v.reasons)
+
+
+@pytest.mark.parametrize("events,ok", [
+    ([_ev(-5, impact="Medium", title="Average Earnings Index 3m/y", ccy="EUR")], False),  # Medium closes it too
+    ([_ev(25, impact="Medium", title="Flash Manufacturing PMI")], False),
+    ([_ev(31, impact="Medium")], True), ([_ev(-31, impact="Medium")], True),  # the same window, not a wider one
+    ([_ev(0, impact="Low", title="Building Permits")], True),                 # Low never does
+    ([_ev(0, impact="Holiday", title="Bank Holiday")], True),
+    ([_ev(10, impact="High")], False),                                        # High still does
+])
+def test_the_paper_forward_window_closes_around_medium_impact_releases_too(events, ok):
+    # the operator (2026-10-19): "do not trade against the news"; that week the UK earnings (Tue 06:00 UTC) and
+    # the flash PMIs (Fri) were Medium in the calendar, so a High-only window let a trade open into them
+    v, gates = _news(events, impacts=PAPER_FORWARD_NEWS_IMPACTS)
+    assert v.approved is ok, v.reasons
+    (n,) = [c for c in gates if c.name == "news"]
+    assert n.passed is ok  # refused before the model is asked
+    if not ok:
+        impact = events[0]["impact"]
+        assert any(f"{impact}-impact release" in r and events[0]["title"] in r for r in v.reasons)
+    else:
+        assert "High/Medium-impact" in n.detail  # a passing check says what it looked for
+
+
+def test_without_a_readable_calendar_event_risk_is_unknown_and_the_engine_stands_aside():
+    v, _ = _news(status="UNAVAILABLE")
+    assert not v.approved and any("stand aside" in r for r in v.reasons)
+    v, _ = _news(news=None)
+    assert not v.approved and any("no economic calendar" in r for r in v.reasons)
+    v, _ = _news(status="UNAVAILABLE", required=False)  # not required: a missing calendar alone refuses nothing
+    assert v.approved
+    v, gates = _news([_ev(5)], window=(), required=False)  # neither set: the calendar is never checked
+    assert v.approved and not [c for c in gates if c.name == "news"]
+    for bad in ((30,), (-1, 30), (30, 721), (True, 30), [30, 30], (30.0, 30)):
+        with pytest.raises(ValueError):
+            RiskLimits(news_blackout_min=bad)
+    for bad in ((), ("Medium",), ("High", "Huge"), ["High"], ("High", "High"), ("high",), "High"):
+        with pytest.raises(ValueError):  # High is never left out: a window that skips it is not a news window
+            RiskLimits(news_impacts=bad)
+
+
+def test_the_paper_forward_service_has_the_news_window_and_requires_the_calendar():
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-news-test", "DASHBOARD_TOKEN": "t"}
+    cfg = ServiceConfig.from_env(env)
+    assert cfg.risk.news_blackout_min == (30, 30) and cfg.risk.news_required is True
+    assert cfg.risk.news_impacts == ("High", "Medium")
+    paper = ServiceConfig.from_env({**env, "MODE": "PAPER"})
+    assert paper.risk.news_blackout_min == () and paper.risk.news_required is False
+    assert paper.risk.news_impacts == ("High",)
+
+
+# ── market structure: no new position in an H1 range (risk 1.12.0, operator, 2026-10-19) ──
+
+def _struct(structure, tf="H1"):
+    from datetime import datetime, timezone
+    t = int(datetime(2026, 10, 19, 9, 30, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="s", decision="SELL", instrument="EURUSD", stop_loss=BID + 0.0020, take_profit=BID - 0.0040)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    eng = RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, require_clear_structure=tf))
+    return eng.evaluate(d, acct, spec, Quote("EURUSD", BID, ASK, t), t, structure=structure)
+
+
+@pytest.mark.parametrize("structure,ok", [
+    ({"H1": {"trend": "down (LH+LL)"}, "M15": {"trend": "range (mixed swings)"}}, True),  # H1 decides, not M15
+    ({"H1": {"trend": "up (HH+HL)"}}, True),               # a SELL against a clear trend is not this rule's to refuse
+    ({"H1": {"trend": "range (mixed swings)"}}, False),    # higher high with a lower low: chop
+    ({"H1": {"trend": "range"}}, False),                   # too few swings to tell
+    ({"M15": {"trend": "down (LH+LL)"}}, False),           # no H1 structure: unreadable, not assumed clear
+    ({"H1": {}}, False), ({"H1": "down (LH+LL)"}, False), ({"H1": {"trend": None}}, False), (None, False),
+])
+def test_no_new_position_unless_the_h1_structure_is_a_clear_trend(structure, ok):
+    # the operator (2026-10-19): "do not trade into chop". Registered hypothesis H1 (docs/DUAL_AI.md): of the first 50
+    # agreement trades, the 23 in an H1 range won 30%, -0.24 R each; the 27 in a clear H1 trend won 63%, +0.23 R
+    v = _struct(structure)
+    assert v.approved is ok, v.reasons
+    if not ok:
+        assert any(r.startswith("structure: H1 structure is") for r in v.reasons)
+
+
+def test_the_structure_is_only_checked_when_the_limits_name_a_timeframe():
+    assert _struct(None, tf=None).approved
+    assert not [c for c in _struct({"H1": {"trend": "range (mixed swings)"}}, tf=None).checks if c.name == "structure"]
+    for bad in ("H4", "h1", "", 1, ("H1",)):
+        with pytest.raises(ValueError):
+            RiskLimits(require_clear_structure=bad)
+
+
+def test_the_paper_forward_service_no_longer_requires_a_clear_h1_structure_reversed_by_its_registered_test():
+    # risk 1.15.0: the agreements the rule refused did not do 0.3 R worse than the trades taken (Trader 1's levels,
+    # 34 refused at +0.03 R against 53 taken at -0.05 R), so the rule adopted early on that condition is reversed
+    from aitrader.service.config import ServiceConfig
+    env = {"MODE": "PAPER_FORWARD", "DATA_SOURCE": "yahoo", "DATA_DIR": "/tmp/pf-struct-test", "DASHBOARD_TOKEN": "t"}
+    cfg = ServiceConfig.from_env(env).risk
+    assert cfg.require_clear_structure is None
+    assert cfg.news_impacts == ("High", "Medium") and cfg.no_opposite_currency  # the other PAPER_FORWARD rules stay
+    assert ServiceConfig.from_env({**env, "MODE": "PAPER"}).risk.require_clear_structure is None
+
+
+def _carry(when, hold_min=480, carry=True):
+    from datetime import datetime, timezone
+    t = int(datetime(*when, tzinfo=timezone.utc).timestamp())
+    spec = InstrumentSpec("EURUSD", 100_000, 0.01, 0.01, 50, 1.0)
+    d = SimpleNamespace(id="w", decision="BUY", instrument="EURUSD", stop_loss=ASK - 0.0020, take_profit=ASK + 0.0040,
+                        max_hold_minutes=hold_min, max_hold_hours=None)
+    acct = AccountState(equity=200_000, balance=200_000, day_start_equity=200_000, peak_equity=200_000,
+                        start_balance=200_000, week_start_equity=200_000, closed_r=[])
+    return RiskEngine(RiskLimits(hard=PAPER_FORWARD_200K, max_drawdown_pct=50, no_weekend_carry=carry)).evaluate(
+        d, acct, spec, Quote("EURUSD", BID, ASK, t), t)
+
+
+@pytest.mark.parametrize("when,hold,ok", [
+    ((2026, 10, 16, 12, 59), 480, True),    # Friday 08:59 New York + 8 h = 16:59: closed by its time exit before 17:00
+    ((2026, 10, 16, 13, 1), 480, False),    # Friday 09:01 New York + 8 h would run past the close
+    ((2026, 10, 15, 14, 0), 480, True),     # Thursday: nothing near the close
+    ((2026, 10, 15, 14, 0), 48 * 60, False),  # Thursday, held up to 48 h: past the Friday close
+    ((2026, 10, 17, 12, 0), 480, False),    # Saturday: closed
+    ((2026, 10, 18, 22, 0), 480, True),     # Sunday 18:00 New York: the week has opened
+])
+def test_no_new_position_that_could_still_be_open_at_the_friday_close(when, hold, ok):
+    v = _carry(when, hold)
+    assert v.approved is ok, v.reasons
+    if not ok:
+        assert any("weekend_carry" in r for r in v.reasons)
+
+
+def test_weekend_carry_is_only_checked_when_the_limits_say_so():
+    assert _carry((2026, 10, 16, 13, 1), 480, carry=False).approved
+
+
+
+# ── a lagging public quote is waited for, bounded, before the gate decides ──
+
+def _lagging(e, fresh_after=None):
+    """The feed stamps EURUSD 200 s ago (stale for the gate's 30 s); its next price arrives after `fresh_after`
+    waits, or never."""
+    e.gate.observe(e.broker)
+    e.feed.q["EURUSD"][2] = T0 - 200
+    waits = []
+
+    def sleep(s):
+        waits.append(s)
+        e.clock.t += s
+        if fresh_after is not None and len(waits) == fresh_after:
+            e.feed.q["EURUSD"][2] = None  # stamped now
+    e.ex.quote_wait, e.ex.sleep = True, sleep
+    return waits
+
+
+def test_a_quote_that_lags_the_gate_is_waited_for_and_the_trade_goes_through_when_the_next_price_arrives():
+    # found live (2026-10-15): Yahoo stamped AUDUSD 97 s and EURGBP 257 s old; the gate refused two approved trades
+    e = env()
+    waits = _lagging(e, fresh_after=2)
+    r = execute(e, "lag")
+    assert r.status == "FILLED", r.detail
+    assert waits == [15, 15] and len(e.broker.positions()) == 1
+    assert e.db.one("SELECT 1 AS x FROM events WHERE type='QUOTE_WAIT'") is not None
+
+
+def test_a_quote_that_never_refreshes_is_waited_for_a_bounded_time_and_the_gate_refuses():
+    e = env()
+    waits = _lagging(e)
+    r = execute(e, "never")
+    assert r.status == "BLOCKED" and "MARKET_DATA_STALE" in r.detail
+    assert waits == [15] * 6 and e.broker.positions() == []  # bounded: 90 s, then the gate decides
+
+
+def test_a_fresh_quote_is_not_waited_for():
+    e = env()
+    e.gate.observe(e.broker)
+    waits = []
+    e.ex.quote_wait, e.ex.sleep = True, waits.append
+    assert execute(e, "fresh").status == "FILLED" and waits == []
+
+
+def test_only_a_live_feed_is_waited_for_a_replay_or_a_backtest_has_no_next_price():
+    e = env()  # a replay-like feed: quote_wait is off unless the feed is live
+    e.gate.observe(e.broker)
+    e.feed.q["EURUSD"][2] = T0 - 200
+    waits = []
+    e.ex.sleep = waits.append
+    r = execute(e, "replay")
+    assert r.status == "BLOCKED" and "MARKET_DATA_STALE" in r.detail and waits == []
+    import inspect
+    from aitrader.data.yahoo import YahooFeed
+    assert YahooFeed.LIVE is True and inspect.signature(ExecutionEngine).parameters["quote_wait"].default is False
+
+
+def test_the_service_waits_for_quotes_only_on_a_live_feed(tmp_path, monkeypatch):
+    from tests.integration.test_cadence import LiveLikeFeed
+    from tests.integration.test_paper_forward import pf_runtime
+    for d in ("replay", "live"):
+        (tmp_path / d).mkdir()
+    rt, _, _ = pf_runtime(tmp_path / "replay", monkeypatch)  # a replay feed: no next price to wait for
+    assert rt.execution.quote_wait is False
+    monkeypatch.setattr(LiveLikeFeed, "LIVE", True, raising=False)  # the same service on a feed that is live
+    rt, _, _ = pf_runtime(tmp_path / "live", monkeypatch)
+    assert rt.execution.quote_wait is True
