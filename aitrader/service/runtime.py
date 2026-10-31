@@ -653,9 +653,13 @@ class Runtime:
         }
 
     def lessons(self) -> dict:
-        latest = self.orch.lesson_book.latest()
-        return {"forward": sorted(latest.values(), key=lambda v: (v["status"] != "ACTIVE", v["code"], v["scope"])),
-                "counts": {s: sum(1 for v in latest.values() if v["status"] == s) for s in ("CANDIDATE", "ACTIVE", "REJECTED")},
+        book = self.orch.lesson_book
+        latest, current = book.latest(), book.current()
+        return {"forward": sorted(current.values(), key=lambda v: (v["status"] != "ACTIVE", v["code"], v["scope"])),
+                "counts": {s: sum(1 for v in current.values() if v["status"] == s) for s in ("CANDIDATE", "ACTIVE", "REJECTED")},
+                "superseded": {"lessons": len(latest) - len(current),
+                               "why": "decided under taxonomy 1.0.0, which counted a trade's shadow exits as more "
+                                      "trades; kept in the ledger, no longer shown to the models"},
                 "rule": ("CANDIDATE from LEARNING outcomes; ACTIVE only after confirmation on EVALUATION outcomes that "
                          "resolved later; an ACTIVE lesson is information for the models, never a rule or a size"),
                 "experience": self.experience.summary() if hasattr(self.experience, "summary") else None}

@@ -4,6 +4,7 @@ Every market here is built by hand so the right answer is known before the code 
 
 from __future__ import annotations
 
+import hashlib
 import sqlite3
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -283,6 +284,33 @@ def test_overconfidence_is_measured_against_what_happened():
                                  "mfe_r": 2.0 if hit else 0.5, "mae_r": -0.3}})
     codes = {(c["code"], c["scope_kind"]) for c in taxonomy.evaluate(rows, {}, T0 + 10 ** 7)}
     assert ("AI_OVERCONFIDENCE", "model") in codes and ("AI_UNDERCONFIDENCE", "model") not in codes
+
+
+def test_a_trade_and_its_shadow_exits_are_one_outcome_never_five():
+    # taxonomy 1.1.0: under 1.0.0 the shadow exits carried the trade's own signal class, and each dual-AI trade
+    # counted up to five times (430 of 914 outcomes in its scope on 2026-10-31)
+    def with_exits(i):
+        base = wrong_dir(i, "LEARNING", T0 + i * 3600)
+        return [base] + [{**base, "decision_id": f"w{i}:exit-{v.lower()}", "exit_variant": v,
+                          "base_decision_id": base["decision_id"]} for v in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")]
+    rows = [r for i in range(20) for r in with_exits(i)]  # 100 rows, 20 trades: below the 30-outcome sample
+    assert taxonomy.evaluate(rows, {}, T0 + 10 ** 7) == []
+    rows = [r for i in range(40) for r in with_exits(i)]
+    made = [c for c in taxonomy.evaluate(rows, {}, T0 + 10 ** 7) if c["scope_kind"] == "signal_class"]
+    assert made and all(c["learning_evidence"]["n"] == 40 for c in made)
+
+
+def test_a_lesson_decided_on_the_old_evidence_basis_is_history_never_shown():
+    db = Database(":memory:")
+    book = taxonomy.LessonBook(db)
+    old_id = "BAD_REGIME:" + hashlib.sha256(b"BAD_REGIME|signal_class+regime|DUAL_AI|TRANSITION").hexdigest()[:10]
+    old = {"lesson_id": old_id, "version": 2, "status": "ACTIVE", "code": "BAD_REGIME",
+           "scope_kind": "signal_class+regime", "scope": "DUAL_AI|TRANSITION",
+           "statement": taxonomy.STATEMENTS["BAD_REGIME"], "version_tag": "taxonomy-1.0.0"}
+    db.append("forward_lessons", {"lesson_id": old_id, "version": 2, "status": "ACTIVE", "payload": old})
+    assert old_id in book.latest() and book.current() == {} and book.active() == []  # kept, never shown
+    new_id = taxonomy.lesson_id("BAD_REGIME", "signal_class+regime", "DUAL_AI|TRANSITION")
+    assert new_id != old_id and taxonomy.current_line({**old, "lesson_id": new_id})  # its lifecycle restarts
 
 
 def test_lessons_are_append_only_versions():

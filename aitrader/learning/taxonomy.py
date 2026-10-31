@@ -33,6 +33,12 @@ LIFECYCLE, all from the immutable ledger, versioned in `forward_lessons` (append
 What an ACTIVE lesson may do: it is shown to the model traders as information and on the dashboard.
 It never changes code, a parameter, a risk limit or a size, and it never creates a trade. One
 outcome can never create, confirm or reject a lesson: every threshold is a sample size.
+
+ONE TRADE, ONE OUTCOME (1.1.0). The shadow exits of a trade taken (forward.exit_variants: the same entry closed
+another way) are not more trades: they are left out of every scope. Under 1.0.0 they carried the trade's own
+signal class, so each dual-AI trade counted up to five times (430 of 914 outcomes in its scope on 2026-10-31),
+and a lesson's n and t were inflated. Lessons decided under 1.0.0 are kept in the ledger as history and no longer
+shown; every lesson's lifecycle restarts under the new line (its id carries LESSON_LINE).
 """
 
 from __future__ import annotations
@@ -43,7 +49,9 @@ import math
 import statistics as st
 from collections import defaultdict
 
-TAXONOMY_VERSION = "taxonomy-1.0.0"
+TAXONOMY_VERSION = "taxonomy-1.1.0"
+#: the evidence basis a lesson id belongs to: a new line restarts every lesson's lifecycle (1.1: exit variants out)
+LESSON_LINE = "1.1"
 PER_TRADE = ("WRONG_DIRECTION", "BAD_ENTRY", "STOP_TOO_TIGHT", "TARGET_TOO_CLOSE", "VOLATILITY_MISMATCH",
              "COST_EROSION", "FALSE_BREAKOUT", "LIQUIDITY_SWEEP_FAILURE")
 AGGREGATE = ("BAD_REGIME", "AI_OVERCONFIDENCE", "AI_UNDERCONFIDENCE", "SYMBOL_FAILURE", "MODEL_FAILURE")
@@ -94,6 +102,8 @@ def _resolved(rows, part: str, after: int | None = None, as_of: int | None = Non
         o = r.get("outcome")
         if r.get("partition") != part or not o or o.get("net_r") is None:
             continue
+        if r.get("exit_variant"):
+            continue  # the same trade closed another way: one trade is one outcome (1.1.0)
         if after is not None and o["resolved_at"] <= after:
             continue
         if as_of is not None and o["resolved_at"] > as_of:
@@ -154,7 +164,12 @@ def _test(code: str, scope_kind: str, rows: list[dict]) -> dict | None:
 
 
 def lesson_id(code: str, scope_kind: str, scope: str) -> str:
-    return f"{code}:{hashlib.sha256(f'{code}|{scope_kind}|{scope}'.encode()).hexdigest()[:10]}"
+    return f"{code}:{hashlib.sha256(f'{code}|{scope_kind}|{scope}|{LESSON_LINE}'.encode()).hexdigest()[:10]}"
+
+
+def current_line(v: dict) -> bool:
+    """Whether a stored lesson belongs to the current evidence basis (LESSON_LINE)."""
+    return v.get("lesson_id") == lesson_id(v.get("code", ""), v.get("scope_kind", ""), v.get("scope", ""))
 
 
 STATEMENTS = {
@@ -235,5 +250,9 @@ class LessonBook:
                                                    "status": c["status"], "payload": c}, conn=conn)
         return changes
 
+    def current(self) -> dict[str, dict]:
+        """The latest version of each lesson of the current line; lessons of an earlier line are history only."""
+        return {k: v for k, v in self.latest().items() if current_line(v)}
+
     def active(self) -> list[dict]:
-        return [v for v in self.latest().values() if v["status"] == "ACTIVE"]
+        return [v for v in self.current().values() if v["status"] == "ACTIVE"]
