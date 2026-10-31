@@ -21,7 +21,8 @@ from datetime import datetime
 
 from ..learning.paper_metrics import summary
 
-PERIODS_VERSION = "paper-periods-1.0.0"
+#: 1.1.0 (2026-10-31): a second declared period, the account of the H1, very-confident setup (dual-ai 1.12.0).
+PERIODS_VERSION = "paper-periods-1.1.0"
 
 #: The owner's request (2026-10-27): a new account for the new setup, from the first shift that ran it. That shift
 #: began 2026-10-26 16:22 UTC, the first with both traders paid (paid-trial 1.2.0, 2590c8b) and trades on Trader 1's
@@ -33,6 +34,16 @@ DECLARED: tuple[dict, ...] = (
               "xiaomi/mimo-v2.6-pro, Trader 2 anthropic/claude-haiku-5.5)",
      "reason": "owner: a new account for the new setup, from the first shift that ran it; the account before it is "
                "kept and reported apart"},
+    #: The owner (2026-10-31): "a longer timeframe, H1 for example, and the AI enters only when it is very
+    #: confident". A new setup, so a new account, as the owner chose for the last one (2026-10-27). It starts as the
+    #: market reopens on Sunday 1 November (22:00 UTC): no trade of the setup before it can exist, since no new
+    #: position is opened on Saturday or Sunday.
+    {"id": "h1-confident-2026-11-01", "starts": "2026-11-01T22:00:00Z", "start_balance": 200_000.0,
+     "requested": "2026-10-31",
+     "setup": "dual-ai 1.12.0: the H1 chart, held up to 48 h (1.11.0), and a trade only when both traders state a "
+              "confidence of 65 or more (1.12.0), on the free models (the paid trial ended 2026-10-31 00:00 UTC)",
+     "reason": "owner: a longer timeframe and only very confident entries; a new account for the new setup, as the "
+               "owner chose on 2026-10-27; the accounts before it are kept and reported apart"},
 )
 
 

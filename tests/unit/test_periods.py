@@ -49,11 +49,18 @@ def test_a_new_account_with_no_trade_yet_is_its_start_and_nothing_else():
     assert v["performance"]["sample"] == "none"
 
 
-def test_the_declared_period_is_the_owners_new_account_from_the_first_shift_of_the_new_setup():
-    p = periods.current()
-    assert p["id"] == "new-setup-2026-10-26" and p["start_balance"] == 200_000.0
-    assert periods._ts(p["starts"]) == START  # the first shift that ran both paid traders on Trader 1's levels
-    assert "owner" in p["reason"] and "Trader 1" in p["setup"]
+def test_the_declared_periods_are_the_owners_new_accounts_and_the_latest_is_the_h1_confident_setup():
+    first, latest = periods.DECLARED
+    assert first["id"] == "new-setup-2026-10-26" and first["start_balance"] == 200_000.0
+    assert periods._ts(first["starts"]) == START  # the first shift that ran both paid traders on Trader 1's levels
+    assert "owner" in first["reason"] and "Trader 1" in first["setup"]
+    p = periods.current()  # the account trading now: H1, both traders at 65 or more (dual-ai 1.12.0)
+    assert p is latest and p["id"] == "h1-confident-2026-11-01" and p["start_balance"] == 200_000.0
+    sunday = datetime(2026, 11, 1, 22, 0, tzinfo=timezone.utc)
+    assert periods._ts(p["starts"]) == sunday.timestamp() and sunday.weekday() == 6  # as the market reopens
+    assert "owner" in p["reason"] and "H1" in p["setup"] and "65" in p["setup"]
+    v = periods.view([trade(START + 60, -100.0, "old")], [], p)  # the last setup's trade stays with the last setup
+    assert v["performance"]["trades"] == 0 and v["equity"] == 200_000.0 and v["before"]["closed_pnl"] == -100.0
     assert periods.current(()) is None and periods.view([], [], None) is None
     later = {**P, "id": "p3", "starts": "2026-11-02T00:00:00Z"}
     assert periods.current((P, later))["id"] == "p3"  # the latest declared period is the account now
