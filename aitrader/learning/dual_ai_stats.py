@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from datetime import datetime, timezone
 
 from ..learning.forward import ForwardLedger, partition
 from ..learning.paper_metrics import MIN_SAMPLE
@@ -34,10 +35,15 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #: 1.7.0: the agreements below the confidence floor (dual-ai 1.12.0), followed forward in shadow as the trades they
 #:        would have been, beside the trades taken: the floor stays measured. LOW_CONFIDENCE counts as a decision
 #:        with both traders.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.7.0"
+#: 1.8.0: `instrument_record`, what the desk's agreements on one instrument did (by side, by the chart's timeframe,
+#:        the latest ones), for the traders' journal (dual-ai 1.13.0).
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.8.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
+#: the desk's agreements, followed forward: as proposed (taken, or refused by the risk engine) and, since dual-ai
+#: 1.12.0, under the confidence floor. A shadow exit is the same agreement closed another way: never counted again.
+AGREEMENTS = (FAMILY, LOWCONF_FAMILY)
 EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
@@ -171,3 +177,30 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,
             "unavailable": sum(rules[k] for k in UNAVAILABLE)}
+
+
+def instrument_record(db, symbol: str, as_of: int | None = None, partition_: str | None = "LEARNING",
+                      last: int = 6) -> dict:
+    """What the desk's agreements on one instrument did, each followed forward after costs: by side, by the chart's
+    timeframe, and the latest few. Only outcomes resolved by `as_of`; LEARNING weeks only unless told otherwise, so
+    an EVALUATION week is never learned from."""
+    done = [r for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_)
+            if r.get("symbol") == symbol and r.get("family") in AGREEMENTS
+            and (r.get("outcome") or {}).get("status") == "RESOLVED" and r["outcome"].get("net_r") is not None]
+
+    def side(r) -> str:
+        return "BUY" if r.get("side") == 1 else "SELL"
+
+    def net(rs) -> list[float]:
+        return [float(r["outcome"]["net_r"]) for r in rs]
+    return {"version": DUAL_AI_STATS_VERSION, "instrument": symbol, "partition": partition_ or "ALL",
+            "agreements": _r(net(done)),
+            "by_side": {s: _r(net([r for r in done if side(r) == s])) for s in ("BUY", "SELL")},
+            "by_timeframe": {tf: _r(net([r for r in done if r.get("timeframe") == tf]))
+                             for tf in sorted({str(r.get("timeframe")) for r in done})},
+            "latest": [{"decided_utc": datetime.fromtimestamp(int(r["t"]), timezone.utc).strftime("%Y-%m-%d %H:%M"),
+                        "side": side(r), "timeframe": r.get("timeframe"), "net_r": round(float(r["outcome"]["net_r"]), 2),
+                        "exit": r["outcome"].get("reason"), "traded": bool(r.get("executed")),
+                        "desk_confidence": r.get("confidence")} for r in done[-last:]],
+            "note": "every agreement of the desk on this instrument, followed forward after costs whether it was "
+                    "traded or not; LEARNING weeks only; below 30 a figure is an anecdote (sample)"}

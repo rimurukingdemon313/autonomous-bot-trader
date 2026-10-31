@@ -367,9 +367,30 @@ shadow debate picked (family `DUAL_AI_DEBATE_PICK`: what standing aside skipped)
 gives: trades taken (win rate, expectancy R, profit factor), by rule and by desk confidence, each trader's hit
 rate, the debate's pick and its rejected side as if taken, the agreement rate. Every figure carries its sample size; below 30 it is labelled `insufficient`.
 
-Trader 2 and the debate are shown this record from LEARNING weeks only (every third ISO week is EVALUATION and
-is never learned from). Nothing moves a rule, a size or a limit; the desk's trades are never averaged with
-another mode's.
+**The traders' journal** (dual-ai 1.13.0, owner, 2026-10-31: "make it learn everything"). Both traders read
+`desk_memory`, the desk's own journal, before every decision (before it, Trader 1 saw none of it, and Trader 2
+and the debate saw only the record overall):
+
+- `this_instrument`: every agreement of the desk on the pair, followed forward after costs whether it was
+  traded or not, by side and by the chart's timeframe, with the latest six (`dual_ai_stats.instrument_record`);
+- `past_trades`: the most relevant closed trades (recent losses, this pair, this kind of market), with how and
+  why each ended (`TradeMemory`);
+- `record_overall`: the desk's record (trades taken, by confidence and session, the exits and the floor in
+  shadow, each trader's hit rate);
+- the lessons confirmed out of sample (taxonomy 1.1.0, below).
+
+LEARNING weeks only (every third ISO week is EVALUATION and is never learned from), and only outcomes resolved
+before the decision: nothing from after the decision time can be read. Each agreement counts once. The prompt
+asks the traders to read it as a professional reviews a journal: lower the confidence where the same kind of
+trade has kept losing, and treat a small sample as an anecdote. Nothing in it moves a rule, a size or a limit,
+and the desk's trades are never averaged with another mode's.
+
+**One trade, one outcome** (taxonomy 1.1.0, 2026-10-31). The forward lessons counted a trade's shadow exits
+(the same entry closed another way) as more trades of its signal class: 430 of the 914 outcomes in the
+`DUAL_AI` scope were these duplicates, so a lesson's n and t were inflated. The ACTIVE "DUAL_AI loses in
+TRANSITION" listed the same trades several times as its evidence. Exit variants are now left out of every
+scope, and every lesson's lifecycle restarts on independent outcomes. Lessons decided before stay in the
+append-only ledger as history, no longer shown to the models; the dashboard counts them as superseded.
 
 ## Hypotheses under test (registered 2026-10-17, before the data that will judge them)
 

@@ -85,6 +85,11 @@ def test_agreement_becomes_a_paper_position_through_the_risk_engine_and_the_gate
     dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],))["payload"])
     assert dec["family"] == "DUAL_AI" and dec["signal_class"] == "DUAL_AI" and dec["versions"]["dual_ai"]
     assert dec["ai"]["dual_ai"]["consensus"]["rule"] == "AGREE"
+    # dual-ai 1.13.0: both traders read the desk's journal, built by the orchestrator at the decision time
+    for call in fake.calls:
+        journal = packet_of(call["body"])["desk_memory"]
+        assert journal["this_instrument"]["instrument"] == "EURUSD" and journal["this_instrument"]["partition"] == "LEARNING"
+        assert journal["this_instrument"]["agreements"]["n"] == 0  # a first decision: nothing resolved yet, none invented
 
 
 def test_a_disagreement_is_no_trade_and_both_sides_are_followed_forward_never_executed(tmp_path, monkeypatch):

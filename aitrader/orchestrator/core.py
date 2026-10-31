@@ -107,7 +107,10 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.23.0 (owner, 2026-10-25: "if we lose, let it be the market"): the quote the risk engine sizes and checks is asked
 #:         for at the moment the position would open (risk 1.14.0 measures its age there), not at the decision time. A
 #:         live feed ignores the time asked; a replay's clock is the bar time, so a backtest is unchanged.
-ORCHESTRATOR_VERSION = "orchestrator-1.23.0"
+#: 1.24.0 (owner, 2026-10-31: "make it learn everything"): in dual_ai mode the memory brief also carries the desk's
+#:         record on the pair being decided (dual_ai_stats.instrument_record: LEARNING weeks, outcomes resolved by
+#:         the decision time), for the traders' journal (dual-ai 1.13.0).
+ORCHESTRATOR_VERSION = "orchestrator-1.24.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -395,6 +398,8 @@ class Orchestrator:
             ctx.memory_brief = TradeMemory(self.db, self.experience, families).brief(symbol, regime.label, t)
             if mode == "dual_ai":
                 ctx.memory_brief["dual_ai"] = dual_ai_stats.record(self.db, as_of=t, partition_="LEARNING")
+                ctx.memory_brief["dual_ai_instrument"] = dual_ai_stats.instrument_record(
+                    self.db, symbol, as_of=t, partition_="LEARNING")
             # Forward lessons confirmed out of sample (ACTIVE): information for the model, never a rule.
             ctx.memory_brief["forward_lessons"] = [
                 {"code": l["code"], "scope": l["scope"], "statement": l["statement"],

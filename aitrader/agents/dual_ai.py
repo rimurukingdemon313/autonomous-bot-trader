@@ -132,7 +132,13 @@ from .types import MarketContext
 #:         far, the H1-like levels of 1.11.0, the agreements at 65 or more did +0.33 R (34) against -0.18 R below
 #:         (84). Small samples and one model pair's calibration among several: a floor the owner asked for, kept
 #:         honest by its shadow. The traders are not told it, so it cannot move what they state.
-DUAL_AI_VERSION = "dual-ai-1.12.0"
+#: 1.13.0 (owner, 2026-10-31: "make it learn everything"): BOTH traders read the desk's own journal (desk_memory):
+#:         its record on the pair by side and timeframe, every agreement followed forward after costs; the most
+#:         relevant past trades with how and why they ended; its record overall; the lessons confirmed out of sample.
+#:         Trader 1, the one that reads the chart, saw none of it before; Trader 2 and the debate saw only the
+#:         record overall. LEARNING weeks only, outcomes resolved before the decision: an EVALUATION week is never
+#:         learned from, and nothing from after the decision time can be read.
+DUAL_AI_VERSION = "dual-ai-1.13.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -179,6 +185,14 @@ _SCHEMA = """{{"direction": "BUY|SELL", "entry": <price>, "stop_loss": <price>, 
   "reversal_probability": <0-100>, "invalidation": <the price that proves this side wrong>,
   "reason": "at most 4 sentences"}}"""
 
+#: what each trader is told of the desk's own journal (1.13.0)
+_JOURNAL = """"desk_memory" is this desk's own trading journal, after costs, from completed outcomes only: its record on
+this instrument by side and timeframe (every agreement followed forward, traded or not), the most relevant past
+trades with how and why they ended, its record overall, and lessons confirmed out of sample. Read it as a
+professional reviews a journal before a trade: when the same kind of trade here has kept losing, say what makes
+this one different or lower your confidence; a run of wins is no reason on its own to be surer. A figure marked
+"insufficient" is an anecdote, not proof, and the journal never replaces reading the market now."""
+
 _T1_IMAGE = """You are TRADER 1 on a professional trading desk: an experienced discretionary trader reading ONE
 chart image of one instrument, now. The time is {time} UTC; treat it as the present and use nothing you may know
 about prices or events after it.
@@ -215,6 +229,8 @@ a reversal, and place the trade as a professional would:
 - you do not size the trade and you do not decide whether it may be taken: a second, independent trader gives
   his own view and a risk engine sizes the trade and may refuse it.
 
+""" + _JOURNAL + """
+
 Reply with ONE JSON object only, no other text:
 """ + _SCHEMA
 TRADER1_SYSTEM = _T1_IMAGE + _T1_TASK
@@ -223,8 +239,9 @@ TRADER1_NUMBERS_SYSTEM = _T1_NUMBERS + _T1_TASK
 TRADER2_SYSTEM = """You are TRADER 2 on a professional trading desk: an independent, experienced trader. You analyse
 the same instrument, now, from the raw market data: completed OHLC bars on both timeframes (tick counts, not
 traded volume: spot FX has none), volatility, spread and costs, market structure, the economic calendar, the
-chart (the image if you can see it; its marks as numbers in "chart_marks" either way) and the desk's measured
-record. The time is {time} UTC; treat it as the present and use nothing you may know about later prices or events.
+chart (the image if you can see it; its marks as numbers in "chart_marks" either way) and the desk's own journal
+("desk_memory"). The time is {time} UTC; treat it as the present and use nothing you may know about later prices or
+events.
 
 Trader 1 has given his read in "trader1_analysis". Form YOUR OWN view first from the data, then compare: you may
 agree or disagree, but agreeing because Trader 1 said so is not analysis. Say what in the data decides it.
@@ -234,6 +251,8 @@ mixed, choose the stronger side and let your confidence say how strong it is: a 
 order is a market order (BUY at the ask, SELL at the bid); the stop goes beyond your invalidation, and no closer to
 the entry than costs.risk_engine_limits.min_stop_distance; the target at a level reachable within {hold} minutes,
 with reward:risk at least min_reward_risk. A risk engine sizes the trade and may refuse it.
+
+""" + _JOURNAL + """
 
 Reply with ONE JSON object only, no other text:
 """ + _SCHEMA
@@ -436,11 +455,34 @@ def _with_image(packet: dict, chart: Chart) -> list:
             {"type": "image_url", "image_url": {"url": chart.data_url()}}]
 
 
+#: the parts of the desk's overall record a trader reads in its journal (1.13.0); the rest stays on the dashboard
+JOURNAL_RECORD = ("trades_taken", "by_desk_confidence", "taken_by_session", "exits_in_shadow",
+                  "low_confidence_in_shadow", "trader1_hit_rate", "trader2_hit_rate", "agreement_rate")
+
+
+def desk_memory(ctx: MarketContext) -> dict:
+    """The desk's own journal as both traders read it (1.13.0), from the orchestrator's memory brief: LEARNING weeks
+    only, outcomes resolved before the decision. Never sized, never a rule: what happened, for the traders to weigh."""
+    m = ctx.memory_brief or {}
+    rec = m.get("dual_ai") or {}
+    return {
+        "this_instrument": m.get("dual_ai_instrument"),
+        "past_trades": [{**{k: v for k, v in t.items() if k != "opened"},
+                         "opened_utc": _iso(t["opened"]) if _num(t.get("opened")) else None}
+                        for t in (m.get("relevant_past_trades") or [])],
+        "record_overall": {k: rec[k] for k in JOURNAL_RECORD if k in rec} or None,
+        "trades_record": m.get("my_record"),
+        "validated_lessons": m.get("validated_lessons") or [],
+        "lessons_confirmed_out_of_sample": m.get("forward_lessons") or [],
+    }
+
+
 def trader1_packet(ctx: MarketContext, chart: Chart, hold: int) -> dict:
     return {"instrument": ctx.symbol, "decision_time_utc": _iso(ctx.t), "quote": {"bid": ctx.bid, "ask": ctx.ask},
             "holding_time_minutes": hold, "costs": ctx.costs, "chart_marks": chart.facts,
             "timeframe_summaries": ctx.mtf,
-            "regime": {k: v for k, v in ctx.regime.as_dict().items() if k != "reasons"}}
+            "regime": {k: v for k, v in ctx.regime.as_dict().items() if k != "reasons"},
+            "desk_memory": desk_memory(ctx)}
 
 
 def market_packet(ctx: MarketContext, reports: dict, chart: Chart, hold: int) -> dict:
@@ -460,7 +502,7 @@ def market_packet(ctx: MarketContext, reports: dict, chart: Chart, hold: int) ->
         "quant_agents": {k: {"summary": r.summary, "objections": [f"{o.severity} {o.code}: {o.message}"
                                                                    for o in r.objections][:5]}
                          for k, r in reports.items()},
-        "desk_measured_record": (ctx.memory_brief or {}).get("dual_ai"),
+        "desk_memory": desk_memory(ctx),
     }
 
 
@@ -721,7 +763,7 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
+__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
            "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE", "PICK_FAMILY", "PICK_SUFFIX", "T2LEVELS_FAMILY",
            "T2LEVELS_SUFFIX",
-           "build_chart", "check_levels", "counterfactual_decisions", "resolve", "validate_trader", "validate_verifier"]
+           "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve", "validate_trader", "validate_verifier"]
