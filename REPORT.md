@@ -1,18 +1,18 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-10-31 08:13 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-31 02:38 UTC · decision system `dual_ai`
+Updated 2026-10-31 08:13 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-10-31 08:13 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
-## The new account: the setup trading now (from 2026-10-26 16:22 UTC)
+## The new account: the setup trading now (from 2026-11-01 22:00 UTC)
 
-dual-ai 1.10.0 (a trade on Trader 1's levels) with both traders paid (paid-trial 1.2.0: Trader 1 xiaomi/mimo-v2.6-pro, Trader 2 anthropic/claude-haiku-5.5). Opened at the owner's request (2026-10-27): owner: a new account for the new setup, from the first shift that ran it; the account before it is kept and reported apart.
+dual-ai 1.12.0: the H1 chart, held up to 48 h (1.11.0), and a trade only when both traders state a confidence of 65 or more (1.12.0), on the free models (the paid trial ended 2026-10-31 00:00 UTC). Opened at the owner's request (2026-10-31): owner: a longer timeframe and only very confident entries; a new account for the new setup, as the owner chose on 2026-10-27; the accounts before it are kept and reported apart.
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $196,344.43 | $-3,655.57 | $-3,655.57 | 0 ($0.00) | 31 (adequate) | 32.3% | -0.247R | 0.47 |
+| $200,000.00 | $200,000.00 | $0.00 | $0.00 | 0 ($0.00) | 0 (none) | n/a | n/a | n/a |
 
-Before it, kept and apart (not in the figures above): 106 trades, net $-3,759.41. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
+Before it, kept and apart (not in the figures above): 137 trades, net $-7,414.98. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
 
 ## The rule that trades: a trade only when both AIs agree
 
@@ -108,7 +108,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 | 10-28 13:35 | GBPUSD | SELL | $-509.02 | -1.04 | $49.98 | STOP | DUAL_AI | AGREE | the market |
 | 10-28 11:53 | EURJPY | SELL | $-440.02 | -0.90 | $42.86 | STOP | DUAL_AI | AGREE | the market |
 
-## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree)
+## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
 OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
@@ -121,6 +121,8 @@ Disagreements (not traded; the debate runs in shadow): 149 · the debate's pick 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.182R vs -0.154R as taken (124, adequate) · held 24 h -0.070R vs -0.133R as taken (118, adequate) · stop and target twice as far -0.033R vs -0.133R as taken (118, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.304R vs -0.283R as taken (70, adequate)
 
 Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never traded): -0.235R vs -0.264R as taken (31, adequate)
+
+Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0; not traded, followed forward as the trades they would have been): 0 · if taken: 0 resolved (none)
 
 Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R · LONDON 42 resolved (adequate), expectancy -0.032R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
 
