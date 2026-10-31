@@ -885,10 +885,11 @@ class Runtime:
                      "mode": self.cfg.mode, "live_trading": False, "money": "NOT REAL MONEY",
                      "openrouter": self.openrouter.health(),
                      "rules": {"max_calls_per_decision": 3, "free_models_only": True,
-                               "desk": "each trader chooses BUY or SELL; same side -> AGREE, a trade (the more "
-                                       "confident trader's levels, or the other's when only those fit the risk "
-                                       "limits); opposite sides -> NO TRADE (the debate runs in shadow: measured, "
-                                       "never traded); the risk engine sizes and may refuse"}}
+                               "desk": "each trader chooses BUY or SELL on the H1 chart; same side and both "
+                                       "confidences 65 or more -> AGREE, a trade on Trader 1's levels; same side "
+                                       "below 65 -> NO TRADE (the trade it would have been is followed in shadow); "
+                                       "opposite sides -> NO TRADE (the debate runs in shadow: measured, never "
+                                       "traded); the risk engine sizes and may refuse"}}
         trader = getattr(self.orch.brain, "dual_ai", None)
         out["charts"] = {s: {"t": c["t"], "decision_id": c["decision_id"], **c["meta"]}
                          for s, c in (dict(trader.charts) if trader is not None else {}).items()}

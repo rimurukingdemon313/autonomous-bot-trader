@@ -13,7 +13,10 @@ MARKET DATA (completed bars, live quote)
   -> TRADER 2  (independent)        reads raw OHLC, both timeframes, costs,
                                     the chart and Trader 1's analysis      -> BUY or SELL, its own levels
   -> same side?      AGREE          a trade, on Trader 1's levels (dual-ai 1.10.0; Trader 2's own levels are
-                                    followed forward in shadow, never traded)
+                                    followed forward in shadow, never traded), only when BOTH state a
+                                    confidence of 65 or more (dual-ai 1.12.0)
+     same side, a confidence under 65?
+                     LOW_CONFIDENCE NO TRADE. The trade it would have been is followed forward in shadow
      opposite side?  DISAGREE       NO TRADE. One debate still runs IN SHADOW: a third model reads both analyses,
                                     the data and the chart and picks BUY or SELL; its pick and the side it rejected
                                     are followed forward as if taken, never traded. Never a second round.
@@ -33,8 +36,9 @@ MARKET DATA (completed bars, live quote)
 
 Each trader **must** choose BUY or SELL. When the market is mixed, it chooses the stronger side and says how
 strong in its confidence (0-100). A refusal is not an answer: a reply of `NO_TRADE` (or anything other than
-BUY/SELL) is malformed. Confidence never changes a size and is not a gate; it is recorded and compared with
-outcomes.
+BUY/SELL) is malformed. Confidence never changes a size. Since dual-ai 1.12.0 it is a gate that can only
+remove a trade: an agreement is traded only when both traders state 65 or more (below). The traders are not
+told the floor, so it cannot move what they state.
 
 The risk engine still blocks whatever it blocks: impossible stop or target, invalid price or size, a spread or
 cost too large for the stop, reward:risk below its minimum (1.2), the daily loss limit, the maximum drawdown,
@@ -79,6 +83,20 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
     and set back to M15 before 1.8.0 traded live, keeping the 24 h time exit. On the 60 trades followed in
     shadow then, the levels as taken held 24 h did +$4,360 better than the trades did, and stop and target
     twice as far +$2,289. With the 24 h hold in place, the wider levels are what was left to gain.
+- **Both traders sure: 65 or more** (dual-ai 1.12.0, owner, 2026-10-31: "the AI enters only when it is very
+  confident"). An agreement is a trade only when both traders state a confidence of 65 or more; below it,
+  it is NO_TRADE (`LOW_CONFIDENCE`), and the trade it would have been is followed forward in shadow
+  (`DUAL_AI_LOW_CONFIDENCE`, `low_confidence_in_shadow`; the report prints it). It only ever removes a trade.
+  What the forward record says, honestly:
+  - Over 479 agreements on M15, the lower of the two confidences under 60 lost -0.25 R a trade (182), and
+    60 or more lost -0.05 R (297): Welch t 1.8.
+  - With stop and target twice as far (the H1-like levels of 1.11.0), the agreements at 65 or more did
+    +0.33 R a trade (34), against -0.18 R below (84).
+  - These are small samples, read from the same record, and confidences come from several model pairs,
+    each calibrated its own way. The paid pair of the week to 30 October stated under 60 in 98 of its 109
+    agreements. So this is a floor the owner asked for, not a proven edge.
+  - It is reviewed when the shadow has 30 resolved trades. If those do better than the trades taken, the
+    floor costs money, and that is reported.
 - **Time exit: 24 h** (dual-ai 1.7.0, operator, 2026-10-20): an M15 trade stays open up to 24 h, not 8 h, and
   always closes by 16:00 New York on Friday, an hour before the weekend close (so the weekend rule never refuses
   a trade for it). The traders still plan their levels for 8 h, as in the trades that measured it. Of 31 trades
@@ -163,6 +181,7 @@ standing aside is right is measured, not assumed. The prompts are unchanged, so 
 | rule | when | models asked |
 |---|---|---|
 | `DISAGREE` | the traders chose opposite sides: stand aside (the debate runs in shadow; if it gives no usable answer, nothing is followed) | 3 |
+| `LOW_CONFIDENCE` | the same side, but not both at 65 or more (dual-ai 1.12.0): the trade it would have been, on Trader 1's levels and held as a trade, is followed forward (`DUAL_AI_LOW_CONFIDENCE`) | 2 |
 | `NOT_ASKED` (`MARKET_UNAVAILABLE` before dual-ai 1.6.0) | stale or bad data, no quote/ATR, a position already open on the pair, trading paused or stopped, or the risk engine already refuses any trade (the calendar, a news window, full positions); the reason names the rule that refused | none |
 | `AI_UNAVAILABLE` | `OPENROUTER_API_KEY` not set | none |
 | `NO_CHART` | not enough completed bars to draw the chart | none |

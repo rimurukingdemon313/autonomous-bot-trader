@@ -210,7 +210,7 @@ def report_md(v: dict, shift: dict) -> str:
         def shadow(s):
             return (f"{s.get('n', 0)} resolved ({s.get('sample', 'none')})"
                     + (f", expectancy {fmt(s.get('expectancy_r'), '{:+.3f}R')}" if s.get("n") else ""))
-        lines += ["", "## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree)", "",
+        lines += ["", "## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)", "",
                   f"OpenRouter `{o.get('status')}` · key {'set' if o.get('configured') else 'NOT SET'} · trader 1 "
                   f"`{o.get('vision_model')}` · trader 2 `{o.get('judge_model')}` · debate `{o.get('verifier_model')}` · "
                   f"calls today {o.get('calls_today')}/{o.get('daily_budget')}", "",
@@ -233,6 +233,10 @@ def report_md(v: dict, shift: dict) -> str:
                                        ("HOLD8H", "closed at 8 h (the exit before dual-ai 1.7.0)"))), "",
                   "Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never "
                   f"traded): {exit_line(rec.get('trader2_levels_in_shadow') or {})}", "",
+                  "Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0; not "
+                  f"traded, followed forward as the trades they would have been): "
+                  f"{(rec.get('decisions_by_rule') or {}).get('LOW_CONFIDENCE', 0)} · if taken: "
+                  f"{shadow(rec.get('low_confidence_in_shadow') or {})}", "",
                   "Trades taken by session (UTC): " + " · ".join(
                       f"{s} {shadow(st)}" for s, st in (rec.get("taken_by_session") or {}).items()), "",
                   "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |",

@@ -108,6 +108,29 @@ def test_a_disagreement_is_no_trade_and_both_sides_are_followed_forward_never_ex
     assert last["decision"] == "NO_TRADE" and last["consensus"]["debate_pick"] == "SELL"
 
 
+def test_an_agreement_below_the_confidence_floor_is_never_executed_and_is_followed_forward(tmp_path, monkeypatch):
+    # dual-ai 1.12.0 (owner, 2026-10-31): a trade only when both traders state 65 or more
+    from scripts.paper_forward_shift import report_md
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch, desk_reply(c1=90, c2=60))
+    cycles(rt, clock)
+    assert rt.broker.positions() == [] and rt.db.one("SELECT * FROM positions") is None
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"]  # they agreed: no debate
+    rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    (low,) = [r for r in rows if r["family"] == "DUAL_AI_LOW_CONFIDENCE"]
+    assert low["route"] == "COUNTERFACTUAL" and low["executed"] is False and low["side"] == 1
+    assert low["decision_id"].endswith(":low-confidence")
+    assert [r for r in rows if r["family"] == "DUAL_AI"] == []  # nothing proposed for execution
+    assert not [s for t in pipeline(rt) for s in t["stages"] if s == "PAPER EXECUTED"]
+    rec = dual_ai_stats.record(rt.db)
+    assert rec["decisions_by_rule"].get("LOW_CONFIDENCE") == 1 and rec["agreement_rate"] == 0.0
+    assert rec["trades_taken"]["n"] == 0 and rec["low_confidence_in_shadow"]["n"] == 0  # not resolved yet
+    last = rt.dual_ai()["last_analysis"]
+    assert last["decision"] == "NO_TRADE" and last["consensus"]["rule"] == "LOW_CONFIDENCE"
+    md = report_md({**rt.paper_forward(), "dual_ai": rt.dual_ai()}, {"started": "now", "decision_mode": "dual_ai"})
+    assert "Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0" in md
+    assert "): 1 · if taken: 0 resolved (none)" in md
+
+
 def test_the_trade_is_sized_on_the_price_after_the_traders_answered_the_one_the_gate_verifies(tmp_path, monkeypatch):
     # found live (2026-10-13, EURJPY): the size came from the quote read before the models answered (minutes
     # earlier); the price had moved away from the stop, and the hard gate rightly refused $523 > $500

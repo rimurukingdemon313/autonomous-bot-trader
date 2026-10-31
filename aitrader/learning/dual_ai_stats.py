@@ -31,9 +31,13 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #: 1.5.0: the shadow exit closed at 8 h (HOLD8H, forward 1.2.0) beside the others: the exit before dual-ai 1.7.0.
 #: 1.6.0: an agreement's trade on Trader 2's own levels, followed forward in shadow since dual-ai 1.10.0 (the desk
 #:        trades on Trader 1's), against the trade taken: H3 stays measured after its adoption.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.6.0"
+#: 1.7.0: the agreements below the confidence floor (dual-ai 1.12.0), followed forward in shadow as the trades they
+#:        would have been, beside the trades taken: the floor stays measured. LOW_CONFIDENCE counts as a decision
+#:        with both traders.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.7.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
+LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
 EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
@@ -102,7 +106,7 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         sel = [o["r"] for o, e in zip(trades, ev) if isinstance(e.get("desk_confidence"), (int, float))
                and lo <= 100 * e["desk_confidence"] < hi]
         bands[f"{lo}-{min(hi, 100)}"] = _r(sel)
-    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: []}
+    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: [], LOWCONF_FAMILY: []}
     taken: dict = {}                                   # decision id -> (net R as taken, session)
     exits: dict = {n: {} for n in EXIT_FAMILIES.values()}  # variant -> {base decision id: net R}
     t2_levels: dict = {}  # agreement decision id -> net R on Trader 2's own levels (never traded)
@@ -135,7 +139,7 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         if partition_ and partition(int(p.get("timestamp") or 0)) != partition_:
             continue
         rules[(((p.get("ai") or {}).get("dual_ai") or {}).get("consensus") or {}).get("rule") or "?"] += 1
-    both = rules["AGREE"] + rules["DISAGREE"] + rules["DEBATE"] + rules["DEBATE_UNRESOLVED"]
+    both = rules["AGREE"] + rules["DISAGREE"] + rules["DEBATE"] + rules["DEBATE_UNRESOLVED"] + rules["LOW_CONFIDENCE"]
     return {"version": DUAL_AI_STATS_VERSION, "partition": partition_ or "ALL",
             "trades_taken": _r([o["r"] for o in trades]),
             "by_rule": {k: _r([o["r"] for o, e in zip(trades, ev) if e.get("rule") == k]) for k in ("AGREE", "DEBATE")},
@@ -154,6 +158,10 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
                                          "note": "since dual-ai 1.10.0 a trade is on Trader 1's levels; the same "
                                                  "agreement on Trader 2's own levels, followed forward and never "
                                                  "traded. difference_r > 0 would mean Trader 2's levels did better"},
+            "low_confidence_in_shadow": {**_r(shadow[LOWCONF_FAMILY]), "note": "since dual-ai 1.12.0 an agreement "
+                                         "is a trade only when both traders state 65 or more; the agreements below, "
+                                         "followed forward as the trades they would have been, after costs. Doing "
+                                         "better than the trades taken would mean the floor costs money"},
             "exits_in_shadow": {**{n: against_taken(v) for n, v in exits.items()},
                                 "note": "each trade taken, followed again under another exit on the same entry, "
                                         "after costs; difference_r > 0 means that exit would have done better "

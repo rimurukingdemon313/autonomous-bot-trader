@@ -85,9 +85,29 @@ def test_on_equal_confidence_trader_1s_levels_are_used():
     assert d.stop_loss == pytest.approx(BID + 1.0 * ATR)
 
 
-def test_a_low_confidence_agreement_is_still_a_candidate_the_risk_engine_decides():
-    d, _ = think(scripted(t1=("BUY", 41), t2=("BUY", 38)))
-    assert d.decision == "BUY" and d.ai["view"]["confidence"] == pytest.approx(0.38)
+def test_an_agreement_below_the_confidence_floor_is_no_trade_and_the_trade_it_would_have_been_is_followed():
+    # dual-ai 1.12.0 (owner, 2026-10-31): the AI enters only when it is very confident: both traders at 65 or more
+    from aitrader.agents.dual_ai import LOWCONF_FAMILY, MIN_CONFIDENCE
+    assert MIN_CONFIDENCE == 65
+    d, fake = think(scripted(t1=("BUY", 80), t2=("BUY", 64)))  # one trader short of the floor is enough
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and not d.is_trade and d.stop_loss is None and d.take_profit is None
+    assert rec["consensus"]["rule"] == "LOW_CONFIDENCE" and rec["consensus"]["outcome"] == "NO_TRADE"
+    assert rec["consensus"]["agreed"] == "BUY" and rec["consensus"]["floor"] == 65
+    assert "not both at 65 or more (Trader 1 80, Trader 2 64)" in d.no_trade_reason
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"]  # no debate: they agreed
+    (sh,) = rec["shadow"]  # the trade it would have been: Trader 1's levels, held as a trade
+    assert sh["family"] == LOWCONF_FAMILY and sh["trader"] == "trader1" and sh["direction"] == "BUY"
+    assert sh["stop_loss"] == pytest.approx(ASK - 1.0 * ATR) and sh["take_profit"] == pytest.approx(ASK + 2.0 * ATR)
+    assert sh["hold_minutes"] == rec["time_exit_minutes"]
+    (cf,) = counterfactual_decisions(d)
+    assert cf.id == d.id + ":low-confidence" and cf.family == LOWCONF_FAMILY and cf.decision == "BUY"
+    assert cf.ai_verdict == "BELOW_THE_CONFIDENCE_FLOOR" and cf.edge_status == "EXPERIMENTAL"
+    d, _ = think(scripted(t1=("SELL", 41), t2=("SELL", 38)))  # both under it
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "LOW_CONFIDENCE"
+    d, _ = think(scripted(t1=("BUY", 65), t2=("BUY", 65)))  # both at it: a trade candidate, the risk engine decides
+    assert d.decision == "BUY" and d.ai["view"]["confidence"] == pytest.approx(0.65)
+    assert d.ai["dual_ai"]["consensus"]["rule"] == "AGREE"
 
 
 def test_trader_1_sees_the_chart_image_and_trader_2_gets_the_data_the_marks_and_trader_1s_analysis():
@@ -140,7 +160,7 @@ def test_an_unusable_debate_is_the_same_no_trade_with_nothing_to_follow_and_no_s
 
 
 def test_an_agreements_only_shadow_is_trader_2s_own_levels_never_a_debate_side():
-    d, _ = think(scripted(t1=("BUY", 60), t2=("BUY", 99)))
+    d, _ = think(scripted(t1=("BUY", 70), t2=("BUY", 99)))
     assert d.decision == "BUY" and d.ai["dual_ai"]["consensus"]["rule"] == "AGREE"
     assert [c.family for c in counterfactual_decisions(d)] == ["DUAL_AI_T2_LEVELS"]
     assert all(c.decision == "BUY" for c in counterfactual_decisions(d))  # the side agreed, on the other levels
@@ -202,6 +222,13 @@ def test_resolve_is_the_desk_rule():
     assert resolve(a, b) == {"outcome": "TRADE", "rule": "AGREE", "direction": "BUY", "levels_from": "trader1",
                              "more_confident": "trader2"}
     assert resolve(b, a)["levels_from"] == "trader1" and resolve(b, a)["more_confident"] == "trader1"
+    low = answer("BUY", BID, ASK, ATR, confidence=64)
+    for x, y in ((a, low), (low, a), (low, low)):  # the same side, one or both under the floor: no trade
+        r = resolve(x, y)
+        assert r["outcome"] == "NO_TRADE" and r["rule"] == "LOW_CONFIDENCE" and r["direction"] is None
+        assert r["agreed"] == "BUY" and r["levels_from"] is None and r["floor"] == 65
+    at = answer("BUY", BID, ASK, ATR, confidence=65)
+    assert resolve(at, at)["outcome"] == "TRADE"  # at the floor is enough
     s = answer("SELL", BID, ASK, ATR)
     for verdict in (None, {"direction": "SELL"}, {"direction": "BUY"}):
         r = resolve(a, s, verdict)

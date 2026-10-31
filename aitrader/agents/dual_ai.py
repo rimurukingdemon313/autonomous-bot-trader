@@ -123,7 +123,16 @@ from .types import MarketContext
 #:         trade better on 118 pairs (-0.03 R against -0.13 R), because costs fall from 0.18 R to 0.09 R of the risk.
 #:         Over 479 agreements followed forward the desk earned +0.06 R before costs and paid 0.19 R in them: on M15
 #:         the costs, not the direction, were the loss. The M15 path stays, named by EXECUTION_TF.
-DUAL_AI_VERSION = "dual-ai-1.11.0"
+#: 1.12.0 (owner, 2026-10-31: "the AI enters only when it is very confident"): an agreement is a trade only when
+#:         BOTH traders state a confidence of MIN_CONFIDENCE or more; below it, the agreement is NO_TRADE
+#:         (LOW_CONFIDENCE), and the trade it would have been (Trader 1's levels, held as a trade) is followed forward
+#:         in shadow (DUAL_AI_LOW_CONFIDENCE), never traded, so the floor stays measured. It only ever removes a
+#:         trade. In the forward record (479 agreements on M15) the lower of the two confidences under 60 lost
+#:         -0.25 R a trade (182) against -0.05 R at 60 or more (297), Welch t 1.8; and with stop and target twice as
+#:         far, the H1-like levels of 1.11.0, the agreements at 65 or more did +0.33 R (34) against -0.18 R below
+#:         (84). Small samples and one model pair's calibration among several: a floor the owner asked for, kept
+#:         honest by its shadow. The traders are not told it, so it cannot move what they state.
+DUAL_AI_VERSION = "dual-ai-1.12.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -133,8 +142,13 @@ PICK_FAMILY, PICK_SUFFIX = "DUAL_AI_DEBATE_PICK", ":debate-pick"
 LOSER_FAMILY, LOSER_SUFFIX = "DUAL_AI_DEBATE_LOSER", ":debate-loser"
 #: an agreement's trade on Trader 2's own levels (1.10.0): followed forward beside the trade on Trader 1's, never traded
 T2LEVELS_FAMILY, T2LEVELS_SUFFIX = "DUAL_AI_T2_LEVELS", ":t2-levels"
+#: an agreement below the confidence floor (1.12.0): the trade it would have been, followed forward, never traded
+LOWCONF_FAMILY, LOWCONF_SUFFIX = "DUAL_AI_LOW_CONFIDENCE", ":low-confidence"
 SHADOW = {PICK_FAMILY: (PICK_SUFFIX, "DEBATE_PICK_NOT_TRADED"), LOSER_FAMILY: (LOSER_SUFFIX, "LOST_THE_DEBATE"),
-          T2LEVELS_FAMILY: (T2LEVELS_SUFFIX, "TRADER2_LEVELS_NOT_TRADED")}
+          T2LEVELS_FAMILY: (T2LEVELS_SUFFIX, "TRADER2_LEVELS_NOT_TRADED"),
+          LOWCONF_FAMILY: (LOWCONF_SUFFIX, "BELOW_THE_CONFIDENCE_FLOOR")}
+#: an agreement is a trade only when both traders state at least this confidence (1.12.0)
+MIN_CONFIDENCE = 65
 SIDES = ("BUY", "SELL")
 ENTRY_TOL_ATR = 1.0       # a market order: a stated entry further than this from the executable price is a misread
 MAX_TARGET_ATR = 15.0
@@ -340,11 +354,15 @@ def hold_minutes(timeframe: str, t: int) -> int:
 
 
 def resolve(t1: dict, t2: dict, verdict: dict | None = None) -> dict:
-    """The desk's rule, pure: whose side and whose levels. Same side: a trade, on Trader 1's levels (1.10.0; the more
-    confident trader is named for the record). Opposite sides: no trade, whatever the debate says; the debate's pick
-    (when it answered) and the side it rejected are named for the shadow record only."""
+    """The desk's rule, pure: whose side and whose levels. Same side, both at MIN_CONFIDENCE or more: a trade, on
+    Trader 1's levels (1.10.0; the more confident trader is named for the record). Same side below it: no trade
+    (1.12.0), the side they agreed on named for the shadow record. Opposite sides: no trade, whatever the debate
+    says; the debate's pick (when it answered) and the side it rejected are named for the shadow record only."""
     if t1["direction"] == t2["direction"]:
         lead = "trader1" if t1["confidence"] >= t2["confidence"] else "trader2"
+        if min(t1["confidence"], t2["confidence"]) < MIN_CONFIDENCE:
+            return {"outcome": "NO_TRADE", "rule": "LOW_CONFIDENCE", "direction": None, "agreed": t1["direction"],
+                    "levels_from": None, "more_confident": lead, "floor": MIN_CONFIDENCE}
         return {"outcome": "TRADE", "rule": "AGREE", "direction": t1["direction"], "levels_from": LEVELS_FROM,
                 "more_confident": lead}
     pick = None if verdict is None else "trader1" if verdict["direction"] == t1["direction"] else "trader2"
@@ -640,6 +658,14 @@ class DualAITrader:
                         f"{t2['direction']} {t2['confidence']}): no trade unless both choose the same side; {seen}",
                         "DISAGREE")
         res = resolve(t1, t2)
+        if res["rule"] == "LOW_CONFIDENCE":
+            # the same side, but not both surely enough: no trade. The trade it would have been, on Trader 1's
+            # levels and held as a trade, is followed forward in shadow, so the floor stays measured
+            rec["consensus"] = res
+            rec["shadow"] = [_shadow_side(t1, "trader1", LOWCONF_FAMILY, exit_after)]
+            return stop(f"both traders chose {res['agreed']}, but not both at {MIN_CONFIDENCE} or more (Trader 1 "
+                        f"{t1['confidence']}, Trader 2 {t2['confidence']}): no trade unless both are that sure; "
+                        "followed forward in shadow, not traded", "LOW_CONFIDENCE")
         if res["outcome"] != "TRADE":
             return stop(f"the desk's rule gave no trade ({res['rule']})", res["rule"])
         traders = {"trader1": t1, "trader2": t2}
@@ -695,6 +721,7 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX", "PICK_FAMILY",
-           "PICK_SUFFIX", "T2LEVELS_FAMILY", "T2LEVELS_SUFFIX",
+__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
+           "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE", "PICK_FAMILY", "PICK_SUFFIX", "T2LEVELS_FAMILY",
+           "T2LEVELS_SUFFIX",
            "build_chart", "check_levels", "counterfactual_decisions", "resolve", "validate_trader", "validate_verifier"]
