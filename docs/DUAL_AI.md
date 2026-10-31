@@ -68,12 +68,17 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison. Since forward 1.2.0 also closed at 8 h (`..._HOLD8H`): the exit
   the trades had before dual-ai 1.7.0.
-- **The chart: M15, held up to 24 h** (dual-ai 1.9.0, 2026-10-22). Asked for a bigger timeframe, the desk was
-  set to trade H1 (1.8.0), and was set back to M15 before 1.8.0 traded live, keeping the 24 h time exit: on the
-  same 60 trades followed in shadow, the levels as taken held 24 h did +$4,360 better than the trades did,
-  stop and target twice as far (the closest measure of H1 levels) +$2,289. The H1 path stays, named by
-  `EXECUTION_TF`. Every time exit closes by 16:00 New York on Friday, and the traders are told the time a
-  trade really has. No DeepSeek model was free on OpenRouter that day (21 free models in the catalog).
+- **The chart: H1, held up to 48 h** (dual-ai 1.11.0, owner, 2026-10-31: "a longer timeframe, H1 for
+  example"). The desk reads H1 with H4 above it, plans and holds a trade up to 48 h, and every time exit
+  closes by 16:00 New York on Friday; the traders are told the time a trade really has. Over the 479
+  agreements followed forward on M15 the desk earned +0.06 R a trade before costs and paid 0.19 R in them:
+  the costs, not the direction, were the loss. The same agreements with stop and target twice as far (the
+  closest measure of H1 levels, `WIDE2X`) did +0.10 R a trade better on 118 pairs (-0.03 R against -0.13 R),
+  their costs falling from 0.18 R to 0.09 R of the risk. The M15 path stays, named by `EXECUTION_TF`.
+  - Before it (dual-ai 1.9.0, 2026-10-22): asked for a bigger timeframe, the desk was set to trade H1 (1.8.0)
+    and set back to M15 before 1.8.0 traded live, keeping the 24 h time exit. On the 60 trades followed in
+    shadow then, the levels as taken held 24 h did +$4,360 better than the trades did, and stop and target
+    twice as far +$2,289. With the 24 h hold in place, the wider levels are what was left to gain.
 - **Time exit: 24 h** (dual-ai 1.7.0, operator, 2026-10-20): an M15 trade stays open up to 24 h, not 8 h, and
   always closes by 16:00 New York on Friday, an hour before the weekend close (so the weekend rule never refuses
   a trade for it). The traders still plan their levels for 8 h, as in the trades that measured it. Of 31 trades
@@ -188,7 +193,8 @@ Every model asked before the one that answered is recorded on the call with its 
 after it change nothing, and the same bars always give the same bytes (both are tested).
 
 - header: instrument, timeframes, time, bid/ask/spread, trend per panel, ATR(14), volatility and its percentile;
-- upper panel, execution timeframe (M15 with at least 60 completed bars, else H1), last 100 candles: confirmed
+- upper panel, execution timeframe (H1 since dual-ai 1.11.0; M15 when `EXECUTION_TF` names it and it has at
+  least 60 completed bars), last 100 candles: confirmed
   swings labelled HH/HL/LH/LL, BOS/CHoCH breaks, the order block (tested/broken), fair value gaps
   (open/mitigated), equal highs/lows (liquidity), sweeps, displacement candles, support/resistance clusters,
   previous day/week high/low, bid and ask lines, and the ENTRY ZONE (±1 H1 ATR around the price);

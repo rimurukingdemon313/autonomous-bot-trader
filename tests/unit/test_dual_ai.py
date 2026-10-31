@@ -486,20 +486,24 @@ def m15_ctx():
     return c
 
 
-def test_the_desk_trades_m15_held_up_to_24h_and_the_h1_path_stays_when_named():
-    # dual-ai 1.9.0: on 60 trades in shadow the levels as taken held 24 h beat stop and target twice as far
+def test_the_desk_trades_h1_held_up_to_48h_and_the_m15_path_stays_when_named():
+    # dual-ai 1.11.0 (owner, 2026-10-31): on M15 the costs were the loss (+0.06 R before them, 0.19 R in them); the
+    # same agreements with stop and target twice as far, the closest measure of H1 levels, did +0.10 R better
     from aitrader.agents import dual_ai
-    d, fake = think(scripted(), m15_ctx())
+    assert dual_ai.EXECUTION_TF == "H1"
+    d, fake = think(scripted(), m15_ctx())  # M15 bars are there, and the desk still reads H1
     rec = d.ai["dual_ai"]
-    assert rec["chart"]["execution_timeframe"] == "M15" and d.decision == "BUY"
-    assert d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("M15", T) > 8 * 60
-    assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60} == {rec["hold_minutes"]}
-    try:  # H1 when named (1.8.0): planned and held up to 48 h, told the time it really has
-        dual_ai.EXECUTION_TF = "H1"
+    assert rec["chart"]["execution_timeframe"] == "H1" and rec["chart"]["higher_timeframe"] == "H4"
+    assert d.decision == "BUY" and d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("H1", T)
+    assert rec["hold_minutes"] == min(48 * 60, rec["time_exit_minutes"])  # T is a Friday: told the time it has
+    assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {rec["hold_minutes"]}
+    assert packet_of(fake.calls[1]["body"])["execution_bars"]["timeframe"] == "H1"
+    try:  # M15 when named (1.9.0): planned for 8 h, held up to 24 h
+        dual_ai.EXECUTION_TF = "M15"
         d, fake = think(scripted(), m15_ctx())
         rec = d.ai["dual_ai"]
-        assert rec["chart"]["execution_timeframe"] == "H1" and d.max_hold_minutes == time_exit_minutes("H1", T)
-        assert rec["hold_minutes"] == min(48 * 60, rec["time_exit_minutes"])  # T is a Friday
-        assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {rec["hold_minutes"]}
+        assert rec["chart"]["execution_timeframe"] == "M15" and d.decision == "BUY"
+        assert d.max_hold_minutes == rec["time_exit_minutes"] == time_exit_minutes("M15", T) > 8 * 60
+        assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60} == {rec["hold_minutes"]}
     finally:
-        dual_ai.EXECUTION_TF = "M15"
+        dual_ai.EXECUTION_TF = "H1"

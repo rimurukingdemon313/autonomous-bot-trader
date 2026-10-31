@@ -116,7 +116,14 @@ from .types import MarketContext
 #:         Both traders still decide together whether there is a trade (the same side). Trader 2's own levels are
 #:         followed forward in shadow (DUAL_AI_T2_LEVELS), never traded. Trader 1's levels outside the risk engine's
 #:         limits are refused by it, and no longer replaced by Trader 2's (1.4.0).
-DUAL_AI_VERSION = "dual-ai-1.10.0"
+#: 1.11.0 (owner, 2026-10-31: "a longer timeframe, H1 for example"): the desk trades the H1 chart again, H4 above it
+#:         (EXECUTION_TF, the 1.8.0 path), planned and held up to 48 h and closed by 16:00 New York on Friday. What
+#:         1.9.0 weighed is now settled by more trades: the 24 h hold it kept is in place, and on top of it the same
+#:         agreements with stop and target twice as far (the closest measure of H1 levels, WIDE2X) did +0.10 R a
+#:         trade better on 118 pairs (-0.03 R against -0.13 R), because costs fall from 0.18 R to 0.09 R of the risk.
+#:         Over 479 agreements followed forward the desk earned +0.06 R before costs and paid 0.19 R in them: on M15
+#:         the costs, not the direction, were the loss. The M15 path stays, named by EXECUTION_TF.
+DUAL_AI_VERSION = "dual-ai-1.11.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -138,8 +145,9 @@ TIME_EXIT_MINUTES = {"M15": 24 * 60, "H1": 48 * 60}
 NEW_YORK = ZoneInfo("America/New_York")
 FRIDAY_LAST_EXIT_NY = 16 * 60  # 16:00 New York, an hour before the 17:00 close
 MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart executes on H1
-#: the chart the desk trades on: "M15" (1.9.0) when it has MIN_EXEC_BARS, else H1; "H1" always H1 (1.8.0)
-EXECUTION_TF = "M15"
+#: the chart the desk trades on: "H1" always H1 (1.8.0, again since 1.11.0); "M15" (1.9.0) when it has MIN_EXEC_BARS,
+#: else H1
+EXECUTION_TF = "H1"
 EXEC_ROWS, HTF_ROWS = 60, 30
 MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
 CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
