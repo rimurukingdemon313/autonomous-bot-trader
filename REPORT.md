@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-01 09:00 UTC**, run 587, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
+Updated **2026-11-01 10:00 UTC**, run 588, version `radar-1.0.0`. State from: cache. Quotes this hour: 2404.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,31 +17,31 @@ Updated **2026-11-01 09:00 UTC**, run 587, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 24.54
+- days: 24.58
 - run_coverage: 0.9949
 - closed_positions: 139
 - open_positions: 5
-- utilisation: 0.1746
+- utilisation: 0.1752
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.4986
-- book_excess_pct: -1.5885
-- ann_excess_deployed_pct: -136.426
-- ann_excess_deployed_costs_x1.5_pct: -242.791
-- ann_excess_deployed_costs_x2_pct: -349.156
+- book_pnl_pct: -1.4824
+- book_excess_pct: -1.5725
+- ann_excess_deployed_pct: -134.389
+- ann_excess_deployed_costs_x1.5_pct: -240.235
+- ann_excess_deployed_costs_x2_pct: -346.082
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.8099
+- book_excess_without_best_coin_pct: -1.7939
 - max_dd_pct: 1.4986
-- t_excess_daily: -2.991
+- t_excess_daily: -2.982
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| PARTI | mexc | gate | 2026-10-30 16:00 | 37.3% | 21.1 | -11.9 | 17.0 | **-7.7** |
-| PEPE | hyperliquid | mexc | 2026-10-30 18:00 | 27.2% | 27.8 | -19.0 | 16.5 | **-7.6** |
-| HYPE | hyperliquid | gate | 2026-10-31 05:00 | 25.1% | 6.3 | -2.5 | 19.5 | **-15.7** |
-| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 1.0 | -0.1 | 17.0 | **-16.1** |
-| XPL | hyperliquid | gate | 2026-11-01 08:00 | 31.5% | 0.1 | 1.3 | 19.5 | **-18.0** |
+| PARTI | mexc | gate | 2026-10-30 16:00 | 37.3% | 21.1 | -3.6 | 17.0 | **0.5** |
+| PEPE | hyperliquid | mexc | 2026-10-30 18:00 | 27.2% | 27.8 | -7.9 | 16.5 | **3.4** |
+| HYPE | hyperliquid | gate | 2026-10-31 05:00 | 25.1% | 6.3 | -2.1 | 19.5 | **-15.3** |
+| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 2.1 | 7.0 | 17.0 | **-7.9** |
+| XPL | hyperliquid | gate | 2026-11-01 08:00 | 31.5% | 0.1 | 5.9 | 19.5 | **-13.4** |
 
 ## Closed positions (139)
 
@@ -82,6 +82,6 @@ Updated **2026-11-01 09:00 UTC**, run 587, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| AIN | mexc | gate | 69.2% | 92.4% |
+| AIN | mexc | gate | 69.8% | 96.6% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
