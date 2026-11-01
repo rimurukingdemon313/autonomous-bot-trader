@@ -89,7 +89,11 @@ from .provider import extract_json
 #:        (paid_trial.PAID_TRIAL). Within its window and caps a trader's paid model is asked first, the FREE models
 #:        after it; every call records its cost. A paid reply above its declared price, a 402, or
 #:        OPENROUTER_PAID_TRIAL=off ends the trial; the debate and the numbers fallback stay FREE.
-OPENROUTER_VERSION = "openrouter-1.9.0"
+#: 1.10.0 (owner, 2026-11-01: "learn from the internet"): a caller can ask for models of another lab first
+#:         (`other_lab_than`): the ranked models of other labs are tried before those of the labs named, in rank
+#:         order within each group; a model of a named lab still answers when no other lab's does. Agreement
+#:         between models of different labs is more informative: models of one lab share training and biases.
+OPENROUTER_VERSION = "openrouter-1.10.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -161,6 +165,11 @@ class OpenRouterConfig:
                 "timeout_s": self.timeout_s, "max_retries": self.max_retries, "daily_budget": self.daily_budget,
                 "vision_pin": self.vision_pin or None, "judge_pin": self.judge_pin or None,
                 "paid_trial_off": self.paid_trial_off}
+
+
+def lab_of(model: str | None) -> str:
+    """The lab a model id names: the part before "/" ("nvidia/nemotron-3-ultra:free" -> "nvidia")."""
+    return str(model or "").split("/", 1)[0]
 
 
 @dataclass
@@ -425,15 +434,18 @@ class OpenRouterClient:
 
     def chat_json(self, role: str, messages: list[dict], validate: Callable[[dict], str | None],
                   dedupe_key: str, max_models: int = 8, max_tokens: int = 3000, avoid: tuple = (),
-                  deadline_s: float = 420.0, avoid_soft: bool = False) -> CallResult:
+                  deadline_s: float = 420.0, avoid_soft: bool = False, other_lab_than: tuple = ()) -> CallResult:
         """One answer for `role`: the best FREE model first, the next FREE one when a model is unavailable.
         `validate(data)` returns None or why the reply is unusable (an unusable reply is not retried: NO_TRADE).
-        `avoid`: models that must not answer (another agent's); `deadline_s`: wall clock for all attempts."""
+        `avoid`: models that must not answer (another agent's); `deadline_s`: wall clock for all attempts;
+        `other_lab_than`: labs (the part of a model id before "/") whose models are tried only after every other
+        lab's (1.10.0)."""
         if not self.config.configured:
             return CallResult(False, "NOT_CONFIGURED", role, error="OPENROUTER_API_KEY is not set")
         if self._paid_usage:
             return CallResult(False, "PAID_USAGE", role, error=self._paid_usage)
-        digest = hashlib.sha256(json.dumps([role, messages, sorted(avoid)], sort_keys=True).encode()).hexdigest()
+        digest = hashlib.sha256(json.dumps([role, messages, sorted(avoid), sorted(other_lab_than)],
+                                           sort_keys=True).encode()).hexdigest()
         key = f"{dedupe_key}|{digest}"
         with self._lock:
             if key in self._cache:
@@ -445,7 +457,8 @@ class OpenRouterClient:
                 if key in self._cache:
                     hit = self._cache[key]
                     return CallResult(**{**hit.__dict__, "cached": True})
-            res = self._call(role, messages, validate, max_models, max_tokens, tuple(avoid), deadline_s, avoid_soft)
+            res = self._call(role, messages, validate, max_models, max_tokens, tuple(avoid), deadline_s, avoid_soft,
+                             tuple(other_lab_than))
             with self._lock:
                 if res.ok or res.status.startswith("INVALID"):
                     self._cache[key] = res
@@ -456,8 +469,10 @@ class OpenRouterClient:
             return res
 
     def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=420.0,
-              avoid_soft=False) -> CallResult:
+              avoid_soft=False, other_lab_than=()) -> CallResult:
         ranked = self.models_for(role, max_tokens)
+        if other_lab_than:  # another lab's models first, each group in rank order (a stable sort)
+            ranked = sorted(ranked, key=lambda m: lab_of(m) in other_lab_than)
         if self._paid_usage:  # the key check that refresh ran may have just found it
             return CallResult(False, "PAID_USAGE", role, error=self._paid_usage)
         models = [m for m in ranked if m not in avoid][:max_models]
@@ -743,4 +758,4 @@ def _retry_after(headers: dict) -> float | None:
     return None
 
 
-__all__ = ["OPENROUTER_VERSION", "CallResult", "OpenRouterClient", "OpenRouterConfig", "Transport"]
+__all__ = ["OPENROUTER_VERSION", "CallResult", "OpenRouterClient", "OpenRouterConfig", "Transport", "lab_of"]

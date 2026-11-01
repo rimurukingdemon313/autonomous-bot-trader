@@ -289,6 +289,21 @@ def test_avoid_keeps_the_second_trader_off_the_first_traders_model_and_soft_avoi
     assert c2.chat_json("verifier", MSG, accept, dedupe_key="k2", avoid=("x/v:free", "y/t:free"), avoid_soft=True).ok
 
 
+def test_another_labs_models_are_asked_first_and_the_named_lab_still_answers_when_none_other_does():
+    # openrouter 1.10.0: agreement between two models of one lab is weaker evidence (shared training and biases)
+    cat = [model("x/a:free", image=False, ii=30), model("x/b:free", image=False, ii=29), model("y/c:free", image=False, ii=20)]
+    c = client(FakeOpenRouter(good, catalog=cat))
+    assert c.chat_json("judge", MSG, accept, dedupe_key="k").model == "x/a:free"  # the ranking alone
+    assert c.chat_json("judge", MSG, accept, dedupe_key="k", other_lab_than=("x",)).model == "y/c:free"
+    down = FakeOpenRouter(lambda role, body: (503, {}, {"error": {"message": "busy"}}) if body["model"] == "y/c:free"
+                          else good(role, body), catalog=cat)
+    r = client(down).chat_json("judge", MSG, accept, dedupe_key="k", other_lab_than=("x",))
+    assert r.ok and r.model == "x/a:free"  # no other lab answered: the named lab's best still does
+    asked = [x["model"] for x in down.calls]  # the other lab first (with its own retries), then the named lab's
+    assert asked[0] == "y/c:free" and asked[-1] == "x/a:free" and asked.index("x/a:free") > max(
+        i for i, m in enumerate(asked) if m == "y/c:free")
+
+
 def test_the_image_goes_only_to_a_model_that_can_read_it():
     fake = FakeOpenRouter(good)
     c = client(fake)

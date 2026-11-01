@@ -66,7 +66,7 @@ from ..charts.render import RENDER_VERSION, Chart, render_chart
 from ..data.resample import resample
 from ..decision.synthesis import Decision, decision_id
 from ..llm.free_models import FREE_MODELS_VERSION
-from ..llm.openrouter import OPENROUTER_VERSION
+from ..llm.openrouter import OPENROUTER_VERSION, lab_of
 from ..llm.paid_trial import PAID_TRIAL, PAID_TRIAL_VERSION
 from .llm_trader import MAX_STOP_ATR, agent_digest, no_trade_decision, pre_model_block, trade_decision, with_ai
 from .types import MarketContext
@@ -138,7 +138,15 @@ from .types import MarketContext
 #:         Trader 1, the one that reads the chart, saw none of it before; Trader 2 and the debate saw only the
 #:         record overall. LEARNING weeks only, outcomes resolved before the decision: an EVALUATION week is never
 #:         learned from, and nothing from after the decision time can be read.
-DUAL_AI_VERSION = "dual-ai-1.13.0"
+#: 1.14.0 (owner, 2026-11-01: "learn from the internet"): Trader 2 is asked on another lab's model than Trader 1's
+#:         first (openrouter 1.10.0, other_lab_than), and the shadow debate on a third lab's when there is one.
+#:         Published audits find that agreement between models is weak evidence when they share training and
+#:         biases, and that a panel of decorrelated models does better than one lab's models agreeing. The desk's
+#:         own record leans the same way: agreements of two models of one lab did -0.16 R (87) against -0.12 R
+#:         (392) across labs; at both confidences 65 or more, -0.24 R (32) against -0.02 R (130). Not significant on
+#:         its own; it changes which free model answers first, never a rule, a level or a size. Each decision
+#:         records the two traders' labs.
+DUAL_AI_VERSION = "dual-ai-1.14.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -664,9 +672,11 @@ class DualAITrader:
             return stop(late("Trader 2") + ": no decision on one trader alone", "TRADER2_UNAVAILABLE")
         r2 = client.chat_json("judge", trader2_messages(ctx, reports, chart, t1, hold),
                               lambda d: validate_trader(d, px), dedupe_key=key + "|trader2",
-                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,), deadline_s=dl)
+                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,), deadline_s=dl,
+                              other_lab_than=(lab_of(r1.model),))
         rec["calls"].append(r2.record())
         rec["models"]["trader2"] = r2.model
+        rec["labs"] = {"trader1": lab_of(r1.model), "trader2": lab_of(r2.model) if r2.model else None}
         if r2.data is not None:
             rec["trader2"] = _clean(r2.data, TRADER_KEYS)
         if not r2.ok:
@@ -681,7 +691,8 @@ class DualAITrader:
             r3 = None if dl is None else client.chat_json(
                 "verifier", verify_messages(ctx, reports, chart, t1, t2, hold), validate_verifier,
                 dedupe_key=key + "|verifier", max_tokens=MAX_TOKENS["verifier"],
-                avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True, deadline_s=dl)
+                avoid=tuple(m for m in (r1.model, r2.model) if m), avoid_soft=True, deadline_s=dl,
+                other_lab_than=tuple(sorted({lab_of(m) for m in (r1.model, r2.model) if m})))
             if r3 is not None:
                 rec["calls"].append(r3.record())
                 rec["models"]["verifier"] = r3.model

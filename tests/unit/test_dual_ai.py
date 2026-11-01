@@ -79,6 +79,18 @@ def test_same_side_is_an_agreement_and_a_trade_candidate_on_trader_1s_levels_eve
     assert rec["models"] == {"trader1": VISION, "trader2": TRADER}
 
 
+def test_trader_2_is_asked_on_another_labs_model_first_and_the_labs_are_recorded():
+    # dual-ai 1.14.0: the best text model is from Trader 1's lab; Trader 2 is still asked on another lab's first
+    from tests.openrouter_kit import CATALOG, model
+    cat = [*CATALOG, model("seer/text-z:free", image=False, ii=40)]  # same lab as VISION ("seer"), ranked above TRADER
+    fake = FakeOpenRouter(scripted(), catalog=cat)
+    brain = Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=client(fake))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert fake.calls[0]["model"] == VISION and fake.calls[1]["model"] == TRADER  # "think", not "seer"
+    assert rec["labs"] == {"trader1": "seer", "trader2": "think"} and d.decision == "BUY"
+
+
 def test_on_equal_confidence_trader_1s_levels_are_used():
     d, _ = think(scripted(t1=("SELL", 80), t2=("SELL", 80)))
     assert d.decision == "SELL" and d.ai["dual_ai"]["consensus"]["levels_from"] == "trader1"

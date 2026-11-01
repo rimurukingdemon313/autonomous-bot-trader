@@ -392,6 +392,43 @@ TRANSITION" listed the same trades several times as its evidence. Exit variants 
 scope, and every lesson's lifecycle restarts on independent outcomes. Lessons decided before stay in the
 append-only ledger as history, no longer shown to the models; the dashboard counts them as superseded.
 
+## What the published research says (read 2026-11-01)
+
+The owner asked to "learn from the internet". What the published work says about desks like this one, and
+what it changed. The full papers on arxiv.org could not be opened from the session (network settings), so
+these rest on the abstracts and summaries.
+
+- **Live tests of LLM traders mostly lose.**
+  - LiveTradeBench ran 21 models live for 50 days and found that high general benchmark scores do not mean
+    better trading ([2511.03628](https://arxiv.org/abs/2511.03628)).
+  - AI-Trader found poor returns and weak risk management for most agents
+    ([2512.10971](https://econpapers.repec.org/paper/arxpapers/2512.10971.htm)).
+  - HKU's live FX test (ten agents, six weeks) found that trading more often did not do better.
+  - This matches the desk's own record: the paid "stronger" pair did worse than the free models, so models are
+    judged here on forward results only, never on benchmarks.
+- **A model's stated confidence is overconfident and poorly calibrated.** Agreement between models is a better
+  but weak, conditional signal ([2405.02917](https://arxiv.org/abs/2405.02917),
+  [2403.09849](https://arxiv.org/abs/2403.09849), [2607.08065](https://arxiv.org/abs/2607.08065)).
+  - A panel of decorrelated models does better than one lab's models agreeing
+    ([2607.10139](https://arxiv.org/abs/2607.10139)). Hence dual-ai 1.14.0: Trader 2 on another lab's model
+    first (below).
+  - The confidence floor (1.12.0) is kept as the owner's filter, measured by its shadow, not as a calibrated
+    probability.
+- **An LLM backtest on past prices is contaminated by what the model memorised**
+  ([2512.23847](https://arxiv.org/abs/2512.23847), [The Memorization Problem](https://arxiv.org/html/2504.14765v2)).
+  The desk is therefore forward-tested only, and its decisions are never replayed on history.
+- **Smart Money Concepts: no independent evidence of an edge.** A placebo-controlled test found order blocks no
+  better than random levels (a self-published study), as ID-1 found for every SMC rule after costs.
+- **Memory and reflection** (FinMem, [2311.13743](https://arxiv.org/abs/2311.13743)) improved agents in their
+  authors' own backtests. The traders' journal (1.13.0) is that memory, built from forward outcomes only.
+
+**Two models of different labs first** (dual-ai 1.14.0, openrouter 1.10.0). Trader 2 is asked on another lab's
+model than Trader 1's before any of Trader 1's lab (`other_lab_than`), and the shadow debate on a third lab's
+when there is one. A model of the same lab still answers when no other lab's does, so the desk is never left
+without its second trader. In the desk's own record, agreements of two models of one lab did -0.16 R (87)
+against -0.12 R (392) across labs; at both confidences 65 or more, -0.24 R (32) against -0.02 R (130). That is
+not significant on its own. Each decision records the two labs (`labs`).
+
 ## Hypotheses under test (registered 2026-10-17, before the data that will judge them)
 
 Read from the first 41 agreement trades. Many splits were tried that day, so a split that looks strong may be
