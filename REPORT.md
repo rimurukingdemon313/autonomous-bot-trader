@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-02 16:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 10:34 UTC · decision system `dual_ai`
+Updated 2026-11-02 16:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 16:09 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -9,6 +9,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
 - آخر قرار: EURGBP لا صفقة (اتفقوا بس مو الاثنين واثقين 65 أو أكثر).
+- المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 0، ما جاوب 0؛ صرف ما ينقرى هسه من $8.50.
 - آلة الزمن لآخر اتفاق (EURGBP، 10000 إعادة): الهدف أول 51%، الستوب أول 32%، ولا واحد 17%: يميل بقوة للهدف.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -118,9 +119,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `cohere/north-mini-code:free` · calls today 54/900
+OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
-Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): not active · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.96 of $9.00, today $0.00 of $1.80 (the key's own reading) · trader 1 not asked: outside its window · trader 2 not asked: outside its window
+Paid trial `senior-2026-11-02` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent n/a of $8.50, today n/a of $1.50 (the key's own reading)
 
 Agreement trades 140 (adequate) · wins 54 · losses 86 · net $-8,066.02 · expectancy -0.140R · profit factor 0.72 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
@@ -134,22 +135,24 @@ Agreements below the confidence floor (both traders at 65 or more since dual-ai 
 
 Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R · LONDON 42 resolved (adequate), expectancy -0.032R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
 
-| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk | Time machine |
-|---|---|---|---|---|---|---|---|---|
-| 11-02 16:02 | EURGBP | SELL 58 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - | T 51% / S 32% / - 17%: strongly toward the target |
-| 11-02 16:00 | NZDUSD | SELL 55 | SELL 55 | - | LOW_CONFIDENCE | NO_TRADE | - | T 39% / S 61% / - 0%: strongly toward the stop |
-| 11-02 15:45 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:45 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:30 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:30 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:15 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:00 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 15:00 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 14:45 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 14:45 | EURJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
+Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usable answer; not traded, followed forward): 0 vetoed · 0 without a usable review · if taken: 0 resolved (none)
 
-The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
+| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
+|---|---|---|---|---|---|---|---|---|---|
+| 11-02 16:02 | EURGBP | SELL 58 | SELL 65 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 51% / S 32% / - 17%: strongly toward the target |
+| 11-02 16:00 | NZDUSD | SELL 55 | SELL 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 39% / S 61% / - 0%: strongly toward the stop |
+| 11-02 15:45 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:45 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:30 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:30 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:15 | GBPUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:15 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:00 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:00 | EURCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 14:45 | GBPJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 14:45 | EURJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+
+The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
 Time machine of the latest agreement (EURGBP): the levels replayed 10,000 times on the pair's own last 60 days of hours; a simulation of the recent past, not a forecast, and it refuses nothing (dual-ai 1.16.0).
 
