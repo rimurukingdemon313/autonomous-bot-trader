@@ -911,6 +911,7 @@ class Runtime:
                 "consensus": rec.get("consensus"), "models": rec.get("models"), "trader1": rec.get("trader1"),
                 "trader2": rec.get("trader2"), "verifier": rec.get("verifier"), "chart": rec.get("chart"),
                 "calls": rec.get("calls"), "trader1_input": rec.get("trader1_input"), "version": rec.get("version"),
+                "time_machine": rec.get("time_machine"),
                 "risk": (None if v is None else {"approved": bool(v["approved"]), "reasons": (vp or {}).get("reasons"),
                                                  "qty": (vp or {}).get("qty")})})
             if len(analyses) >= 12:

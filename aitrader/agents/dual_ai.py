@@ -68,6 +68,8 @@ from ..decision.synthesis import Decision, decision_id
 from ..llm.free_models import FREE_MODELS_VERSION
 from ..learning.dual_ai_stats import LEVEL_KEYS, with_or_against
 from ..learning.forward import session_of
+from ..learning.timemachine import TIME_MACHINE_VERSION
+from ..learning.timemachine import replay as replay_levels
 from ..llm.openrouter import OPENROUTER_VERSION, lab_of
 from ..llm.paid_trial import PAID_TRIAL, PAID_TRIAL_VERSION
 from .llm_trader import MAX_STOP_ATR, agent_digest, no_trade_decision, pre_model_block, trade_decision, with_ai
@@ -157,7 +159,13 @@ from .types import MarketContext
 #:         123, t -3.4), the London/New York overlap lost (-0.43 R, 54), stops 1.25-2 H1 ATR lost (-0.31 R, 100), and
 #:         the desk won 42% where its median reward:risk 1.38 and costs 0.19 R needed 50%. An agreement under the
 #:         confidence floor now records its desk confidence too.
-DUAL_AI_VERSION = "dual-ai-1.15.0"
+#: 1.16.0 (owner, 2026-11-02, the day-trader-skill's /trader-timemachine): every agreement's levels (Trader 1's, the
+#:         ones a trade is placed on) are replayed 10,000 times on the pair's own H1 hours of the last sixty days
+#:         (learning/timemachine.py) before the risk engine decides: how often the target comes first, the stop first,
+#:         or neither within the time exit, against the win rate the levels need after costs, and one verdict. It is
+#:         recorded on the decision (`time_machine`), shown in the report, and read by the analysis as a condition, so
+#:         the desk learns whether its verdict predicts outcomes. Measurement only: it refuses and sizes nothing.
+DUAL_AI_VERSION = "dual-ai-1.16.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -619,7 +627,8 @@ class DualAITrader:
             raise ValueError("the dual-AI desk cannot be backtested honestly: the models may know what happened "
                              "after the decision time")
         v = {**versions, "dual_ai": DUAL_AI_VERSION, "chart": RENDER_VERSION, "openrouter": OPENROUTER_VERSION,
-             "free_models": FREE_MODELS_VERSION, "paid_trial": f"{PAID_TRIAL.name}:{PAID_TRIAL_VERSION}"}
+             "free_models": FREE_MODELS_VERSION, "paid_trial": f"{PAID_TRIAL.name}:{PAID_TRIAL_VERSION}",
+             "time_machine": TIME_MACHINE_VERSION}
         did = decision_id(ctx.symbol, ctx.timeframe, ctx.t, ctx.mode, v)
         agents = agent_digest(reports)
         rec: dict = {"version": DUAL_AI_VERSION, "symbol": ctx.symbol, "t": ctx.t, "calls": [], "models": {},
@@ -756,6 +765,8 @@ class DualAITrader:
                         f"{t2['direction']} {t2['confidence']}): no trade unless both choose the same side; {seen}",
                         "DISAGREE")
         res = resolve(t1, t2)
+        # the time machine (1.16.0): the agreed trade's levels, Trader 1's, replayed on the pair's own recent hours
+        rec["time_machine"] = time_machine(ctx, did, t1, px, exit_after)
         if res["rule"] == "LOW_CONFIDENCE":
             # the same side, but not both surely enough: no trade. The trade it would have been, on Trader 1's
             # levels and held as a trade, is followed forward in shadow, so the floor stays measured
@@ -796,6 +807,25 @@ class DualAITrader:
             return c["png"] if c else None
 
 
+def time_machine(ctx: MarketContext, did: str, t: dict, px: dict, exit_after: int) -> dict | None:
+    """A trader's levels replayed on the pair's own completed H1 hours (learning/timemachine.py), from the price the
+    order would fill at, for the time the trade may stay open, with its costs; None when it cannot be replayed."""
+    h1 = (ctx.bars or {}).get("H1")
+    if h1 is None:
+        return None
+    entry = px["ask"] if t["direction"] == "BUY" else px["bid"]
+    try:
+        seed = int(did[:8], 16)
+    except ValueError:
+        seed = 19
+    try:
+        return replay_levels(h1, as_of=int(ctx.t), entry=float(entry), stop=float(t["stop_loss"]),
+                             target=float(t["take_profit"]), hold_minutes=int(exit_after),
+                             cost=float((ctx.costs or {}).get("total") or 0.0), seed=seed)
+    except (ValueError, TypeError, KeyError):
+        return None
+
+
 def _lesson(ctx: MarketContext, side: int) -> dict | None:
     kv = ctx.knowledge
     if kv is not None and hasattr(kv, "lessons_matching"):
@@ -822,4 +852,5 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
 __all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
            "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE", "PICK_FAMILY", "PICK_SUFFIX", "T2LEVELS_FAMILY",
            "T2LEVELS_SUFFIX",
-           "analysis_now", "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve", "validate_trader", "validate_verifier"]
+           "analysis_now", "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve",
+           "time_machine", "validate_trader", "validate_verifier"]

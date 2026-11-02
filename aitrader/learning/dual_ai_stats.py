@@ -42,7 +42,9 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:        volatility, the last H1 structure break and the regime's trend against the side, the lower confidence, the
 #:        reward:risk, the stop in H1 ATR), the conditions that lost or worked clearly, and what a trade must win to
 #:        pay at its reward:risk after costs.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.9.0"
+#: 1.10.0: the time machine's verdict on an agreement's levels (dual-ai 1.16.0) is one of the conditions: whether its
+#:         replays leaning toward the stop or the target tell anything about what then happened.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.10.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
@@ -217,7 +219,7 @@ def instrument_record(db, symbol: str, as_of: int | None = None, partition_: str
 ANALYSIS_MIN_N, ANALYSIS_T, ANALYSIS_STRONG_T = 20, 2.0, 3.0
 #: conditions that depend on the side a trader chooses, and on the levels it places
 SIDE_KEYS = ("side", "last_H1_structure_break", "regime_trend")
-LEVEL_KEYS = ("lower_confidence", "reward_risk", "stop_in_h1_atr")
+LEVEL_KEYS = ("lower_confidence", "reward_risk", "stop_in_h1_atr", "time_machine")
 
 
 def _band(x, edges: tuple, fmt: str = "{:g}") -> str | None:
@@ -256,7 +258,8 @@ def conditions(p: dict, d: dict) -> dict:
             "regime_trend": with_or_against((ctx.get("regime") or {}).get("trend_direction"), side),
             "lower_confidence": _band(low, (55, 60, 65, 70)),
             "reward_risk": _band(p.get("reward_risk"), (1.3, 1.6, 2.0)),
-            "stop_in_h1_atr": _band(p.get("stop_atr"), (0.75, 1.25, 2.0))}
+            "stop_in_h1_atr": _band(p.get("stop_atr"), (0.75, 1.25, 2.0)),
+            "time_machine": (da.get("time_machine") or {}).get("verdict")}
 
 
 def analysis(db, as_of: int | None = None, partition_: str | None = "LEARNING") -> dict:

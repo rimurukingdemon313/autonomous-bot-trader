@@ -412,6 +412,31 @@ On 2 November, over 375 agreements in the learning weeks:
 
 Statistics, never a rule: nothing in the analysis refuses a trade; the confidence floor and the risk engine do.
 
+**The time machine** (dual-ai 1.16.0, owner, 2026-11-02, after the day-trader-skill's `/trader-timemachine`).
+Every agreement's levels (Trader 1's, the ones a trade is placed on) are replayed 10,000 times before the risk
+engine decides (`learning/timemachine.py`). This applies to agreements under the confidence floor too.
+
+- **One replay.** Each hour of the trade's life, up to its time exit, is a bar drawn at random from the pair's own
+  completed H1 bars of the last sixty days, of the same hour of day plus or minus one, scaled to the price reached.
+  Bars after a gap (a weekend) are left out, because their jump is not an hour's move. The stop is checked first, so
+  a bar touching both is a stop, and a bar opening through the stop fills at its open.
+- **What it records** (`time_machine` on the decision):
+  - how often the target came first, the stop first, or neither;
+  - the mean R before and after costs;
+  - the win rate the levels need after costs, `(1 + c) / (1 + R)`;
+  - one verdict: close to break-even, leaning toward, or strongly toward the target or the stop. It compares the
+    target's share of the replays that reached a side with that need.
+- **Deterministic.** The seed is the decision's id.
+
+It is a simulation of the pair's recent past, not a forecast. It shows whether the levels are reachable in the
+time given and how the recent drift leans; it cannot say whether the traders' reading is right. It refuses and
+sizes nothing:
+
+- **The report** shows it for every agreement (the "Time machine" column) and publishes the latest one's fan
+  (`last_time_machine.png`).
+- **The analysis** reads its verdict as a condition (`time_machine`), so the desk's own record will show whether
+  replays leaning toward the stop really lose more. It becomes a rule only if that record ever shows it should.
+
 **One trade, one outcome** (taxonomy 1.1.0, 2026-10-31). The forward lessons counted a trade's shadow exits
 (the same entry closed another way) as more trades of its signal class: 430 of the 914 outcomes in the
 `DUAL_AI` scope were these duplicates, so a lesson's n and t were inflated. The ACTIVE "DUAL_AI loses in

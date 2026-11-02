@@ -29,6 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from aitrader.charts.fan import render_time_machine  # noqa: E402
 from aitrader.service.config import ServiceConfig  # noqa: E402
 
 
@@ -239,8 +240,8 @@ def report_md(v: dict, shift: dict) -> str:
                   f"{shadow(rec.get('low_confidence_in_shadow') or {})}", "",
                   "Trades taken by session (UTC): " + " · ".join(
                       f"{s} {shadow(st)}" for s, st in (rec.get("taken_by_session") or {}).items()), "",
-                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |",
-                  "|---|---|---|---|---|---|---|---|"]
+                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk | Time machine |",
+                  "|---|---|---|---|---|---|---|---|---|"]
         for a in dai.get("analyses") or []:
             when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"
             t1, t2, vf = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}
@@ -249,11 +250,26 @@ def report_md(v: dict, shift: dict) -> str:
             lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')}{read} | "
                          f"{t2.get('direction', '-')} {t2.get('confidence', '')} | {vf.get('direction', '-')} | "
                          f"{(a.get('consensus') or {}).get('rule')} | "
-                         f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} |")
+                         f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} | "
+                         f"{time_machine_cell(a.get('time_machine'))} |")
         lines += ["", "The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so "
                   "Trader 1 read the same chart from its numbers."]
+        tm = next((a for a in dai.get("analyses") or [] if a.get("time_machine")), None)
+        if tm:
+            lines += ["", f"Time machine of the latest agreement ({tm['symbol']}): the levels replayed "
+                      f"{tm['time_machine'].get('replays', 0):,} times on the pair's own last 60 days of hours; a "
+                      "simulation of the recent past, not a forecast, and it refuses nothing (dual-ai 1.16.0).", "",
+                      "![time machine](last_time_machine.png)"]
     lines += ["", "Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.", ""]
     return "\n".join(lines)
+
+
+def time_machine_cell(tm: dict | None) -> str:
+    """One agreement's time machine in a table cell: target first / stop first / neither, and the verdict."""
+    if not tm:
+        return "-"
+    return (f"T {tm.get('target_first', 0):.0%} / S {tm.get('stop_first', 0):.0%} / - {tm.get('neither', 0):.0%}: "
+            f"{tm.get('verdict')}")
 
 
 def publish(rt, pub: Path, shift: dict, push: bool) -> None:
@@ -265,6 +281,10 @@ def publish(rt, pub: Path, shift: dict, push: bool) -> None:
         png = rt.dual_ai_chart(last) if last else None
         if png:
             (pub / "last_chart.png").write_bytes(png)
+        tm = next((a for a in v["dual_ai"].get("analyses") or [] if a.get("time_machine")), None)
+        fan = render_time_machine(tm["time_machine"], tm["symbol"]) if tm else None
+        if fan:
+            (pub / "last_time_machine.png").write_bytes(fan)
     v["health"] = {k: rt.health.get(k) for k in ("last_cycle", "last_cycle_error", "cycles")}
     (pub / "paper_forward.json").write_text(json.dumps(v, indent=1, default=str) + "\n")
     (pub / "REPORT.md").write_text(report_md(v, shift))
