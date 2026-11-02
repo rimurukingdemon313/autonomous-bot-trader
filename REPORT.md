@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-02 15:04 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 10:34 UTC · decision system `dual_ai`
+Updated 2026-11-02 15:19 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 10:34 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: AUDJPY لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: GBPUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
 ## The new account: the setup trading now (from 2026-11-01 22:00 UTC)
@@ -70,8 +70,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4159 so far)
+## Latest decisions, NO TRADE included (4161 so far)
 
+- 11-02 15:15 GBPUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 951s old
+- 11-02 15:15 EURUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 949s old
 - 11-02 15:00 AUDJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 561s old
 - 11-02 15:00 EURCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 559s old
 - 11-02 14:45 GBPJPY NO_TRADE: risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -82,8 +84,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-02 14:15 USDCAD NO_TRADE: risk engine: trading_calendar (Monday 14:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 11-02 14:00 AUDUSD NO_TRADE: risk engine: trading_calendar (Monday 14:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 11-02 14:00 USDJPY NO_TRADE: risk engine: trading_calendar (Monday 14:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 11-02 13:45 GBPUSD NO_TRADE: risk engine: trading_calendar (Monday 13:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 11-02 13:45 EURUSD NO_TRADE: risk engine: trading_calendar (Monday 13:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 
 ## Open paper positions
 
@@ -135,6 +135,8 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|
+| 11-02 15:15 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
+| 11-02 15:15 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 15:00 | AUDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 15:00 | EURCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 14:45 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
@@ -145,8 +147,6 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 | 11-02 14:15 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 14:00 | AUDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 14:00 | USDJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 13:45 | GBPUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 13:45 | EURUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
