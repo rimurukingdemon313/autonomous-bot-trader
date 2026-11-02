@@ -385,6 +385,33 @@ asks the traders to read it as a professional reviews a journal: lower the confi
 trade has kept losing, and treat a small sample as an anecdote. Nothing in it moves a rule, a size or a limit,
 and the desk's trades are never averaged with another mode's.
 
+**The record analysed, not recalled** (dual-ai 1.15.0, owner, 2026-11-02: "I want the AI to analyse the past to
+get better, not memorise it like a monkey"). The journal now carries `analysis` (`dual_ai_stats.analysis`): every
+agreement of the desk, followed forward after costs, split by one condition at a time. The conditions are:
+
+- the side, the session, the pair, the timeframe, the regime and the volatility;
+- the last H1 structure break and the regime's trend, each with or against the side;
+- the lower of the two confidences, the reward:risk, and the stop in H1 ATR.
+
+A condition with 20+ agreements at |t| >= 2 is named as having lost or worked ("strong" at 3+). About forty are
+read, so one or two near t 2 will be chance, and the traders are told so. The journal also gives the win rate a
+trade needs to pay at its reward:risk after costs, (1 + c) / (1 + R). That is the break-even line the owner's
+`day-trader-skill` uses, read on 2026-11-02.
+
+`analysis.now` matches the named conditions to the decision at hand: for either side (session, pair, regime), if
+BUY, if SELL, and those to check against the trader's own levels. The prompt asks each trader to be an analyst,
+not a parrot: say why a condition lost or worked and whether that cause is present now. Avoid a losing pattern
+whose cause is still there; never avoid a trade only because the past says so when its cause is gone.
+
+On 2 November, over 375 agreements in the learning weeks:
+
+- BUYs lost -0.36 R (123, t -3.4): October's falling majors may be the cause, not a rule.
+- The London/New York overlap lost -0.43 R (54).
+- Stops of 1.25-2 H1 ATR lost -0.31 R (100).
+- The desk won 42% where its median reward:risk 1.38 and costs of 0.19 R needed 50%.
+
+Statistics, never a rule: nothing in the analysis refuses a trade; the confidence floor and the risk engine do.
+
 **One trade, one outcome** (taxonomy 1.1.0, 2026-10-31). The forward lessons counted a trade's shadow exits
 (the same entry closed another way) as more trades of its signal class: 430 of the 914 outcomes in the
 `DUAL_AI` scope were these duplicates, so a lesson's n and t were inflated. The ACTIVE "DUAL_AI loses in

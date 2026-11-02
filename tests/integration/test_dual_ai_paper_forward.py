@@ -90,6 +90,10 @@ def test_agreement_becomes_a_paper_position_through_the_risk_engine_and_the_gate
         journal = packet_of(call["body"])["desk_memory"]
         assert journal["this_instrument"]["instrument"] == "EURUSD" and journal["this_instrument"]["partition"] == "LEARNING"
         assert journal["this_instrument"]["agreements"]["n"] == 0  # a first decision: nothing resolved yet, none invented
+        # dual-ai 1.15.0: the record analysed, matched to this decision; nothing to name before anything resolved
+        an = journal["analysis"]
+        assert an["partition"] == "LEARNING" and an["lost"] == [] == an["worked"] and an["break_even"] is None
+        assert set(an["now"]) == {"for_either_side", "if_BUY", "if_SELL", "check_your_levels"}
 
 
 def test_a_disagreement_is_no_trade_and_both_sides_are_followed_forward_never_executed(tmp_path, monkeypatch):

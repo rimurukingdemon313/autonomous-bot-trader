@@ -110,7 +110,9 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #: 1.24.0 (owner, 2026-10-31: "make it learn everything"): in dual_ai mode the memory brief also carries the desk's
 #:         record on the pair being decided (dual_ai_stats.instrument_record: LEARNING weeks, outcomes resolved by
 #:         the decision time), for the traders' journal (dual-ai 1.13.0).
-ORCHESTRATOR_VERSION = "orchestrator-1.24.0"
+#: 1.25.0 (owner, 2026-11-02: "analyse the past, don't memorise it"): in dual_ai mode the memory brief also carries the
+#:         desk's record analysed (dual_ai_stats.analysis: LEARNING weeks, outcomes resolved by the decision time).
+ORCHESTRATOR_VERSION = "orchestrator-1.25.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -400,6 +402,7 @@ class Orchestrator:
                 ctx.memory_brief["dual_ai"] = dual_ai_stats.record(self.db, as_of=t, partition_="LEARNING")
                 ctx.memory_brief["dual_ai_instrument"] = dual_ai_stats.instrument_record(
                     self.db, symbol, as_of=t, partition_="LEARNING")
+                ctx.memory_brief["dual_ai_analysis"] = dual_ai_stats.analysis(self.db, as_of=t, partition_="LEARNING")
             # Forward lessons confirmed out of sample (ACTIVE): information for the model, never a rule.
             ctx.memory_brief["forward_lessons"] = [
                 {"code": l["code"], "scope": l["scope"], "statement": l["statement"],

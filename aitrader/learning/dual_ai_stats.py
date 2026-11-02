@@ -37,7 +37,12 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:        with both traders.
 #: 1.8.0: `instrument_record`, what the desk's agreements on one instrument did (by side, by the chart's timeframe,
 #:        the latest ones), for the traders' journal (dual-ai 1.13.0).
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.8.0"
+#: 1.9.0: `analysis`, the desk's record analysed (owner, 2026-11-02: "the AI should analyse the past to get better, not
+#:        memorise it"): every agreement split by one condition at a time (side, session, pair, timeframe, regime,
+#:        volatility, the last H1 structure break and the regime's trend against the side, the lower confidence, the
+#:        reward:risk, the stop in H1 ATR), the conditions that lost or worked clearly, and what a trade must win to
+#:        pay at its reward:risk after costs.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.9.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
@@ -204,3 +209,104 @@ def instrument_record(db, symbol: str, as_of: int | None = None, partition_: str
                         "desk_confidence": r.get("confidence")} for r in done[-last:]],
             "note": "every agreement of the desk on this instrument, followed forward after costs whether it was "
                     "traded or not; LEARNING weeks only; below 30 a figure is an anecdote (sample)"}
+
+
+#: a condition is reported as having lost or worked when its agreements number at least ANALYSIS_MIN_N and their mean
+#: net R is at least ANALYSIS_T standard errors from zero; at three or more, "strong". About forty conditions are
+#: read, so one or two at |t| near 2 will be chance: the traders are told so.
+ANALYSIS_MIN_N, ANALYSIS_T, ANALYSIS_STRONG_T = 20, 2.0, 3.0
+#: conditions that depend on the side a trader chooses, and on the levels it places
+SIDE_KEYS = ("side", "last_H1_structure_break", "regime_trend")
+LEVEL_KEYS = ("lower_confidence", "reward_risk", "stop_in_h1_atr")
+
+
+def _band(x, edges: tuple, fmt: str = "{:g}") -> str | None:
+    if not isinstance(x, (int, float)) or isinstance(x, bool):
+        return None
+    lo = None
+    for e in edges:
+        if x < e:
+            return f"under {fmt.format(e)}" if lo is None else f"{fmt.format(lo)} to {fmt.format(e)}"
+        lo = e
+    return f"{fmt.format(lo)} or more"
+
+
+def with_or_against(direction, side: str) -> str:
+    """Whether a side goes with or against a direction: "bullish"/"bearish" or +1/-1; "none" without one."""
+    if direction in ("bullish", 1) or (isinstance(direction, (int, float)) and direction > 0):
+        up = True
+    elif direction in ("bearish", -1) or (isinstance(direction, (int, float)) and direction < 0):
+        up = False
+    else:
+        return "none"
+    return "with" if up == (side == "BUY") else "against"
+
+
+def conditions(p: dict, d: dict) -> dict:
+    """The conditions of one agreement: from its forward proposal `p` and its decision record `d`."""
+    side = "BUY" if p.get("side") == 1 else "SELL"
+    da = ((d.get("ai") or {}).get("dual_ai") or {})
+    ctx = d.get("context") or {}
+    c1, c2 = (da.get("trader1") or {}).get("confidence"), (da.get("trader2") or {}).get("confidence")
+    low = min(c1, c2) if all(isinstance(c, (int, float)) and not isinstance(c, bool) for c in (c1, c2)) else None
+    h1 = ((((ctx.get("market_map") or {}).get("structure") or {}).get("H1") or {}).get("last_break") or {})
+    return {"side": side, "session": p.get("session"), "pair": p.get("symbol"), "timeframe": p.get("timeframe"),
+            "regime": p.get("regime"), "volatility": p.get("vol_state"),
+            "last_H1_structure_break": with_or_against(h1.get("direction"), side),
+            "regime_trend": with_or_against((ctx.get("regime") or {}).get("trend_direction"), side),
+            "lower_confidence": _band(low, (55, 60, 65, 70)),
+            "reward_risk": _band(p.get("reward_risk"), (1.3, 1.6, 2.0)),
+            "stop_in_h1_atr": _band(p.get("stop_atr"), (0.75, 1.25, 2.0))}
+
+
+def analysis(db, as_of: int | None = None, partition_: str | None = "LEARNING") -> dict:
+    """The desk's record analysed: its agreements (each once), split by one condition at a time; the conditions that
+    clearly lost or worked after costs; and the win rate a trade needs at its reward:risk. Only outcomes resolved by
+    `as_of`; LEARNING weeks only unless told otherwise. Statistics, never a rule: nothing here refuses a trade."""
+    done = [r for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_)
+            if r.get("family") in AGREEMENTS
+            and (r.get("outcome") or {}).get("status") == "RESOLVED" and r["outcome"].get("net_r") is not None]
+    ids = sorted({str(r["decision_id"]).split(":", 1)[0] for r in done})
+    decisions: dict = {}
+    for i in range(0, len(ids), 500):
+        chunk = ids[i:i + 500]
+        for row in db.query(f"SELECT id, payload FROM decisions WHERE id IN ({','.join('?' * len(chunk))})", tuple(chunk)):
+            decisions[row["id"]] = json.loads(row["payload"])
+    cells: dict = {}
+    for r in done:
+        net = float(r["outcome"]["net_r"])
+        for k, v in conditions(r, decisions.get(str(r["decision_id"]).split(":", 1)[0]) or {}).items():
+            if v is not None:
+                cells.setdefault((k, v), []).append(net)
+    notable = []
+    for (k, v), xs in cells.items():
+        n = len(xs)
+        if n < ANALYSIS_MIN_N:
+            continue
+        mean = sum(xs) / n
+        sd = (sum((x - mean) ** 2 for x in xs) / (n - 1)) ** 0.5
+        t = mean / (sd / n ** 0.5) if sd > 0 else 0.0
+        if abs(t) >= ANALYSIS_T:
+            notable.append({"key": k, "value": v, "condition": f"{k} = {v}", "n": n,
+                            "win_rate": round(sum(1 for x in xs if x > 0) / n, 3), "expectancy_r": round(mean, 3),
+                            "t": round(t, 2), "strength": "strong" if abs(t) >= ANALYSIS_STRONG_T else "possible"})
+    nets = [float(r["outcome"]["net_r"]) for r in done]
+    rr = sorted(float(r["reward_risk"]) for r in done if isinstance(r.get("reward_risk"), (int, float)))
+    costs = [float(r["outcome"]["cost_r"]) for r in done if isinstance(r["outcome"].get("cost_r"), (int, float))]
+    need = None
+    if rr and costs:
+        med, c = rr[len(rr) // 2], sum(costs) / len(costs)
+        need = {"median_reward_risk": round(med, 2), "mean_cost_r": round(c, 3),
+                "win_rate_needed": round((1 + c) / (1 + med), 3),
+                "rule": "a trade at reward:risk R, paying costs of c R, needs to win more than (1 + c) / (1 + R) of "
+                        "the time to make money"}
+    return {"version": DUAL_AI_STATS_VERSION, "partition": partition_ or "ALL", "agreements": _r(nets),
+            "break_even": need,
+            "lost": sorted((x for x in notable if x["t"] < 0), key=lambda x: x["t"]),
+            "worked": sorted((x for x in notable if x["t"] > 0), key=lambda x: -x["t"]),
+            "conditions_read": len(cells),
+            "how_to_read": f"every agreement of the desk, followed forward after costs whether traded or not, split by "
+                           f"one condition at a time; shown when {ANALYSIS_MIN_N}+ agreements are |t| >= {ANALYSIS_T:g} "
+                           f"from zero. About {len(cells)} conditions are read, so one or two near t 2 will be chance. "
+                           "A condition is a pattern of the past, not a rule: ask why it lost or worked, and whether "
+                           "that cause is still there now"}

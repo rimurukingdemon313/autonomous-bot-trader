@@ -66,6 +66,8 @@ from ..charts.render import RENDER_VERSION, Chart, render_chart
 from ..data.resample import resample
 from ..decision.synthesis import Decision, decision_id
 from ..llm.free_models import FREE_MODELS_VERSION
+from ..learning.dual_ai_stats import LEVEL_KEYS, with_or_against
+from ..learning.forward import session_of
 from ..llm.openrouter import OPENROUTER_VERSION, lab_of
 from ..llm.paid_trial import PAID_TRIAL, PAID_TRIAL_VERSION
 from .llm_trader import MAX_STOP_ATR, agent_digest, no_trade_decision, pre_model_block, trade_decision, with_ai
@@ -146,7 +148,16 @@ from .types import MarketContext
 #:         (392) across labs; at both confidences 65 or more, -0.24 R (32) against -0.02 R (130). Not significant on
 #:         its own; it changes which free model answers first, never a rule, a level or a size. Each decision
 #:         records the two traders' labs.
-DUAL_AI_VERSION = "dual-ai-1.14.0"
+#: 1.15.0 (owner, 2026-11-02: "I want the AI to analyse the past to get better, not memorise it like a monkey"): the
+#:         journal carries the desk's record ANALYSED (dual_ai_stats.analysis): every agreement split by one condition
+#:         at a time, the conditions that clearly lost or worked after costs, the win rate a trade needs at its
+#:         reward:risk, and which of those conditions apply to this decision, for either side, if BUY, if SELL, and
+#:         against the trader's own levels. Both traders are asked to reason about each one as an analyst: why it
+#:         lost or worked, and whether that cause is present now. On 2 November the record said: BUYs lost (-0.36 R,
+#:         123, t -3.4), the London/New York overlap lost (-0.43 R, 54), stops 1.25-2 H1 ATR lost (-0.31 R, 100), and
+#:         the desk won 42% where its median reward:risk 1.38 and costs 0.19 R needed 50%. An agreement under the
+#:         confidence floor now records its desk confidence too.
+DUAL_AI_VERSION = "dual-ai-1.15.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -199,7 +210,16 @@ this instrument by side and timeframe (every agreement followed forward, traded 
 trades with how and why they ended, its record overall, and lessons confirmed out of sample. Read it as a
 professional reviews a journal before a trade: when the same kind of trade here has kept losing, say what makes
 this one different or lower your confidence; a run of wins is no reason on its own to be surer. A figure marked
-"insufficient" is an anecdote, not proof, and the journal never replaces reading the market now."""
+"insufficient" is an anecdote, not proof, and the journal never replaces reading the market now.
+
+"desk_memory.analysis" is that record ANALYSED: every agreement split by one condition at a time, the conditions
+that clearly lost or worked after costs (each with its sample and t), and the win rate a trade needs at its
+reward:risk to pay its costs. "analysis.now" lists the conditions that apply to THIS decision: for either side, if
+you BUY, if you SELL, and the ones to check against your own levels. Be an analyst, not a parrot: for each one that
+applies, ask WHY it lost or worked (a trend that has since turned, a session's thin liquidity, stops inside the
+noise, targets too close for the win rate) and whether that cause is present now. Avoid repeating a losing pattern
+whose cause is still there, and say so in your reason; never avoid a trade only because the past says so when its
+cause is gone."""
 
 _T1_IMAGE = """You are TRADER 1 on a professional trading desk: an experienced discretionary trader reading ONE
 chart image of one instrument, now. The time is {time} UTC; treat it as the present and use nothing you may know
@@ -468,12 +488,37 @@ JOURNAL_RECORD = ("trades_taken", "by_desk_confidence", "taken_by_session", "exi
                   "low_confidence_in_shadow", "trader1_hit_rate", "trader2_hit_rate", "agreement_rate")
 
 
-def desk_memory(ctx: MarketContext) -> dict:
+def analysis_now(analysis: dict, ctx: MarketContext, timeframe: str | None) -> dict:
+    """Which of the analysis' clear conditions apply to this decision (1.15.0): those either side meets now, those
+    each side would meet, and those that depend on the levels a trader places."""
+    regime = ctx.regime
+    h1 = ((((ctx.market_map or {}).get("structure") or {}).get("H1") or {}).get("last_break") or {}).get("direction")
+    now = {"session": session_of(ctx.t), "pair": ctx.symbol, "timeframe": timeframe,
+           "regime": getattr(regime, "label", None), "volatility": getattr(regime, "vol_state", None)}
+    cells = [*(analysis.get("lost") or []), *(analysis.get("worked") or [])]
+
+    def brief(x: dict) -> dict:
+        return {k: x[k] for k in ("condition", "n", "win_rate", "expectancy_r", "t", "strength")}
+
+    def side(s: str) -> list:
+        val = {"side": s, "last_H1_structure_break": with_or_against(h1, s),
+               "regime_trend": with_or_against(getattr(regime, "trend_direction", None), s)}
+        return [brief(x) for x in cells if x["key"] in val and val[x["key"]] == x["value"]]
+    return {"for_either_side": [brief(x) for x in cells if x["key"] in now and now[x["key"]] == x["value"]],
+            "if_BUY": side("BUY"), "if_SELL": side("SELL"),
+            "check_your_levels": [brief(x) for x in cells if x["key"] in LEVEL_KEYS]}
+
+
+def desk_memory(ctx: MarketContext, timeframe: str | None = None) -> dict:
     """The desk's own journal as both traders read it (1.13.0), from the orchestrator's memory brief: LEARNING weeks
-    only, outcomes resolved before the decision. Never sized, never a rule: what happened, for the traders to weigh."""
+    only, outcomes resolved before the decision; since 1.15.0 with the record analysed and matched to this decision.
+    Never sized, never a rule: what happened and what it suggests, for the traders to weigh."""
     m = ctx.memory_brief or {}
     rec = m.get("dual_ai") or {}
+    a = m.get("dual_ai_analysis")
     return {
+        "analysis": ({**{k: v for k, v in a.items() if k != "version"}, "now": analysis_now(a, ctx, timeframe)}
+                     if isinstance(a, dict) else None),
         "this_instrument": m.get("dual_ai_instrument"),
         "past_trades": [{**{k: v for k, v in t.items() if k != "opened"},
                          "opened_utc": _iso(t["opened"]) if _num(t.get("opened")) else None}
@@ -490,7 +535,7 @@ def trader1_packet(ctx: MarketContext, chart: Chart, hold: int) -> dict:
             "holding_time_minutes": hold, "costs": ctx.costs, "chart_marks": chart.facts,
             "timeframe_summaries": ctx.mtf,
             "regime": {k: v for k, v in ctx.regime.as_dict().items() if k != "reasons"},
-            "desk_memory": desk_memory(ctx)}
+            "desk_memory": desk_memory(ctx, chart.meta.get("execution_timeframe"))}
 
 
 def market_packet(ctx: MarketContext, reports: dict, chart: Chart, hold: int) -> dict:
@@ -510,7 +555,7 @@ def market_packet(ctx: MarketContext, reports: dict, chart: Chart, hold: int) ->
         "quant_agents": {k: {"summary": r.summary, "objections": [f"{o.severity} {o.code}: {o.message}"
                                                                    for o in r.objections][:5]}
                          for k, r in reports.items()},
-        "desk_memory": desk_memory(ctx),
+        "desk_memory": desk_memory(ctx, chart.meta.get("execution_timeframe")),
     }
 
 
@@ -714,7 +759,7 @@ class DualAITrader:
         if res["rule"] == "LOW_CONFIDENCE":
             # the same side, but not both surely enough: no trade. The trade it would have been, on Trader 1's
             # levels and held as a trade, is followed forward in shadow, so the floor stays measured
-            rec["consensus"] = res
+            rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3)}
             rec["shadow"] = [_shadow_side(t1, "trader1", LOWCONF_FAMILY, exit_after)]
             return stop(f"both traders chose {res['agreed']}, but not both at {MIN_CONFIDENCE} or more (Trader 1 "
                         f"{t1['confidence']}, Trader 2 {t2['confidence']}): no trade unless both are that sure; "
@@ -777,4 +822,4 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
 __all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
            "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE", "PICK_FAMILY", "PICK_SUFFIX", "T2LEVELS_FAMILY",
            "T2LEVELS_SUFFIX",
-           "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve", "validate_trader", "validate_verifier"]
+           "analysis_now", "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve", "validate_trader", "validate_verifier"]
