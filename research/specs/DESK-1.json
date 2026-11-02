@@ -1,0 +1,39 @@
+{
+ "code_sha256": "a78595fe984d65c0899924de9ebc0f735ee50a5111c52b1723cd8f3dd15fa5c5",
+ "sha256": "65b1c3e2c4f2a2297296d44101777e441c51753564f8f0c095437270723fc1a9",
+ "spec": {
+  "after": {
+   "FAILED or not confirmed": "nothing in the bot changes; the result is reported as it is",
+   "confirmed": "it is followed forward on the H1 desk as a shadow (measured, never traded) before it can become a rule: these agreements were all on M15, with nearer stops than H1's"
+  },
+  "baseline": "each agreement's own net R as followed forward: the trader's levels and the time exit",
+  "candidates": {
+   "SKIP-COST-0.20": {
+    "skip_planned_cost_r_above": 0.2
+   },
+   "SKIP-OVERLAP": {
+    "skip_session": "OVERLAP"
+   },
+   "TP-0.75": {
+    "take_profit_r": 0.75
+   },
+   "TP-1.0": {
+    "take_profit_r": 1.0
+   },
+   "TP-1.25": {
+    "take_profit_r": 1.25
+   }
+  },
+  "confirmed_if": "the selected candidate's EVALUATION mean d > 0 with paired t of 2.0 or more",
+  "data": "the forward ledger of a published paper-forward shift database: every DUAL_AI agreement as proposed (taken, or refused by the risk engine), RESOLVED, each counted once",
+  "excluded_on_purpose": "a filter by side (BUYs lost in October): it is a bet on one month's trend, not a structure (CLAUDE.md rule 12)",
+  "judge_on": "EVALUATION",
+  "measure": "per agreement, d = candidate net R - baseline net R (a skipped agreement is 0 R); paired t of d",
+  "planned_cost_r": "(spread + 2 x slippage + commission) / risk, from the proposal at the entry",
+  "profitable_if": "confirmed, and the selected candidate's own EVALUATION net R over the trades it takes is > 0 with t of 2.0 or more",
+  "program": "DESK-1",
+  "question": "would a rule fixed at the entry have made the desk's agreements pay: a nearer take-profit, or skipping the costly ones or the London/New York overlap?",
+  "select": "among the candidates whose LEARNING mean d is at least 0.05 R with paired t of 2.0 or more, the one with the largest mean d; if none qualifies, DESK-1 is FAILED and EVALUATION is not judged",
+  "select_on": "LEARNING"
+ }
+}
