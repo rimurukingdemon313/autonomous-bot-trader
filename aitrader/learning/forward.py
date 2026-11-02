@@ -49,7 +49,10 @@ import numpy as np
 #:        `breakeven_at_r`. A proposal without it resolves exactly as before.
 #: 1.2.0: a shadow exit may cut the holding time (`hold_cap_s`): HOLD8H follows a trade taken again closed at 8 h,
 #:        the exit the desk used before dual-ai 1.7.0 held its trades 24 h, so the change stays measured.
-FORWARD_VERSION = "forward-1.2.0"
+#: 1.3.0 (2026-11-02): CLOSE24H (closed at 24 h at the latest) replaces HOLD24H for new trades. Since dual-ai 1.7.0 a
+#:        trade is held 24 h, and since 1.11.0 an H1 trade 48 h, so "held at least 24 h" had become the trade itself,
+#:        followed twice. Closing at 24 h asks the question H1 opened: does the second day help? Old HOLD24H rows stay.
+FORWARD_VERSION = "forward-1.3.0"
 EVALUATION_WEEK_MOD = 3  # ISO week % 3 == 2 -> EVALUATION
 PERIODS = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600}
 MAX_BARS = 1500
@@ -197,8 +200,8 @@ def walk(p: dict, bars, now: int) -> dict | None:
 #: Shadow exits of a trade taken: followed forward beside it, never traded.
 EXIT_VARIANTS = {
     "BE1R": {"breakeven_at_r": 1.0},                 # the stop moves to the entry once +1R is reached
-    "HOLD24H": {"hold_s": 24 * 3600},                # held up to 24 h instead of its own holding time
-    "WIDE2X": {"scale": 2.0, "hold_s": 24 * 3600},   # stop and target twice as far, held up to 24 h
+    "CLOSE24H": {"hold_cap_s": 24 * 3600},           # closed at 24 h at the latest (1.3.0; HOLD24H before it)
+    "WIDE2X": {"scale": 2.0, "hold_s": 24 * 3600},   # stop and target twice as far, held 24 h or the trade's own time
     "HOLD8H": {"hold_cap_s": 8 * 3600},              # closed at 8 h at the latest: the exit before dual-ai 1.7.0
 }
 

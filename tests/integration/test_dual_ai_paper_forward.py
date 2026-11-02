@@ -172,12 +172,13 @@ def test_a_trade_taken_is_followed_forward_under_shadow_exits_never_executed(tmp
     rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
     (taken,) = [r for r in rows if r["family"] == "DUAL_AI"]
     shadows = sorted((r for r in rows if r["family"].startswith("DUAL_AI_EXIT_")), key=lambda r: r["family"])
-    assert [r["exit_variant"] for r in shadows] == ["BE1R", "HOLD24H", "HOLD8H", "WIDE2X"]
+    assert [r["exit_variant"] for r in shadows] == ["BE1R", "CLOSE24H", "HOLD8H", "WIDE2X"]  # forward 1.3.0
     assert all(r["base_decision_id"] == taken["decision_id"] and r["route"] == "COUNTERFACTUAL"
                and r["executed"] is False for r in shadows)
     assert len(rt.broker.positions()) == 1  # nothing more was traded
     rec = dual_ai_stats.record(rt.db)
-    assert set(rec["exits_in_shadow"]) >= {"BE1R", "HOLD24H", "WIDE2X", "HOLD8H"} and "LATE" in rec["taken_by_session"]
+    assert set(rec["exits_in_shadow"]) >= {"BE1R", "CLOSE24H", "HOLD24H", "WIDE2X", "HOLD8H"}  # the old rows stay read
+    assert "LATE" in rec["taken_by_session"]
 
 
 def test_a_trade_is_placed_on_trader_1s_levels_and_trader_2s_are_followed_in_shadow(tmp_path, monkeypatch):
@@ -330,6 +331,10 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert per["start_balance"] == 200_000.0 and "## The new account: the setup trading now" in md
     assert per["performance"]["trades"] + per["before"]["performance"]["trades"] == 3
     assert per["equity"] == pytest.approx(200_000.0 + per["total_pnl"]) and "Before it, kept and apart" in md
+    # the owner's summary in Arabic comes first, with the same figures as the sections below it
+    ar = md.split("## ملخص بالعربي")[1].split("## ")[0]
+    assert md.index("## ملخص بالعربي") < md.index("## The new account") and "مو فلوس حقيقية" in ar
+    assert f"الرصيد ${per['equity']:,.2f}" in ar and f"الحساب الكامل من البداية: ${pf['account']['equity']:,.2f}" in ar
     assert {t["period"] for t in pf["recent_trades"]} <= {per["id"], "before"}
     with pytest.raises(sqlite3.DatabaseError, match="immutable"):  # and the old rule's trades cannot be deleted
         with rt.db.tx() as c:
@@ -586,3 +591,25 @@ def test_the_news_window_is_judged_when_the_position_would_open(tmp_path, monkey
     trail = pipeline(rt)[-1]
     assert trail["stages"] == ["AI DECISION", "RISK REJECTED"]
     assert "High-impact release" in trail["reason"] and "in 27 min" in trail["reason"]
+
+
+def test_a_stop_hit_between_cycles_is_booked_at_once_never_shown_open(tmp_path, monkeypatch):
+    """orchestrator 1.26.0. On 2026-11-02 the paper broker stopped EURUSD and then NZDUSD between cycles: the balance
+    paid each loss at once, but the journal said OPEN until the next cycle, so the report showed both open for up to
+    15 minutes, with no P/L, past -1R, and the new account's equity unreadable."""
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
+    cycles(rt, clock)
+    (pos,) = rt.broker.positions()
+    balance = rt.broker.account().balance
+    start = (clock.t // 60 + 1) * 60  # the minutes after the opening
+    lows = [pos.entry - 0.0001, pos.stop - 0.0005, pos.entry - 0.0001]  # the stop is hit in the second minute
+    rt.feed.lower[("EURUSD", "M1")] = minute_bars("EURUSD", start, lows, [pos.entry + 0.0001] * 3, pos.entry)
+    clock.t = start + 3 * 60 + 1  # three minutes on: no cycle is due
+    rt.monitor_once()
+    assert rt.broker.positions() == [] and rt.broker.account().balance < balance  # the broker closed it, paid
+    assert rt.db.one("SELECT status FROM positions WHERE id=?", (pos.id,))["status"] == "CLOSED"  # and the journal knows
+    (trade,) = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM trades")]
+    assert trade["outcome"]["exit_reason"] == "STOP" and trade["outcome"]["net_pnl"] < 0
+    assert rt.dual_ai()["open_positions"] == [] and rt.trades(closed=False) == []
+    rt.monitor_once()
+    assert len(rt.db.query("SELECT payload FROM trades")) == 1  # booked once

@@ -125,14 +125,15 @@ def test_within_the_bar_that_reached_1r_the_order_of_its_high_and_low_is_unknown
 def test_the_shadow_exits_are_counterfactual_copies_never_executed_and_the_trade_is_unchanged():
     rec = prop(atr=0.0010, route="EXECUTE", executed=True, family="DUAL_AI")
     before = dict(rec)
-    be, hold, wide, h8 = exit_variants(rec, "DUAL_AI")
+    be, c24, wide, h8 = exit_variants(rec, "DUAL_AI")
     assert rec == before  # the trade's own record is never edited
-    for v, name in ((be, "be1r"), (hold, "hold24h"), (wide, "wide2x"), (h8, "hold8h")):
+    for v, name in ((be, "be1r"), (c24, "close24h"), (wide, "wide2x"), (h8, "hold8h")):
         assert v["decision_id"] == f"d1:exit-{name}" and v["family"] == f"DUAL_AI_EXIT_{name.upper()}"
         assert v["route"] == "COUNTERFACTUAL" and v["executed"] is False and v["base_decision_id"] == "d1"
         assert v["entry"] == rec["entry"] and v["t"] == rec["t"]  # the same entry, the same moment
-    assert be["breakeven_at_r"] == 1.0 and be["hold_s"] == 3600 and "breakeven_at_r" not in hold
-    assert hold["hold_s"] == 24 * 3600 and hold["stop"] == rec["stop"]
+    assert be["breakeven_at_r"] == 1.0 and be["hold_s"] == 3600 and "breakeven_at_r" not in c24
+    assert c24["hold_s"] == 3600 and c24["stop"] == rec["stop"]  # a cap never lengthens a shorter hold
+    assert wide["hold_s"] == 24 * 3600  # the wide levels get at least a day
     assert wide["stop"] == pytest.approx(1.1001 - 0.0020) and wide["target"] == pytest.approx(1.1001 + 0.0040)
     assert wide["risk_px"] == pytest.approx(0.0020) and wide["stop_atr"] == pytest.approx(2.0)
     b = bars(UP_THEN_BACK + [(1.1025, 1.1045, 1.1024, 1.1040)] * 300)
@@ -152,6 +153,21 @@ def test_a_trade_held_24h_is_followed_again_closed_at_8h_the_exit_it_replaced():
     b = bars(climb, tf="H1")  # hourly bars: the target is reached in hour 9
     assert walk(rec, b, T0 + 3 * 86400)["reason"] == "TARGET"
     assert walk(h8, b, T0 + 3 * 86400)["reason"] == "TIME"
+
+
+def test_a_trade_held_48h_is_followed_again_closed_at_24h_does_the_second_day_help():
+    # forward 1.3.0: an H1 trade is held 48 h (dual-ai 1.11.0), so "held 24 h" (HOLD24H) had become the trade itself
+    rec = prop(atr=0.0010, route="EXECUTE", executed=True, family="DUAL_AI", hold_s=48 * 3600)
+    shadows = exit_variants(rec, "DUAL_AI")
+    (c24,) = [v for v in shadows if v["exit_variant"] == "CLOSE24H"]
+    assert c24["hold_s"] == 24 * 3600 and c24["target"] == rec["target"] and c24["entry"] == rec["entry"]
+    assert [v["exit_variant"] for v in shadows] == ["BE1R", "CLOSE24H", "WIDE2X", "HOLD8H"]
+    assert all(v["hold_s"] != rec["hold_s"] or v["exit_variant"] in ("BE1R", "WIDE2X") for v in shadows)
+    # short of its target for 30 hours, it reaches it in hour 31: the 48 h trade takes it, closed at 24 h does not
+    climb = [(1.1000, 1.1006, 1.0998, 1.1004)] * 30 + [(1.1004, 1.1030, 1.1003, 1.1025)] + [(1.1025, 1.1026, 1.1024, 1.1025)] * 30
+    b = bars(climb, tf="H1")
+    assert walk(rec, b, T0 + 5 * 86400)["reason"] == "TARGET"
+    assert walk(c24, b, T0 + 5 * 86400)["reason"] == "TIME"
 
 
 def test_partition_is_fixed_by_decision_time_in_week_blocks():

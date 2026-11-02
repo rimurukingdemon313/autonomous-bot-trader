@@ -438,6 +438,8 @@ class Runtime:
     def _monitor_locked(self) -> None:
         now = self.clock()
         self._monitor_fast(now)
+        if hasattr(self.broker, "on_bar"):  # paper: the stops it applies above are booked now, not at the next cycle
+            self.orch.closures(now)  # (a DEMO broker holds its own stops: booked at each cycle, never polled here)
         self.orch.time_exits(now)  # a holding time of minutes is honoured between cycles
         if now - self._forward_at >= FORWARD_EVERY_S:  # forward outcomes resolve as bars complete
             self._forward_at = now

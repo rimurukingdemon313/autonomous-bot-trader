@@ -44,14 +44,15 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:        pay at its reward:risk after costs.
 #: 1.10.0: the time machine's verdict on an agreement's levels (dual-ai 1.16.0) is one of the conditions: whether its
 #:         replays leaning toward the stop or the target tell anything about what then happened.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.10.0"
+#: 1.11.0: the shadow exit closed at 24 h (CLOSE24H, forward 1.3.0) beside the others; HOLD24H rows stay readable.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.11.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
 #: the desk's agreements, followed forward: as proposed (taken, or refused by the risk engine) and, since dual-ai
 #: 1.12.0, under the confidence floor. A shadow exit is the same agreement closed another way: never counted again.
 AGREEMENTS = (FAMILY, LOWCONF_FAMILY)
-EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")}
+EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "CLOSE24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
 UNAVAILABLE = ("NOT_ASKED", "MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE",

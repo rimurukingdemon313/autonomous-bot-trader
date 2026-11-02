@@ -1025,6 +1025,16 @@ MUTANTS = [
     ("dai-shadow-cap", "the shadow debate waits at most its short deadline",
      "aitrader/agents/dual_ai.py", "            dl = budget(SHADOW_DEBATE_DEADLINE_S)", "            dl = budget(CALL_DEADLINE_S)",
      ["tests/unit/test_dual_ai.py"]),
+    ("rt-closures-at-once", "a stop the paper broker applies between cycles is booked at once, never shown open",
+     "aitrader/service/runtime.py",
+     "            self.orch.closures(now)  # (a DEMO broker", "            pass  # (a DEMO broker",
+     ["tests/integration/test_dual_ai_paper_forward.py"]),
+    ("fwd-close24h", "a trade held 48 h is followed again closed at 24 h, never as a copy of itself (forward 1.3.0)",
+     "aitrader/learning/forward.py", '    "CLOSE24H": {"hold_cap_s": 24 * 3600},',
+     '    "CLOSE24H": {"hold_s": 24 * 3600},', ["tests/unit/test_forward.py"]),
+    ("report-ar-unread", "the owner's summary says a figure is unreadable, never shows it as a zero",
+     "scripts/paper_forward_shift.py", "        return UNREAD if x is None else money(x)",
+     "        return money(x or 0)", ["tests/unit/test_shift_report.py"]),
 ]
 
 

@@ -112,7 +112,12 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         the decision time), for the traders' journal (dual-ai 1.13.0).
 #: 1.25.0 (owner, 2026-11-02: "analyse the past, don't memorise it"): in dual_ai mode the memory brief also carries the
 #:         desk's record analysed (dual_ai_stats.analysis: LEARNING weeks, outcomes resolved by the decision time).
-ORCHESTRATOR_VERSION = "orchestrator-1.25.0"
+#: 1.26.0 (2026-11-02, found in the shift report): a stop or target the paper broker applies between cycles reaches the
+#:         journal at once (`closures`, called by the live monitor every few seconds, for the paper broker only: a
+#:         DEMO broker holds its own stops and is not polled that often). Booked only at the next cycle,
+#:         EURUSD and then NZDUSD stood "open" for up to 15 min after their stops, with no P/L and past -1R, while
+#:         the balance had already paid them. What is booked, and how, is unchanged.
+ORCHESTRATOR_VERSION = "orchestrator-1.26.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -739,6 +744,11 @@ class Orchestrator:
     def time_exits(self, t: int) -> None:
         """Called by the live monitor every few seconds, so a holding time of minutes is honoured."""
         self._time_exits(t)
+
+    def closures(self, t: int) -> None:
+        """Called by the live monitor every few seconds: a position the broker has closed is booked now, never shown
+        open after its stop (1.26.0)."""
+        self._process_closures(t)
 
     def _trading_allowed(self) -> bool:
         ks = self.db.get_kv("kill_switch", {"active": True})

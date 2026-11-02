@@ -71,7 +71,10 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   24 h (`..._HOLD24H`), and with stop and target twice as far, held 24 h (`..._WIDE2X`: costs half the share
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison. Since forward 1.2.0 also closed at 8 h (`..._HOLD8H`): the exit
-  the trades had before dual-ai 1.7.0.
+  the trades had before dual-ai 1.7.0. Since forward 1.3.0 (2026-11-02) closed at 24 h (`..._CLOSE24H`) in
+  place of "held 24 h": a trade has been held 24 h since dual-ai 1.7.0 and 48 h on H1 since 1.11.0, so
+  `HOLD24H` had become the trade itself, followed twice and measuring nothing. `CLOSE24H` asks what H1 opened:
+  does the second day pay? Its old `HOLD24H` rows stay in the record and the report, labelled as before 1.3.0.
 - **The chart: H1, held up to 48 h** (dual-ai 1.11.0, owner, 2026-10-31: "a longer timeframe, H1 for
   example"). The desk reads H1 with H4 above it, plans and holds a trade up to 48 h, and every time exit
   closes by 16:00 New York on Friday; the traders are told the time a trade really has. Over the 479
@@ -526,6 +529,36 @@ changes which free model answers, never a rule, a size or a level. It is judged 
 taken under free-models 1.4.0: kept if their average is above the -0.14 R a trade made with that model in the
 seat (47 trades), and reviewed otherwise. Like every split read from the same data, part of the gap may be
 chance: the models that took the seat can be expected to do worse than their +0.09 R so far.
+
+### Registered 2026-11-02: a confidence judged against its own model's habit
+
+Found in the journal on 2026-11-02, after the first three H1 trades all had Trader 1 at exactly 65. Each model
+states confidence on its own scale. Over every answer it gave, the 65 floor was cleared by:
+
+- `nemotron-3-nano-omni`: 100% of its 46 answers;
+- `dots-3-note`: 81% of 302;
+- `nemotron-3.5-super-vl`: 21% of 284;
+- `claude-haiku-5.5`: none of its 107 (the paid trial).
+
+So which agreements pass the floor depends mostly on which model sat as Trader 1, not on the setup. The 65s are
+a habit, not an answer to being told the floor: `dots-3-note` said exactly 65 in 29% of its answers, long
+before the journal (1.13.0) named the floor.
+
+Read on the 375 agreements with a result (LEARNING weeks, M15 mostly), neither measure predicted the result:
+
+| Measure | Above | Below | Welch t |
+|---|---|---|---|
+| Raw: both at 65 or more | 163 at -0.09 R | 212 at -0.05 R | -0.29 |
+| Relative: both in the top third of their own model's earlier answers (30+ of them; 247 agreements) | 40 at -0.03 R | 207 at -0.19 R | 0.69 |
+| Relative: top quarter | 27 at -0.24 R | 220 at -0.15 R | -0.35 |
+
+Nothing changes: the floor is the owner's rule, and neither measure has earned a place. **Registered**, to be
+judged on H1 agreements from 2026-11-02, LEARNING weeks only. The relative measure (both traders in the top
+third of their own model's earlier answers, 30+ of them, read before the decision) replaces the raw floor only if
+both of these hold:
+
+- its high group beats its low group by 0.3 R or more, with t of 2 or more, over 30+ agreements in each;
+- the raw floor's split does not do as well on the same agreements.
 
 ## Configuration and activation
 

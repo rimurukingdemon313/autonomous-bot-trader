@@ -29,6 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from aitrader.agents.dual_ai import MIN_CONFIDENCE  # noqa: E402
 from aitrader.charts.fan import render_time_machine  # noqa: E402
 from aitrader.service.config import ServiceConfig  # noqa: E402
 
@@ -96,6 +97,48 @@ def period_lines(p: dict | None) -> list[str]:
             "below; nothing in it was moved or removed.", ""]
 
 
+#: the owner's language for the few words the summary repeats; anything not listed is shown as it is
+AR_DECISION = {"BUY": "شراء", "SELL": "بيع", "NO_TRADE": "لا صفقة"}
+AR_RULE = {"AGREE": "الاثنين اتفقوا", "DISAGREE": "اختلفوا",
+           "LOW_CONFIDENCE": f"اتفقوا بس مو الاثنين واثقين {MIN_CONFIDENCE} أو أكثر",
+           "NOT_ASKED": "ما انسألوا: قاعدة منعت قبلها"}
+AR_VERDICT = {"close to break-even": "قريب من التعادل", "leans toward the target": "يميل للهدف",
+              "strongly toward the target": "يميل بقوة للهدف", "leans toward the stop": "يميل للستوب",
+              "strongly toward the stop": "يميل بقوة للستوب", "no replay reached a side": "ولا إعادة وصلت لطرف"}
+UNREAD = "ما ينقرى هسه"
+
+
+def arabic_summary(v: dict) -> list[str]:
+    """The owner's language, first: the same figures as the sections below and nothing else. A figure that cannot be
+    read is said to be unreadable, never shown as a zero."""
+    def amount(x):
+        return UNREAD if x is None else money(x)
+    p, a = v.get("period") or {}, v.get("account") or {}
+    out = ["## ملخص بالعربي", ""]
+    if p.get("available") is False:
+        out.append(f"- الحساب الجديد: {UNREAD}.")
+    elif p:
+        g = p.get("performance") or {}
+        out.append(f"- الحساب الجديد (من {str(p.get('starts', ''))[:16].replace('T', ' ')} UTC): الرصيد "
+                   f"{amount(p.get('equity'))}، الربح أو الخسارة {amount(p.get('total_pnl'))}، صفقات مسكّرة "
+                   f"{g.get('trades', 0)} ({amount(p.get('closed_pnl'))})، مفتوحة {p.get('open', 0)}.")
+    out.append(f"- الحساب الكامل من البداية: {amount(a.get('equity'))}.")
+    dai = v.get("dual_ai") or {}
+    last = dai.get("last_analysis") or {}
+    if last:
+        rule = (last.get("consensus") or {}).get("rule")
+        out.append(f"- آخر قرار: {last.get('symbol')} {AR_DECISION.get(last.get('decision'), last.get('decision'))} "
+                   f"({AR_RULE.get(rule, rule)}).")
+    tm = next((x for x in dai.get("analyses") or [] if x.get("time_machine")), None)
+    m = (tm or {}).get("time_machine") or {}
+    if all(isinstance(m.get(k), (int, float)) for k in ("target_first", "stop_first", "neither")):
+        out.append(f"- آلة الزمن لآخر اتفاق ({tm['symbol']}، {m.get('replays')} إعادة): الهدف أول "
+                   f"{m['target_first']:.0%}، الستوب أول {m['stop_first']:.0%}، ولا واحد {m['neither']:.0%}: "
+                   f"{AR_VERDICT.get(m.get('verdict'), m.get('verdict'))}.")
+    out += ["- حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.", ""]
+    return out
+
+
 def report_md(v: dict, shift: dict) -> str:
     a, o = v.get("account") or {}, (v.get("performance") or {}).get("overall") or {}
     lines = [
@@ -104,6 +147,7 @@ def report_md(v: dict, shift: dict) -> str:
         f"shift started {shift['started']} · decision system `{shift['decision_mode']}`", "",
         f"Research status (historical, unchanged): **{v['research_status']}**. This run measures the system forward; "
         "it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.", ""]
+    lines += arabic_summary(v)
     lines += period_lines(v.get("period"))
     dai = v.get("dual_ai") or {}
     if dai.get("active"):  # the rule that trades first; two rules are never averaged into one number
@@ -229,7 +273,8 @@ def report_md(v: dict, shift: dict) -> str:
                   f"{shadow(pick)} · the side it rejected if taken: {shadow(lose)}", "",
                   "Exits in shadow (the same trades, followed again; measured, never traded): " + " · ".join(
                       f"{label} {exit_line((rec.get('exits_in_shadow') or {}).get(k) or {})}"
-                      for k, label in (("BE1R", "break-even at +1R"), ("HOLD24H", "held 24 h"),
+                      for k, label in (("BE1R", "break-even at +1R"), ("CLOSE24H", "closed at 24 h"),
+                                       ("HOLD24H", "held 24 h (before forward 1.3.0)"),
                                        ("WIDE2X", "stop and target twice as far"),
                                        ("HOLD8H", "closed at 8 h (the exit before dual-ai 1.7.0)"))), "",
                   "Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never "

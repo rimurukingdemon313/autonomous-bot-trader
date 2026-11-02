@@ -59,6 +59,7 @@ def test_the_declared_periods_are_the_owners_new_accounts_and_the_latest_is_the_
     sunday = datetime(2026, 11, 1, 22, 0, tzinfo=timezone.utc)
     assert periods._ts(p["starts"]) == sunday.timestamp() and sunday.weekday() == 6  # as the market reopens
     assert "owner" in p["reason"] and "H1" in p["setup"] and "65" in p["setup"]
+    assert all(f"({v})" in p["setup"] for v in ("1.13.0", "1.14.0", "1.15.0", "1.16.0"))  # every change before it opened
     v = periods.view([trade(START + 60, -100.0, "old")], [], p)  # the last setup's trade stays with the last setup
     assert v["performance"]["trades"] == 0 and v["equity"] == 200_000.0 and v["before"]["closed_pnl"] == -100.0
     assert periods.current(()) is None and periods.view([], [], None) is None
