@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-02 11:00 UTC**, run 613, version `radar-1.0.0`. State from: cache. Quotes this hour: 2403.
+Updated **2026-11-02 12:00 UTC**, run 614, version `radar-1.0.0`. State from: cache. Quotes this hour: 2403.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-02 11:00 UTC**, run 613, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 25.62
+- days: 25.67
 - run_coverage: 0.9951
 - closed_positions: 144
 - open_positions: 3
-- utilisation: 0.1835
+- utilisation: 0.1837
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.4826
-- book_excess_pct: -1.5587
-- ann_excess_deployed_pct: -121.697
-- ann_excess_deployed_costs_x1.5_pct: -220.364
-- ann_excess_deployed_costs_x2_pct: -319.031
+- book_pnl_pct: -1.485
+- book_excess_pct: -1.5613
+- ann_excess_deployed_pct: -121.57
+- ann_excess_deployed_costs_x1.5_pct: -219.974
+- ann_excess_deployed_costs_x2_pct: -318.378
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.7801
+- book_excess_without_best_coin_pct: -1.7827
 - max_dd_pct: 1.5173
-- t_excess_daily: -2.937
+- t_excess_daily: -2.944
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| HYPE | hyperliquid | gate | 2026-10-31 05:00 | 25.1% | 10.4 | -2.2 | 19.5 | **-11.3** |
-| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 33.0 | 18.7 | 17.0 | **34.7** |
-| ZRO | hyperliquid | mexc | 2026-11-01 15:00 | 25.8% | 1.4 | 2.4 | 16.5 | **-12.8** |
+| HYPE | hyperliquid | gate | 2026-10-31 05:00 | 25.1% | 10.4 | 1.1 | 19.5 | **-8.0** |
+| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 33.9 | 8.1 | 17.0 | **24.9** |
+| ZRO | hyperliquid | mexc | 2026-11-01 15:00 | 25.8% | 1.4 | 4.0 | 16.5 | **-11.2** |
 
 ## Closed positions (144)
 
