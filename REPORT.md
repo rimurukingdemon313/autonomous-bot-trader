@@ -1,12 +1,19 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-02 10:33 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 04:58 UTC · decision system `dual_ai`
+Updated 2026-11-02 10:34 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 10:34 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
+## ملخص بالعربي
+
+- الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
+- الحساب الكامل من البداية: $191,933.98.
+- آخر قرار: EURJPY لا صفقة (اتفقوا بس مو الاثنين واثقين 65 أو أكثر).
+- حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
+
 ## The new account: the setup trading now (from 2026-11-01 22:00 UTC)
 
-dual-ai 1.12.0: the H1 chart, held up to 48 h (1.11.0), and a trade only when both traders state a confidence of 65 or more (1.12.0), on the free models (the paid trial ended 2026-10-31 00:00 UTC). Opened at the owner's request (2026-10-31): owner: a longer timeframe and only very confident entries; a new account for the new setup, as the owner chose on 2026-10-27; the accounts before it are kept and reported apart.
+dual-ai 1.12.0 and on: the H1 chart, held up to 48 h (1.11.0); a trade only when both traders state a confidence of 65 or more (1.12.0); the traders read the desk's journal (1.13.0); Trader 2 on another lab's model (1.14.0); the record analysed (1.15.0); the time machine (1.16.0); on the free models (the paid trial ended 2026-10-31 00:00 UTC). Opened at the owner's request (2026-10-31): owner: a longer timeframe and only very confident entries; a new account for the new setup, as the owner chose on 2026-10-27; the accounts before it are kept and reported apart.
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
@@ -110,15 +117,15 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · calls today 126/900
+OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
 
-Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): not active · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.96 of $9.00, today $0.00 of $1.80 (the key's own reading) · trader 1 not asked: outside its window · trader 2 not asked: outside its window
+Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): not active · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent n/a of $9.00, today n/a of $1.80 (the key's own reading)
 
 Agreement trades 140 (adequate) · wins 54 · losses 86 · net $-8,066.02 · expectancy -0.140R · profit factor 0.72 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
 Disagreements (not traded; the debate runs in shadow): 162 · the debate's pick if taken: 143 resolved (adequate), expectancy -0.183R · the side it rejected if taken: 148 resolved (adequate), expectancy -0.213R
 
-Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.182R vs -0.154R as taken (124, adequate) · held 24 h -0.093R vs -0.154R as taken (124, adequate) · stop and target twice as far -0.047R vs -0.154R as taken (124, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.304R vs -0.283R as taken (70, adequate)
+Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.182R vs -0.154R as taken (124, adequate) · closed at 24 h none resolved yet · held 24 h (before forward 1.3.0) -0.093R vs -0.154R as taken (124, adequate) · stop and target twice as far -0.047R vs -0.154R as taken (124, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.304R vs -0.283R as taken (70, adequate)
 
 Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never traded): -0.235R vs -0.264R as taken (31, adequate)
 
@@ -126,20 +133,20 @@ Agreements below the confidence floor (both traders at 65 or more since dual-ai 
 
 Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R · LONDON 42 resolved (adequate), expectancy -0.032R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
 
-| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
-|---|---|---|---|---|---|---|---|
-| 11-02 10:30 | EURJPY | SELL 55 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 10:20 | EURGBP | SELL 62 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 10:15 | NZDUSD | SELL 68 | BUY 65 | BUY | DISAGREE | NO_TRADE | - |
-| 11-02 10:03 | USDCHF | SELL 58 | SELL 60 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 10:00 | USDCAD | SELL 62 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 09:48 | AUDUSD | BUY 56 | BUY 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 09:45 | USDJPY | SELL 57 | SELL 61 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 09:35 | GBPUSD | BUY 55 | BUY 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 09:30 | EURUSD | BUY 58 | SELL 65 | BUY | DISAGREE | NO_TRADE | - |
-| 11-02 09:17 | AUDJPY | BUY 58 | BUY 68 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 09:15 | EURCHF | SELL 56 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
-| 11-02 09:02 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - |
+| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk | Time machine |
+|---|---|---|---|---|---|---|---|---|
+| 11-02 10:30 | EURJPY | SELL 55 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 10:20 | EURGBP | SELL 62 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 10:15 | NZDUSD | SELL 68 | BUY 65 | BUY | DISAGREE | NO_TRADE | - | - |
+| 11-02 10:03 | USDCHF | SELL 58 | SELL 60 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 10:00 | USDCAD | SELL 62 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 09:48 | AUDUSD | BUY 56 | BUY 65 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 09:45 | USDJPY | SELL 57 | SELL 61 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 09:35 | GBPUSD | BUY 55 | BUY 65 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 09:30 | EURUSD | BUY 58 | SELL 65 | BUY | DISAGREE | NO_TRADE | - | - |
+| 11-02 09:17 | AUDJPY | BUY 58 | BUY 68 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 09:15 | EURCHF | SELL 56 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - | - |
+| 11-02 09:02 | GBPJPY | -  | -  | - | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
