@@ -2540,6 +2540,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPUSD",
+   "decision": "NO_TRADE",
+   "t": 1793636177,
+   "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1793636119,
+   "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app ",
+   "data_flags": []
+  },
+  {
    "symbol": "EURGBP",
    "decision": "NO_TRADE",
    "t": 1793635372,
@@ -2692,23 +2706,9 @@
    "t": 1793626217,
    "reason": "risk engine: trading_calendar (Monday 13:30 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPJPY",
-   "decision": "NO_TRADE",
-   "t": 1793625319,
-   "reason": "risk engine: trading_calendar (Monday 13:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURJPY",
-   "decision": "NO_TRADE",
-   "t": 1793625317,
-   "reason": "risk engine: trading_calendar (Monday 13:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 4167,
+ "decisions_total": 4169,
  "shift": {
   "started": "2026-11-02 16:09 UTC",
   "decision_mode": "dual_ai",
@@ -2732,32 +2732,257 @@
    "judge_pin": null,
    "paid_trial_off": false,
    "version": "openrouter-1.12.0",
-   "status": "CATALOG_NOT_READ_YET",
-   "calls_today": 0,
-   "last_call": {},
+   "status": "READY",
+   "calls_today": 4,
+   "last_call": {
+    "t": 1793636233,
+    "role": "judge",
+    "model": "thinkingmachines/inkling:free",
+    "status": "MODEL_RESTRICTED",
+    "ok": false,
+    "error": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps",
+    "request_id": "41d75018e1bf470bae2c555948d550a3",
+    "provider_id": null,
+    "attempts": 1,
+    "latency_ms": 86.2,
+    "cached": false,
+    "tokens": null,
+    "cost": null,
+    "tried": []
+   },
    "key": {
-    "checked": null
+    "checked": 1793636121,
+    "ok": true,
+    "is_free_tier": false,
+    "usage_at_start": 0.958358864,
+    "usage": 0.958358864,
+    "usage_daily": 0.0,
+    "daily_quota": 998,
+    "label_set": true
    },
    "paid_usage": null,
    "data_policy": null,
-   "vision_model": null,
-   "judge_model": null,
-   "verifier_model": null,
+   "vision_model": "nvidia/nemotron-3.5-super-vl:free",
+   "judge_model": "google/gemma-4-31b-it:free",
+   "verifier_model": "google/gemma-4-31b-it:free",
    "selection": {
-    "vision": [],
-    "judge": [],
-    "verifier": [],
-    "free_total": 0,
-    "catalog_total": 0,
-    "refreshed": 0.0,
-    "error": "catalog not read yet",
+    "vision": [
+     {
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "name": "NVIDIA: Nemotron 3.5 Super VL (free)",
+      "score": 63.6,
+      "context": 1000000,
+      "image": true,
+      "intelligence_index": 13.6,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "score": 62.5,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.5,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 56.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "score": 56.78,
+      "context": 256000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 30.0,
+      "structured": false,
+      "reasoning": true,
+      "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 56.53,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 26.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     }
+    ],
+    "judge": [
+     {
+      "id": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "score": 38.5,
+      "context": 1048576,
+      "image": true,
+      "intelligence_index": 12.5,
+      "params_b": null,
+      "structured": false,
+      "reasoning": true,
+      "family": "thinkingmachines",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 32.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 32.53,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 26.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 30.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
+     }
+    ],
+    "verifier": [
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 33.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 33.53,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 26.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 31.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "XingChen: Xing4.0 29B A4B (free)",
+      "score": 29.74,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": 29.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "xingchen-agi",
+      "expires": null
+     },
+     {
+      "id": "recursive/flint-v1.0:free",
+      "name": "Recursive: Flint (free)",
+      "score": 27.0,
+      "context": 262144,
+      "image": false,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "recursive",
+      "expires": null
+     }
+    ],
+    "free_total": 10,
+    "catalog_total": 451,
+    "refreshed": 1793636233.467659,
+    "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
     },
     "version": "free-models-1.4.0",
     "cooldown": {},
-    "excluded": {},
-    "seat_excluded": {}
+    "excluded": {
+     "thinkingmachines/inkling-small:free": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter",
+     "thinkingmachines/inkling:free": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/ap"
+    },
+    "seat_excluded": {
+     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": "stated 65 or more in 53 of its 53 answers as a trader"
+    }
    },
    "paid_trial": {
     "name": "senior-2026-11-02",
@@ -2772,82 +2997,106 @@
     },
     "active": true,
     "stopped": null,
-    "spent_total": null,
-    "spent_today": null,
+    "spent_total": 0.0004,
+    "spent_today": 0.0,
     "spent_by_this_process": 0.0,
     "reserved_unconfirmed": 0.0,
     "not_asked_because": {}
    },
-   "model_stats": {}
+   "model_stats": {
+    "nvidia/nemotron-3.5-super-vl:free": {
+     "ok": 2,
+     "failed": 0
+    },
+    "thinkingmachines/inkling-small:free": {
+     "ok": 0,
+     "failed": 1
+    },
+    "thinkingmachines/inkling:free": {
+     "ok": 0,
+     "failed": 1
+    }
+   }
   },
   "rules": {
    "max_calls_per_decision": 3,
    "free_models_only": false,
    "desk": "each trader chooses BUY or SELL on the H1 chart; same side and both confidences 65 or more -> AGREE, a trade on Trader 1's levels; same side below 65 -> NO TRADE (the trade it would have been is followed in shadow); opposite sides -> NO TRADE (the debate runs in shadow: measured, never traded); while the owner's funded period declares a senior trader, an agreement is a trade only with its approval (it can only refuse); the risk engine sizes and may refuse"
   },
-  "charts": {},
+  "charts": {
+   "EURUSD": {
+    "t": 1793636119,
+    "decision_id": "0ab3967237b5e0d6e97c5c5a",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30445,
+    "sha256": "d58206cb35ef677da6b818391275fb1571c021600b760aca10e83fa60bdf9874",
+    "as_of": 1793636119,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793631600,
+    "last_bar_available": 1793635200
+   },
+   "GBPUSD": {
+    "t": 1793636177,
+    "decision_id": "fe5942f685de0bbb50827ebe",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30976,
+    "sha256": "747a73eb7059551ec318aadf0a209cb0c60e4642e12d6a1e9aff01432ca99980",
+    "as_of": 1793636177,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793631600,
+    "last_bar_available": 1793635200
+   }
+  },
   "last_analysis": {
-   "decision_id": "b915fad7d0d1cdb3ae4023bf",
-   "symbol": "EURGBP",
-   "t": 1793635372,
+   "decision_id": "fe5942f685de0bbb50827ebe",
+   "symbol": "GBPUSD",
+   "t": 1793636177,
    "decision": "NO_TRADE",
-   "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded",
+   "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trader alo",
    "consensus": {
-    "agreed": "SELL",
-    "desk_confidence": 0.58,
-    "direction": null,
-    "floor": 65,
-    "levels_from": null,
-    "more_confident": "trader2",
     "outcome": "NO_TRADE",
-    "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded",
-    "rule": "LOW_CONFIDENCE"
+    "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trader alone",
+    "rule": "TRADER2_UNAVAILABLE"
    },
    "models": {
     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-    "trader2": "dots-studio/dots-3-note-preview:free"
+    "trader2": "thinkingmachines/inkling:free"
    },
    "trader1": {
-    "confidence": 58,
-    "direction": "SELL",
-    "entry": 0.83454,
-    "invalidation": 0.83609,
-    "liquidity": "Sell-side liquidity rests at the prior-week low 0.83215 and untested demand OB 0.83299-0.83385; buy-side liquidity/clustered resistance sits above at 0.83609-0.83698 and EQH 0.83744-0.8429.",
-    "market_structure": "H4 bearish (LH+LL) with H1 retracement into resistance; recent bearish displacement and swept highs at 0.83614 argue the H1 uptrend is a pullback into a higher-timeframe downtrend.",
-    "momentum": "Most recent displacement is bearish (1 bar ago) with back-to-back bearish sweeps of the 0.83614 high; open bearish FVG at 0.83545-0.83568 acts as nearby overhead resistance.",
-    "reason": "H4 structure is bearish with recent bearish displacement and swept highs, while H1's uptrend looks like a retracement into resistance. Desk memory shows BUY loses strongly (t=-3.4) and EURGBP BUYs have a 0% win rate, whereas SELL on this pair has positive expectancy. SELL at bid 0.83454 targets the prior-week low 0.83215 with a stop above the 4-touch resistance at 0.83609, giving 1.54:1 reward:risk. Reversal probability is moderate given H1 higher highs, but the higher-timeframe bias and historical edge favor the short side.",
+    "confidence": 55,
+    "direction": "BUY",
+    "entry": 1.34166,
+    "invalidation": 1.3375,
+    "liquidity": "bullish sweep at 1.33808, untested demand OB 1.33797-1.33897, EQL at 1.33797 (3 touches), open bullish FVGs below",
+    "market_structure": "H4 uptrend (HH+HL) with H1 range; multiple bullish BOS breaks, recent HH at 1.34477, pullback to LH 1.34313",
+    "momentum": "bullish displacement 7 bars ago, repeated bullish BOS, price holding above open bullish FVGs",
+    "reason": "H4 uptrend and multiple bullish H1 BOS breaks favor buying despite the H1 range; the untested demand OB and bullish sweep provide support below. Historical BUY losses occurred in a falling-majors regime that has reversed, and the stop sits outside the 1.25-2 ATR losing zone. Price is inside the entry zone at the ask; invalidation is a break below today's low/structural LL. Target above recent highs is reachable within 48 hours at normal volatility.",
     "reversal_probability": 45,
-    "risk_reward": 1.54,
-    "stop_loss": 0.83609,
-    "take_profit": 0.83215,
-    "trend": "H4 trend is DOWN; H1 is UP but extended into resistance after HHs at 0.83614 and 0.83636, making the higher-timeframe bearish bias the dominant context."
+    "risk_reward": 1.21,
+    "stop_loss": 1.3375,
+    "take_profit": 1.3467,
+    "trend": "H4 UP, H1 RANGE (mixed swings)"
    },
-   "trader2": {
-    "confidence": 65,
-    "direction": "SELL",
-    "entry": 0.83454,
-    "invalidation": 0.83609,
-    "liquidity": "Sell-side liquidity rests at the prior-week low 0.83215 and untested demand OB 0.83299-0.83385; buy-side liquidity/clustered resistance sits above at 0.83609-0.83698 and EQH 0.83744-0.8429.",
-    "market_structure": "H4 bearish (LH+LL) with H1 retracement into resistance; recent bearish displacement and swept highs at 0.83614 argue the H1 uptrend is a pullback into a higher-timeframe downtrend.",
-    "momentum": "Most recent displacement is bearish (1 bar ago) with back-to-back bearish sweeps of the 0.83614 high; open bearish FVG at 0.83545-0.83568 acts as nearby overhead resistance.",
-    "reason": "H4 structure is bearish with recent bearish displacement and swept highs, while H1's uptrend looks like a retracement into resistance. Desk memory shows BUY loses strongly (t=-3.4) and EURGBP BUYs have a 0% win rate, whereas SELL on this pair has positive expectancy. SELL at bid 0.83454 targets the prior-week low 0.83215 with a stop above the 4-touch resistance at 0.83609, giving 1.54:1 reward:risk. Reversal probability is moderate given H1 higher highs, but the higher-timeframe bias and historical edge favor the short side.",
-    "reversal_probability": 60,
-    "risk_reward": 1.54,
-    "stop_loss": 0.83609,
-    "take_profit": 0.83215,
-    "trend": "H4 trend is DOWN; H1 is UP but extended into resistance after HHs at 0.83614 and 0.83636, making the higher-timeframe bearish bias the dominant context."
-   },
+   "trader2": null,
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793635372,
-    "bytes": 30465,
+    "as_of": 1793636177,
+    "bytes": 30976,
     "execution_timeframe": "H1",
     "height": 1000,
     "higher_timeframe": "H4",
     "last_bar_available": 1793635200,
     "last_bar_open": 1793631600,
-    "sha256": "a02460a1dff557278ab6215556d33ddde7f1a748f11d8a3ebc630b8c6ef7378f",
+    "sha256": "747a73eb7059551ec318aadf0a209cb0c60e4642e12d6a1e9aff01432ca99980",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -2857,262 +3106,205 @@
      "cached": false,
      "cost": 0.0,
      "error": null,
-     "latency_ms": 98424.2,
+     "latency_ms": 54100.0,
      "model": "nvidia/nemotron-3.5-super-vl:free",
      "ok": true,
-     "provider_id": "gen-1793635374-DEMpa1otD2pXXAWKW9FI",
-     "request_id": "f961161e6b0340759742171163a37f00",
+     "provider_id": "gen-1793636179-neKnizXLJE0K2xHvKdUs",
+     "request_id": "9f25c41b0bbb450aa87bf0a92fd45fab",
      "role": "vision",
      "status": "OK",
-     "tokens": 20261,
+     "tokens": 23530,
      "tried": []
     },
     {
      "attempts": 1,
      "cached": false,
-     "cost": 0.0,
-     "error": null,
-     "latency_ms": 82080.3,
-     "model": "dots-studio/dots-3-note-preview:free",
-     "ok": true,
-     "provider_id": "gen-1793635472-Bu3IIX7tK56upzNbulac",
-     "request_id": "78d7f066720f4215a6835a78d71bf2af",
+     "cost": null,
+     "error": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps",
+     "latency_ms": 86.2,
+     "model": "thinkingmachines/inkling:free",
+     "ok": false,
+     "provider_id": null,
+     "request_id": "41d75018e1bf470bae2c555948d550a3",
      "role": "judge",
-     "status": "OK",
-     "tokens": 26288,
+     "status": "MODEL_RESTRICTED",
+     "tokens": null,
      "tried": []
     }
    ],
    "trader1_input": "image",
-   "version": "dual-ai-1.16.0",
-   "time_machine": {
-    "based_on": "713 H1 bars, 2026-09-21 to 2026-11-02, each hour drawn from the same hour of day plus or minus 1; a simulation of the recent past, not a forecast",
-    "entry": 0.8345400000000001,
-    "fan": {
-     "columns": [
-      "hour",
-      "p05",
-      "p25",
-      "p50",
-      "p75",
-      "p95"
-     ],
-     "rows": [
-      [
-       2,
-       0.833687,
-       0.83421,
-       0.834511,
-       0.834806,
-       0.835195
-      ],
-      [
-       4,
-       0.833493,
-       0.834097,
-       0.834465,
-       0.834814,
-       0.835316
-      ],
-      [
-       6,
-       0.833335,
-       0.834019,
-       0.83445,
-       0.834861,
-       0.835487
-      ],
-      [
-       8,
-       0.833358,
-       0.834098,
-       0.83456,
-       0.835023,
-       0.835696
-      ],
-      [
-       10,
-       0.833175,
-       0.83404,
-       0.834542,
-       0.835053,
-       0.835819
-      ],
-      [
-       12,
-       0.832949,
-       0.833955,
-       0.834524,
-       0.835074,
-       0.835893
-      ],
-      [
-       14,
-       0.832744,
-       0.833803,
-       0.834426,
-       0.835028,
-       0.835879
-      ],
-      [
-       16,
-       0.832137,
-       0.833401,
-       0.834171,
-       0.834933,
-       0.835926
-      ],
-      [
-       18,
-       0.83172,
-       0.833104,
-       0.834021,
-       0.834897,
-       0.836075
-      ],
-      [
-       20,
-       0.831449,
-       0.832961,
-       0.833946,
-       0.83487,
-       0.836212
-      ],
-      [
-       22,
-       0.831134,
-       0.832775,
-       0.833842,
-       0.834876,
-       0.836354
-      ],
-      [
-       24,
-       0.830851,
-       0.83264,
-       0.833793,
-       0.834925,
-       0.836535
-      ],
-      [
-       26,
-       0.830656,
-       0.832542,
-       0.833775,
-       0.834895,
-       0.836559
-      ],
-      [
-       28,
-       0.830607,
-       0.832476,
-       0.833722,
-       0.834856,
-       0.836585
-      ],
-      [
-       30,
-       0.830576,
-       0.832472,
-       0.833705,
-       0.834878,
-       0.836626
-      ],
-      [
-       32,
-       0.830655,
-       0.832565,
-       0.833827,
-       0.835021,
-       0.836773
-      ],
-      [
-       34,
-       0.830556,
-       0.832554,
-       0.833807,
-       0.835027,
-       0.836842
-      ],
-      [
-       36,
-       0.830466,
-       0.832488,
-       0.833779,
-       0.835017,
-       0.836872
-      ],
-      [
-       38,
-       0.83031,
-       0.832344,
-       0.833691,
-       0.834926,
-       0.836787
-      ],
-      [
-       40,
-       0.829874,
-       0.832036,
-       0.833421,
-       0.834765,
-       0.836699
-      ],
-      [
-       42,
-       0.829604,
-       0.83183,
-       0.833259,
-       0.834697,
-       0.836747
-      ],
-      [
-       44,
-       0.829401,
-       0.831683,
-       0.833211,
-       0.834665,
-       0.836814
-      ],
-      [
-       46,
-       0.829187,
-       0.831549,
-       0.833126,
-       0.834664,
-       0.836877
-      ],
-      [
-       48,
-       0.829036,
-       0.831436,
-       0.833046,
-       0.834671,
-       0.836947
-      ]
-     ]
-    },
-    "hours": 48,
-    "mean_r": 0.5269,
-    "mean_r_after_costs": 0.3914,
-    "neither": 0.1722,
-    "replays": 10000,
-    "reward_risk": 1.542,
-    "seed": 3105225431,
-    "side": "SELL",
-    "stop": 0.83609,
-    "stop_first": 0.3173,
-    "target": 0.83215,
-    "target_first": 0.5105,
-    "target_share_of_decided": 0.6167,
-    "verdict": "strongly toward the target",
-    "version": "time-machine-1.0.0",
-    "win_rate_needed": 0.4467
-   },
+   "version": "dual-ai-1.18.0",
+   "time_machine": null,
    "senior": null,
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "fe5942f685de0bbb50827ebe",
+    "symbol": "GBPUSD",
+    "t": 1793636177,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trader alo",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "thinkingmachines/inkling:free"
+    },
+    "trader1": {
+     "confidence": 55,
+     "direction": "BUY",
+     "entry": 1.34166,
+     "invalidation": 1.3375,
+     "liquidity": "bullish sweep at 1.33808, untested demand OB 1.33797-1.33897, EQL at 1.33797 (3 touches), open bullish FVGs below",
+     "market_structure": "H4 uptrend (HH+HL) with H1 range; multiple bullish BOS breaks, recent HH at 1.34477, pullback to LH 1.34313",
+     "momentum": "bullish displacement 7 bars ago, repeated bullish BOS, price holding above open bullish FVGs",
+     "reason": "H4 uptrend and multiple bullish H1 BOS breaks favor buying despite the H1 range; the untested demand OB and bullish sweep provide support below. Historical BUY losses occurred in a falling-majors regime that has reversed, and the stop sits outside the 1.25-2 ATR losing zone. Price is inside the entry zone at the ask; invalidation is a break below today's low/structural LL. Target above recent highs is reachable within 48 hours at normal volatility.",
+     "reversal_probability": 45,
+     "risk_reward": 1.21,
+     "stop_loss": 1.3375,
+     "take_profit": 1.3467,
+     "trend": "H4 UP, H1 RANGE (mixed swings)"
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793636177,
+     "bytes": 30976,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793635200,
+     "last_bar_open": 1793631600,
+     "sha256": "747a73eb7059551ec318aadf0a209cb0c60e4642e12d6a1e9aff01432ca99980",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 54100.0,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1793636179-neKnizXLJE0K2xHvKdUs",
+      "request_id": "9f25c41b0bbb450aa87bf0a92fd45fab",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 23530,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": null,
+      "error": "HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps",
+      "latency_ms": 86.2,
+      "model": "thinkingmachines/inkling:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": "41d75018e1bf470bae2c555948d550a3",
+      "role": "judge",
+      "status": "MODEL_RESTRICTED",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
+   {
+    "decision_id": "0ab3967237b5e0d6e97c5c5a",
+    "symbol": "EURUSD",
+    "t": 1793636119,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trad",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "thinkingmachines/inkling-small:free"
+    },
+    "trader1": {
+     "confidence": 55,
+     "direction": "SELL",
+     "entry": 1.11976,
+     "invalidation": 1.1207,
+     "liquidity": "EQH above at 1.12334/1.12397 and EQL below at 1.11396; price sits near 1.11974 support with open bullish FVGs underneath",
+     "market_structure": "H1 just flipped bearish with a fresh CHOCH at 1.12057 after a failed bullish BOS at 1.12082; H4 remains up but the execution timeframe structure is now bearish",
+     "momentum": "Recent bearish displacement and the zero-bars-ago bearish CHOCH indicate short-term downside pressure, though H4 bullish bias creates two-sided risk",
+     "reason": "H1 structure just turned bearish (CHOCH at 1.12057) with price below that level; a stop above 1.12070 invalidates the setup. Target 1.11847 at the entry-zone low/support gives 1.37:1. Desk memory shows BUYs losing strongly but the H4 uptrend means the old cause is gone; mixed structure still warrants only moderate confidence.",
+     "reversal_probability": 40,
+     "risk_reward": 1.37,
+     "stop_loss": 1.1207,
+     "take_profit": 1.11847,
+     "trend": "H4 UP (HH+HL), H1 RANGE now turning bearish on the latest confirmed swing"
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793636119,
+     "bytes": 30445,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793635200,
+     "last_bar_open": 1793631600,
+     "sha256": "d58206cb35ef677da6b818391275fb1571c021600b760aca10e83fa60bdf9874",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 55957.5,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1793636121-badY6RhoeHrPQGT3e3eK",
+      "request_id": "4fb95512a5ec4e9fb275c9aad272499b",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 22916,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": null,
+      "error": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps",
+      "latency_ms": 100.5,
+      "model": "thinkingmachines/inkling-small:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": "5cac4ef206fb4e7681a995fb40f01fc5",
+      "role": "judge",
+      "status": "MODEL_RESTRICTED",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
    {
     "decision_id": "b915fad7d0d1cdb3ae4023bf",
     "symbol": "EURGBP",
@@ -3948,52 +4140,6 @@
     "time_machine": null,
     "senior": null,
     "risk": null
-   },
-   {
-    "decision_id": "69bdf8b6455cbbbfd666eb33",
-    "symbol": "GBPJPY",
-    "t": 1793630723,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.16.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
-   },
-   {
-    "decision_id": "361ac838e1fd48c8d360ddf2",
-    "symbol": "EURJPY",
-    "t": 1793630721,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.16.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
    }
   ],
   "open_positions": [],
@@ -4679,11 +4825,11 @@
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 2203,
     "TRADER1_UNAVAILABLE": 28,
-    "TRADER2_UNAVAILABLE": 12
+    "TRADER2_UNAVAILABLE": 14
    },
    "agreement_rate": 0.679,
    "decisions_with_both_traders": 713,
-   "unavailable": 3130
+   "unavailable": 3132
   },
   "recent_trades": [
    {
@@ -5409,8 +5555,8 @@
   ]
  },
  "health": {
-  "last_cycle": null,
+  "last_cycle": 1793636117,
   "last_cycle_error": null,
-  "cycles": 0
+  "cycles": 1
  }
 }

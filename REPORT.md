@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-02 16:09 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 16:09 UTC · decision system `dual_ai`
+Updated 2026-11-02 16:24 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 16:09 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,8 +8,8 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: EURGBP لا صفقة (اتفقوا بس مو الاثنين واثقين 65 أو أكثر).
-- المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 0، ما جاوب 0؛ صرف ما ينقرى هسه من $8.50.
+- آخر قرار: GBPUSD لا صفقة (TRADER2_UNAVAILABLE).
+- المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 0، ما جاوب 0؛ صرف $0.00 من $8.50.
 - آلة الزمن لآخر اتفاق (EURGBP، 10000 إعادة): الهدف أول 51%، الستوب أول 32%، ولا واحد 17%: يميل بقوة للهدف.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -72,8 +72,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4167 so far)
+## Latest decisions, NO TRADE included (4169 so far)
 
+- 11-02 16:16 GBPUSD NO_TRADE: Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed
+- 11-02 16:15 EURUSD NO_TRADE: Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app 
 - 11-02 16:02 EURGBP NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 16:00 NZDUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 15:45 USDCHF NO_TRADE: risk engine: trading_calendar (Monday 15:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -84,8 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-02 15:15 EURUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 949s old
 - 11-02 15:00 AUDJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 561s old
 - 11-02 15:00 EURCHF NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 559s old
-- 11-02 14:45 GBPJPY NO_TRADE: risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 11-02 14:45 EURJPY NO_TRADE: risk engine: trading_calendar (Monday 14:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 
 ## Open paper positions
 
@@ -119,9 +119,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `CATALOG_NOT_READ_YET` · key set · trader 1 `None` · trader 2 `None` · debate `None` · calls today 0/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-31b-it:free` · debate `google/gemma-4-31b-it:free` · calls today 4/900
 
-Paid trial `senior-2026-11-02` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent n/a of $8.50, today n/a of $1.50 (the key's own reading)
+Paid trial `senior-2026-11-02` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $0.00 of $8.50, today $0.00 of $1.50 (the key's own reading)
 
 Agreement trades 140 (adequate) · wins 54 · losses 86 · net $-8,066.02 · expectancy -0.140R · profit factor 0.72 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
@@ -139,6 +139,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-02 16:16 | GBPUSD | BUY 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
+| 11-02 16:15 | EURUSD | SELL 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-02 16:02 | EURGBP | SELL 58 | SELL 65 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 51% / S 32% / - 17%: strongly toward the target |
 | 11-02 16:00 | NZDUSD | SELL 55 | SELL 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 39% / S 61% / - 0%: strongly toward the stop |
 | 11-02 15:45 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -149,8 +151,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-02 15:15 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 15:00 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-02 15:00 | EURCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 14:45 | GBPJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-02 14:45 | EURJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
