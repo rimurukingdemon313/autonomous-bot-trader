@@ -438,6 +438,8 @@ class Runtime:
     def _monitor_locked(self) -> None:
         now = self.clock()
         self._monitor_fast(now)
+        if hasattr(self.broker, "on_bar"):  # paper: the stops it applies above are booked now, not at the next cycle
+            self.orch.closures(now)  # (a DEMO broker holds its own stops: booked at each cycle, never polled here)
         self.orch.time_exits(now)  # a holding time of minutes is honoured between cycles
         if now - self._forward_at >= FORWARD_EVERY_S:  # forward outcomes resolve as bars complete
             self._forward_at = now
@@ -653,9 +655,13 @@ class Runtime:
         }
 
     def lessons(self) -> dict:
-        latest = self.orch.lesson_book.latest()
-        return {"forward": sorted(latest.values(), key=lambda v: (v["status"] != "ACTIVE", v["code"], v["scope"])),
-                "counts": {s: sum(1 for v in latest.values() if v["status"] == s) for s in ("CANDIDATE", "ACTIVE", "REJECTED")},
+        book = self.orch.lesson_book
+        latest, current = book.latest(), book.current()
+        return {"forward": sorted(current.values(), key=lambda v: (v["status"] != "ACTIVE", v["code"], v["scope"])),
+                "counts": {s: sum(1 for v in current.values() if v["status"] == s) for s in ("CANDIDATE", "ACTIVE", "REJECTED")},
+                "superseded": {"lessons": len(latest) - len(current),
+                               "why": "decided under taxonomy 1.0.0, which counted a trade's shadow exits as more "
+                                      "trades; kept in the ledger, no longer shown to the models"},
                 "rule": ("CANDIDATE from LEARNING outcomes; ACTIVE only after confirmation on EVALUATION outcomes that "
                          "resolved later; an ACTIVE lesson is information for the models, never a rule or a size"),
                 "experience": self.experience.summary() if hasattr(self.experience, "summary") else None}
@@ -884,12 +890,16 @@ class Runtime:
         out: dict = {"active": mode == "dual_ai" and self.cfg.mode == "PAPER_FORWARD", "decision_mode": mode,
                      "mode": self.cfg.mode, "live_trading": False, "money": "NOT REAL MONEY",
                      "openrouter": self.openrouter.health(),
-                     "rules": {"max_calls_per_decision": 3, "free_models_only": True,
+                     # the traders are FREE models; while a senior's funded period is active, its seat is paid
+                     "rules": {"max_calls_per_decision": 3,
+                               "free_models_only": not (self.openrouter.trial_status() or {}).get("active", False),
                                "desk": "each trader chooses BUY or SELL on the H1 chart; same side and both "
                                        "confidences 65 or more -> AGREE, a trade on Trader 1's levels; same side "
                                        "below 65 -> NO TRADE (the trade it would have been is followed in shadow); "
                                        "opposite sides -> NO TRADE (the debate runs in shadow: measured, never "
-                                       "traded); the risk engine sizes and may refuse"}}
+                                       "traded); while the owner's funded period declares a senior trader, an "
+                                       "agreement is a trade only with its approval (it can only refuse); the risk "
+                                       "engine sizes and may refuse"}}
         trader = getattr(self.orch.brain, "dual_ai", None)
         out["charts"] = {s: {"t": c["t"], "decision_id": c["decision_id"], **c["meta"]}
                          for s, c in (dict(trader.charts) if trader is not None else {}).items()}
@@ -907,6 +917,7 @@ class Runtime:
                 "consensus": rec.get("consensus"), "models": rec.get("models"), "trader1": rec.get("trader1"),
                 "trader2": rec.get("trader2"), "verifier": rec.get("verifier"), "chart": rec.get("chart"),
                 "calls": rec.get("calls"), "trader1_input": rec.get("trader1_input"), "version": rec.get("version"),
+                "time_machine": rec.get("time_machine"), "senior": rec.get("senior"),
                 "risk": (None if v is None else {"approved": bool(v["approved"]), "reasons": (vp or {}).get("reasons"),
                                                  "qty": (vp or {}).get("qty")})})
             if len(analyses) >= 12:

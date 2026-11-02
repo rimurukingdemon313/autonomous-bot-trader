@@ -69,7 +69,11 @@ kill switch, or override a rejection:
 2. **Managed.** Every cycle:
    - prices are read, open positions are valued, and equity is updated;
    - the monitor checks minute and H1 bars for the stop and the target (stop first when both are touched;
-     a gap fills at the open);
+     a gap fills at the open), and a position the paper broker closes is booked in the journal in the same
+     pass, every few seconds (orchestrator 1.26.0). Booked only at the next cycle, as before, a stopped trade
+     still read "open" for up to 15 minutes, with no P&L and past -1R, while the balance had already paid its
+     loss (EURUSD and NZDUSD, 2026-11-02). A DEMO broker holds its own stops; its closes are booked at each
+     cycle, never polled every few seconds;
    - holding-time exits and the model's own review (close or hold) apply;
    - the gate's heartbeat rolls the day and checks the limits.
 

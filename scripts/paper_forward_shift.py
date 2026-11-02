@@ -29,6 +29,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from aitrader.agents.dual_ai import MIN_CONFIDENCE  # noqa: E402
+from aitrader.charts.fan import render_time_machine  # noqa: E402
 from aitrader.service.config import ServiceConfig  # noqa: E402
 
 
@@ -95,6 +97,59 @@ def period_lines(p: dict | None) -> list[str]:
             "below; nothing in it was moved or removed.", ""]
 
 
+#: the owner's language for the few words the summary repeats; anything not listed is shown as it is
+AR_DECISION = {"BUY": "شراء", "SELL": "بيع", "NO_TRADE": "لا صفقة"}
+AR_RULE = {"AGREE": "الاثنين اتفقوا", "DISAGREE": "اختلفوا",
+           "LOW_CONFIDENCE": f"اتفقوا بس مو الاثنين واثقين {MIN_CONFIDENCE} أو أكثر",
+           "NOT_ASKED": "ما انسألوا: قاعدة منعت قبلها"}
+AR_VERDICT = {"close to break-even": "قريب من التعادل", "leans toward the target": "يميل للهدف",
+              "strongly toward the target": "يميل بقوة للهدف", "leans toward the stop": "يميل للستوب",
+              "strongly toward the stop": "يميل بقوة للستوب", "no replay reached a side": "ولا إعادة وصلت لطرف"}
+UNREAD = "ما ينقرى هسه"
+
+
+def seat_name(role: str) -> str:
+    """A paid seat's name in the report."""
+    return {"vision": "trader 1", "judge": "trader 2", "senior": "the senior"}.get(role, role)
+
+
+def arabic_summary(v: dict) -> list[str]:
+    """The owner's language, first: the same figures as the sections below and nothing else. A figure that cannot be
+    read is said to be unreadable, never shown as a zero."""
+    def amount(x):
+        return UNREAD if x is None else money(x)
+    p, a = v.get("period") or {}, v.get("account") or {}
+    out = ["## ملخص بالعربي", ""]
+    if p.get("available") is False:
+        out.append(f"- الحساب الجديد: {UNREAD}.")
+    elif p:
+        g = p.get("performance") or {}
+        out.append(f"- الحساب الجديد (من {str(p.get('starts', ''))[:16].replace('T', ' ')} UTC): الرصيد "
+                   f"{amount(p.get('equity'))}، الربح أو الخسارة {amount(p.get('total_pnl'))}، صفقات مسكّرة "
+                   f"{g.get('trades', 0)} ({amount(p.get('closed_pnl'))})، مفتوحة {p.get('open', 0)}.")
+    out.append(f"- الحساب الكامل من البداية: {amount(a.get('equity'))}.")
+    dai = v.get("dual_ai") or {}
+    last = dai.get("last_analysis") or {}
+    if last:
+        rule = (last.get("consensus") or {}).get("rule")
+        out.append(f"- آخر قرار: {last.get('symbol')} {AR_DECISION.get(last.get('decision'), last.get('decision'))} "
+                   f"({AR_RULE.get(rule, rule)}).")
+    pt = (dai.get("openrouter") or {}).get("paid_trial") or {}
+    if (pt.get("models") or {}).get("senior"):
+        rules = (dai.get("record") or {}).get("decisions_by_rule") or {}
+        out.append(f"- المتداول الكبير (‎{pt['models']['senior'].split('/')[-1]}‎، مدفوع): رفض "
+                   f"{rules.get('SENIOR_VETO', 0)}، ما جاوب {rules.get('SENIOR_UNAVAILABLE', 0)}؛ صرف "
+                   f"{amount(pt.get('spent_total'))} من {amount(pt.get('total_usd'))}.")
+    tm = next((x for x in dai.get("analyses") or [] if x.get("time_machine")), None)
+    m = (tm or {}).get("time_machine") or {}
+    if all(isinstance(m.get(k), (int, float)) for k in ("target_first", "stop_first", "neither")):
+        out.append(f"- آلة الزمن لآخر اتفاق ({tm['symbol']}، {m.get('replays')} إعادة): الهدف أول "
+                   f"{m['target_first']:.0%}، الستوب أول {m['stop_first']:.0%}، ولا واحد {m['neither']:.0%}: "
+                   f"{AR_VERDICT.get(m.get('verdict'), m.get('verdict'))}.")
+    out += ["- حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.", ""]
+    return out
+
+
 def report_md(v: dict, shift: dict) -> str:
     a, o = v.get("account") or {}, (v.get("performance") or {}).get("overall") or {}
     lines = [
@@ -103,6 +158,7 @@ def report_md(v: dict, shift: dict) -> str:
         f"shift started {shift['started']} · decision system `{shift['decision_mode']}`", "",
         f"Research status (historical, unchanged): **{v['research_status']}**. This run measures the system forward; "
         "it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.", ""]
+    lines += arabic_summary(v)
     lines += period_lines(v.get("period"))
     dai = v.get("dual_ai") or {}
     if dai.get("active"):  # the rule that trades first; two rules are never averaged into one number
@@ -193,11 +249,11 @@ def report_md(v: dict, shift: dict) -> str:
             return (f"Paid trial `{t.get('name')}` ({t.get('starts')} to {t.get('ends')}): "
                     f"{'ACTIVE' if t.get('active') else 'not active'}"
                     + (f" ({t['stopped']})" if t.get("stopped") else "")
-                    + " · " + " · ".join(f"{'trader 1' if r == 'vision' else 'trader 2'} `{m}` asked first"
+                    + " · " + " · ".join(f"{seat_name(r)} `{m}`" + (" (paid only)" if r == "senior" else " asked first")
                                          for r, m in (t.get("models") or {}).items())
                     + f" · spent {money(t.get('spent_total'))} of {money(t.get('total_usd'))}, today "
                     f"{money(t.get('spent_today'))} of {money(t.get('daily_usd'))} (the key's own reading)"
-                    + "".join(f" · {'trader 1' if r == 'vision' else 'trader 2'} not asked: {w}" for r, w in why.items()))
+                    + "".join(f" · {seat_name(r)} not asked: {w}" for r, w in why.items()))
         rec = dai.get("record") or {}
         pick, lose = rec.get("debate_pick_if_taken") or {}, rec.get("debate_losing_side_if_taken") or {}
 
@@ -228,7 +284,8 @@ def report_md(v: dict, shift: dict) -> str:
                   f"{shadow(pick)} · the side it rejected if taken: {shadow(lose)}", "",
                   "Exits in shadow (the same trades, followed again; measured, never traded): " + " · ".join(
                       f"{label} {exit_line((rec.get('exits_in_shadow') or {}).get(k) or {})}"
-                      for k, label in (("BE1R", "break-even at +1R"), ("HOLD24H", "held 24 h"),
+                      for k, label in (("BE1R", "break-even at +1R"), ("CLOSE24H", "closed at 24 h"),
+                                       ("HOLD24H", "held 24 h (before forward 1.3.0)"),
                                        ("WIDE2X", "stop and target twice as far"),
                                        ("HOLD8H", "closed at 8 h (the exit before dual-ai 1.7.0)"))), "",
                   "Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never "
@@ -239,21 +296,41 @@ def report_md(v: dict, shift: dict) -> str:
                   f"{shadow(rec.get('low_confidence_in_shadow') or {})}", "",
                   "Trades taken by session (UTC): " + " · ".join(
                       f"{s} {shadow(st)}" for s, st in (rec.get("taken_by_session") or {}).items()), "",
-                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |",
-                  "|---|---|---|---|---|---|---|---|"]
+                  "Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usable answer; not "
+                  f"traded, followed forward): {(rec.get('decisions_by_rule') or {}).get('SENIOR_VETO', 0)} vetoed · "
+                  f"{(rec.get('decisions_by_rule') or {}).get('SENIOR_UNAVAILABLE', 0)} without a usable review · if "
+                  f"taken: {shadow(rec.get('senior_vetoes_in_shadow') or {})}", "",
+                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
         for a in dai.get("analyses") or []:
             when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"
-            t1, t2, vf = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}
+            t1, t2, vf, sr = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}, a.get("senior") or {}
             risk = a.get("risk")
             read = " (numbers)" if t1 and a.get("trader1_input") == "numbers" else ""
             lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')}{read} | "
                          f"{t2.get('direction', '-')} {t2.get('confidence', '')} | {vf.get('direction', '-')} | "
+                         f"{sr.get('verdict', '-')} {sr.get('confidence', '')} | "
                          f"{(a.get('consensus') or {}).get('rule')} | "
-                         f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} |")
-        lines += ["", "The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so "
-                  "Trader 1 read the same chart from its numbers."]
+                         f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} | "
+                         f"{time_machine_cell(a.get('time_machine'))} |")
+        lines += ["", "The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free "
+                  "vision model answered, Trader 1 read the same chart from its numbers on another model."]
+        tm = next((a for a in dai.get("analyses") or [] if a.get("time_machine")), None)
+        if tm:
+            lines += ["", f"Time machine of the latest agreement ({tm['symbol']}): the levels replayed "
+                      f"{tm['time_machine'].get('replays', 0):,} times on the pair's own last 60 days of hours; a "
+                      "simulation of the recent past, not a forecast, and it refuses nothing (dual-ai 1.16.0).", "",
+                      "![time machine](last_time_machine.png)"]
     lines += ["", "Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.", ""]
     return "\n".join(lines)
+
+
+def time_machine_cell(tm: dict | None) -> str:
+    """One agreement's time machine in a table cell: target first / stop first / neither, and the verdict."""
+    if not tm:
+        return "-"
+    return (f"T {tm.get('target_first', 0):.0%} / S {tm.get('stop_first', 0):.0%} / - {tm.get('neither', 0):.0%}: "
+            f"{tm.get('verdict')}")
 
 
 def publish(rt, pub: Path, shift: dict, push: bool) -> None:
@@ -265,6 +342,10 @@ def publish(rt, pub: Path, shift: dict, push: bool) -> None:
         png = rt.dual_ai_chart(last) if last else None
         if png:
             (pub / "last_chart.png").write_bytes(png)
+        tm = next((a for a in v["dual_ai"].get("analyses") or [] if a.get("time_machine")), None)
+        fan = render_time_machine(tm["time_machine"], tm["symbol"]) if tm else None
+        if fan:
+            (pub / "last_time_machine.png").write_bytes(fan)
     v["health"] = {k: rt.health.get(k) for k in ("last_cycle", "last_cycle_error", "cycles")}
     (pub / "paper_forward.json").write_text(json.dumps(v, indent=1, default=str) + "\n")
     (pub / "REPORT.md").write_text(report_md(v, shift))

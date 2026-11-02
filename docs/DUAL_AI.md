@@ -71,7 +71,10 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   24 h (`..._HOLD24H`), and with stop and target twice as far, held 24 h (`..._WIDE2X`: costs half the share
   of the risk). `dual_ai_stats.record()["exits_in_shadow"]` pairs each with the trade as taken on the same
   entries; the report prints the comparison. Since forward 1.2.0 also closed at 8 h (`..._HOLD8H`): the exit
-  the trades had before dual-ai 1.7.0.
+  the trades had before dual-ai 1.7.0. Since forward 1.3.0 (2026-11-02) closed at 24 h (`..._CLOSE24H`) in
+  place of "held 24 h": a trade has been held 24 h since dual-ai 1.7.0 and 48 h on H1 since 1.11.0, so
+  `HOLD24H` had become the trade itself, followed twice and measuring nothing. `CLOSE24H` asks what H1 opened:
+  does the second day pay? Its old `HOLD24H` rows stay in the record and the report, labelled as before 1.3.0.
 - **The chart: H1, held up to 48 h** (dual-ai 1.11.0, owner, 2026-10-31: "a longer timeframe, H1 for
   example"). The desk reads H1 with H4 above it, plans and holds a trade up to 48 h, and every time exit
   closes by 16:00 New York on Friday; the traders are told the time a trade really has. Over the 479
@@ -155,7 +158,10 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   market, not a fit to three trades, and it can only refuse an entry. The risk engine applies it, and the
   desk is not asked inside the window.
 
-### When no vision model answers (dual-ai 1.3.0, 2026-10-13)
+### When no vision model answers (dual-ai 1.3.0, 2026-10-13; replaced by one model per seat, 1.17.0)
+
+**Replaced on 2026-11-02 (dual-ai 1.17.0, below): a trader's seat has no stand-in, so Trader 1 never reads the
+chart's numbers on another model.** What it was:
 
 Only a handful of free models read images, and at peak hours (about 11:00-14:30 UTC) all of them can be busy at
 once: on 2026-10-13, 23 of 40 decisions were lost that way. When no free vision model gives a usable answer,
@@ -275,6 +281,21 @@ free seats. Compared at the end of the week on the trades it produced, with the 
 trades is inconclusive, and no decision is taken on it alone. H5 (`nemotron-3-ultra` out) is judged on the trades
 with a FREE model in Trader 2's seat only.
 
+**What the paid seats did, read on 2026-11-02** (every agreement followed forward, after costs). The trial week was
+an EVALUATION week, so it is set against the free seats' LEARNING weeks: different weeks and markets, not a clean
+comparison.
+
+| Seat | Model | Agreements | Average | Won |
+|---|---|---|---|---|
+| Trader 1 | `xiaomi/mimo-v2.6-pro` (paid) | 108 | -0.37 R | 27% |
+| Trader 2 | `anthropic/claude-haiku-5.5` (paid) | 76 | -0.31 R | 30% |
+| Trader 1 | the free models, LEARNING weeks | 24 to 126 each | -0.19 R to +0.22 R | 36% to 54% |
+
+The stronger, paid models did not do better. Nothing here says paying for a stronger model would.
+
+The trial's window closed as Saturday 31 October began. From 2 November the funded period is the senior trader's
+(below): one strong model that can only refuse, asked a few times a day.
+
 ## Free models only
 
 One key, `OPENROUTER_API_KEY`, powers all three roles. A model is used only if **all** hold
@@ -324,6 +345,118 @@ the seat, as it already did whenever this one was busy.
 The catalog changes; the selection is recomputed hourly and on failures. Optional pins
 (`OPENROUTER_VISION_MODEL`, `OPENROUTER_JUDGE_MODEL`) are honoured only while the catalog lists them as free.
 
+### One model per trader's seat (dual-ai 1.17.0, openrouter 1.11.0, owner, 2026-11-02)
+
+The owner: "nano is always high... every time the AI changes it is like a child; I want a trained AI that knows
+trading". What the journal showed that morning (shift from 04:58 UTC):
+
+- Trader 1's seat was held by `nemotron-3.5-super-vl`. It gave 32 usable answers, stated 52-62, and none became a
+  trade.
+- 5 times its answer was cut at 12,000 tokens while it was still thinking, before its JSON. Each time the next vision
+  model stood in for that one decision, `nemotron-3-nano-omni` or `dots-3-note`, at 65 or more. 3 of those 5
+  were the day's three trades.
+- Each model states confidence on its own scale. Over all its answers as a trader, `nano-omni` stated 65 or more
+  in 100% of 46, `dots-3-note` in 81% of 302, `nemotron-3.5-super-vl` in 21% of 284, `claude-haiku-5.5` in none of
+  107. With `nano-omni` in a seat, "a trade only when both are very sure" could never refuse.
+
+So, from dual-ai 1.17.0:
+
+1. **One holder per seat, no stand-ins.** Trader 1 and Trader 2 each ask their seat's model only
+   (`chat_json(..., seat=True)`): the first of the seat's declared ranking. When it cannot answer, nobody stands in
+   and the decision is NO_TRADE (`TRADER1_UNAVAILABLE`, `TRADER2_UNAVAILABLE`). While it rests a short while
+   (busy, rate-limited, failing: an hour at most) it keeps its seat and nothing is asked (`SEAT_RESTING`). The
+   seat passes on only when its holder is gone (the provider cannot serve it: a 6 h rest; excluded; out of the
+   catalog) or fails often enough to lose its rank. Trader 1's numbers fallback on a text model is gone. The debate,
+   shadow only, keeps its fallbacks.
+2. **Room to finish.** Each trader's answer may use 16,000 tokens (12,000 before). The seat's usable answers used
+   up to about 24,000 tokens with the prompt's ~15,000, and a median 62 s (90% within 105 s).
+3. **A model sure on nearly every answer holds no trader's seat.** `dual_ai_stats.confidence_habits` reads how each
+   model stated its confidence as a trader in the decisions made before this one: its answers, not their results.
+   A model that stated MIN_CONFIDENCE or more in 90% (ALWAYS_SURE_SHARE) of at least 30 (ALWAYS_SURE_MIN) holds no
+   seat; with fewer answers its habit is not yet known. On 2 November that is `nemotron-3-nano-omni` alone. The
+   habits reach the seats only, never a trader's packet: a trader told the floor could aim at it.
+
+The status (`health()`, the report's "trader 1 / trader 2" line) names each seat's holder: a model resting briefly
+included, never a model kept off the seats (`exclude_from_seats`, set by the desk at each decision).
+
+The cost is known: when the seat's model cannot answer, that decision is NO_TRADE instead of a stand-in's trade
+(5 of 37 decisions that morning). Which model answers changes; no rule, level, limit or size does. Nothing here
+promises a better result. It makes the seat's record one model's record, and the floor a floor for every model
+that sits.
+
+## The senior trader (dual-ai 1.18.0, paid-trial 1.3.0, owner, 2026-11-02)
+
+The owner: "if you want to use stronger models, that's fine, but please make them know", and then "not only what
+its company trained it on: it must know all the steps we learned; if something is rotten, you trade in their place".
+
+**Who.** The strongest model the live catalog lists that reads the chart, in a paid seat of its own:
+`anthropic/claude-opus-5.5`, intelligence index 58.4, the highest on the catalog of 2026-11-02 10:48 UTC
+(`dual-ai-check-results` 255b36f). It is an Anthropic model, chosen by a Claude model: on the index, where it is
+first, and from a third lab, neither trader's.
+
+**When.** Only on a trade candidate: both traders on the same side, both at the floor, after the deterministic
+lesson check. Never on a disagreement, never under the floor. That is a handful of reviews a day, where a trader's
+seat would ask it about 150 times.
+
+**What it reads: everything the desk knows.**
+
+- the chart (the image, and every mark as numbers) and the raw data;
+- both traders' full analyses;
+- the trade exactly as it would be placed: the price it would fill at, its stop and target, its reward:risk, its
+  costs as a share of the risk, and the win rate it needs after costs;
+- the time machine's replay of those levels;
+- the journal (`desk_memory`) and the playbook (below).
+
+**What it can do: refuse, and nothing else.** It answers `APPROVE` or `VETO` (`validate_senior`). It cannot
+change the side, the levels or the size; any other field it writes is never read. An approval at less than even
+odds by its own account (confidence under 50) contradicts itself, so it is no trade. A veto, a malformed answer, no
+answer, or no funds for the review means NO_TRADE (`SENIOR_VETO`, `SENIOR_UNAVAILABLE`). An approved trade goes to
+the risk engine exactly as before, which sizes it and may still refuse it.
+
+**Measured.**
+
+- Every agreement it does not approve is followed forward as the trade it would have been (`DUAL_AI_SENIOR_VETO`,
+  `senior_vetoes_in_shadow`), and counts once as an agreement in the analysis.
+- The senior reads its own vetoes' record in the journal.
+- The report shows each verdict (the "Senior" column) and the vetoes beside the trades taken. The Arabic summary
+  shows its refusals and its spend.
+
+**Cost and caps** (`paid_trial.SENIOR_2026_11`).
+
+- $4 / $20 per million tokens: about $0.17 a review, the playbook included.
+- The caps are read from the key's own spend:
+  - $8.50 in all, counted from the $0.958 the first trial spent;
+  - $1.50 a day;
+  - $0.40 a call (a review reserves at most $0.32).
+- Its seat has no FREE model at all (`PAID_ONLY_ROLES`). When it may not be asked (outside its window, a cap
+  reached, a 402, or `OPENROUTER_PAID_TRIAL=off`), the call is `NOT_FUNDED` and nothing is sent. While the period is
+  declared, that means no trade is approved: the desk fails closed.
+- The period runs from 2026-11-02 15:00 UTC to 2026-12-01. Outside it the desk decides as in 1.17.0.
+
+**What it is not.** It does not open trades, and it is not a promise of better results. The paid models of the
+week to 30 October did no better than the free ones. Whether the senior's vetoes save money is what its shadow
+measures.
+
+## The desk's playbook (dual-ai 1.18.0, `agents/playbook.py`)
+
+What this project has learned, written down for every model that sits at the desk: both traders, the debate and
+the senior, in every packet (`desk_playbook`), with a paragraph in their prompts on how to read it. It holds:
+
+- **the desk's rules**: the agreement and the floor, Trader 1's levels, the senior, what the risk engine refuses,
+  the 48 h hold and the Friday close, NO TRADE as a normal answer;
+- **what the record taught**, each with its date and sample: costs were the loss on M15 (+0.06 R before costs,
+  0.19 R in them); Trader 2's levels lost; 24 h beat 8 h; the range rule did not hold; the analysis of 2 November;
+  confidence predicted nothing; same-lab pairs; the paid week; the stand-ins of 2 November;
+- **what the research found**: live LLM traders mostly lose; stated confidence is overconfident; no independent
+  evidence for SMC, and QT-1 and QT-2 failed; LLM backtests are contaminated;
+- **how to think**: costs first, `(1 + c) / (1 + R)`; the stop where the idea is proved wrong; say why; honest
+  confidence; one trade is an anecdote.
+
+It is static by design. The live record is in `desk_memory`, and where they differ the live figures are newer. The
+desk's own numbers in it (the floor, the hold) are filled in from the code that enforces them, and a test checks
+them. It is about 1,300 tokens. Its version, `playbook-1.0.0`, is stamped on every decision. Change it only by a
+code change that says why, and bump the version.
+
 ## Limits, retries, duplicates
 
 - At most 3 roles asked per decision (2 when the traders agree). No loops, no second debate.
@@ -367,9 +500,119 @@ shadow debate picked (family `DUAL_AI_DEBATE_PICK`: what standing aside skipped)
 gives: trades taken (win rate, expectancy R, profit factor), by rule and by desk confidence, each trader's hit
 rate, the debate's pick and its rejected side as if taken, the agreement rate. Every figure carries its sample size; below 30 it is labelled `insufficient`.
 
-Trader 2 and the debate are shown this record from LEARNING weeks only (every third ISO week is EVALUATION and
-is never learned from). Nothing moves a rule, a size or a limit; the desk's trades are never averaged with
-another mode's.
+**The traders' journal** (dual-ai 1.13.0, owner, 2026-10-31: "make it learn everything"). Both traders read
+`desk_memory`, the desk's own journal, before every decision (before it, Trader 1 saw none of it, and Trader 2
+and the debate saw only the record overall):
+
+- `this_instrument`: every agreement of the desk on the pair, followed forward after costs whether it was
+  traded or not, by side and by the chart's timeframe, with the latest six (`dual_ai_stats.instrument_record`);
+- `past_trades`: the most relevant closed trades (recent losses, this pair, this kind of market), with how and
+  why each ended (`TradeMemory`);
+- `record_overall`: the desk's record (trades taken, by confidence and session, the exits and the floor in
+  shadow, each trader's hit rate);
+- the lessons confirmed out of sample (taxonomy 1.1.0, below).
+
+LEARNING weeks only (every third ISO week is EVALUATION and is never learned from), and only outcomes resolved
+before the decision: nothing from after the decision time can be read. Each agreement counts once. The prompt
+asks the traders to read it as a professional reviews a journal: lower the confidence where the same kind of
+trade has kept losing, and treat a small sample as an anecdote. Nothing in it moves a rule, a size or a limit,
+and the desk's trades are never averaged with another mode's.
+
+**The record analysed, not recalled** (dual-ai 1.15.0, owner, 2026-11-02: "I want the AI to analyse the past to
+get better, not memorise it like a monkey"). The journal now carries `analysis` (`dual_ai_stats.analysis`): every
+agreement of the desk, followed forward after costs, split by one condition at a time. The conditions are:
+
+- the side, the session, the pair, the timeframe, the regime and the volatility;
+- the last H1 structure break and the regime's trend, each with or against the side;
+- the lower of the two confidences, the reward:risk, and the stop in H1 ATR.
+
+A condition with 20+ agreements at |t| >= 2 is named as having lost or worked ("strong" at 3+). About forty are
+read, so one or two near t 2 will be chance, and the traders are told so. The journal also gives the win rate a
+trade needs to pay at its reward:risk after costs, (1 + c) / (1 + R). That is the break-even line the owner's
+`day-trader-skill` uses, read on 2026-11-02.
+
+`analysis.now` matches the named conditions to the decision at hand: for either side (session, pair, regime), if
+BUY, if SELL, and those to check against the trader's own levels. The prompt asks each trader to be an analyst,
+not a parrot: say why a condition lost or worked and whether that cause is present now. Avoid a losing pattern
+whose cause is still there; never avoid a trade only because the past says so when its cause is gone.
+
+On 2 November, over 375 agreements in the learning weeks:
+
+- BUYs lost -0.36 R (123, t -3.4): October's falling majors may be the cause, not a rule.
+- The London/New York overlap lost -0.43 R (54).
+- Stops of 1.25-2 H1 ATR lost -0.31 R (100).
+- The desk won 42% where its median reward:risk 1.38 and costs of 0.19 R needed 50%.
+
+Statistics, never a rule: nothing in the analysis refuses a trade; the confidence floor and the risk engine do.
+
+**The time machine** (dual-ai 1.16.0, owner, 2026-11-02, after the day-trader-skill's `/trader-timemachine`).
+Every agreement's levels (Trader 1's, the ones a trade is placed on) are replayed 10,000 times before the risk
+engine decides (`learning/timemachine.py`). This applies to agreements under the confidence floor too.
+
+- **One replay.** Each hour of the trade's life, up to its time exit, is a bar drawn at random from the pair's own
+  completed H1 bars of the last sixty days, of the same hour of day plus or minus one, scaled to the price reached.
+  Bars after a gap (a weekend) are left out, because their jump is not an hour's move. The stop is checked first, so
+  a bar touching both is a stop, and a bar opening through the stop fills at its open.
+- **What it records** (`time_machine` on the decision):
+  - how often the target came first, the stop first, or neither;
+  - the mean R before and after costs;
+  - the win rate the levels need after costs, `(1 + c) / (1 + R)`;
+  - one verdict: close to break-even, leaning toward, or strongly toward the target or the stop. It compares the
+    target's share of the replays that reached a side with that need.
+- **Deterministic.** The seed is the decision's id.
+
+It is a simulation of the pair's recent past, not a forecast. It shows whether the levels are reachable in the
+time given and how the recent drift leans; it cannot say whether the traders' reading is right. It refuses and
+sizes nothing:
+
+- **The report** shows it for every agreement (the "Time machine" column) and publishes the latest one's fan
+  (`last_time_machine.png`).
+- **The analysis** reads its verdict as a condition (`time_machine`), so the desk's own record will show whether
+  replays leaning toward the stop really lose more. It becomes a rule only if that record ever shows it should.
+
+**One trade, one outcome** (taxonomy 1.1.0, 2026-10-31). The forward lessons counted a trade's shadow exits
+(the same entry closed another way) as more trades of its signal class: 430 of the 914 outcomes in the
+`DUAL_AI` scope were these duplicates, so a lesson's n and t were inflated. The ACTIVE "DUAL_AI loses in
+TRANSITION" listed the same trades several times as its evidence. Exit variants are now left out of every
+scope, and every lesson's lifecycle restarts on independent outcomes. Lessons decided before stay in the
+append-only ledger as history, no longer shown to the models; the dashboard counts them as superseded.
+
+## What the published research says (read 2026-11-01)
+
+The owner asked to "learn from the internet". What the published work says about desks like this one, and
+what it changed. The full papers on arxiv.org could not be opened from the session (network settings), so
+these rest on the abstracts and summaries.
+
+- **Live tests of LLM traders mostly lose.**
+  - LiveTradeBench ran 21 models live for 50 days and found that high general benchmark scores do not mean
+    better trading ([2511.03628](https://arxiv.org/abs/2511.03628)).
+  - AI-Trader found poor returns and weak risk management for most agents
+    ([2512.10971](https://econpapers.repec.org/paper/arxpapers/2512.10971.htm)).
+  - HKU's live FX test (ten agents, six weeks) found that trading more often did not do better.
+  - This matches the desk's own record: the paid "stronger" pair did worse than the free models, so models are
+    judged here on forward results only, never on benchmarks.
+- **A model's stated confidence is overconfident and poorly calibrated.** Agreement between models is a better
+  but weak, conditional signal ([2405.02917](https://arxiv.org/abs/2405.02917),
+  [2403.09849](https://arxiv.org/abs/2403.09849), [2607.08065](https://arxiv.org/abs/2607.08065)).
+  - A panel of decorrelated models does better than one lab's models agreeing
+    ([2607.10139](https://arxiv.org/abs/2607.10139)). Hence dual-ai 1.14.0: Trader 2 on another lab's model
+    first (below).
+  - The confidence floor (1.12.0) is kept as the owner's filter, measured by its shadow, not as a calibrated
+    probability.
+- **An LLM backtest on past prices is contaminated by what the model memorised**
+  ([2512.23847](https://arxiv.org/abs/2512.23847), [The Memorization Problem](https://arxiv.org/html/2504.14765v2)).
+  The desk is therefore forward-tested only, and its decisions are never replayed on history.
+- **Smart Money Concepts: no independent evidence of an edge.** A placebo-controlled test found order blocks no
+  better than random levels (a self-published study), as ID-1 found for every SMC rule after costs.
+- **Memory and reflection** (FinMem, [2311.13743](https://arxiv.org/abs/2311.13743)) improved agents in their
+  authors' own backtests. The traders' journal (1.13.0) is that memory, built from forward outcomes only.
+
+**Two models of different labs first** (dual-ai 1.14.0, openrouter 1.10.0). Trader 2 is asked on another lab's
+model than Trader 1's before any of Trader 1's lab (`other_lab_than`), and the shadow debate on a third lab's
+when there is one. A model of the same lab still answers when no other lab's does, so the desk is never left
+without its second trader. In the desk's own record, agreements of two models of one lab did -0.16 R (87)
+against -0.12 R (392) across labs; at both confidences 65 or more, -0.24 R (32) against -0.02 R (130). That is
+not significant on its own. Each decision records the two labs (`labs`).
 
 ## Hypotheses under test (registered 2026-10-17, before the data that will judge them)
 
@@ -416,6 +659,36 @@ changes which free model answers, never a rule, a size or a level. It is judged 
 taken under free-models 1.4.0: kept if their average is above the -0.14 R a trade made with that model in the
 seat (47 trades), and reviewed otherwise. Like every split read from the same data, part of the gap may be
 chance: the models that took the seat can be expected to do worse than their +0.09 R so far.
+
+### Registered 2026-11-02: a confidence judged against its own model's habit
+
+Found in the journal on 2026-11-02, after the first three H1 trades all had Trader 1 at exactly 65. Each model
+states confidence on its own scale. Over every answer it gave, the 65 floor was cleared by:
+
+- `nemotron-3-nano-omni`: 100% of its 46 answers;
+- `dots-3-note`: 81% of 302;
+- `nemotron-3.5-super-vl`: 21% of 284;
+- `claude-haiku-5.5`: none of its 107 (the paid trial).
+
+So which agreements pass the floor depends mostly on which model sat as Trader 1, not on the setup. The 65s are
+a habit, not an answer to being told the floor: `dots-3-note` said exactly 65 in 29% of its answers, long
+before the journal (1.13.0) named the floor.
+
+Read on the 375 agreements with a result (LEARNING weeks, M15 mostly), neither measure predicted the result:
+
+| Measure | Above | Below | Welch t |
+|---|---|---|---|
+| Raw: both at 65 or more | 163 at -0.09 R | 212 at -0.05 R | -0.29 |
+| Relative: both in the top third of their own model's earlier answers (30+ of them; 247 agreements) | 40 at -0.03 R | 207 at -0.19 R | 0.69 |
+| Relative: top quarter | 27 at -0.24 R | 220 at -0.15 R | -0.35 |
+
+Nothing changes: the floor is the owner's rule, and neither measure has earned a place. **Registered**, to be
+judged on H1 agreements from 2026-11-02, LEARNING weeks only. The relative measure (both traders in the top
+third of their own model's earlier answers, 30+ of them, read before the decision) replaces the raw floor only if
+both of these hold:
+
+- its high group beats its low group by 0.3 R or more, with t of 2 or more, over 30+ agreements in each;
+- the raw floor's split does not do as well on the same agreements.
 
 ## Configuration and activation
 

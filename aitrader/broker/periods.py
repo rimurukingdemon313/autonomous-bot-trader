@@ -22,7 +22,8 @@ from datetime import datetime
 from ..learning.paper_metrics import summary
 
 #: 1.1.0 (2026-10-31): a second declared period, the account of the H1, very-confident setup (dual-ai 1.12.0).
-PERIODS_VERSION = "paper-periods-1.1.0"
+#: 1.2.0 (2026-11-02): the H1 account's description names every change made to its setup before it opened.
+PERIODS_VERSION = "paper-periods-1.2.0"
 
 #: The owner's request (2026-10-27): a new account for the new setup, from the first shift that ran it. That shift
 #: began 2026-10-26 16:22 UTC, the first with both traders paid (paid-trial 1.2.0, 2590c8b) and trades on Trader 1's
@@ -40,8 +41,10 @@ DECLARED: tuple[dict, ...] = (
     #: position is opened on Saturday or Sunday.
     {"id": "h1-confident-2026-11-01", "starts": "2026-11-01T22:00:00Z", "start_balance": 200_000.0,
      "requested": "2026-10-31",
-     "setup": "dual-ai 1.12.0: the H1 chart, held up to 48 h (1.11.0), and a trade only when both traders state a "
-              "confidence of 65 or more (1.12.0), on the free models (the paid trial ended 2026-10-31 00:00 UTC)",
+     "setup": "dual-ai 1.12.0 and on: the H1 chart, held up to 48 h (1.11.0); a trade only when both traders state a "
+              "confidence of 65 or more (1.12.0); the traders read the desk's journal (1.13.0); Trader 2 on another "
+              "lab's model (1.14.0); the record analysed (1.15.0); the time machine (1.16.0); on the free models (the "
+              "paid trial ended 2026-10-31 00:00 UTC)",
      "reason": "owner: a longer timeframe and only very confident entries; a new account for the new setup, as the "
                "owner chose on 2026-10-27; the accounts before it are kept and reported apart"},
 )

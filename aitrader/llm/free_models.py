@@ -37,7 +37,8 @@ results:
     penalties   -10 for a single-domain specialist (code, health, medicine); a model expiring within 7 days is
                 excluded, within 30 days it scores -10; 30 x its failure rate in this process (from 3 calls)
 
-A model that fails is put on cooldown or excluded, and the next-best FREE model of the same role is used:
+A model that fails is put on cooldown or excluded, and the next-best FREE model of the same role is used (for the
+debate only, since dual-ai 1.17.0: a trader's seat has one holder and no stand-in, openrouter 1.11.0 `seat`):
 - a 404 "no endpoints", or unavailability;
 - repeated errors;
 - a reply showing a cost above zero, or one served by another model.

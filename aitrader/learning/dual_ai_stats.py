@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from datetime import datetime, timezone
 
 from ..learning.forward import ForwardLedger, partition
 from ..learning.paper_metrics import MIN_SAMPLE
@@ -34,11 +35,30 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #: 1.7.0: the agreements below the confidence floor (dual-ai 1.12.0), followed forward in shadow as the trades they
 #:        would have been, beside the trades taken: the floor stays measured. LOW_CONFIDENCE counts as a decision
 #:        with both traders.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.7.0"
+#: 1.8.0: `instrument_record`, what the desk's agreements on one instrument did (by side, by the chart's timeframe,
+#:        the latest ones), for the traders' journal (dual-ai 1.13.0).
+#: 1.9.0: `analysis`, the desk's record analysed (owner, 2026-11-02: "the AI should analyse the past to get better, not
+#:        memorise it"): every agreement split by one condition at a time (side, session, pair, timeframe, regime,
+#:        volatility, the last H1 structure break and the regime's trend against the side, the lower confidence, the
+#:        reward:risk, the stop in H1 ATR), the conditions that lost or worked clearly, and what a trade must win to
+#:        pay at its reward:risk after costs.
+#: 1.10.0: the time machine's verdict on an agreement's levels (dual-ai 1.16.0) is one of the conditions: whether its
+#:         replays leaning toward the stop or the target tell anything about what then happened.
+#: 1.11.0: the shadow exit closed at 24 h (CLOSE24H, forward 1.3.0) beside the others; HOLD24H rows stay readable.
+#: 1.12.0: `confidence_habits`: how each model states its confidence as a trader, from the decisions journal (its
+#:         answers, never their results), so the desk can tell a model whose confidence can still say "not sure".
+#: 1.13.0: the agreements the senior trader did not approve (dual-ai 1.18.0, DUAL_AI_SENIOR_VETO) are agreements: in the
+#:         analysis and the instrument's record once each, and set beside the trades taken (`senior_vetoes_in_shadow`).
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.13.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
-EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "WIDE2X", "HOLD8H")}
+SENIOR_FAMILY = "DUAL_AI_SENIOR_VETO"
+#: the desk's agreements, followed forward: as proposed (taken, or refused by the risk engine) and, since dual-ai
+#: 1.12.0, under the confidence floor and, since 1.18.0, those the senior trader did not approve. A shadow exit is the
+#: same agreement closed another way: never counted again.
+AGREEMENTS = (FAMILY, LOWCONF_FAMILY, SENIOR_FAMILY)
+EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "CLOSE24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
 UNAVAILABLE = ("NOT_ASKED", "MARKET_UNAVAILABLE", "AI_UNAVAILABLE", "NO_CHART", "TRADER1_UNAVAILABLE",
@@ -106,7 +126,7 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         sel = [o["r"] for o, e in zip(trades, ev) if isinstance(e.get("desk_confidence"), (int, float))
                and lo <= 100 * e["desk_confidence"] < hi]
         bands[f"{lo}-{min(hi, 100)}"] = _r(sel)
-    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: [], LOWCONF_FAMILY: []}
+    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: [], LOWCONF_FAMILY: [], SENIOR_FAMILY: []}
     taken: dict = {}                                   # decision id -> (net R as taken, session)
     exits: dict = {n: {} for n in EXIT_FAMILIES.values()}  # variant -> {base decision id: net R}
     t2_levels: dict = {}  # agreement decision id -> net R on Trader 2's own levels (never traded)
@@ -162,6 +182,11 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
                                          "is a trade only when both traders state 65 or more; the agreements below, "
                                          "followed forward as the trades they would have been, after costs. Doing "
                                          "better than the trades taken would mean the floor costs money"},
+            "senior_vetoes_in_shadow": {**_r(shadow[SENIOR_FAMILY]), "note": "since dual-ai 1.18.0 a trade both "
+                                        "traders agree on is taken only with the senior trader's approval; the ones "
+                                        "it did not approve (vetoed, or no usable answer), followed forward as the "
+                                        "trades they would have been, after costs. Doing better than the trades "
+                                        "taken would mean its vetoes cost money"},
             "exits_in_shadow": {**{n: against_taken(v) for n, v in exits.items()},
                                 "note": "each trade taken, followed again under another exit on the same entry, "
                                         "after costs; difference_r > 0 means that exit would have done better "
@@ -171,3 +196,155 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,
             "unavailable": sum(rules[k] for k in UNAVAILABLE)}
+
+
+def confidence_habits(db, as_of: int, floor: int) -> dict:
+    """How each model states its confidence as a trader (dual-ai 1.17.0): from every desk decision made before
+    `as_of`, in either trader's seat, its answers and how many of them stated `floor` or more. Behaviour, never
+    results: no outcome is read, so every week counts, LEARNING or EVALUATION. The debate's answers are not counted:
+    its confidence never decides a trade."""
+    out: dict = {}
+    rows = db.query("SELECT json_extract(payload, '$.ai.dual_ai.models.trader1') AS m1, "
+                    "json_extract(payload, '$.ai.dual_ai.trader1.confidence') AS c1, "
+                    "json_extract(payload, '$.ai.dual_ai.models.trader2') AS m2, "
+                    "json_extract(payload, '$.ai.dual_ai.trader2.confidence') AS c2 FROM decisions "
+                    "WHERE json_extract(payload, '$.family') = ? AND json_extract(payload, '$.timestamp') < ?",
+                    (FAMILY, int(as_of)))
+    for r in rows:
+        for m, c in ((r["m1"], r["c1"]), (r["m2"], r["c2"])):
+            if isinstance(m, str) and isinstance(c, (int, float)) and not isinstance(c, bool):
+                h = out.setdefault(m, {"answers": 0, "at_or_above_floor": 0})
+                h["answers"] += 1
+                h["at_or_above_floor"] += int(c >= floor)
+    for h in out.values():
+        h["share"] = round(h["at_or_above_floor"] / h["answers"], 3)
+    return out
+
+
+def instrument_record(db, symbol: str, as_of: int | None = None, partition_: str | None = "LEARNING",
+                      last: int = 6) -> dict:
+    """What the desk's agreements on one instrument did, each followed forward after costs: by side, by the chart's
+    timeframe, and the latest few. Only outcomes resolved by `as_of`; LEARNING weeks only unless told otherwise, so
+    an EVALUATION week is never learned from."""
+    done = [r for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_)
+            if r.get("symbol") == symbol and r.get("family") in AGREEMENTS
+            and (r.get("outcome") or {}).get("status") == "RESOLVED" and r["outcome"].get("net_r") is not None]
+
+    def side(r) -> str:
+        return "BUY" if r.get("side") == 1 else "SELL"
+
+    def net(rs) -> list[float]:
+        return [float(r["outcome"]["net_r"]) for r in rs]
+    return {"version": DUAL_AI_STATS_VERSION, "instrument": symbol, "partition": partition_ or "ALL",
+            "agreements": _r(net(done)),
+            "by_side": {s: _r(net([r for r in done if side(r) == s])) for s in ("BUY", "SELL")},
+            "by_timeframe": {tf: _r(net([r for r in done if r.get("timeframe") == tf]))
+                             for tf in sorted({str(r.get("timeframe")) for r in done})},
+            "latest": [{"decided_utc": datetime.fromtimestamp(int(r["t"]), timezone.utc).strftime("%Y-%m-%d %H:%M"),
+                        "side": side(r), "timeframe": r.get("timeframe"), "net_r": round(float(r["outcome"]["net_r"]), 2),
+                        "exit": r["outcome"].get("reason"), "traded": bool(r.get("executed")),
+                        "desk_confidence": r.get("confidence")} for r in done[-last:]],
+            "note": "every agreement of the desk on this instrument, followed forward after costs whether it was "
+                    "traded or not; LEARNING weeks only; below 30 a figure is an anecdote (sample)"}
+
+
+#: a condition is reported as having lost or worked when its agreements number at least ANALYSIS_MIN_N and their mean
+#: net R is at least ANALYSIS_T standard errors from zero; at three or more, "strong". About forty conditions are
+#: read, so one or two at |t| near 2 will be chance: the traders are told so.
+ANALYSIS_MIN_N, ANALYSIS_T, ANALYSIS_STRONG_T = 20, 2.0, 3.0
+#: conditions that depend on the side a trader chooses, and on the levels it places
+SIDE_KEYS = ("side", "last_H1_structure_break", "regime_trend")
+LEVEL_KEYS = ("lower_confidence", "reward_risk", "stop_in_h1_atr", "time_machine")
+
+
+def _band(x, edges: tuple, fmt: str = "{:g}") -> str | None:
+    if not isinstance(x, (int, float)) or isinstance(x, bool):
+        return None
+    lo = None
+    for e in edges:
+        if x < e:
+            return f"under {fmt.format(e)}" if lo is None else f"{fmt.format(lo)} to {fmt.format(e)}"
+        lo = e
+    return f"{fmt.format(lo)} or more"
+
+
+def with_or_against(direction, side: str) -> str:
+    """Whether a side goes with or against a direction: "bullish"/"bearish" or +1/-1; "none" without one."""
+    if direction in ("bullish", 1) or (isinstance(direction, (int, float)) and direction > 0):
+        up = True
+    elif direction in ("bearish", -1) or (isinstance(direction, (int, float)) and direction < 0):
+        up = False
+    else:
+        return "none"
+    return "with" if up == (side == "BUY") else "against"
+
+
+def conditions(p: dict, d: dict) -> dict:
+    """The conditions of one agreement: from its forward proposal `p` and its decision record `d`."""
+    side = "BUY" if p.get("side") == 1 else "SELL"
+    da = ((d.get("ai") or {}).get("dual_ai") or {})
+    ctx = d.get("context") or {}
+    c1, c2 = (da.get("trader1") or {}).get("confidence"), (da.get("trader2") or {}).get("confidence")
+    low = min(c1, c2) if all(isinstance(c, (int, float)) and not isinstance(c, bool) for c in (c1, c2)) else None
+    h1 = ((((ctx.get("market_map") or {}).get("structure") or {}).get("H1") or {}).get("last_break") or {})
+    return {"side": side, "session": p.get("session"), "pair": p.get("symbol"), "timeframe": p.get("timeframe"),
+            "regime": p.get("regime"), "volatility": p.get("vol_state"),
+            "last_H1_structure_break": with_or_against(h1.get("direction"), side),
+            "regime_trend": with_or_against((ctx.get("regime") or {}).get("trend_direction"), side),
+            "lower_confidence": _band(low, (55, 60, 65, 70)),
+            "reward_risk": _band(p.get("reward_risk"), (1.3, 1.6, 2.0)),
+            "stop_in_h1_atr": _band(p.get("stop_atr"), (0.75, 1.25, 2.0)),
+            "time_machine": (da.get("time_machine") or {}).get("verdict")}
+
+
+def analysis(db, as_of: int | None = None, partition_: str | None = "LEARNING") -> dict:
+    """The desk's record analysed: its agreements (each once), split by one condition at a time; the conditions that
+    clearly lost or worked after costs; and the win rate a trade needs at its reward:risk. Only outcomes resolved by
+    `as_of`; LEARNING weeks only unless told otherwise. Statistics, never a rule: nothing here refuses a trade."""
+    done = [r for r in ForwardLedger(db, lambda: as_of or 0).rows(as_of=as_of, partition_=partition_)
+            if r.get("family") in AGREEMENTS
+            and (r.get("outcome") or {}).get("status") == "RESOLVED" and r["outcome"].get("net_r") is not None]
+    ids = sorted({str(r["decision_id"]).split(":", 1)[0] for r in done})
+    decisions: dict = {}
+    for i in range(0, len(ids), 500):
+        chunk = ids[i:i + 500]
+        for row in db.query(f"SELECT id, payload FROM decisions WHERE id IN ({','.join('?' * len(chunk))})", tuple(chunk)):
+            decisions[row["id"]] = json.loads(row["payload"])
+    cells: dict = {}
+    for r in done:
+        net = float(r["outcome"]["net_r"])
+        for k, v in conditions(r, decisions.get(str(r["decision_id"]).split(":", 1)[0]) or {}).items():
+            if v is not None:
+                cells.setdefault((k, v), []).append(net)
+    notable = []
+    for (k, v), xs in cells.items():
+        n = len(xs)
+        if n < ANALYSIS_MIN_N:
+            continue
+        mean = sum(xs) / n
+        sd = (sum((x - mean) ** 2 for x in xs) / (n - 1)) ** 0.5
+        t = mean / (sd / n ** 0.5) if sd > 0 else 0.0
+        if abs(t) >= ANALYSIS_T:
+            notable.append({"key": k, "value": v, "condition": f"{k} = {v}", "n": n,
+                            "win_rate": round(sum(1 for x in xs if x > 0) / n, 3), "expectancy_r": round(mean, 3),
+                            "t": round(t, 2), "strength": "strong" if abs(t) >= ANALYSIS_STRONG_T else "possible"})
+    nets = [float(r["outcome"]["net_r"]) for r in done]
+    rr = sorted(float(r["reward_risk"]) for r in done if isinstance(r.get("reward_risk"), (int, float)))
+    costs = [float(r["outcome"]["cost_r"]) for r in done if isinstance(r["outcome"].get("cost_r"), (int, float))]
+    need = None
+    if rr and costs:
+        med, c = rr[len(rr) // 2], sum(costs) / len(costs)
+        need = {"median_reward_risk": round(med, 2), "mean_cost_r": round(c, 3),
+                "win_rate_needed": round((1 + c) / (1 + med), 3),
+                "rule": "a trade at reward:risk R, paying costs of c R, needs to win more than (1 + c) / (1 + R) of "
+                        "the time to make money"}
+    return {"version": DUAL_AI_STATS_VERSION, "partition": partition_ or "ALL", "agreements": _r(nets),
+            "break_even": need,
+            "lost": sorted((x for x in notable if x["t"] < 0), key=lambda x: x["t"]),
+            "worked": sorted((x for x in notable if x["t"] > 0), key=lambda x: -x["t"]),
+            "conditions_read": len(cells),
+            "how_to_read": f"every agreement of the desk, followed forward after costs whether traded or not, split by "
+                           f"one condition at a time; shown when {ANALYSIS_MIN_N}+ agreements are |t| >= {ANALYSIS_T:g} "
+                           f"from zero. About {len(cells)} conditions are read, so one or two near t 2 will be chance. "
+                           "A condition is a pattern of the past, not a rule: ask why it lost or worked, and whether "
+                           "that cause is still there now"}

@@ -44,9 +44,11 @@ def desk_reply(t1="BUY", t2="BUY", debate="BUY", target_atr=2.0, c1=80, c2=80):
     return reply
 
 
-def desk_runtime(tmp_path, monkeypatch, reply=None, mode="PAPER_FORWARD", clock=None):
+def desk_runtime(tmp_path, monkeypatch, reply=None, mode="PAPER_FORWARD", clock=None, make_client=None):
+    """`make_client(clock)`, when given, builds the OpenRouter client on the runtime's own clock."""
     fake = FakeOpenRouter(reply or desk_reply())
-    monkeypatch.setattr(runtime_mod, "OpenRouterClient", lambda cfg: client(fake))
+    monkeypatch.setattr(runtime_mod, "OpenRouterClient",
+                        lambda cfg: make_client(clock) if make_client is not None else client(fake))
     monkeypatch.setenv("DECISION_MODE", "dual_ai")
     if not (tmp_path / "kb").exists():
         _write_kb(tmp_path / "kb")
@@ -85,6 +87,15 @@ def test_agreement_becomes_a_paper_position_through_the_risk_engine_and_the_gate
     dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE id=?", (row["decision_id"],))["payload"])
     assert dec["family"] == "DUAL_AI" and dec["signal_class"] == "DUAL_AI" and dec["versions"]["dual_ai"]
     assert dec["ai"]["dual_ai"]["consensus"]["rule"] == "AGREE"
+    # dual-ai 1.13.0: both traders read the desk's journal, built by the orchestrator at the decision time
+    for call in fake.calls:
+        journal = packet_of(call["body"])["desk_memory"]
+        assert journal["this_instrument"]["instrument"] == "EURUSD" and journal["this_instrument"]["partition"] == "LEARNING"
+        assert journal["this_instrument"]["agreements"]["n"] == 0  # a first decision: nothing resolved yet, none invented
+        # dual-ai 1.15.0: the record analysed, matched to this decision; nothing to name before anything resolved
+        an = journal["analysis"]
+        assert an["partition"] == "LEARNING" and an["lost"] == [] == an["worked"] and an["break_even"] is None
+        assert set(an["now"]) == {"for_either_side", "if_BUY", "if_SELL", "check_your_levels"}
 
 
 def test_a_disagreement_is_no_trade_and_both_sides_are_followed_forward_never_executed(tmp_path, monkeypatch):
@@ -163,12 +174,13 @@ def test_a_trade_taken_is_followed_forward_under_shadow_exits_never_executed(tmp
     rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
     (taken,) = [r for r in rows if r["family"] == "DUAL_AI"]
     shadows = sorted((r for r in rows if r["family"].startswith("DUAL_AI_EXIT_")), key=lambda r: r["family"])
-    assert [r["exit_variant"] for r in shadows] == ["BE1R", "HOLD24H", "HOLD8H", "WIDE2X"]
+    assert [r["exit_variant"] for r in shadows] == ["BE1R", "CLOSE24H", "HOLD8H", "WIDE2X"]  # forward 1.3.0
     assert all(r["base_decision_id"] == taken["decision_id"] and r["route"] == "COUNTERFACTUAL"
                and r["executed"] is False for r in shadows)
     assert len(rt.broker.positions()) == 1  # nothing more was traded
     rec = dual_ai_stats.record(rt.db)
-    assert set(rec["exits_in_shadow"]) >= {"BE1R", "HOLD24H", "WIDE2X", "HOLD8H"} and "LATE" in rec["taken_by_session"]
+    assert set(rec["exits_in_shadow"]) >= {"BE1R", "CLOSE24H", "HOLD24H", "WIDE2X", "HOLD8H"}  # the old rows stay read
+    assert "LATE" in rec["taken_by_session"]
 
 
 def test_a_trade_is_placed_on_trader_1s_levels_and_trader_2s_are_followed_in_shadow(tmp_path, monkeypatch):
@@ -306,7 +318,8 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     total = f"| ${pf['account']['total_pnl']:,.2f} |"  # the real account, as it is, after the rule that trades
     assert "| Account | Equity |" not in head and "| Account | Equity |" in md and total in md.split(head)[1]
     assert "| DEBATE |" in md and "| AGREE |" in md  # each closed trade carries its rule
-    assert "Paid trial `paid-trial-2026-10-26`" in md and "(the key's own reading)" in md  # its spend is shown
+    assert "| Risk | Time machine |" in md  # dual-ai 1.16.0: each agreement's levels replayed, in the desk's table
+    assert "Paid trial `senior-2026-11-02`" in md and "(the key's own reading)" in md  # the funded seat and its spend
     # who lost it: the two trades written straight into the journal passed no check (no verdict, no gate): ours
     b = pf["blame"]
     assert (b["trades"], b["losses"], b["market_losses"], b["ours_losses"], b["ours_loss_usd"]) == (3, 2, 0, 2, -450.0)
@@ -320,6 +333,10 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert per["start_balance"] == 200_000.0 and "## The new account: the setup trading now" in md
     assert per["performance"]["trades"] + per["before"]["performance"]["trades"] == 3
     assert per["equity"] == pytest.approx(200_000.0 + per["total_pnl"]) and "Before it, kept and apart" in md
+    # the owner's summary in Arabic comes first, with the same figures as the sections below it
+    ar = md.split("## ملخص بالعربي")[1].split("## ")[0]
+    assert md.index("## ملخص بالعربي") < md.index("## The new account") and "مو فلوس حقيقية" in ar
+    assert f"الرصيد ${per['equity']:,.2f}" in ar and f"الحساب الكامل من البداية: ${pf['account']['equity']:,.2f}" in ar
     assert {t["period"] for t in pf["recent_trades"]} <= {per["id"], "before"}
     with pytest.raises(sqlite3.DatabaseError, match="immutable"):  # and the old rule's trades cannot be deleted
         with rt.db.tx() as c:
@@ -576,3 +593,76 @@ def test_the_news_window_is_judged_when_the_position_would_open(tmp_path, monkey
     trail = pipeline(rt)[-1]
     assert trail["stages"] == ["AI DECISION", "RISK REJECTED"]
     assert "High-impact release" in trail["reason"] and "in 27 min" in trail["reason"]
+
+
+def test_a_stop_hit_between_cycles_is_booked_at_once_never_shown_open(tmp_path, monkeypatch):
+    """orchestrator 1.26.0. On 2026-11-02 the paper broker stopped EURUSD and then NZDUSD between cycles: the balance
+    paid each loss at once, but the journal said OPEN until the next cycle, so the report showed both open for up to
+    15 minutes, with no P/L, past -1R, and the new account's equity unreadable."""
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch)
+    cycles(rt, clock)
+    (pos,) = rt.broker.positions()
+    balance = rt.broker.account().balance
+    start = (clock.t // 60 + 1) * 60  # the minutes after the opening
+    lows = [pos.entry - 0.0001, pos.stop - 0.0005, pos.entry - 0.0001]  # the stop is hit in the second minute
+    rt.feed.lower[("EURUSD", "M1")] = minute_bars("EURUSD", start, lows, [pos.entry + 0.0001] * 3, pos.entry)
+    clock.t = start + 3 * 60 + 1  # three minutes on: no cycle is due
+    rt.monitor_once()
+    assert rt.broker.positions() == [] and rt.broker.account().balance < balance  # the broker closed it, paid
+    assert rt.db.one("SELECT status FROM positions WHERE id=?", (pos.id,))["status"] == "CLOSED"  # and the journal knows
+    (trade,) = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM trades")]
+    assert trade["outcome"]["exit_reason"] == "STOP" and trade["outcome"]["net_pnl"] < 0
+    assert rt.dual_ai()["open_positions"] == [] and rt.trades(closed=False) == []
+    rt.monitor_once()
+    assert len(rt.db.query("SELECT payload FROM trades")) == 1  # booked once
+
+
+def test_the_runtime_seats_no_model_the_journal_shows_sure_on_every_answer(tmp_path, monkeypatch):
+    """dual-ai 1.17.0, orchestrator 1.27.0: the orchestrator reads each model's habit from the journal (decisions made
+    before this one) and a model that stated 65 or more on 30 of 30 answers as a trader holds no seat."""
+    from tests.openrouter_kit import DEBATE, VISION
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch)
+    for i in range(30):
+        rt.db.append("decisions", {"id": f"old-{i}", "symbol": "GBPUSD", "timeframe": "H1", "decision": "NO_TRADE",
+                                   "mode": "PAPER_FORWARD", "payload": {
+                                       "family": "DUAL_AI", "timestamp": clock.t - 7200 - 60 * i,
+                                       "ai": {"dual_ai": {"models": {"trader1": VISION, "trader2": TRADER},
+                                                          "trader1": {"confidence": 70},
+                                                          "trader2": {"confidence": 50 + i}}}}})
+    cycles(rt, clock)
+    asked = [c["model"] for c in fake.calls]
+    assert asked and VISION not in asked and asked[0] == DEBATE  # the next vision model holds Trader 1's seat
+    dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='EURUSD' ORDER BY seq DESC")["payload"])
+    assert set(dec["ai"]["dual_ai"]["seats"]["always_sure"]) == {VISION}
+
+
+def test_the_senior_vetoes_an_agreement_end_to_end_it_is_followed_forward_never_traded(tmp_path, monkeypatch):
+    """dual-ai 1.18.0 in the production runtime: the senior's veto keeps the agreed trade off the account, the trade
+    it would have been is followed forward, and the dashboard and the report show the senior's verdict."""
+    from aitrader.llm.openrouter import OpenRouterClient, OpenRouterConfig
+    from aitrader.llm.paid_trial import PaidModel, PaidTrial
+    from scripts.paper_forward_shift import report_md
+    from tests.openrouter_kit import CATALOG, model
+    senior = "wise/senior-x"
+    trial = PaidTrial(name="test-senior", models={"senior": PaidModel(senior, 4.0, 20.0)},
+                      starts="2009-01-01T00:00:00Z", ends="2010-01-01T00:00:00Z", total_usd=8.5, daily_usd=1.5,
+                      max_call_usd=0.4)
+    base = desk_reply()
+    veto = {"verdict": "VETO", "confidence": 75, "reason": "the costs leave no edge at these levels",
+            "main_risk": "a fade back into the range"}
+    fake = FakeOpenRouter(lambda role, body: veto if role == "senior" else base(role, body),
+                          catalog=CATALOG + [{**model(senior, image=True, ii=58),
+                                              "pricing": {"prompt": "0.000004", "completion": "0.00002"}}],
+                          usage_daily=0.0)
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch, make_client=lambda clk: OpenRouterClient(
+        OpenRouterConfig(api_key=KEY), transport=fake, clock=clk, sleep=lambda s: None, trial=trial))
+    cycles(rt, clock)
+    assert rt.broker.positions() == [] and [c["role"] for c in fake.calls] == ["trader1", "trader2", "senior"]
+    rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    assert [r["family"] for r in rows] == ["DUAL_AI_SENIOR_VETO"] and rows[0]["executed"] is False
+    view = rt.dual_ai()
+    last = view["last_analysis"]
+    assert last["consensus"]["rule"] == "SENIOR_VETO" and last["senior"]["verdict"] == "VETO"
+    md = report_md({**rt.paper_forward(), "dual_ai": view}, {"started": "now", "decision_mode": "dual_ai"})
+    assert "| Senior |" in md and "| VETO 75 |" in md and "1 vetoed" in md
+    assert "the senior `wise/senior-x` (paid only)" in md  # the funded seat, as the report names it

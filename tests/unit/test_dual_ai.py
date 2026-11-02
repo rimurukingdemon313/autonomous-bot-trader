@@ -12,8 +12,8 @@ import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.dual_ai import (
-    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, time_exit_minutes,
-    validate_trader, validate_verifier,
+    FAMILY, LOSER_FAMILY, MIN_CONFIDENCE, PICK_FAMILY, PLAYBOOK, SENIOR_FAMILY, TIME_EXIT_MINUTES, check_levels,
+    counterfactual_decisions, resolve, time_exit_minutes, validate_senior, validate_trader, validate_verifier,
 )
 
 from tests.integration.test_pipeline import market
@@ -77,6 +77,18 @@ def test_same_side_is_an_agreement_and_a_trade_candidate_on_trader_1s_levels_eve
     assert [c["role"] for c in fake.calls] == ["trader1", "trader2"] and len(fake.calls) == 2
     assert fake.calls[0]["model"] == VISION and fake.calls[1]["model"] == TRADER  # two different models
     assert rec["models"] == {"trader1": VISION, "trader2": TRADER}
+
+
+def test_trader_2_is_asked_on_another_labs_model_first_and_the_labs_are_recorded():
+    # dual-ai 1.14.0: the best text model is from Trader 1's lab; Trader 2 is still asked on another lab's first
+    from tests.openrouter_kit import CATALOG, model
+    cat = [*CATALOG, model("seer/text-z:free", image=False, ii=40)]  # same lab as VISION ("seer"), ranked above TRADER
+    fake = FakeOpenRouter(scripted(), catalog=cat)
+    brain = Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=client(fake))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert fake.calls[0]["model"] == VISION and fake.calls[1]["model"] == TRADER  # "think", not "seer"
+    assert rec["labs"] == {"trader1": "seer", "trader2": "think"} and d.decision == "BUY"
 
 
 def test_on_equal_confidence_trader_1s_levels_are_used():
@@ -356,60 +368,64 @@ def test_every_call_ends_before_the_decision_would_be_too_old_and_the_shadow_deb
     assert free == {"vision": 420.0, "judge": 420.0, "verifier": 120.0}  # no known limit: the caps
 
 
-def test_when_one_vision_model_answers_badly_another_trader_1_model_is_asked():
-    # found in the live run (GBPUSD 11:45): the first vision model answered without JSON
-    def t1(body):
-        return "not json" if body["model"] == VISION else answer("SELL", BID, ASK, ATR, confidence=70)
-    d, fake = think(scripted(trader1=t1, t2=("SELL", 66)))
-    assert d.decision == "SELL" and d.ai["dual_ai"]["models"]["trader1"] == DEBATE
-    call = d.ai["dual_ai"]["calls"][0]
-    assert call["tried"][0]["model"] == VISION and call["tried"][0]["status"].startswith("INVALID")
-    assert d.ai["dual_ai"]["models"]["trader2"] not in (DEBATE,)  # still a different model from Trader 1
-
-
-# ── Trader 1 reads the chart's numbers when no vision model answers ─────
+# ── one model per trader's seat: no stand-ins (dual-ai 1.17.0) ─────────
 
 TEXT3 = "plain/text-d:free"
 
 
 def numbers_desk(reply):
+    """A desk with a third text model in the catalog: until 1.16.0 Trader 1 read the chart's numbers on it."""
     from tests.openrouter_kit import CATALOG, model
     fake = FakeOpenRouter(reply, catalog=CATALOG + [model(TEXT3, image=False, ii=20)])
     brain = Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=client(fake))
     return brain, fake
 
 
-def busy_vision(t1=("BUY", 70), vision=None, numbers=None):
-    """Every request with the chart image fails; Trader 1 on the chart's numbers answers (or `numbers`)."""
+def busy_vision(t1=("BUY", 70), vision=None):
+    """Every request with the chart image fails (or answers `vision`); a text model would answer."""
     def t1_reply(body):
         if has_image(body):
             return vision(body) if vision else (503, {}, {"error": {"message": "overloaded"}})
-        return numbers(body) if numbers else answer(t1[0], BID, ASK, ATR, confidence=t1[1])
+        return answer(t1[0], BID, ASK, ATR, confidence=t1[1])
     return t1_reply
 
 
-def test_when_no_vision_model_answers_trader_1_reads_the_same_chart_as_numbers_on_a_text_model():
-    # found in the live run of 2026-10-13: 23 of 40 decisions lost while every free vision model was busy
+def test_when_trader_1s_model_answers_badly_nobody_stands_in_and_it_is_no_trade():
+    # 2026-11-02: Trader 1's model was cut at max_tokens 5 times in a morning; each time another vision model stood in
+    # at 65 or more, and 3 of those 5 were the day's three trades. Until 1.16.0 the next model was asked.
+    def t1(body):
+        return "not json" if body["model"] == VISION else answer("SELL", BID, ASK, ATR, confidence=70)
+    d, fake = think(scripted(trader1=t1, t2=("SELL", 66)))
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
+    assert "nobody stands in" in d.no_trade_reason and "INVALID" in d.no_trade_reason
+    assert [c["model"] for c in fake.calls] == [VISION]  # the seat's model, once; no other trader asked
+    assert rec["seats"]["no_stand_in"] is True and rec["calls"][0]["tried"] == []
+
+
+def test_when_trader_1s_model_is_busy_no_other_model_reads_the_chart_and_it_is_no_trade():
+    # until 1.16.0 Trader 1 read the same chart's numbers on a text model when no vision model answered
     brain, fake = numbers_desk(scripted(trader1=busy_vision(), t2=("BUY", 66)))
     d = brain.think(desk_ctx(), V).decision
     rec = d.ai["dual_ai"]
-    assert d.decision == "BUY" and rec["consensus"]["rule"] == "AGREE" and rec["trader1_input"] == "numbers"
-    assert rec["models"] == {"trader1": TEXT3, "trader2": TRADER}  # still two different models
-    vision = {c["model"] for c in fake.calls if c["role"] == "trader1" and has_image(c["body"])}
-    numbers = [c for c in fake.calls if c["role"] == "trader1" and not has_image(c["body"])]
-    assert vision == {VISION, DEBATE} and [c["model"] for c in numbers] == [TEXT3]  # each asked; the new one once
-    body = numbers[0]["body"]
-    assert "could not be read" in body["messages"][0]["content"]
-    assert packet_of(body)["chart_marks"] == packet_of(fake.calls[0]["body"])["chart_marks"]  # the same chart
-    assert [c["role"] for c in rec["calls"]] == ["vision", "trader1_numbers", "judge"]
-    assert not rec["calls"][0]["ok"] and rec["calls"][1]["ok"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
+    assert {c["model"] for c in fake.calls} == {VISION} and all(has_image(c["body"]) for c in fake.calls)
+    assert rec["trader1_input"] == "image" and len(rec["calls"]) == 1 and rec["models"]["trader1"] == VISION
+
+
+def test_when_trader_2s_model_cannot_answer_nobody_stands_in_and_it_is_no_trade():
+    d, fake = think(scripted(trader2=lambda body: (503, {}, {"error": {"message": "overloaded"}})))
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == "TRADER2_UNAVAILABLE"
+    assert {c["model"] for c in fake.calls if c["role"] == "trader2"} == {TRADER}  # its seat's model only
+    assert "nobody stands in" in d.no_trade_reason
 
 
 @pytest.mark.parametrize("status,payload,why", [
     (401, {"error": {"message": "invalid api key"}}, "KEY_REJECTED"),
     (429, {"error": {"message": "Rate limit exceeded: free-models-per-day"}}, "DAILY_QUOTA"),
 ])
-def test_no_numbers_fallback_after_a_stop_another_model_would_not_fix(status, payload, why):
+def test_after_a_stop_another_model_would_not_fix_nothing_else_is_asked(status, payload, why):
     brain, fake = numbers_desk(scripted(trader1=busy_vision(vision=lambda b: (status, {}, payload))))
     d = brain.think(desk_ctx(), V).decision
     rec = d.ai["dual_ai"]
@@ -418,12 +434,41 @@ def test_no_numbers_fallback_after_a_stop_another_model_would_not_fix(status, pa
     assert [c for c in fake.calls if not has_image(c["body"])] == []
 
 
-def test_when_the_numbers_reply_is_unusable_too_it_is_no_trade_naming_both():
-    brain, _ = numbers_desk(scripted(trader1=busy_vision(numbers=lambda b: "not json")))
-    d = brain.think(desk_ctx(), V).decision
-    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "TRADER1_UNAVAILABLE"
-    assert "vision" in d.no_trade_reason and "on the chart's numbers: INVALID" in d.no_trade_reason
+# ── a model sure on nearly every answer holds no trader's seat (dual-ai 1.17.0) ──
 
+def with_habits(**by_model):
+    """A decision whose brief says how each model states its confidence: model -> (answers, at or above 65)."""
+    c = desk_ctx()
+    c.memory_brief = {**(c.memory_brief or {}), "dual_ai_confidence": {
+        m: {"answers": n, "at_or_above_floor": k, "share": round(k / n, 3)} for m, (n, k) in by_model.items()}}
+    return c
+
+
+def test_a_model_sure_on_nearly_every_answer_holds_no_traders_seat():
+    # nemotron-3-nano-omni stated 65 or more in all of its 46 answers: "only when both are very sure" never refused it
+    d, fake = think(scripted(), c=with_habits(**{VISION: (46, 46), TRADER: (302, 245)}))
+    rec = d.ai["dual_ai"]
+    assert VISION not in {x["model"] for x in fake.calls} and rec["models"]["trader1"] == DEBATE  # the next vision model
+    assert rec["models"]["trader2"] == TRADER  # 81%: the floor can still refuse it, and it keeps its seat
+    assert set(rec["seats"]["always_sure"]) == {VISION} and d.decision == "BUY"
+    for x in fake.calls:  # never shown to a trader: a trader told the floor could aim at it
+        assert "at_or_above_floor" not in json.dumps(x["body"]) and "dual_ai_confidence" not in json.dumps(x["body"])
+
+
+def test_a_models_habit_counts_only_from_enough_answers_and_nine_in_ten():
+    d, _ = think(scripted(), c=with_habits(**{VISION: (29, 29)}))
+    assert d.ai["dual_ai"]["models"]["trader1"] == VISION and d.ai["dual_ai"]["seats"]["always_sure"] == {}
+    d, _ = think(scripted(), c=with_habits(**{VISION: (30, 26)}))  # 87%: still a floor that refuses
+    assert d.ai["dual_ai"]["models"]["trader1"] == VISION
+    d, _ = think(scripted(), c=with_habits(**{VISION: (30, 27)}))  # 90%
+    assert d.ai["dual_ai"]["models"]["trader1"] == DEBATE
+
+
+def test_the_traders_seats_have_room_to_finish_their_answer():
+    # 12,000 tokens cut Trader 1's model off 7 times in a day while it was still thinking, and a stand-in took over
+    d, fake = think(scripted(t1=("SELL", 80), t2=("BUY", 80)))
+    sent = {x["role"]: x["body"]["max_tokens"] for x in fake.calls}
+    assert sent == {"trader1": 16000, "trader2": 16000, "debate": 12000}
 
 
 # ── an agreement uses levels the risk engine can accept, when one trader has them ──
@@ -534,3 +579,109 @@ def test_the_desk_trades_h1_held_up_to_48h_and_the_m15_path_stays_when_named():
         assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60} == {rec["hold_minutes"]}
     finally:
         dual_ai.EXECUTION_TF = "H1"
+
+
+# ── the senior trader (dual-ai 1.18.0) ──────────────────────────────────
+
+SENIOR = "wise/senior-x"
+
+
+def senior_desk(reply, *, active=True, off=False):
+    """A desk whose funded period declares a senior at the test's decision time (T, July 2017), unless `active` is
+    False. The client's clock is that time too, so nothing here depends on the wall clock."""
+    from aitrader.llm.openrouter import OpenRouterClient, OpenRouterConfig
+    from aitrader.llm.paid_trial import PaidModel, PaidTrial
+    from tests.openrouter_kit import CATALOG, KEY, model
+    month = (("2017-07-01T00:00:00Z", "2017-08-01T00:00:00Z") if active
+             else ("2030-01-01T00:00:00Z", "2030-02-01T00:00:00Z"))
+    trial = PaidTrial(name="test-senior", models={"senior": PaidModel(SENIOR, 4.0, 20.0)}, starts=month[0],
+                      ends=month[1], total_usd=8.5, daily_usd=1.5, max_call_usd=0.4)
+    paid = {**model(SENIOR, image=True, ii=58), "pricing": {"prompt": "0.000004", "completion": "0.00002"}}
+    fake = FakeOpenRouter(reply, catalog=CATALOG + [paid], usage_daily=0.0)
+    c = OpenRouterClient(OpenRouterConfig(api_key=KEY, paid_trial_off=off), transport=fake, clock=lambda: T,
+                         sleep=lambda s: None, trial=trial)
+    return Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=c), fake
+
+
+def says(verdict, confidence=80, reason="the structure and the costs both hold"):
+    return {"verdict": verdict, "confidence": confidence, "reason": reason, "main_risk": "a news spike"}
+
+
+def test_the_senior_reviews_the_agreed_trade_with_everything_the_desk_knows_and_approves_it():
+    brain, fake = senior_desk(scripted(senior=says("APPROVE", 72)))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "BUY" and rec["senior"]["verdict"] == "APPROVE" and rec["models"]["senior"] == SENIOR
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "senior"] and "Senior (" in d.thesis
+    review = fake.calls[2]["body"]
+    sent = packet_of(review)
+    assert sent["the_trade"]["side"] == "BUY" and sent["the_trade"]["fills_at"] == pytest.approx(ASK)
+    assert sent["the_trade"]["stop_loss"] == pytest.approx(d.stop_loss)
+    assert sent["the_trade"]["take_profit"] == pytest.approx(d.take_profit)
+    assert sent["trader1_analysis"]["direction"] == sent["trader2_analysis"]["direction"] == "BUY"
+    assert sent["time_machine"]["replays"] == 10_000 and "desk_memory" in sent and has_image(review)
+    assert sent["desk_playbook"] == PLAYBOOK and review["max_tokens"] == 10000
+
+
+@pytest.mark.parametrize("answer,rule", [
+    (says("VETO", 70, "the London/New York overlap has kept losing here"), "SENIOR_VETO"),
+    (says("APPROVE", 45), "SENIOR_VETO"),  # an approval below even odds contradicts itself
+    ("not json", "SENIOR_UNAVAILABLE"),
+    ({"verdict": "MAYBE", "confidence": 90, "reason": "x"}, "SENIOR_UNAVAILABLE"),
+    ({"verdict": "APPROVE", "confidence": 90}, "SENIOR_UNAVAILABLE"),  # an approval must say why
+])
+def test_anything_but_a_clear_approval_is_no_trade_and_the_trade_is_followed_in_shadow(answer, rule):
+    brain, _ = senior_desk(scripted(senior=answer))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == rule and "senior" in d.no_trade_reason
+    (shadow,) = counterfactual_decisions(d)
+    assert shadow.family == SENIOR_FAMILY and shadow.decision == "BUY"
+    assert shadow.ai_verdict == "NOT_APPROVED_BY_THE_SENIOR"
+    assert shadow.stop_loss == pytest.approx(rec["consensus"]["stop_loss"])  # Trader 1's levels, unchanged
+
+
+def test_the_senior_can_only_refuse_its_other_fields_never_change_the_trade():
+    brain, _ = senior_desk(scripted(senior={**says("APPROVE", 90), "direction": "SELL", "stop_loss": 1.0,
+                                            "take_profit": 2.0}))
+    d = brain.think(desk_ctx(), V).decision
+    base, _ = think(scripted())  # the same agreement on a desk with no senior declared
+    assert d.decision == base.decision == "BUY"
+    assert (d.stop_loss, d.take_profit) == (base.stop_loss, base.take_profit)
+    assert validate_senior({**says("APPROVE"), "verdict": "approve"}) == "verdict must be APPROVE or VETO"
+
+
+def test_without_the_seniors_funding_no_trade_is_approved_and_nothing_is_sent_to_it():
+    brain, fake = senior_desk(scripted(senior=says("APPROVE")), off=True)  # OPENROUTER_PAID_TRIAL=off
+    d = brain.think(desk_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "SENIOR_UNAVAILABLE"
+    assert "NOT_FUNDED" in d.no_trade_reason and "switched off" in d.no_trade_reason
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"]
+
+
+def test_the_senior_is_asked_only_on_a_trade_candidate():
+    for t1, t2 in ((("BUY", 60), ("BUY", 80)), (("SELL", 80), ("BUY", 80))):  # under the floor; a disagreement
+        brain, fake = senior_desk(scripted(t1=t1, t2=t2, senior=says("APPROVE")))
+        assert brain.think(desk_ctx(), V).decision.decision == "NO_TRADE"
+        assert "senior" not in [c["role"] for c in fake.calls]
+
+
+def test_outside_its_funded_period_the_desk_decides_without_a_senior():
+    brain, fake = senior_desk(scripted(senior=says("VETO")), active=False)
+    assert brain.think(desk_ctx(), V).decision.decision == "BUY"
+    assert "senior" not in [c["role"] for c in fake.calls]
+
+
+# ── the desk's playbook (dual-ai 1.18.0) ────────────────────────────────
+
+def test_every_model_at_the_desk_reads_the_playbook_with_the_desks_own_numbers():
+    d, fake = think(scripted(t1=("SELL", 80), t2=("BUY", 80)))  # a disagreement: both traders and the debate
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "debate"]
+    for c in fake.calls:
+        assert packet_of(c["body"])["desk_playbook"] == PLAYBOOK
+    for c in fake.calls[:2]:
+        assert '"desk_playbook"' in c["body"]["messages"][0]["content"]
+    text = json.dumps(PLAYBOOK)
+    assert f"confidence of {MIN_CONFIDENCE} or more" in text
+    assert f"held up to {TIME_EXIT_MINUTES['H1'] // 60} h" in text
+    assert d.versions["playbook"] == PLAYBOOK["version"] and len(text) < 8000  # about 1,300 tokens
