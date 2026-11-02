@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-02 09:59 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 04:58 UTC · decision system `dual_ai`
+Updated 2026-11-02 10:14 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-02 04:58 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -63,8 +63,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 16:46 EURGBP SELL: AI DECISION → RISK REJECTED — reward_risk: 0.98 vs minimum 1.2
 - 10-29 16:45 NZDUSD SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (4118 so far)
+## Latest decisions, NO TRADE included (4120 so far)
 
+- 11-02 10:03 USDCHF NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
+- 11-02 10:00 USDCAD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 62, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 09:48 AUDUSD NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 56, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 09:45 USDJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 57, Trader 2 61): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 09:35 GBPUSD NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 55, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
@@ -75,8 +77,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-02 09:00 EURJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 08:45 EURGBP NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-02 08:45 NZDUSD NO_TRADE: blocked before consulting the model: EXPOSURE: a NZDUSD position is already open
-- 11-02 08:30 USDCHF NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
-- 11-02 08:30 USDCAD NO_TRADE: risk engine: open_positions (3 open, max 3); currency_exposure (2 open positions share a currency, max 2): the model was not consulted
 
 ## Open paper positions
 
@@ -110,7 +110,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · calls today 112/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · calls today 116/900
 
 Paid trial `paid-trial-2026-10-26` (2026-10-23T14:00:00Z to 2026-10-31T00:00:00Z): not active · trader 1 `xiaomi/mimo-v2.6-pro` asked first · trader 2 `anthropic/claude-haiku-5.5` asked first · spent $0.96 of $9.00, today $0.00 of $1.80 (the key's own reading) · trader 1 not asked: outside its window · trader 2 not asked: outside its window
 
@@ -122,12 +122,14 @@ Exits in shadow (the same trades, followed again; measured, never traded): break
 
 Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never traded): -0.235R vs -0.264R as taken (31, adequate)
 
-Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0; not traded, followed forward as the trades they would have been): 48 · if taken: 0 resolved (none)
+Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0; not traded, followed forward as the trades they would have been): 50 · if taken: 0 resolved (none)
 
 Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R · LONDON 42 resolved (adequate), expectancy -0.032R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk |
 |---|---|---|---|---|---|---|---|
+| 11-02 10:03 | USDCHF | SELL 58 | SELL 60 | - | LOW_CONFIDENCE | NO_TRADE | - |
+| 11-02 10:00 | USDCAD | SELL 62 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
 | 11-02 09:48 | AUDUSD | BUY 56 | BUY 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
 | 11-02 09:45 | USDJPY | SELL 57 | SELL 61 | - | LOW_CONFIDENCE | NO_TRADE | - |
 | 11-02 09:35 | GBPUSD | BUY 55 | BUY 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
@@ -138,8 +140,6 @@ Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R �
 | 11-02 09:00 | EURJPY | SELL 58 | SELL 65 | - | LOW_CONFIDENCE | NO_TRADE | - |
 | 11-02 08:45 | EURGBP | SELL 55 | SELL 60 | - | LOW_CONFIDENCE | NO_TRADE | - |
 | 11-02 08:45 | NZDUSD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 11-02 08:30 | USDCHF | -  | -  | - | NOT_ASKED | NO_TRADE | - |
-| 11-02 08:30 | USDCAD | -  | -  | - | NOT_ASKED | NO_TRADE | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so Trader 1 read the same chart from its numbers.
 
