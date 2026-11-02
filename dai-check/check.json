@@ -1,0 +1,398 @@
+{
+ "version": "dual-ai-1.18.0",
+ "playbook": "playbook-1.0.0",
+ "floor": 65,
+ "runs": [
+  {
+   "symbol": "EURUSD",
+   "at": "2026-11-02T08:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 72.3,
+   "replay_of_last_close": "2026-11-02 08:00 UTC",
+   "openrouter_status": "READY",
+   "decisions": [
+    {
+     "symbol": "EURUSD",
+     "decision": "NO_TRADE",
+     "rule": "TRADER2_UNAVAILABLE",
+     "trader1": {
+      "confidence": 58,
+      "direction": "SELL",
+      "entry": 1.12003,
+      "invalidation": 1.12124,
+      "liquidity": "Sell-side liquidity rests in the untested demand OB 1.11657-1.11732 and open bullish FVGs down to 1.11732; buy-side EQH sits above at 1.12296/1.12334/1.12638.",
+      "market_structure": "H4 uptrend (HH+HL, CHoCH bullish 1.11719) but H1 is RANGE/mixed at the top of its 20-bar range; price is at today's high 1.12007 into a 4-touch resistance cluster at 1.12079.",
+      "momentum": "H1 momentum is extended into resistance with bearish displacement bars 16-17 bars ago and no follow-through above today's high; M1/M5 close at the range top (position 1.0).",
+      "reason": "SELL from H1 resistance at the top of the 20-bar range, targeting the untested demand OB and open bullish FVG at 1.11732. Stop at 1.12124 above the 3-touch SR and recent LH; the H4 uptrend caps conviction so confidence is modest. Risk 12.1 pips vs reward 27.1 pips gives R:R 2.24, within engine limits with cost share 14%. Invalidation is a close above 1.12124; reversal probability ~42% given the H4 bullish bias.",
+      "reversal_probability": 42,
+      "risk_reward": 2.24,
+      "stop_loss": 1.12124,
+      "take_profit": 1.11732,
+      "trend": "H4 UP, H1 RANGE (mixed swings); the most recent H1 CHoCH is bullish at 1.11744 but price has already rallied from it into overhead supply."
+     },
+     "trader2": null,
+     "debate": null,
+     "models": {
+      "trader1": "nvidia/nemotron-3.5-super-vl:free",
+      "trader2": "thinkingmachines/inkling-small:free"
+     },
+     "risk": null,
+     "calls": [
+      {
+       "role": "vision",
+       "model": "nvidia/nemotron-3.5-super-vl:free",
+       "status": "OK",
+       "latency_ms": 66715.3,
+       "tokens": 21213,
+       "error": null
+      },
+      {
+       "role": "judge",
+       "model": "thinkingmachines/inkling-small:free",
+       "status": "MODEL_RESTRICTED",
+       "latency_ms": 214.5,
+       "tokens": null,
+       "error": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps"
+      }
+     ],
+     "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trad"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "GBPUSD",
+   "at": "2026-11-02T08:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 119.0,
+   "replay_of_last_close": "2026-11-02 08:00 UTC",
+   "openrouter_status": "READY",
+   "decisions": [
+    {
+     "symbol": "GBPUSD",
+     "decision": "NO_TRADE",
+     "rule": "TRADER1_UNAVAILABLE",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {
+      "trader1": "nvidia/nemotron-3.5-super-vl:free"
+     },
+     "risk": null,
+     "calls": [
+      {
+       "role": "vision",
+       "model": "nvidia/nemotron-3.5-super-vl:free",
+       "status": "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)",
+       "latency_ms": 114187.1,
+       "tokens": 26258,
+       "error": null
+      }
+     ],
+     "reason": "Trader 1's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "USDJPY",
+   "at": "2026-11-02T08:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 47.3,
+   "replay_of_last_close": "2026-11-02 08:00 UTC",
+   "openrouter_status": "READY",
+   "decisions": [
+    {
+     "symbol": "USDJPY",
+     "decision": "NO_TRADE",
+     "rule": "TRADER2_UNAVAILABLE",
+     "trader1": {
+      "confidence": 61,
+      "direction": "BUY",
+      "entry": 157.752,
+      "invalidation": 157.64,
+      "liquidity": "EQH 157.997 (4 touches) above, EQL 157.649 (4 touches) below; bullish lows sweeps already printed",
+      "market_structure": "H1 bullish (HH/HL, CHoCH, BOS bullish) inside tested demand OB; H4 downtrend remains the headwind",
+      "momentum": "Bullish displacement off the HL, price reclaiming the demand OB after the 157.898 BOS",
+      "reason": "H1 structure is bullish with a fresh HH at 157.993 and HL at 157.672, price inside the tested demand order block (157.725\u2013157.844) after a bullish CHoCH/BOS sequence. The H4 downtrend and transition regime keep reversal risk elevated, so confidence is moderate. A break below the 157.672 HL and the open bullish FVG invalidates the buy; target is the EQH/today's high at 157.993. Costs fit the stop and the reward:risk clears the engine minimum.",
+      "reversal_probability": 39,
+      "risk_reward": 2.15,
+      "stop_loss": 157.64,
+      "take_profit": 157.993,
+      "trend": "H1 UP, H4 DOWN; regime TRANSITION/HIGH_VOL"
+     },
+     "trader2": null,
+     "debate": null,
+     "models": {
+      "trader1": "nvidia/nemotron-3.5-super-vl:free",
+      "trader2": "thinkingmachines/inkling-small:free"
+     },
+     "risk": null,
+     "calls": [
+      {
+       "role": "vision",
+       "model": "nvidia/nemotron-3.5-super-vl:free",
+       "status": "OK",
+       "latency_ms": 42221.8,
+       "tokens": 17805,
+       "error": null
+      },
+      {
+       "role": "judge",
+       "model": "thinkingmachines/inkling-small:free",
+       "status": "MODEL_RESTRICTED",
+       "latency_ms": 185.3,
+       "tokens": null,
+       "error": "HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps"
+      }
+     ],
+     "reason": "Trader 2's model gave no usable answer (MODEL_RESTRICTED: HTTP 403: thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps): nobody stands in for it, and there is no decision on one trad"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "AUDUSD",
+   "at": "2026-11-02T08:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.3,
+   "replay_of_last_close": "2026-11-02 08:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "AUDUSD",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "USDCAD",
+   "at": "2026-11-02T08:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.9,
+   "replay_of_last_close": "2026-11-02 08:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "USDCAD",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "EURJPY",
+   "at": "2026-11-02T08:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 3.9,
+   "replay_of_last_close": "2026-11-02 08:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "EURJPY",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "EURUSD",
+   "at": "2026-11-02T09:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.4,
+   "replay_of_last_close": "2026-11-02 09:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "EURUSD",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "GBPUSD",
+   "at": "2026-11-02T09:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.4,
+   "replay_of_last_close": "2026-11-02 09:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "GBPUSD",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "USDJPY",
+   "at": "2026-11-02T09:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.5,
+   "replay_of_last_close": "2026-11-02 09:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "USDJPY",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "AUDUSD",
+   "at": "2026-11-02T09:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.4,
+   "replay_of_last_close": "2026-11-02 09:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "AUDUSD",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "USDCAD",
+   "at": "2026-11-02T09:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.2,
+   "replay_of_last_close": "2026-11-02 09:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "USDCAD",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  },
+  {
+   "symbol": "EURJPY",
+   "at": "2026-11-02T09:00:30+00:00",
+   "ok": true,
+   "error": null,
+   "seconds": 4.6,
+   "replay_of_last_close": "2026-11-02 09:00 UTC",
+   "openrouter_status": "CATALOG_NOT_READ_YET",
+   "decisions": [
+    {
+     "symbol": "EURJPY",
+     "decision": "NO_TRADE",
+     "rule": "NOT_ASKED",
+     "trader1": null,
+     "trader2": null,
+     "debate": null,
+     "models": {},
+     "risk": null,
+     "calls": [],
+     "reason": "risk engine: news (the economic calendar is unavailable (HTTPError: HTTP Error 429: Too Many Requests): scheduled-event risk unknown, stand aside): the model was not consulted"
+    }
+   ],
+   "paper_positions": [],
+   "live_trading": false,
+   "scripted_traders": false
+  }
+ ]
+}
