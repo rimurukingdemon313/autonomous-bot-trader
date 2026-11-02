@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-02 17:00 UTC**, run 619, version `radar-1.0.0`. State from: cache. Quotes this hour: 2408.
+Updated **2026-11-02 18:00 UTC**, run 620, version `radar-1.0.0`. State from: cache. Quotes this hour: 2408.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-11-02 17:00 UTC**, run 619, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 25.88
+- days: 25.92
 - run_coverage: 0.9952
 - closed_positions: 145
 - open_positions: 2
 - utilisation: 0.1842
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.4732
-- book_excess_pct: -1.5418
-- ann_excess_deployed_pct: -118.681
-- ann_excess_deployed_costs_x1.5_pct: -215.961
-- ann_excess_deployed_costs_x2_pct: -313.241
+- book_pnl_pct: -1.487
+- book_excess_pct: -1.5557
+- ann_excess_deployed_pct: -119.541
+- ann_excess_deployed_costs_x1.5_pct: -216.651
+- ann_excess_deployed_costs_x2_pct: -313.76
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.7632
+- book_excess_without_best_coin_pct: -1.7771
 - max_dd_pct: 1.5173
-- t_excess_daily: -2.913
+- t_excess_daily: -2.951
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| HYPE | hyperliquid | gate | 2026-10-31 05:00 | 25.1% | 10.4 | 3.4 | 19.5 | **-5.6** |
-| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 36.9 | 42.9 | 17.0 | **62.8** |
+| HYPE | hyperliquid | gate | 2026-10-31 05:00 | 25.1% | 10.4 | 4.7 | 19.5 | **-4.4** |
+| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 37.0 | 13.9 | 17.0 | **33.9** |
 
 ## Closed positions (145)
 
