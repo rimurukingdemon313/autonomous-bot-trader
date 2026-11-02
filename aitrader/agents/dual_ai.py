@@ -13,8 +13,11 @@ entry, stop, target, risk:reward, confidence and the reasoning (structure, liqui
 probability, invalidation). A mixed market is answered with the stronger side and a lower confidence, never
 with a refusal.
   TRADER 1 (VisionTradingAnalyst) reads the chart image drawn from the same completed bars (charts/render.py),
-  with the market data and every chart mark as numbers. When no free vision model gives a usable answer, it
-  reads the same chart from those numbers on a text model (recorded: trader1_input "numbers").
+  with the market data and every chart mark as numbers. (Until 1.16.0, when no free vision model gave a usable
+  answer, it read the same chart from those numbers on a text model: trader1_input "numbers".)
+  ONE MODEL PER SEAT (1.17.0): each trader's seat is held by one model, and when it cannot answer nobody stands in
+  for it: the decision is NO_TRADE. A model whose stated confidence clears the floor on nearly every answer holds
+  no trader's seat: with it, "a trade only when both are very sure" could never refuse.
   TRADER 2 (IndependentTradingJudge) is a different model: it reads the raw data (OHLCV rows on both timeframes,
   volatility, spread, costs, structure, calendar), the chart (the image when its model can read images, its
   marks as numbers always) and Trader 1's analysis, forms its own view and picks its own side.
@@ -165,7 +168,17 @@ from .types import MarketContext
 #:         or neither within the time exit, against the win rate the levels need after costs, and one verdict. It is
 #:         recorded on the decision (`time_machine`), shown in the report, and read by the analysis as a condition, so
 #:         the desk learns whether its verdict predicts outcomes. Measurement only: it refuses and sizes nothing.
-DUAL_AI_VERSION = "dual-ai-1.16.0"
+#: 1.17.0 (owner, 2026-11-02: "nano is always high; every time the AI changes it is like a child; I want a trained
+#:         AI that knows trading"): one model per trader's seat, no stand-ins (openrouter 1.11.0 `seat`). That morning
+#:         Trader 1's model gave 32 usable answers and none became a trade; 5 times its answer was cut at max_tokens
+#:         while it was still thinking, another vision model stood in at 65 or more, and 3 of those 5 were the day's
+#:         three trades. So: (1) a seat's model that cannot answer means NO_TRADE, and Trader 1's numbers fallback on
+#:         a text model is gone; (2) the traders' answers get 16,000 tokens (12,000 before; its usable answers used up
+#:         to ~24,000 with the ~15,000 of the prompt); (3) a model that stated the floor or more in ALWAYS_SURE_SHARE
+#:         of at least ALWAYS_SURE_MIN answers as a trader (dual_ai_stats.confidence_habits) holds no trader's seat:
+#:         nemotron-3-nano-omni stated 65 or more in all of its 46. Which model answers changes, never a rule, a
+#:         level or a size; the debate (shadow only) keeps its fallbacks.
+DUAL_AI_VERSION = "dual-ai-1.17.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -196,14 +209,15 @@ MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart exe
 #: else H1
 EXECUTION_TF = "H1"
 EXEC_ROWS, HTF_ROWS = 60, 30
-MAX_TOKENS = {"vision": 12000, "judge": 12000, "verifier": 12000}  # reasoning models think before they answer
+#: reasoning models think before they answer; the traders' seats have room to finish (1.17.0: 12,000 cut Trader 1's
+#: model off 7 times in a day, and a stand-in took the decision)
+MAX_TOKENS = {"vision": 16000, "judge": 16000, "verifier": 12000}
 CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
 SHADOW_DEBATE_DEADLINE_S = 120.0  # the shadow debate is measurement only: it never holds up the next decision long
 MIN_CALL_S = 30.0                # less time left than this: the trader is not asked (its answer would come too late)
-#: Trader 1 reads the chart as numbers on a text model only when no vision model gave a usable answer, never after
-#: a stop that another model would not fix (no key, budget or quota spent, spend on the key, a policy block)
-NO_FALLBACK = frozenset({"NOT_CONFIGURED", "BUDGET", "DAILY_QUOTA", "KEY_REJECTED", "PAID_USAGE", "NOT_FREE",
-                         "WRONG_MODEL", "DATA_POLICY"})
+#: a model holds no trader's seat once it has stated the floor or more in this share of at least this many answers as
+#: a trader (1.17.0): its "very sure" is its every answer, so the floor could never refuse it
+ALWAYS_SURE_SHARE, ALWAYS_SURE_MIN = 0.9, 30
 CHART_KEEP = 300  # chart files kept on disk
 
 _SCHEMA = """{{"direction": "BUY|SELL", "entry": <price>, "stop_loss": <price>, "take_profit": <price>,
@@ -241,17 +255,6 @@ price and the market data: use those numbers, not pixel estimates.
 
 """
 #: Trader 1 when no free vision model gives a usable answer: the same chart, read from its numbers
-_T1_NUMBERS = """You are TRADER 1 on a professional trading desk: an experienced discretionary trader reading ONE
-chart of one instrument, now. The time is {time} UTC; treat it as the present and use nothing you may know
-about prices or events after it.
-
-The chart image could not be read this time, so you read the same chart from its numbers. The JSON gives the
-quote, costs, volatility and timeframe summaries, and in "chart_marks" every mark of the chart with its exact
-price, on the execution and the higher timeframe: confirmed swings (HH/HL/LH/LL), BOS/CHoCH structure breaks, the
-order block, fair value gaps, equal highs/lows (liquidity), sweeps, displacement candles, support/resistance,
-previous day/week levels, the price and the ENTRY ZONE. Only completed bars are used.
-
-"""
 _T1_TASK = """Your job is to FIND THE SIDE WITH THE HIGHER PROBABILITY. You MUST choose BUY or SELL. When the picture is mixed,
 choose the stronger side and let your confidence say how strong it is: a low confidence is a valid answer, a
 refusal is not. Read the structure, the liquidity, the momentum, the trend on both timeframes and the chance of
@@ -270,7 +273,6 @@ a reversal, and place the trade as a professional would:
 Reply with ONE JSON object only, no other text:
 """ + _SCHEMA
 TRADER1_SYSTEM = _T1_IMAGE + _T1_TASK
-TRADER1_NUMBERS_SYSTEM = _T1_NUMBERS + _T1_TASK
 
 TRADER2_SYSTEM = """You are TRADER 2 on a professional trading desk: an independent, experienced trader. You analyse
 the same instrument, now, from the raw market data: completed OHLC bars on both timeframes (tick counts, not
@@ -517,6 +519,15 @@ def analysis_now(analysis: dict, ctx: MarketContext, timeframe: str | None) -> d
             "check_your_levels": [brief(x) for x in cells if x["key"] in LEVEL_KEYS]}
 
 
+def always_sure(ctx: MarketContext) -> dict:
+    """The models that hold no trader's seat for this decision (1.17.0): those whose recorded answers as a trader,
+    made before it (the orchestrator's `dual_ai_confidence`), stated MIN_CONFIDENCE or more in ALWAYS_SURE_SHARE of
+    ALWAYS_SURE_MIN or more. A model with fewer answers keeps its seat until its habit is known."""
+    habits = (ctx.memory_brief or {}).get("dual_ai_confidence") or {}
+    return {m: h for m, h in habits.items() if isinstance(h, dict) and (h.get("answers") or 0) >= ALWAYS_SURE_MIN
+            and (h.get("share") or 0) >= ALWAYS_SURE_SHARE}
+
+
 def desk_memory(ctx: MarketContext, timeframe: str | None = None) -> dict:
     """The desk's own journal as both traders read it (1.13.0), from the orchestrator's memory brief: LEARNING weeks
     only, outcomes resolved before the decision; since 1.15.0 with the record analysed and matched to this decision.
@@ -570,12 +581,6 @@ def market_packet(ctx: MarketContext, reports: dict, chart: Chart, hold: int) ->
 def trader1_messages(ctx, chart, hold) -> list[dict]:
     return [{"role": "system", "content": TRADER1_SYSTEM.format(time=_iso(ctx.t), hold=hold)},
             {"role": "user", "content": _with_image(trader1_packet(ctx, chart, hold), chart)}]
-
-
-def trader1_numbers_messages(ctx, chart, hold) -> list[dict]:
-    """Trader 1 on a text model: the same packet (every chart mark at its exact price), no image."""
-    return [{"role": "system", "content": TRADER1_NUMBERS_SYSTEM.format(time=_iso(ctx.t), hold=hold)},
-            {"role": "user", "content": json.dumps(trader1_packet(ctx, chart, hold), default=str)}]
 
 
 def trader2_messages(ctx, reports, chart, t1, hold) -> list[dict]:
@@ -688,36 +693,28 @@ class DualAITrader:
             return (f"{who} was not asked: too little time left before the decision would be too old to execute "
                     f"({ctx.decide_within_s:.0f} s at the start)")
 
+        # one model per seat (1.17.0): the seat's holder answers or nobody does; an always-sure model holds no seat
+        sure = always_sure(ctx)
+        rec["seats"] = {"no_stand_in": True, "always_sure": sure}
+        if hasattr(client, "exclude_from_seats"):  # the client's status then names each seat's true holder
+            client.exclude_from_seats({m: f"stated {MIN_CONFIDENCE} or more in {h['at_or_above_floor']} of its "
+                                          f"{h['answers']} answers as a trader" for m, h in sure.items()})
+
         # Trader 1: the chart image
         dl = budget(CALL_DEADLINE_S)
         if dl is None:
             return stop(late("Trader 1") + ": no decision", "TRADER1_UNAVAILABLE")
         r1 = client.chat_json("vision", trader1_messages(ctx, chart, hold), lambda d: validate_trader(d, px),
-                              dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"], deadline_s=dl)
+                              dedupe_key=key + "|trader1", max_tokens=MAX_TOKENS["vision"], deadline_s=dl,
+                              avoid=tuple(sorted(sure)), seat=True)
         rec["calls"].append(r1.record())
         rec["models"]["trader1"] = r1.model
         rec["trader1_input"] = "image"
-        failed = f"Trader 1 (vision) gave no usable answer ({why(r1)})"
-        if not r1.ok and r1.status not in NO_FALLBACK:
-            # no free vision model answered usably (busy, unavailable, an unusable reply): Trader 1 reads the same
-            # chart from its numbers on a text model of the third pool (Trader 2's best model stays Trader 2's),
-            # never one already asked for this decision; a reply is still used as given or not at all
-            asked = tuple(m for m in [*(m for m, _ in r1.tried), r1.model] if m)
-            dl = budget(CALL_DEADLINE_S)
-            if dl is None:
-                return stop(f"{failed}; {late('the chart as numbers')}: no decision on one trader alone",
-                            "TRADER1_UNAVAILABLE")
-            r1 = client.chat_json("trader1_numbers", trader1_numbers_messages(ctx, chart, hold),
-                                  lambda d: validate_trader(d, px), dedupe_key=key + "|trader1-numbers",
-                                  max_tokens=MAX_TOKENS["vision"], avoid=asked, deadline_s=dl)
-            rec["calls"].append(r1.record())
-            rec["models"]["trader1"] = r1.model
-            rec["trader1_input"] = "numbers"
-            failed += f"; on the chart's numbers: {why(r1)}"
         if r1.data is not None:
             rec["trader1"] = _clean(r1.data, TRADER_KEYS)
         if not r1.ok:
-            return stop(f"{failed}: no decision on one trader alone", "TRADER1_UNAVAILABLE")
+            return stop(f"Trader 1's model gave no usable answer ({why(r1)}): nobody stands in for it, and there is "
+                        "no decision on one trader alone", "TRADER1_UNAVAILABLE")
         t1 = r1.data
 
         # Trader 2: independent, on a different model
@@ -726,16 +723,16 @@ class DualAITrader:
             return stop(late("Trader 2") + ": no decision on one trader alone", "TRADER2_UNAVAILABLE")
         r2 = client.chat_json("judge", trader2_messages(ctx, reports, chart, t1, hold),
                               lambda d: validate_trader(d, px), dedupe_key=key + "|trader2",
-                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model,), deadline_s=dl,
-                              other_lab_than=(lab_of(r1.model),))
+                              max_tokens=MAX_TOKENS["judge"], avoid=(r1.model, *sorted(sure)), deadline_s=dl,
+                              other_lab_than=(lab_of(r1.model),), seat=True)
         rec["calls"].append(r2.record())
         rec["models"]["trader2"] = r2.model
         rec["labs"] = {"trader1": lab_of(r1.model), "trader2": lab_of(r2.model) if r2.model else None}
         if r2.data is not None:
             rec["trader2"] = _clean(r2.data, TRADER_KEYS)
         if not r2.ok:
-            return stop(f"Trader 2 (independent) gave no usable answer ({why(r2)}): no decision on one trader alone",
-                        "TRADER2_UNAVAILABLE")
+            return stop(f"Trader 2's model gave no usable answer ({why(r2)}): nobody stands in for it, and there is "
+                        "no decision on one trader alone", "TRADER2_UNAVAILABLE")
         t2 = r2.data
 
         if t1["direction"] != t2["direction"]:
@@ -849,8 +846,8 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
+__all__ = ["ALWAYS_SURE_MIN", "ALWAYS_SURE_SHARE", "DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD", "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX",
            "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE", "PICK_FAMILY", "PICK_SUFFIX", "T2LEVELS_FAMILY",
            "T2LEVELS_SUFFIX",
-           "analysis_now", "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve",
+           "always_sure", "analysis_now", "build_chart", "check_levels", "counterfactual_decisions", "desk_memory", "resolve",
            "time_machine", "validate_trader", "validate_verifier"]

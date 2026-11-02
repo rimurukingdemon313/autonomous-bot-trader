@@ -432,3 +432,65 @@ def test_models_too_weak_to_trade_or_debate_are_left_out():
     ids = {r["id"] for role in (sel.vision, sel.judge, sel.verifier) for r in role}
     assert "z/tiny-2.6b:free" not in ids and "w/small-3b:free" not in ids  # measured 8.4; stated 3B
     assert "u/unknown:free" in ids  # nothing measured, nothing stated: kept, ranked low
+
+
+# ── one model per trader's seat, no stand-ins (1.11.0) ──────────────────
+
+def test_a_seat_asks_its_holder_only_and_nobody_stands_in_when_it_fails():
+    # 2026-11-02: the day's three trades were all made by a model standing in for Trader 1's for one decision
+    def reply(role, body):
+        return (503, {}, {"error": {"message": "overloaded"}}) if body["model"] == VISION else {"x": 1}
+    fake = FakeOpenRouter(reply)
+    c = client(fake, max_retries=0)
+    res = c.chat_json("vision", MSG, accept, dedupe_key="k", seat=True)
+    assert not res.ok and res.model == VISION and {x["model"] for x in fake.calls} == {VISION}
+    debate = c.chat_json("vision", MSG, accept, dedupe_key="k2")  # without a seat (the debate) another one answers
+    assert debate.ok and debate.model == DEBATE
+
+
+def test_while_a_seats_holder_rests_briefly_nothing_is_asked_and_it_keeps_its_seat():
+    busy = {"on": True}
+
+    def reply(role, body):
+        if body["model"] == VISION and busy["on"]:
+            return 429, {}, {"error": {"message": "temporarily rate-limited upstream"}}
+        return {"x": 1}
+    now = {"t": 1_790_000_000.0}
+    fake = FakeOpenRouter(reply)
+    c = client(fake, clock=lambda: now["t"], max_retries=0)
+    first = c.chat_json("vision", MSG, accept, dedupe_key="k1", seat=True)
+    assert not first.ok and len(fake.calls) == 1 and VISION in c.selection()["cooldown"]
+    resting = c.chat_json("vision", MSG, accept, dedupe_key="k2", seat=True)
+    assert resting.status == "SEAT_RESTING" and resting.model == VISION and len(fake.calls) == 1  # no request at all
+    assert "no other model stands in" in resting.error
+    busy["on"] = False
+    now["t"] = c.selection()["cooldown"][VISION]["until"] + 1
+    back = c.chat_json("vision", MSG, accept, dedupe_key="k3", seat=True)
+    assert back.ok and back.model == VISION  # rested: its seat was kept for it
+
+
+def test_a_seat_passes_on_only_when_its_holder_is_gone():
+    def reply(role, body):
+        if body["model"] == VISION:
+            return 404, {}, {"error": {"message": "No endpoints found for seer/vision-a:free"}}
+        return {"x": 1}
+    fake = FakeOpenRouter(reply)
+    c = client(fake)
+    gone = c.chat_json("vision", MSG, accept, dedupe_key="k1", seat=True)
+    assert not gone.ok and [x["model"] for x in fake.calls] == [VISION]  # nobody stands in for this decision
+    nxt = c.chat_json("vision", MSG, accept, dedupe_key="k2", seat=True)
+    assert nxt.ok and nxt.model == DEBATE  # the provider cannot serve it for hours: the seat passed on
+
+
+def test_the_status_names_each_seats_holder_even_while_it_rests_never_a_model_kept_off_the_seats():
+    # the report's "trader 1" line: a stand-in is never asked, so it is never named as the seat's model
+    fake = FakeOpenRouter(lambda r, b: (429, {}, {"error": {"message": "temporarily rate-limited upstream"}})
+                          if b["model"] == VISION else {"x": 1})
+    c = client(fake, max_retries=0)
+    c.chat_json("vision", MSG, accept, dedupe_key="k1", seat=True)
+    assert VISION in c.selection()["cooldown"] and c.health()["vision_model"] == VISION  # resting, still its seat
+    c.exclude_from_seats({VISION: "sure on every answer"})
+    h = c.health()
+    assert h["vision_model"] == DEBATE and h["selection"]["seat_excluded"] == {VISION: "sure on every answer"}
+    c.exclude_from_seats({})  # replaced at each decision: a model whose habit changed gets its place back
+    assert c.health()["vision_model"] == VISION

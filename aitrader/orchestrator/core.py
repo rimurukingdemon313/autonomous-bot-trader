@@ -32,7 +32,7 @@ from typing import Callable
 import numpy as np
 
 from ..agents.brain import MODEL_MODES, Brain
-from ..agents.dual_ai import FAMILY as DUAL_FAMILY, counterfactual_decisions
+from ..agents.dual_ai import FAMILY as DUAL_FAMILY, MIN_CONFIDENCE, counterfactual_decisions
 from ..agents.llm_trader import FAMILY as LLM_FAMILY, multi_timeframe
 from ..agents.trading_room import member_records
 from ..agents.types import AccountView, MarketContext
@@ -117,7 +117,10 @@ from .tracker import ACTIONS, OutcomeTracker, Tracked
 #:         DEMO broker holds its own stops and is not polled that often). Booked only at the next cycle,
 #:         EURUSD and then NZDUSD stood "open" for up to 15 min after their stops, with no P/L and past -1R, while
 #:         the balance had already paid them. What is booked, and how, is unchanged.
-ORCHESTRATOR_VERSION = "orchestrator-1.26.0"
+#: 1.27.0 (owner, 2026-11-02): in dual_ai mode the brief also carries how each model states its confidence as a trader
+#:         (dual_ai_stats.confidence_habits, decisions before t), so an always-sure model holds no seat (dual-ai
+#:         1.17.0). It is never put in a trader's packet: a trader told the floor could aim at it.
+ORCHESTRATOR_VERSION = "orchestrator-1.27.0"
 #: the time execution may still need after a decision: the bounded quote wait (live feeds) and a margin
 EXECUTION_ALLOWANCE_S = QUOTE_WAIT_S * QUOTE_WAIT_TRIES + 60
 
@@ -408,6 +411,9 @@ class Orchestrator:
                 ctx.memory_brief["dual_ai_instrument"] = dual_ai_stats.instrument_record(
                     self.db, symbol, as_of=t, partition_="LEARNING")
                 ctx.memory_brief["dual_ai_analysis"] = dual_ai_stats.analysis(self.db, as_of=t, partition_="LEARNING")
+                # how each model states its confidence as a trader: for the seats, never shown to the traders (1.27.0)
+                ctx.memory_brief["dual_ai_confidence"] = dual_ai_stats.confidence_habits(self.db, as_of=t,
+                                                                                         floor=MIN_CONFIDENCE)
             # Forward lessons confirmed out of sample (ACTIVE): information for the model, never a rule.
             ctx.memory_brief["forward_lessons"] = [
                 {"code": l["code"], "scope": l["scope"], "statement": l["statement"],

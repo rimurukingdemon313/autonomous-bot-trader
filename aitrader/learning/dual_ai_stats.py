@@ -45,7 +45,9 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #: 1.10.0: the time machine's verdict on an agreement's levels (dual-ai 1.16.0) is one of the conditions: whether its
 #:         replays leaning toward the stop or the target tell anything about what then happened.
 #: 1.11.0: the shadow exit closed at 24 h (CLOSE24H, forward 1.3.0) beside the others; HOLD24H rows stay readable.
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.11.0"
+#: 1.12.0: `confidence_habits`: how each model states its confidence as a trader, from the decisions journal (its
+#:         answers, never their results), so the desk can tell a model whose confidence can still say "not sure".
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.12.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
@@ -185,6 +187,29 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,
             "unavailable": sum(rules[k] for k in UNAVAILABLE)}
+
+
+def confidence_habits(db, as_of: int, floor: int) -> dict:
+    """How each model states its confidence as a trader (dual-ai 1.17.0): from every desk decision made before
+    `as_of`, in either trader's seat, its answers and how many of them stated `floor` or more. Behaviour, never
+    results: no outcome is read, so every week counts, LEARNING or EVALUATION. The debate's answers are not counted:
+    its confidence never decides a trade."""
+    out: dict = {}
+    rows = db.query("SELECT json_extract(payload, '$.ai.dual_ai.models.trader1') AS m1, "
+                    "json_extract(payload, '$.ai.dual_ai.trader1.confidence') AS c1, "
+                    "json_extract(payload, '$.ai.dual_ai.models.trader2') AS m2, "
+                    "json_extract(payload, '$.ai.dual_ai.trader2.confidence') AS c2 FROM decisions "
+                    "WHERE json_extract(payload, '$.family') = ? AND json_extract(payload, '$.timestamp') < ?",
+                    (FAMILY, int(as_of)))
+    for r in rows:
+        for m, c in ((r["m1"], r["c1"]), (r["m2"], r["c2"])):
+            if isinstance(m, str) and isinstance(c, (int, float)) and not isinstance(c, bool):
+                h = out.setdefault(m, {"answers": 0, "at_or_above_floor": 0})
+                h["answers"] += 1
+                h["at_or_above_floor"] += int(c >= floor)
+    for h in out.values():
+        h["share"] = round(h["at_or_above_floor"] / h["answers"], 3)
+    return out
 
 
 def instrument_record(db, symbol: str, as_of: int | None = None, partition_: str | None = "LEARNING",

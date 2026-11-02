@@ -144,7 +144,7 @@ def test_every_agreement_carries_its_time_machine_on_trader_1s_levels_and_a_disa
     assert d.decision == "BUY" and tm["side"] == "BUY" and tm["replays"] == TM.REPLAYS
     assert tm["entry"] == pytest.approx(ASK) and tm["stop"] == pytest.approx(d.stop_loss)
     assert tm["target"] == pytest.approx(d.take_profit) and tm["hours"] == d.max_hold_minutes // 60
-    assert tm["verdict"] and 0.0 <= tm["target_first"] <= 1.0 and DUAL_AI_VERSION == "dual-ai-1.16.0"
+    assert tm["verdict"] and 0.0 <= tm["target_first"] <= 1.0 and d.versions["dual_ai"] == DUAL_AI_VERSION
     assert d.versions["time_machine"] == TM.TIME_MACHINE_VERSION
     low, _ = think(scripted(t1=("SELL", 60), t2=("SELL", 70)))  # under the floor: replayed all the same, followed
     assert low.decision == "NO_TRADE" and low.ai["dual_ai"]["time_machine"]["side"] == "SELL"

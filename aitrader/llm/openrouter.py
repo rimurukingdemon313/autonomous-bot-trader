@@ -32,6 +32,12 @@ What this client guarantees:
 - Independent. A caller can name models to avoid: Agent 2 is never the model that answered as Agent 1, whatever
   fallback happened; the verifier avoids both when a third free model exists (`avoid_soft`: otherwise the
   strongest of them is reused).
+- One steady model per trader seat (1.11.0). A caller can ask for a seat (`seat=True`): only the model holding it
+  is asked, the first of the role's ranking, and a model resting a short while (busy, rate-limited, failing: an
+  hour at most) keeps its seat. When the holder cannot answer, nobody stands in for it: the call fails
+  (SEAT_RESTING, with no request, while it rests) and the decision is NO_TRADE. The seat passes to the next model
+  only when its holder is gone (the provider cannot serve it: a 6 h rest; excluded; out of the catalog) or fails
+  often enough to lose its rank (30 x its failure rate). Calls without a seat (the debate) still fall back.
 - Images only where they can be read: an `image_url` part is sent to a model the catalog lists with image
   input; for any other model it is left out (the same chart's marks travel as numbers in the text).
 - Paid usage stops everything. GET /key is read with the catalog; if the key's spent credit (`usage`) ever rises
@@ -93,7 +99,11 @@ from .provider import extract_json
 #:         (`other_lab_than`): the ranked models of other labs are tried before those of the labs named, in rank
 #:         order within each group; a model of a named lab still answers when no other lab's does. Agreement
 #:         between models of different labs is more informative: models of one lab share training and biases.
-OPENROUTER_VERSION = "openrouter-1.10.0"
+#: 1.11.0 (owner, 2026-11-02: "every time the AI changes it is like a child"): a trader's seat (`seat=True`) has one
+#:         holder and no stand-ins. That morning Trader 1's model gave 32 usable answers and none became a trade; 5
+#:         times its answer was cut at max_tokens and the next vision model stood in, at 65 or more, and 3 of those 5
+#:         were the day's three trades. The debate keeps its fallbacks (it is shadow only).
+OPENROUTER_VERSION = "openrouter-1.11.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -176,6 +186,7 @@ def lab_of(model: str | None) -> str:
 class CallResult:
     ok: bool
     status: str  # OK | NOT_CONFIGURED | NO_FREE_MODEL | BUDGET | DAILY_QUOTA | RATE_LIMITED | TIMEOUT | UNAVAILABLE
+    #               | SEAT_RESTING (1.11.0: the seat's model rests; nobody stands in)
     #               | KEY_REJECTED | HTTP_<n> | BAD_RESPONSE | NOT_FREE | WRONG_MODEL | INVALID: <why> | CACHED
     role: str
     model: str | None = None
@@ -216,6 +227,7 @@ class OpenRouterClient:
         self._selection = Selection(error="catalog not read yet")
         self._cooldown: dict[str, tuple[float, str]] = {}  # model -> (until, why)
         self._streak: dict[str, int] = {}  # model -> rests in a row without a usable reply in between
+        self._seat_excluded: dict[str, str] = {}  # model -> why it holds no trader's seat, from the desk (1.11.0)
         self._excluded: dict[str, str] = {}  # model -> why (never used again in this process)
         self._stats: dict[str, list[int]] = {}  # model -> [ok, failed]
         self._cache: OrderedDict[str, CallResult] = OrderedDict()
@@ -321,11 +333,29 @@ class OpenRouterClient:
                                  excluded=set(self._excluded) | resting)
         return self._selection
 
-    def models_for(self, role: str, max_tokens: int = 3000) -> list[str]:
+    def _seat_selection(self) -> Selection:
+        """The ranking that decides who holds a seat (1.11.0): as `_reselect`, except that a model resting a short
+        while (busy, rate-limited, failing: an hour at most) keeps its place. Only a model the provider cannot serve
+        (a 6 h rest) is left out with the excluded ones, so the seat passes on. Called under the lock."""
+        now = self.clock()
+        gone = {m for m, (until, why) in self._cooldown.items() if until > now and why == "unavailable"}
+        return select(self._catalog, now=now, penalties=self._penalties(),
+                      excluded=set(self._excluded) | gone | set(self._seat_excluded))
+
+    def exclude_from_seats(self, models: dict[str, str]) -> None:
+        """The models the desk keeps off the traders' seats, with why (dual-ai 1.17.0: sure on nearly every answer).
+        Replaced at each decision, so a model whose habit changes gets its place back; the debate is not affected."""
+        with self._lock:
+            self._seat_excluded = {str(m): str(w) for m, w in models.items()}
+
+    def models_for(self, role: str, max_tokens: int = 3000, seat: bool = False) -> list[str]:
         """The ranked FREE models for a role, the configured pin first when the catalog lists it as FREE; the paid
-        trial's model for a trader's seat before them while the trial is open and its caps allow one more call."""
+        trial's model for a trader's seat before them while the trial is open and its caps allow one more call.
+        With `seat`, the ranking keeps a model resting briefly in its place: the first is the seat's holder."""
         with self._lock:
             sel = self.refresh_models()
+            if seat:
+                sel = self._seat_selection()
             self.check_key()
             pm = self.trial.models.get(role)
             if (pm is not None and self.trial.active(self.clock()) and self._catalog_model(pm.id) is not None
@@ -399,6 +429,7 @@ class OpenRouterClient:
             d["cooldown"] = {m: {"until": int(u), "why": w, "in_a_row": self._streak.get(m, 0)}
                              for m, (u, w) in self._cooldown.items() if u > now}
             d["excluded"] = dict(self._excluded)
+            d["seat_excluded"] = dict(self._seat_excluded)
             return d
 
     # ── one chat request, bounded ────────────────────────────────────────
@@ -434,8 +465,10 @@ class OpenRouterClient:
 
     def chat_json(self, role: str, messages: list[dict], validate: Callable[[dict], str | None],
                   dedupe_key: str, max_models: int = 8, max_tokens: int = 3000, avoid: tuple = (),
-                  deadline_s: float = 420.0, avoid_soft: bool = False, other_lab_than: tuple = ()) -> CallResult:
-        """One answer for `role`: the best FREE model first, the next FREE one when a model is unavailable.
+                  deadline_s: float = 420.0, avoid_soft: bool = False, other_lab_than: tuple = (),
+                  seat: bool = False) -> CallResult:
+        """One answer for `role`: the best FREE model first, the next FREE one when a model is unavailable; with
+        `seat` (1.11.0), the seat's holder only, and no stand-in when it cannot answer.
         `validate(data)` returns None or why the reply is unusable (an unusable reply is not retried: NO_TRADE).
         `avoid`: models that must not answer (another agent's); `deadline_s`: wall clock for all attempts;
         `other_lab_than`: labs (the part of a model id before "/") whose models are tried only after every other
@@ -444,7 +477,7 @@ class OpenRouterClient:
             return CallResult(False, "NOT_CONFIGURED", role, error="OPENROUTER_API_KEY is not set")
         if self._paid_usage:
             return CallResult(False, "PAID_USAGE", role, error=self._paid_usage)
-        digest = hashlib.sha256(json.dumps([role, messages, sorted(avoid), sorted(other_lab_than)],
+        digest = hashlib.sha256(json.dumps([role, messages, sorted(avoid), sorted(other_lab_than), bool(seat)],
                                            sort_keys=True).encode()).hexdigest()
         key = f"{dedupe_key}|{digest}"
         with self._lock:
@@ -458,7 +491,7 @@ class OpenRouterClient:
                     hit = self._cache[key]
                     return CallResult(**{**hit.__dict__, "cached": True})
             res = self._call(role, messages, validate, max_models, max_tokens, tuple(avoid), deadline_s, avoid_soft,
-                             tuple(other_lab_than))
+                             tuple(other_lab_than), seat)
             with self._lock:
                 if res.ok or res.status.startswith("INVALID"):
                     self._cache[key] = res
@@ -469,8 +502,8 @@ class OpenRouterClient:
             return res
 
     def _call(self, role, messages, validate, max_models, max_tokens, avoid=(), deadline_s=420.0,
-              avoid_soft=False, other_lab_than=()) -> CallResult:
-        ranked = self.models_for(role, max_tokens)
+              avoid_soft=False, other_lab_than=(), seat=False) -> CallResult:
+        ranked = self.models_for(role, max_tokens, seat=seat)
         if other_lab_than:  # another lab's models first, each group in rank order (a stable sort)
             ranked = sorted(ranked, key=lambda m: lab_of(m) in other_lab_than)
         if self._paid_usage:  # the key check that refresh ran may have just found it
@@ -482,6 +515,15 @@ class OpenRouterClient:
             why = (f"no FREE {role} model other than {', '.join(avoid)}" if ranked else
                    self._selection.error or "no FREE model qualifies")
             return CallResult(False, "NO_FREE_MODEL", role, error=why)
+        if seat:  # one model holds the seat; when it cannot answer, nobody stands in for it (1.11.0)
+            holder = models[0]
+            with self._lock:
+                until, rest_why = self._cooldown.get(holder, (0.0, ""))
+            if until > self.clock():
+                return CallResult(False, "SEAT_RESTING", role, holder,
+                                  error=f"the seat's model {holder} is resting ({rest_why}) for "
+                                        f"{int(until - self.clock())} s more; no other model stands in for it")
+            models = [holder]
         deadline = self.clock() + deadline_s
         last = CallResult(False, "UNAVAILABLE", role, error="no model answered")
         tried: list = []
@@ -690,6 +732,7 @@ class OpenRouterClient:
         with self._lock:
             self._budget_ok()
             sel = self.selection()
+            seats = self._seat_selection()  # who holds each trader's seat: a model resting briefly keeps it
             return {**self.config.public(), "version": OPENROUTER_VERSION,
                     "status": ("NOT_CONFIGURED" if not self.config.configured else
                                "PAID_USAGE_STOPPED" if self._paid_usage else
@@ -701,8 +744,8 @@ class OpenRouterClient:
                     "calls_today": self._calls, "daily_budget": self.daily_budget, "last_call": self.last,
                     "key": {k: v for k, v in self.key_info.items()}, "paid_usage": self._paid_usage,
                     "data_policy": self.data_policy,
-                    "vision_model": sel["vision"][0]["id"] if sel["vision"] else None,
-                    "judge_model": sel["judge"][0]["id"] if sel["judge"] else None,
+                    "vision_model": seats.vision[0]["id"] if seats.vision else None,
+                    "judge_model": seats.judge[0]["id"] if seats.judge else None,
                     "verifier_model": sel["verifier"][0]["id"] if sel["verifier"] else None,
                     "selection": {k: (v[:5] if isinstance(v, list) else v) for k, v in sel.items()},
                     "paid_trial": self.trial_status(),

@@ -613,3 +613,22 @@ def test_a_stop_hit_between_cycles_is_booked_at_once_never_shown_open(tmp_path, 
     assert rt.dual_ai()["open_positions"] == [] and rt.trades(closed=False) == []
     rt.monitor_once()
     assert len(rt.db.query("SELECT payload FROM trades")) == 1  # booked once
+
+
+def test_the_runtime_seats_no_model_the_journal_shows_sure_on_every_answer(tmp_path, monkeypatch):
+    """dual-ai 1.17.0, orchestrator 1.27.0: the orchestrator reads each model's habit from the journal (decisions made
+    before this one) and a model that stated 65 or more on 30 of 30 answers as a trader holds no seat."""
+    from tests.openrouter_kit import DEBATE, VISION
+    rt, clock, fake = desk_runtime(tmp_path, monkeypatch)
+    for i in range(30):
+        rt.db.append("decisions", {"id": f"old-{i}", "symbol": "GBPUSD", "timeframe": "H1", "decision": "NO_TRADE",
+                                   "mode": "PAPER_FORWARD", "payload": {
+                                       "family": "DUAL_AI", "timestamp": clock.t - 7200 - 60 * i,
+                                       "ai": {"dual_ai": {"models": {"trader1": VISION, "trader2": TRADER},
+                                                          "trader1": {"confidence": 70},
+                                                          "trader2": {"confidence": 50 + i}}}}})
+    cycles(rt, clock)
+    asked = [c["model"] for c in fake.calls]
+    assert asked and VISION not in asked and asked[0] == DEBATE  # the next vision model holds Trader 1's seat
+    dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='EURUSD' ORDER BY seq DESC")["payload"])
+    assert set(dec["ai"]["dual_ai"]["seats"]["always_sure"]) == {VISION}

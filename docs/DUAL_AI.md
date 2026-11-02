@@ -158,7 +158,10 @@ evening (UTC) were stopped out. Too few trades to change a rule on, so:
   market, not a fit to three trades, and it can only refuse an entry. The risk engine applies it, and the
   desk is not asked inside the window.
 
-### When no vision model answers (dual-ai 1.3.0, 2026-10-13)
+### When no vision model answers (dual-ai 1.3.0, 2026-10-13; replaced by one model per seat, 1.17.0)
+
+**Replaced on 2026-11-02 (dual-ai 1.17.0, below): a trader's seat has no stand-in, so Trader 1 never reads the
+chart's numbers on another model.** What it was:
 
 Only a handful of free models read images, and at peak hours (about 11:00-14:30 UTC) all of them can be busy at
 once: on 2026-10-13, 23 of 40 decisions were lost that way. When no free vision model gives a usable answer,
@@ -278,6 +281,18 @@ free seats. Compared at the end of the week on the trades it produced, with the 
 trades is inconclusive, and no decision is taken on it alone. H5 (`nemotron-3-ultra` out) is judged on the trades
 with a FREE model in Trader 2's seat only.
 
+**What the paid seats did, read on 2026-11-02** (every agreement followed forward, after costs). The trial week was
+an EVALUATION week, so it is set against the free seats' LEARNING weeks: different weeks and markets, not a clean
+comparison.
+
+| Seat | Model | Agreements | Average | Won |
+|---|---|---|---|---|
+| Trader 1 | `xiaomi/mimo-v2.6-pro` (paid) | 108 | -0.37 R | 27% |
+| Trader 2 | `anthropic/claude-haiku-5.5` (paid) | 76 | -0.31 R | 30% |
+| Trader 1 | the free models, LEARNING weeks | 24 to 126 each | -0.19 R to +0.22 R | 36% to 54% |
+
+The stronger, paid models did not do better. Nothing here says paying for a stronger model would.
+
 ## Free models only
 
 One key, `OPENROUTER_API_KEY`, powers all three roles. A model is used only if **all** hold
@@ -326,6 +341,45 @@ the seat, as it already did whenever this one was busy.
 
 The catalog changes; the selection is recomputed hourly and on failures. Optional pins
 (`OPENROUTER_VISION_MODEL`, `OPENROUTER_JUDGE_MODEL`) are honoured only while the catalog lists them as free.
+
+### One model per trader's seat (dual-ai 1.17.0, openrouter 1.11.0, owner, 2026-11-02)
+
+The owner: "nano is always high... every time the AI changes it is like a child; I want a trained AI that knows
+trading". What the journal showed that morning (shift from 04:58 UTC):
+
+- Trader 1's seat was held by `nemotron-3.5-super-vl`. It gave 32 usable answers, stated 52-62, and none became a
+  trade.
+- 5 times its answer was cut at 12,000 tokens while it was still thinking, before its JSON. Each time the next vision
+  model stood in for that one decision, `nemotron-3-nano-omni` or `dots-3-note`, at 65 or more. 3 of those 5
+  were the day's three trades.
+- Each model states confidence on its own scale. Over all its answers as a trader, `nano-omni` stated 65 or more
+  in 100% of 46, `dots-3-note` in 81% of 302, `nemotron-3.5-super-vl` in 21% of 284, `claude-haiku-5.5` in none of
+  107. With `nano-omni` in a seat, "a trade only when both are very sure" could never refuse.
+
+So, from dual-ai 1.17.0:
+
+1. **One holder per seat, no stand-ins.** Trader 1 and Trader 2 each ask their seat's model only
+   (`chat_json(..., seat=True)`): the first of the seat's declared ranking. When it cannot answer, nobody stands in
+   and the decision is NO_TRADE (`TRADER1_UNAVAILABLE`, `TRADER2_UNAVAILABLE`). While it rests a short while
+   (busy, rate-limited, failing: an hour at most) it keeps its seat and nothing is asked (`SEAT_RESTING`). The
+   seat passes on only when its holder is gone (the provider cannot serve it: a 6 h rest; excluded; out of the
+   catalog) or fails often enough to lose its rank. Trader 1's numbers fallback on a text model is gone. The debate,
+   shadow only, keeps its fallbacks.
+2. **Room to finish.** Each trader's answer may use 16,000 tokens (12,000 before). The seat's usable answers used
+   up to about 24,000 tokens with the prompt's ~15,000, and a median 62 s (90% within 105 s).
+3. **A model sure on nearly every answer holds no trader's seat.** `dual_ai_stats.confidence_habits` reads how each
+   model stated its confidence as a trader in the decisions made before this one: its answers, not their results.
+   A model that stated MIN_CONFIDENCE or more in 90% (ALWAYS_SURE_SHARE) of at least 30 (ALWAYS_SURE_MIN) holds no
+   seat; with fewer answers its habit is not yet known. On 2 November that is `nemotron-3-nano-omni` alone. The
+   habits reach the seats only, never a trader's packet: a trader told the floor could aim at it.
+
+The status (`health()`, the report's "trader 1 / trader 2" line) names each seat's holder: a model resting briefly
+included, never a model kept off the seats (`exclude_from_seats`, set by the desk at each decision).
+
+The cost is known: when the seat's model cannot answer, that decision is NO_TRADE instead of a stand-in's trade
+(5 of 37 decisions that morning). Which model answers changes; no rule, level, limit or size does. Nothing here
+promises a better result. It makes the seat's record one model's record, and the floor a floor for every model
+that sits.
 
 ## Limits, retries, duplicates
 

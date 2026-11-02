@@ -170,3 +170,26 @@ def test_both_traders_read_the_analysis_matched_to_this_decision():
     assert t1 == t2 and t1["now"]["if_BUY"][0]["condition"] == "side = BUY" and t1["now"]["if_SELL"] == []
     assert "version" not in t1 and t1["lost"][0]["t"] == -4.1
     assert "not a parrot" in TRADER1_SYSTEM and "WHY" in TRADER2_SYSTEM  # reason about the cause, not obey the past
+
+
+# ── how each model states its confidence as a trader (dual-ai-stats 1.12.0, dual-ai 1.17.0) ──
+
+def test_confidence_habits_count_each_models_answers_as_a_trader_made_before_the_decision_only():
+    db = Database(":memory:")
+
+    def dec(did, t, m1, c1, m2, c2, family="DUAL_AI"):
+        db.append("decisions", {"id": did, "symbol": "EURUSD", "timeframe": "H1", "decision": "NO_TRADE",
+                                "mode": "PAPER_FORWARD", "payload": {"family": family, "timestamp": t, "ai": {"dual_ai": {
+                                    "models": {"trader1": m1, "trader2": m2, "verifier": "v/debate"},
+                                    "trader1": {"confidence": c1}, "trader2": {"confidence": c2},
+                                    "verifier": {"confidence": 90}}}}})
+    dec("a", 100, "n/nano", 70, "d/dots", 60)
+    dec("b", 200, "n/nano", 65, "n/super", 55)
+    dec("c", 300, "d/dots", 64, "n/nano", 80)
+    dec("later", 400, "n/nano", 10, "d/dots", 10)  # at the decision time itself: not before it, never read
+    dec("other", 150, "n/nano", 10, "d/dots", 10, family="LLM_TRADER")  # another system's decision
+    h = dual_ai_stats.confidence_habits(db, as_of=400, floor=65)
+    assert h["n/nano"] == {"answers": 3, "at_or_above_floor": 3, "share": 1.0}  # both seats; 65 itself counts
+    assert h["d/dots"] == {"answers": 2, "at_or_above_floor": 0, "share": 0.0}
+    assert h["n/super"]["answers"] == 1 and "v/debate" not in h  # the debate's confidence never decides a trade
+    assert dual_ai_stats.confidence_habits(db, as_of=100, floor=65) == {}
