@@ -47,13 +47,17 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #: 1.11.0: the shadow exit closed at 24 h (CLOSE24H, forward 1.3.0) beside the others; HOLD24H rows stay readable.
 #: 1.12.0: `confidence_habits`: how each model states its confidence as a trader, from the decisions journal (its
 #:         answers, never their results), so the desk can tell a model whose confidence can still say "not sure".
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.12.0"
+#: 1.13.0: the agreements the senior trader did not approve (dual-ai 1.18.0, DUAL_AI_SENIOR_VETO) are agreements: in the
+#:         analysis and the instrument's record once each, and set beside the trades taken (`senior_vetoes_in_shadow`).
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.13.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
+SENIOR_FAMILY = "DUAL_AI_SENIOR_VETO"
 #: the desk's agreements, followed forward: as proposed (taken, or refused by the risk engine) and, since dual-ai
-#: 1.12.0, under the confidence floor. A shadow exit is the same agreement closed another way: never counted again.
-AGREEMENTS = (FAMILY, LOWCONF_FAMILY)
+#: 1.12.0, under the confidence floor and, since 1.18.0, those the senior trader did not approve. A shadow exit is the
+#: same agreement closed another way: never counted again.
+AGREEMENTS = (FAMILY, LOWCONF_FAMILY, SENIOR_FAMILY)
 EXIT_FAMILIES = {f"{FAMILY}_EXIT_{n}": n for n in ("BE1R", "HOLD24H", "CLOSE24H", "WIDE2X", "HOLD8H")}
 SESSIONS = ("ASIA", "LONDON", "OVERLAP", "NEW_YORK", "LATE")
 BANDS = ((0, 50), (50, 65), (65, 80), (80, 101))
@@ -122,7 +126,7 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         sel = [o["r"] for o, e in zip(trades, ev) if isinstance(e.get("desk_confidence"), (int, float))
                and lo <= 100 * e["desk_confidence"] < hi]
         bands[f"{lo}-{min(hi, 100)}"] = _r(sel)
-    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: [], LOWCONF_FAMILY: []}
+    shadow: dict = {PICK_FAMILY: [], LOSER_FAMILY: [], LOWCONF_FAMILY: [], SENIOR_FAMILY: []}
     taken: dict = {}                                   # decision id -> (net R as taken, session)
     exits: dict = {n: {} for n in EXIT_FAMILIES.values()}  # variant -> {base decision id: net R}
     t2_levels: dict = {}  # agreement decision id -> net R on Trader 2's own levels (never traded)
@@ -178,6 +182,11 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
                                          "is a trade only when both traders state 65 or more; the agreements below, "
                                          "followed forward as the trades they would have been, after costs. Doing "
                                          "better than the trades taken would mean the floor costs money"},
+            "senior_vetoes_in_shadow": {**_r(shadow[SENIOR_FAMILY]), "note": "since dual-ai 1.18.0 a trade both "
+                                        "traders agree on is taken only with the senior trader's approval; the ones "
+                                        "it did not approve (vetoed, or no usable answer), followed forward as the "
+                                        "trades they would have been, after costs. Doing better than the trades "
+                                        "taken would mean its vetoes cost money"},
             "exits_in_shadow": {**{n: against_taken(v) for n, v in exits.items()},
                                 "note": "each trade taken, followed again under another exit on the same entry, "
                                         "after costs; difference_r > 0 means that exit would have done better "

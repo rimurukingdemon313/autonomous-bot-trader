@@ -36,8 +36,8 @@ CATALOG = [
 
 def role_of(body) -> str:
     system = body["messages"][0]["content"]
-    return "trader1" if "TRADER 1" in system else "trader2" if "TRADER 2" in system else (
-        "debate" if "DESK HEAD" in system else "other")
+    return "senior" if "SENIOR TRADER" in system else "trader1" if "TRADER 1" in system else (
+        "trader2" if "TRADER 2" in system else "debate" if "DESK HEAD" in system else "other")
 
 
 def packet_of(body) -> dict:
@@ -60,9 +60,9 @@ class FakeOpenRouter:
     """transport(method, url, headers, body, timeout). `reply(role, body)` returns a dict (sent as JSON), a
     string (sent verbatim) or a full (status, headers, payload) tuple."""
 
-    def __init__(self, reply, catalog=None, usage=0.0, free_tier=True):
+    def __init__(self, reply, catalog=None, usage=0.0, free_tier=True, usage_daily=None):
         self.reply, self.catalog = reply, list(CATALOG if catalog is None else catalog)
-        self.usage, self.free_tier = usage, free_tier
+        self.usage, self.free_tier, self.usage_daily = usage, free_tier, usage_daily
         self.calls: list[dict] = []
         self.headers: list[dict] = []
 
@@ -71,7 +71,10 @@ class FakeOpenRouter:
         if url.endswith("/models"):
             return 200, {}, {"data": self.catalog}
         if url.endswith("/key"):
-            return 200, {}, {"data": {"label": "test", "usage": self.usage, "is_free_tier": self.free_tier}}
+            data = {"label": "test", "usage": self.usage, "is_free_tier": self.free_tier}
+            if self.usage_daily is not None:  # a paid seat is asked only when the key's daily spend is read too
+                data["usage_daily"] = self.usage_daily
+            return 200, {}, {"data": data}
         self.calls.append({"model": body["model"], "role": role_of(body), "body": body, "timeout": timeout})
         out = self.reply(role_of(body), body)
         if isinstance(out, tuple):

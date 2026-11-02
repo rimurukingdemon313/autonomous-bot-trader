@@ -40,3 +40,14 @@ def test_an_unpriced_open_trade_reads_unreadable_never_zero():
 def test_no_time_machine_and_no_decision_yet_are_left_out_never_invented():
     text = "\n".join(arabic_summary(view(dual_ai={})))
     assert "آلة الزمن" not in text and "آخر قرار" not in text and "الحساب الكامل" in text
+
+
+def test_the_summary_names_the_senior_its_refusals_and_its_spend_when_one_is_declared():
+    senior = {"models": {"senior": "anthropic/claude-opus-5.5"}, "spent_total": 0.51, "total_usd": 8.5}
+    dai = {**view()["dual_ai"], "openrouter": {"paid_trial": senior},
+           "record": {"decisions_by_rule": {"SENIOR_VETO": 3, "SENIOR_UNAVAILABLE": 1, "AGREE": 2}}}
+    text = "\n".join(arabic_summary(view(dual_ai=dai)))
+    assert "claude-opus-5.5" in text and "رفض 3" in text and "ما جاوب 1" in text and "صرف $0.51 من $8.50" in text
+    unread = {**dai, "openrouter": {"paid_trial": {**senior, "spent_total": None}}}
+    assert f"صرف {UNREAD}" in "\n".join(arabic_summary(view(dual_ai=unread)))  # an unread spend is never $0.00
+    assert "المتداول الكبير" not in "\n".join(arabic_summary(view()))  # none declared: nothing said

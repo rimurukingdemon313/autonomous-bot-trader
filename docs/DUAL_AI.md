@@ -293,6 +293,9 @@ comparison.
 
 The stronger, paid models did not do better. Nothing here says paying for a stronger model would.
 
+The trial's window closed as Saturday 31 October began. From 2 November the funded period is the senior trader's
+(below): one strong model that can only refuse, asked a few times a day.
+
 ## Free models only
 
 One key, `OPENROUTER_API_KEY`, powers all three roles. A model is used only if **all** hold
@@ -380,6 +383,79 @@ The cost is known: when the seat's model cannot answer, that decision is NO_TRAD
 (5 of 37 decisions that morning). Which model answers changes; no rule, level, limit or size does. Nothing here
 promises a better result. It makes the seat's record one model's record, and the floor a floor for every model
 that sits.
+
+## The senior trader (dual-ai 1.18.0, paid-trial 1.3.0, owner, 2026-11-02)
+
+The owner: "if you want to use stronger models, that's fine, but please make them know", and then "not only what
+its company trained it on: it must know all the steps we learned; if something is rotten, you trade in their place".
+
+**Who.** The strongest model the live catalog lists that reads the chart, in a paid seat of its own:
+`anthropic/claude-opus-5.5`, intelligence index 58.4, the highest on the catalog of 2026-11-02 10:48 UTC
+(`dual-ai-check-results` 255b36f). It is an Anthropic model, chosen by a Claude model: on the index, where it is
+first, and from a third lab, neither trader's.
+
+**When.** Only on a trade candidate: both traders on the same side, both at the floor, after the deterministic
+lesson check. Never on a disagreement, never under the floor. That is a handful of reviews a day, where a trader's
+seat would ask it about 150 times.
+
+**What it reads: everything the desk knows.**
+
+- the chart (the image, and every mark as numbers) and the raw data;
+- both traders' full analyses;
+- the trade exactly as it would be placed: the price it would fill at, its stop and target, its reward:risk, its
+  costs as a share of the risk, and the win rate it needs after costs;
+- the time machine's replay of those levels;
+- the journal (`desk_memory`) and the playbook (below).
+
+**What it can do: refuse, and nothing else.** It answers `APPROVE` or `VETO` (`validate_senior`). It cannot
+change the side, the levels or the size; any other field it writes is never read. An approval at less than even
+odds by its own account (confidence under 50) contradicts itself, so it is no trade. A veto, a malformed answer, no
+answer, or no funds for the review means NO_TRADE (`SENIOR_VETO`, `SENIOR_UNAVAILABLE`). An approved trade goes to
+the risk engine exactly as before, which sizes it and may still refuse it.
+
+**Measured.**
+
+- Every agreement it does not approve is followed forward as the trade it would have been (`DUAL_AI_SENIOR_VETO`,
+  `senior_vetoes_in_shadow`), and counts once as an agreement in the analysis.
+- The senior reads its own vetoes' record in the journal.
+- The report shows each verdict (the "Senior" column) and the vetoes beside the trades taken. The Arabic summary
+  shows its refusals and its spend.
+
+**Cost and caps** (`paid_trial.SENIOR_2026_11`).
+
+- $4 / $20 per million tokens: about $0.17 a review, the playbook included.
+- The caps are read from the key's own spend:
+  - $8.50 in all, counted from the $0.958 the first trial spent;
+  - $1.50 a day;
+  - $0.40 a call (a review reserves at most $0.32).
+- Its seat has no FREE model at all (`PAID_ONLY_ROLES`). When it may not be asked (outside its window, a cap
+  reached, a 402, or `OPENROUTER_PAID_TRIAL=off`), the call is `NOT_FUNDED` and nothing is sent. While the period is
+  declared, that means no trade is approved: the desk fails closed.
+- The period runs from 2026-11-02 15:00 UTC to 2026-12-01. Outside it the desk decides as in 1.17.0.
+
+**What it is not.** It does not open trades, and it is not a promise of better results. The paid models of the
+week to 30 October did no better than the free ones. Whether the senior's vetoes save money is what its shadow
+measures.
+
+## The desk's playbook (dual-ai 1.18.0, `agents/playbook.py`)
+
+What this project has learned, written down for every model that sits at the desk: both traders, the debate and
+the senior, in every packet (`desk_playbook`), with a paragraph in their prompts on how to read it. It holds:
+
+- **the desk's rules**: the agreement and the floor, Trader 1's levels, the senior, what the risk engine refuses,
+  the 48 h hold and the Friday close, NO TRADE as a normal answer;
+- **what the record taught**, each with its date and sample: costs were the loss on M15 (+0.06 R before costs,
+  0.19 R in them); Trader 2's levels lost; 24 h beat 8 h; the range rule did not hold; the analysis of 2 November;
+  confidence predicted nothing; same-lab pairs; the paid week; the stand-ins of 2 November;
+- **what the research found**: live LLM traders mostly lose; stated confidence is overconfident; no independent
+  evidence for SMC, and QT-1 and QT-2 failed; LLM backtests are contaminated;
+- **how to think**: costs first, `(1 + c) / (1 + R)`; the stop where the idea is proved wrong; say why; honest
+  confidence; one trade is an anecdote.
+
+It is static by design. The live record is in `desk_memory`, and where they differ the live figures are newer. The
+desk's own numbers in it (the floor, the hold) are filled in from the code that enforces them, and a test checks
+them. It is about 1,300 tokens. Its version, `playbook-1.0.0`, is stamped on every decision. Change it only by a
+code change that says why, and bump the version.
 
 ## Limits, retries, duplicates
 

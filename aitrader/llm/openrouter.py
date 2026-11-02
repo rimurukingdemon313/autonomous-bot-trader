@@ -11,8 +11,9 @@ Configuration, environment only (a local `.env` file is read by `python -m aitra
                                     $10), read from GET /key, less a margin
     OPENROUTER_VISION_MODEL         optional pin for Agent 1; used only while the catalog lists it as FREE
     OPENROUTER_JUDGE_MODEL          optional pin for Agent 2; same rule
-    OPENROUTER_PAID_TRIAL           "off" ends the owner's paid trial (paid_trial.PAID_TRIAL) at once; nothing in
-                                    the environment can start, widen or extend it
+    OPENROUTER_PAID_TRIAL           "off" ends the owner's funded period (paid_trial.PAID_TRIAL) at once; nothing in
+                                    the environment can start, widen or extend it. While it declares a senior
+                                    (dual-ai 1.18.0), "off" also means no trade is approved
 
 What this client guarantees:
 
@@ -66,7 +67,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 from .free_models import Selection, select, supports_image
-from .paid_trial import PAID_ROLES, PAID_TRIAL, UNACCOUNTED_TOLERANCE_USD, PaidTrial, call_reserve
+from .paid_trial import PAID_ONLY_ROLES, PAID_ROLES, PAID_TRIAL, UNACCOUNTED_TOLERANCE_USD, PaidTrial, call_reserve
 from .provider import extract_json
 
 #: 1.6.0 (live run): a malformed or impossible answer from one model is never repaired and that model is not asked
@@ -103,7 +104,10 @@ from .provider import extract_json
 #:         holder and no stand-ins. That morning Trader 1's model gave 32 usable answers and none became a trade; 5
 #:         times its answer was cut at max_tokens and the next vision model stood in, at 65 or more, and 3 of those 5
 #:         were the day's three trades. The debate keeps its fallbacks (it is shadow only).
-OPENROUTER_VERSION = "openrouter-1.11.0"
+#: 1.12.0 (owner, 2026-11-02: "use stronger models if you want, but please make them know"): a paid-only seat
+#:         (paid_trial.PAID_ONLY_ROLES, the senior): no FREE model is ever ranked for it; when its paid model cannot be
+#:         asked (outside its window, its caps, switched off, not as priced) the call is NOT_FUNDED, with no request.
+OPENROUTER_VERSION = "openrouter-1.12.0"
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -187,6 +191,7 @@ class CallResult:
     ok: bool
     status: str  # OK | NOT_CONFIGURED | NO_FREE_MODEL | BUDGET | DAILY_QUOTA | RATE_LIMITED | TIMEOUT | UNAVAILABLE
     #               | SEAT_RESTING (1.11.0: the seat's model rests; nobody stands in)
+    #               | NOT_FUNDED (1.12.0: a paid-only seat whose paid model may not be asked now; nothing is sent)
     #               | KEY_REJECTED | HTTP_<n> | BAD_RESPONSE | NOT_FREE | WRONG_MODEL | INVALID: <why> | CACHED
     role: str
     model: str | None = None
@@ -362,6 +367,8 @@ class OpenRouterClient:
                     and self._usage_read_day != _day(self.clock()) and self.clock() - self._key_checked_at >= 60):
                 self.check_key(force=True)  # a new UTC day: its spend is read before anything paid is asked
             ranked = [r["id"] for r in getattr(sel, {"vision": "vision", "judge": "judge"}.get(role, "verifier"))]
+            if role in PAID_ONLY_ROLES:  # the senior: its paid model or nobody, never a FREE one (1.12.0)
+                ranked = []
             pin = {"vision": self.config.vision_pin, "judge": self.config.judge_pin}.get(role, "")
             if pin and pin in ranked:
                 ranked = [pin] + [m for m in ranked if m != pin]
@@ -511,6 +518,10 @@ class OpenRouterClient:
         models = [m for m in ranked if m not in avoid][:max_models]
         if not models and avoid_soft:  # no third model: the strongest of the avoided ones is reused
             models = ranked[:max_models]
+        if not models and role in PAID_ONLY_ROLES:
+            with self._lock:
+                why = self._trial_why.get(role) or "no paid model is declared for it"
+            return CallResult(False, "NOT_FUNDED", role, error=f"the {role}'s paid model is not asked: {why}")
         if not models:
             why = (f"no FREE {role} model other than {', '.join(avoid)}" if ranked else
                    self._selection.error or "no FREE model qualifies")

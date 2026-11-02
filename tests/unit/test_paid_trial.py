@@ -10,7 +10,10 @@ from datetime import datetime, timezone
 import pytest
 
 from aitrader.llm.openrouter import KEY_CHECK_S, OpenRouterClient, OpenRouterConfig
-from aitrader.llm.paid_trial import PAID_TRIAL, PROMPT_TOKENS_RESERVE, PaidModel, PaidTrial, call_reserve
+from aitrader.agents.dual_ai import MAX_TOKENS
+from aitrader.llm.paid_trial import (
+    PAID_TRIAL, PROMPT_TOKENS_RESERVE, SENIOR_2026_11, TRIAL_2026_10_26, PaidModel, PaidTrial, call_reserve,
+)
 
 from tests.openrouter_kit import DEBATE, KEY, TRADER, VISION, model, ok
 
@@ -210,14 +213,20 @@ LIVE_PRICING = {
                                                   "completion": "0.0000025", "input_cache_read": "0.00000005",
                                                   "input_cache_write": "0.000000625", "input_cache_write_1h": "0.000001"}]},
     "xiaomi/mimo-v2.6-pro": {"prompt": "0.000000435", "completion": "0.00000087", "input_cache_read": "0.0000000036"},
+    # the senior's, as the public catalog priced it on 2026-11-02 (dual-ai-check-results 255b36f)
+    "anthropic/claude-opus-5.5": {"prompt": "0.000004", "completion": "0.00002", "web_search": "0.01",
+                                  "input_cache_read": "0.0000002", "input_cache_write": "0.000005",
+                                  "input_cache_write_1h": "0.000008"},
 }
 
 
 def test_the_declared_trials_models_pass_on_their_live_catalog_prices_and_a_call_stays_under_its_cap():
-    for role, m in PAID_TRIAL.models.items():
-        live = {"id": m.id, "pricing": LIVE_PRICING[m.id]}
-        assert m.priced_as_declared(live) is None, (role, m.priced_as_declared(live))
-        assert call_reserve(live, 12000) <= PAID_TRIAL.max_call_usd  # the most a call can cost, under the cap
+    for trial in (TRIAL_2026_10_26, SENIOR_2026_11):
+        for role, m in trial.models.items():
+            live = {"id": m.id, "pricing": LIVE_PRICING[m.id]}
+            assert m.priced_as_declared(live) is None, (role, m.priced_as_declared(live))
+            out = MAX_TOKENS["senior"] if role == "senior" else 12000
+            assert call_reserve(live, out) <= trial.max_call_usd  # the most a call can cost, under the cap
     # Haiku's dearer tier starts at 100k prompt tokens; a trader's prompt is under a third of that
     assert PROMPT_TOKENS_RESERVE < LIVE_PRICING["anthropic/claude-haiku-5.5"]["overrides"][0]["min_prompt_tokens"]
 
@@ -284,8 +293,8 @@ def test_spend_nobody_accounts_for_still_stops_every_request():
 
 # ── the declared trial ───────────────────────────────────────────────────
 
-def test_the_declared_trial_is_the_owners_week_within_the_owners_ten_dollars():
-    t = PAID_TRIAL
+def test_the_first_trial_was_the_owners_week_within_the_owners_ten_dollars():
+    t = TRIAL_2026_10_26
     assert set(t.models) == {"vision", "judge"} and t.models["vision"].id != t.models["judge"].id
     assert t.models["vision"].id.split("/")[0] != t.models["judge"].id.split("/")[0]  # two different labs
     a, b = t.window()
@@ -304,3 +313,41 @@ def test_a_trial_declared_outside_the_owners_limits_is_refused(kw):
         PaidTrial(**{**base, **kw})
     with pytest.raises(AssertionError):  # the debate is never a paid seat
         PaidTrial(**{**base, "models": {"verifier": PaidModel("a/b", 1, 1)}})
+
+
+# ── the senior's seat (paid-trial 1.3.0, dual-ai 1.18.0) ─────────────────
+
+PS = "lab-c/paid-senior"
+SENIOR_TRIAL = PaidTrial(name="test-senior", models={"senior": PaidModel(PS, 1.0, 2.0)}, starts="2026-10-26T00:00:00Z",
+                         ends="2026-10-31T00:00:00Z", total_usd=1.0, daily_usd=0.30, max_call_usd=0.10)
+
+
+def test_the_declared_senior_is_the_strongest_listed_within_what_the_owner_has_left():
+    t = PAID_TRIAL
+    assert t is SENIOR_2026_11 and set(t.models) == {"senior"}
+    assert t.models["senior"].id == "anthropic/claude-opus-5.5"  # index 58.4, the highest on 2026-11-02
+    assert t.usage_baseline + t.total_usd <= 10.0  # what the first trial spent and this one may, within the $10
+    assert t.starts == "2026-11-02T15:00:00Z" and t.daily_usd * 5 <= t.total_usd + 1e-9
+    m = t.models["senior"]  # a review at the declared prices never trips its own per-call cap
+    assert PROMPT_TOKENS_RESERVE * m.max_in_per_m / 1e6 + MAX_TOKENS["senior"] * m.max_out_per_m / 1e6 <= t.max_call_usd
+
+
+def test_the_seniors_seat_is_paid_only_its_paid_model_or_nobody_never_a_free_one():
+    fake = Fake(cat=catalog() + [paid(PS)])
+    c, now = client(fake, trial=SENIOR_TRIAL)
+    res = c.chat_json("senior", MSG, accept, dedupe_key="k1", max_tokens=1000, seat=True)
+    assert res.ok and res.model == PS and fake.calls == [PS]
+    now[0] = datetime(2026, 11, 2, 9, 0, tzinfo=timezone.utc).timestamp()  # after its window
+    res = c.chat_json("senior", MSG, accept, dedupe_key="k2", max_tokens=1000, seat=True)
+    assert res.status == "NOT_FUNDED" and "outside its window" in res.error and fake.calls == [PS]  # nothing sent
+    off, _ = client(Fake(cat=catalog() + [paid(PS)]), trial=SENIOR_TRIAL, paid_trial_off=True)
+    res = off.chat_json("senior", MSG, accept, dedupe_key="k3", max_tokens=1000, seat=True)
+    assert res.status == "NOT_FUNDED" and "switched off" in res.error
+
+
+def test_a_senior_spent_to_its_cap_is_not_asked_and_no_free_model_takes_its_place():
+    fake = Fake(cat=catalog() + [paid(PS)])
+    fake.usage, fake.daily = 0.99, 0.29  # the key's own reading: the cap is all but spent
+    c, _ = client(fake, trial=SENIOR_TRIAL)
+    res = c.chat_json("senior", MSG, accept, dedupe_key="k", max_tokens=1000, seat=True)
+    assert res.status == "NOT_FUNDED" and "spent" in res.error and fake.calls == []

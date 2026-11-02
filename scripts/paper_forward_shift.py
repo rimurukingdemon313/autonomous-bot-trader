@@ -108,6 +108,11 @@ AR_VERDICT = {"close to break-even": "قريب من التعادل", "leans towa
 UNREAD = "ما ينقرى هسه"
 
 
+def seat_name(role: str) -> str:
+    """A paid seat's name in the report."""
+    return {"vision": "trader 1", "judge": "trader 2", "senior": "the senior"}.get(role, role)
+
+
 def arabic_summary(v: dict) -> list[str]:
     """The owner's language, first: the same figures as the sections below and nothing else. A figure that cannot be
     read is said to be unreadable, never shown as a zero."""
@@ -129,6 +134,12 @@ def arabic_summary(v: dict) -> list[str]:
         rule = (last.get("consensus") or {}).get("rule")
         out.append(f"- آخر قرار: {last.get('symbol')} {AR_DECISION.get(last.get('decision'), last.get('decision'))} "
                    f"({AR_RULE.get(rule, rule)}).")
+    pt = (dai.get("openrouter") or {}).get("paid_trial") or {}
+    if (pt.get("models") or {}).get("senior"):
+        rules = (dai.get("record") or {}).get("decisions_by_rule") or {}
+        out.append(f"- المتداول الكبير (‎{pt['models']['senior'].split('/')[-1]}‎، مدفوع): رفض "
+                   f"{rules.get('SENIOR_VETO', 0)}، ما جاوب {rules.get('SENIOR_UNAVAILABLE', 0)}؛ صرف "
+                   f"{amount(pt.get('spent_total'))} من {amount(pt.get('total_usd'))}.")
     tm = next((x for x in dai.get("analyses") or [] if x.get("time_machine")), None)
     m = (tm or {}).get("time_machine") or {}
     if all(isinstance(m.get(k), (int, float)) for k in ("target_first", "stop_first", "neither")):
@@ -238,11 +249,11 @@ def report_md(v: dict, shift: dict) -> str:
             return (f"Paid trial `{t.get('name')}` ({t.get('starts')} to {t.get('ends')}): "
                     f"{'ACTIVE' if t.get('active') else 'not active'}"
                     + (f" ({t['stopped']})" if t.get("stopped") else "")
-                    + " · " + " · ".join(f"{'trader 1' if r == 'vision' else 'trader 2'} `{m}` asked first"
+                    + " · " + " · ".join(f"{seat_name(r)} `{m}`" + (" (paid only)" if r == "senior" else " asked first")
                                          for r, m in (t.get("models") or {}).items())
                     + f" · spent {money(t.get('spent_total'))} of {money(t.get('total_usd'))}, today "
                     f"{money(t.get('spent_today'))} of {money(t.get('daily_usd'))} (the key's own reading)"
-                    + "".join(f" · {'trader 1' if r == 'vision' else 'trader 2'} not asked: {w}" for r, w in why.items()))
+                    + "".join(f" · {seat_name(r)} not asked: {w}" for r, w in why.items()))
         rec = dai.get("record") or {}
         pick, lose = rec.get("debate_pick_if_taken") or {}, rec.get("debate_losing_side_if_taken") or {}
 
@@ -285,20 +296,25 @@ def report_md(v: dict, shift: dict) -> str:
                   f"{shadow(rec.get('low_confidence_in_shadow') or {})}", "",
                   "Trades taken by session (UTC): " + " · ".join(
                       f"{s} {shadow(st)}" for s, st in (rec.get("taken_by_session") or {}).items()), "",
-                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Rule | Final | Risk | Time machine |",
-                  "|---|---|---|---|---|---|---|---|---|"]
+                  "Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usable answer; not "
+                  f"traded, followed forward): {(rec.get('decisions_by_rule') or {}).get('SENIOR_VETO', 0)} vetoed · "
+                  f"{(rec.get('decisions_by_rule') or {}).get('SENIOR_UNAVAILABLE', 0)} without a usable review · if "
+                  f"taken: {shadow(rec.get('senior_vetoes_in_shadow') or {})}", "",
+                  "| Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
         for a in dai.get("analyses") or []:
             when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"
-            t1, t2, vf = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}
+            t1, t2, vf, sr = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}, a.get("senior") or {}
             risk = a.get("risk")
             read = " (numbers)" if t1 and a.get("trader1_input") == "numbers" else ""
             lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')}{read} | "
                          f"{t2.get('direction', '-')} {t2.get('confidence', '')} | {vf.get('direction', '-')} | "
+                         f"{sr.get('verdict', '-')} {sr.get('confidence', '')} | "
                          f"{(a.get('consensus') or {}).get('rule')} | "
                          f"{a['decision']} | {'-' if risk is None else ('APPROVED' if risk['approved'] else 'REJECTED')} | "
                          f"{time_machine_cell(a.get('time_machine'))} |")
-        lines += ["", "The chart Trader 1 read last: `last_chart.png`. (numbers): no free vision model answered, so "
-                  "Trader 1 read the same chart from its numbers."]
+        lines += ["", "The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free "
+                  "vision model answered, Trader 1 read the same chart from its numbers on another model."]
         tm = next((a for a in dai.get("analyses") or [] if a.get("time_machine")), None)
         if tm:
             lines += ["", f"Time machine of the latest agreement ({tm['symbol']}): the levels replayed "

@@ -193,3 +193,19 @@ def test_confidence_habits_count_each_models_answers_as_a_trader_made_before_the
     assert h["d/dots"] == {"answers": 2, "at_or_above_floor": 0, "share": 0.0}
     assert h["n/super"]["answers"] == 1 and "v/debate" not in h  # the debate's confidence never decides a trade
     assert dual_ai_stats.confidence_habits(db, as_of=100, floor=65) == {}
+
+
+# ── the agreements the senior trader did not approve (dual-ai-stats 1.13.0) ──
+
+def test_an_agreement_the_senior_did_not_approve_is_one_agreement_set_beside_the_trades_taken():
+    db = Database(":memory:")
+    put(db, "a", tf="H1", net=1.0)                                                         # approved and taken
+    put(db, "b", family="DUAL_AI_SENIOR_VETO", tf="H1", net=-1.0, executed=False)          # vetoed, followed
+    put(db, "c", family="DUAL_AI_SENIOR_VETO", tf="H1", net=-1.0, executed=False)
+    rec = dual_ai_stats.instrument_record(db, "EURUSD", as_of=AS_OF)
+    assert rec["agreements"]["n"] == 3  # each counted once, as the agreement it was
+    whole = dual_ai_stats.record(db, as_of=AS_OF, partition_="LEARNING")
+    vetoed = whole["senior_vetoes_in_shadow"]
+    assert vetoed["n"] == 2 and vetoed["expectancy_r"] == pytest.approx(-1.0) and "senior" in vetoed["note"]
+    assert "DUAL_AI_SENIOR_VETO" in dual_ai_stats.AGREEMENTS
+    assert "senior_vetoes_in_shadow" in JOURNAL_RECORD  # the senior reads its own vetoes' record in the journal

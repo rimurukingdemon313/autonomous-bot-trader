@@ -1,10 +1,11 @@
-"""The owner's one funded test of paid models (docs/DUAL_AI.md, "The paid trial").
+"""The owner's funded use of paid models (docs/DUAL_AI.md, "The paid trial" and "The senior trader").
 
 On 2026-10-23 the owner put $10 on the OpenRouter key: "you can use it for the models, but make it last a week;
 pick something cheap, but not stupid". This module declares that test. Nothing else may make the client spend.
 
-- WHO. One paid model per trading seat (Trader 1, Trader 2) is asked first, and the FREE models stay its
-  fallbacks. The debate (shadow measurement only) and Trader 1's numbers fallback stay FREE.
+- WHO. One paid model per declared seat. A trader's seat (Trader 1, Trader 2) asks its paid model first, the FREE
+  models after it. The senior's seat (1.3.0) has no FREE model at all (PAID_ONLY_ROLES): its paid model or nobody.
+  The debate (shadow measurement only) is never paid.
 - WHEN. From `starts` to `ends` (UTC). Outside that window the client is FREE ONLY, as before.
 - HOW MUCH. At most `total_usd` in all and `daily_usd` per UTC day. Both are read from the key's own spend (GET /key
   `usage` and `usage_daily`), plus what this process has spent since that read, plus the most the next call could
@@ -28,9 +29,14 @@ from datetime import datetime
 #:        (CHARGED_*). Every other price is for a feature no request asks for, such as web search, prompt-cache writes,
 #:        or image or audio output, so it neither keeps a model out nor counts in a call's reserve. What a reply really
 #:        cost is still checked on every reply (max_call_usd) and against the key's own spend.
-PAID_TRIAL_VERSION = "paid-trial-1.2.0"
-#: the seats a paid model may take: the two traders. The debate and the numbers fallback are never paid.
-PAID_ROLES = ("vision", "judge")
+#: 1.3.0 (owner, 2026-11-02: "use stronger models if you want, but please make them know"): a third paid seat, the
+#:        SENIOR TRADER (dual-ai 1.18.0), and the only one with no FREE model (PAID_ONLY_ROLES). The first trial's
+#:        declaration stays as TRIAL_2026_10_26; PAID_TRIAL is now the senior's.
+PAID_TRIAL_VERSION = "paid-trial-1.3.0"
+#: the seats a paid model may take: the two traders and the senior. The debate is never paid.
+PAID_ROLES = ("vision", "judge", "senior")
+#: the seats with no FREE model: when the paid one cannot be asked, nobody is (dual-ai 1.18.0: then no trade is taken)
+PAID_ONLY_ROLES = ("senior",)
 #: a call is reserved at this many prompt tokens (the traders' prompts measured 8k-26k, chart included) plus its
 #: max_tokens of output, so a cap is never crossed by the call that reaches it
 PROMPT_TOKENS_RESERVE = 30_000
@@ -131,7 +137,8 @@ class PaidTrial:
 #: no trial: FREE ONLY
 NO_TRIAL = PaidTrial(name="none")
 
-#: The owner's funded week, declared 2026-10-23. Chosen on the live catalog that day (the Artificial Analysis
+#: The owner's first funded week, declared 2026-10-23 (history: its window closed as Saturday 31 October began; it
+#: spent $0.958). Chosen on the live catalog that day (the Artificial Analysis
 #: intelligence index OpenRouter lists, and one real trading question each: dai-check results, c0bfa28): the two
 #: strongest cheap models that read the chart, from two different labs, each several times as able as the free
 #: models that traded (nemotron-3-ultra 22.9, inkling-small 25.7):
@@ -139,7 +146,7 @@ NO_TRIAL = PaidTrial(name="none")
 #:   Trader 2 anthropic/claude-haiku-5.5 index 43.4, $0.10 / $0.50, about $0.002 a call
 #: At up to 100 decisions a day that is about $0.90 a day: $1.80 a day and $9 in all are the caps, of the $10.
 #: The trading week is Monday 26 to Friday 30 October; the trial ends as Saturday begins.
-PAID_TRIAL = PaidTrial(
+TRIAL_2026_10_26 = PaidTrial(
     name="paid-trial-2026-10-26",
     models={"vision": PaidModel("xiaomi/mimo-v2.6-pro", max_in_per_m=0.50, max_out_per_m=1.00),
             "judge": PaidModel("anthropic/claude-haiku-5.5", max_in_per_m=0.12, max_out_per_m=0.60)},
@@ -148,6 +155,27 @@ PAID_TRIAL = PaidTrial(
     usage_baseline=0.0,  # everything this key ever spent counts against the $9 (the $0.008 diagnostic included)
 )
 
+#: The owner, 2026-11-02: "if you want to use stronger models, that's fine, but please make them know". The strongest
+#: model the live catalog lists that reads the chart takes the desk's SENIOR seat (dual-ai 1.18.0). It reviews only the
+#: trades both traders agree on at the confidence floor, with everything the desk knows, and can only refuse them.
+#: Chosen on the catalog of 2026-11-02 10:48 UTC (dual-ai-check-results 255b36f), on the Artificial Analysis
+#: intelligence index OpenRouter lists:
+#:   anthropic/claude-opus-5.5   index 58.4, the highest listed; $4 / $20 per million tokens; about $0.17 a review
+#: It is an Anthropic model, chosen by a Claude model: on the index, where it is first, and from a third lab, neither
+#: trader's. In a trader's seat (about 150 questions a day) it would cost about $27 a day; as the senior it is asked a
+#: handful of times a day. Of the owner's $10 the first trial spent $0.958 (usage_baseline): $8.50 in all and $1.50 a
+#: day are the caps.
+SENIOR_2026_11 = PaidTrial(
+    name="senior-2026-11-02",
+    models={"senior": PaidModel("anthropic/claude-opus-5.5", max_in_per_m=4.0, max_out_per_m=20.0)},
+    starts="2026-11-02T15:00:00Z", ends="2026-12-01T00:00:00Z",
+    total_usd=8.50, daily_usd=1.50, max_call_usd=0.40,
+    usage_baseline=0.958,
+)
+#: the funded period declared now: the client's default
+PAID_TRIAL = SENIOR_2026_11
 
-__all__ = ["CHARGED", "NO_TRIAL", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION", "PROMPT_TOKENS_RESERVE",
-           "UNACCOUNTED_TOLERANCE_USD", "PaidModel", "PaidTrial", "call_reserve"]
+
+__all__ = ["CHARGED", "NO_TRIAL", "PAID_ONLY_ROLES", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION",
+           "PROMPT_TOKENS_RESERVE", "SENIOR_2026_11", "TRIAL_2026_10_26", "UNACCOUNTED_TOLERANCE_USD", "PaidModel",
+           "PaidTrial", "call_reserve"]

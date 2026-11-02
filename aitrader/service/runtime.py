@@ -890,12 +890,16 @@ class Runtime:
         out: dict = {"active": mode == "dual_ai" and self.cfg.mode == "PAPER_FORWARD", "decision_mode": mode,
                      "mode": self.cfg.mode, "live_trading": False, "money": "NOT REAL MONEY",
                      "openrouter": self.openrouter.health(),
-                     "rules": {"max_calls_per_decision": 3, "free_models_only": True,
+                     # the traders are FREE models; while a senior's funded period is active, its seat is paid
+                     "rules": {"max_calls_per_decision": 3,
+                               "free_models_only": not (self.openrouter.trial_status() or {}).get("active", False),
                                "desk": "each trader chooses BUY or SELL on the H1 chart; same side and both "
                                        "confidences 65 or more -> AGREE, a trade on Trader 1's levels; same side "
                                        "below 65 -> NO TRADE (the trade it would have been is followed in shadow); "
                                        "opposite sides -> NO TRADE (the debate runs in shadow: measured, never "
-                                       "traded); the risk engine sizes and may refuse"}}
+                                       "traded); while the owner's funded period declares a senior trader, an "
+                                       "agreement is a trade only with its approval (it can only refuse); the risk "
+                                       "engine sizes and may refuse"}}
         trader = getattr(self.orch.brain, "dual_ai", None)
         out["charts"] = {s: {"t": c["t"], "decision_id": c["decision_id"], **c["meta"]}
                          for s, c in (dict(trader.charts) if trader is not None else {}).items()}
@@ -913,7 +917,7 @@ class Runtime:
                 "consensus": rec.get("consensus"), "models": rec.get("models"), "trader1": rec.get("trader1"),
                 "trader2": rec.get("trader2"), "verifier": rec.get("verifier"), "chart": rec.get("chart"),
                 "calls": rec.get("calls"), "trader1_input": rec.get("trader1_input"), "version": rec.get("version"),
-                "time_machine": rec.get("time_machine"),
+                "time_machine": rec.get("time_machine"), "senior": rec.get("senior"),
                 "risk": (None if v is None else {"approved": bool(v["approved"]), "reasons": (vp or {}).get("reasons"),
                                                  "qty": (vp or {}).get("qty")})})
             if len(analyses) >= 12:

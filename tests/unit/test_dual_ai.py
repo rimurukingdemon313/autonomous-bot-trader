@@ -12,8 +12,8 @@ import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.dual_ai import (
-    FAMILY, LOSER_FAMILY, PICK_FAMILY, check_levels, counterfactual_decisions, resolve, time_exit_minutes,
-    validate_trader, validate_verifier,
+    FAMILY, LOSER_FAMILY, MIN_CONFIDENCE, PICK_FAMILY, PLAYBOOK, SENIOR_FAMILY, TIME_EXIT_MINUTES, check_levels,
+    counterfactual_decisions, resolve, time_exit_minutes, validate_senior, validate_trader, validate_verifier,
 )
 
 from tests.integration.test_pipeline import market
@@ -579,3 +579,109 @@ def test_the_desk_trades_h1_held_up_to_48h_and_the_m15_path_stays_when_named():
         assert {packet_of(x["body"])["holding_time_minutes"] for x in fake.calls} == {8 * 60} == {rec["hold_minutes"]}
     finally:
         dual_ai.EXECUTION_TF = "H1"
+
+
+# ── the senior trader (dual-ai 1.18.0) ──────────────────────────────────
+
+SENIOR = "wise/senior-x"
+
+
+def senior_desk(reply, *, active=True, off=False):
+    """A desk whose funded period declares a senior at the test's decision time (T, July 2017), unless `active` is
+    False. The client's clock is that time too, so nothing here depends on the wall clock."""
+    from aitrader.llm.openrouter import OpenRouterClient, OpenRouterConfig
+    from aitrader.llm.paid_trial import PaidModel, PaidTrial
+    from tests.openrouter_kit import CATALOG, KEY, model
+    month = (("2017-07-01T00:00:00Z", "2017-08-01T00:00:00Z") if active
+             else ("2030-01-01T00:00:00Z", "2030-02-01T00:00:00Z"))
+    trial = PaidTrial(name="test-senior", models={"senior": PaidModel(SENIOR, 4.0, 20.0)}, starts=month[0],
+                      ends=month[1], total_usd=8.5, daily_usd=1.5, max_call_usd=0.4)
+    paid = {**model(SENIOR, image=True, ii=58), "pricing": {"prompt": "0.000004", "completion": "0.00002"}}
+    fake = FakeOpenRouter(reply, catalog=CATALOG + [paid], usage_daily=0.0)
+    c = OpenRouterClient(OpenRouterConfig(api_key=KEY, paid_trial_off=off), transport=fake, clock=lambda: T,
+                         sleep=lambda s: None, trial=trial)
+    return Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=c), fake
+
+
+def says(verdict, confidence=80, reason="the structure and the costs both hold"):
+    return {"verdict": verdict, "confidence": confidence, "reason": reason, "main_risk": "a news spike"}
+
+
+def test_the_senior_reviews_the_agreed_trade_with_everything_the_desk_knows_and_approves_it():
+    brain, fake = senior_desk(scripted(senior=says("APPROVE", 72)))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "BUY" and rec["senior"]["verdict"] == "APPROVE" and rec["models"]["senior"] == SENIOR
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "senior"] and "Senior (" in d.thesis
+    review = fake.calls[2]["body"]
+    sent = packet_of(review)
+    assert sent["the_trade"]["side"] == "BUY" and sent["the_trade"]["fills_at"] == pytest.approx(ASK)
+    assert sent["the_trade"]["stop_loss"] == pytest.approx(d.stop_loss)
+    assert sent["the_trade"]["take_profit"] == pytest.approx(d.take_profit)
+    assert sent["trader1_analysis"]["direction"] == sent["trader2_analysis"]["direction"] == "BUY"
+    assert sent["time_machine"]["replays"] == 10_000 and "desk_memory" in sent and has_image(review)
+    assert sent["desk_playbook"] == PLAYBOOK and review["max_tokens"] == 10000
+
+
+@pytest.mark.parametrize("answer,rule", [
+    (says("VETO", 70, "the London/New York overlap has kept losing here"), "SENIOR_VETO"),
+    (says("APPROVE", 45), "SENIOR_VETO"),  # an approval below even odds contradicts itself
+    ("not json", "SENIOR_UNAVAILABLE"),
+    ({"verdict": "MAYBE", "confidence": 90, "reason": "x"}, "SENIOR_UNAVAILABLE"),
+    ({"verdict": "APPROVE", "confidence": 90}, "SENIOR_UNAVAILABLE"),  # an approval must say why
+])
+def test_anything_but_a_clear_approval_is_no_trade_and_the_trade_is_followed_in_shadow(answer, rule):
+    brain, _ = senior_desk(scripted(senior=answer))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == rule and "senior" in d.no_trade_reason
+    (shadow,) = counterfactual_decisions(d)
+    assert shadow.family == SENIOR_FAMILY and shadow.decision == "BUY"
+    assert shadow.ai_verdict == "NOT_APPROVED_BY_THE_SENIOR"
+    assert shadow.stop_loss == pytest.approx(rec["consensus"]["stop_loss"])  # Trader 1's levels, unchanged
+
+
+def test_the_senior_can_only_refuse_its_other_fields_never_change_the_trade():
+    brain, _ = senior_desk(scripted(senior={**says("APPROVE", 90), "direction": "SELL", "stop_loss": 1.0,
+                                            "take_profit": 2.0}))
+    d = brain.think(desk_ctx(), V).decision
+    base, _ = think(scripted())  # the same agreement on a desk with no senior declared
+    assert d.decision == base.decision == "BUY"
+    assert (d.stop_loss, d.take_profit) == (base.stop_loss, base.take_profit)
+    assert validate_senior({**says("APPROVE"), "verdict": "approve"}) == "verdict must be APPROVE or VETO"
+
+
+def test_without_the_seniors_funding_no_trade_is_approved_and_nothing_is_sent_to_it():
+    brain, fake = senior_desk(scripted(senior=says("APPROVE")), off=True)  # OPENROUTER_PAID_TRIAL=off
+    d = brain.think(desk_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "SENIOR_UNAVAILABLE"
+    assert "NOT_FUNDED" in d.no_trade_reason and "switched off" in d.no_trade_reason
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2"]
+
+
+def test_the_senior_is_asked_only_on_a_trade_candidate():
+    for t1, t2 in ((("BUY", 60), ("BUY", 80)), (("SELL", 80), ("BUY", 80))):  # under the floor; a disagreement
+        brain, fake = senior_desk(scripted(t1=t1, t2=t2, senior=says("APPROVE")))
+        assert brain.think(desk_ctx(), V).decision.decision == "NO_TRADE"
+        assert "senior" not in [c["role"] for c in fake.calls]
+
+
+def test_outside_its_funded_period_the_desk_decides_without_a_senior():
+    brain, fake = senior_desk(scripted(senior=says("VETO")), active=False)
+    assert brain.think(desk_ctx(), V).decision.decision == "BUY"
+    assert "senior" not in [c["role"] for c in fake.calls]
+
+
+# ── the desk's playbook (dual-ai 1.18.0) ────────────────────────────────
+
+def test_every_model_at_the_desk_reads_the_playbook_with_the_desks_own_numbers():
+    d, fake = think(scripted(t1=("SELL", 80), t2=("BUY", 80)))  # a disagreement: both traders and the debate
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "debate"]
+    for c in fake.calls:
+        assert packet_of(c["body"])["desk_playbook"] == PLAYBOOK
+    for c in fake.calls[:2]:
+        assert '"desk_playbook"' in c["body"]["messages"][0]["content"]
+    text = json.dumps(PLAYBOOK)
+    assert f"confidence of {MIN_CONFIDENCE} or more" in text
+    assert f"held up to {TIME_EXIT_MINUTES['H1'] // 60} h" in text
+    assert d.versions["playbook"] == PLAYBOOK["version"] and len(text) < 8000  # about 1,300 tokens

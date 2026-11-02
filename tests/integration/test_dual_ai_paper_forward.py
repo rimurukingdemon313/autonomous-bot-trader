@@ -44,9 +44,11 @@ def desk_reply(t1="BUY", t2="BUY", debate="BUY", target_atr=2.0, c1=80, c2=80):
     return reply
 
 
-def desk_runtime(tmp_path, monkeypatch, reply=None, mode="PAPER_FORWARD", clock=None):
+def desk_runtime(tmp_path, monkeypatch, reply=None, mode="PAPER_FORWARD", clock=None, make_client=None):
+    """`make_client(clock)`, when given, builds the OpenRouter client on the runtime's own clock."""
     fake = FakeOpenRouter(reply or desk_reply())
-    monkeypatch.setattr(runtime_mod, "OpenRouterClient", lambda cfg: client(fake))
+    monkeypatch.setattr(runtime_mod, "OpenRouterClient",
+                        lambda cfg: make_client(clock) if make_client is not None else client(fake))
     monkeypatch.setenv("DECISION_MODE", "dual_ai")
     if not (tmp_path / "kb").exists():
         _write_kb(tmp_path / "kb")
@@ -317,7 +319,7 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert "| Account | Equity |" not in head and "| Account | Equity |" in md and total in md.split(head)[1]
     assert "| DEBATE |" in md and "| AGREE |" in md  # each closed trade carries its rule
     assert "| Risk | Time machine |" in md  # dual-ai 1.16.0: each agreement's levels replayed, in the desk's table
-    assert "Paid trial `paid-trial-2026-10-26`" in md and "(the key's own reading)" in md  # its spend is shown
+    assert "Paid trial `senior-2026-11-02`" in md and "(the key's own reading)" in md  # the funded seat and its spend
     # who lost it: the two trades written straight into the journal passed no check (no verdict, no gate): ours
     b = pf["blame"]
     assert (b["trades"], b["losses"], b["market_losses"], b["ours_losses"], b["ours_loss_usd"]) == (3, 2, 0, 2, -450.0)
@@ -632,3 +634,35 @@ def test_the_runtime_seats_no_model_the_journal_shows_sure_on_every_answer(tmp_p
     assert asked and VISION not in asked and asked[0] == DEBATE  # the next vision model holds Trader 1's seat
     dec = json.loads(rt.db.one("SELECT payload FROM decisions WHERE symbol='EURUSD' ORDER BY seq DESC")["payload"])
     assert set(dec["ai"]["dual_ai"]["seats"]["always_sure"]) == {VISION}
+
+
+def test_the_senior_vetoes_an_agreement_end_to_end_it_is_followed_forward_never_traded(tmp_path, monkeypatch):
+    """dual-ai 1.18.0 in the production runtime: the senior's veto keeps the agreed trade off the account, the trade
+    it would have been is followed forward, and the dashboard and the report show the senior's verdict."""
+    from aitrader.llm.openrouter import OpenRouterClient, OpenRouterConfig
+    from aitrader.llm.paid_trial import PaidModel, PaidTrial
+    from scripts.paper_forward_shift import report_md
+    from tests.openrouter_kit import CATALOG, model
+    senior = "wise/senior-x"
+    trial = PaidTrial(name="test-senior", models={"senior": PaidModel(senior, 4.0, 20.0)},
+                      starts="2009-01-01T00:00:00Z", ends="2010-01-01T00:00:00Z", total_usd=8.5, daily_usd=1.5,
+                      max_call_usd=0.4)
+    base = desk_reply()
+    veto = {"verdict": "VETO", "confidence": 75, "reason": "the costs leave no edge at these levels",
+            "main_risk": "a fade back into the range"}
+    fake = FakeOpenRouter(lambda role, body: veto if role == "senior" else base(role, body),
+                          catalog=CATALOG + [{**model(senior, image=True, ii=58),
+                                              "pricing": {"prompt": "0.000004", "completion": "0.00002"}}],
+                          usage_daily=0.0)
+    rt, clock, _ = desk_runtime(tmp_path, monkeypatch, make_client=lambda clk: OpenRouterClient(
+        OpenRouterConfig(api_key=KEY), transport=fake, clock=clk, sleep=lambda s: None, trial=trial))
+    cycles(rt, clock)
+    assert rt.broker.positions() == [] and [c["role"] for c in fake.calls] == ["trader1", "trader2", "senior"]
+    rows = [json.loads(r["payload"]) for r in rt.db.query("SELECT payload FROM forward_proposals")]
+    assert [r["family"] for r in rows] == ["DUAL_AI_SENIOR_VETO"] and rows[0]["executed"] is False
+    view = rt.dual_ai()
+    last = view["last_analysis"]
+    assert last["consensus"]["rule"] == "SENIOR_VETO" and last["senior"]["verdict"] == "VETO"
+    md = report_md({**rt.paper_forward(), "dual_ai": view}, {"started": "now", "decision_mode": "dual_ai"})
+    assert "| Senior |" in md and "| VETO 75 |" in md and "1 vetoed" in md
+    assert "the senior `wise/senior-x` (paid only)" in md  # the funded seat, as the report names it
