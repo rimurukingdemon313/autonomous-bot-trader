@@ -469,17 +469,20 @@ def test_while_a_seats_holder_rests_briefly_nothing_is_asked_and_it_keeps_its_se
     assert back.ok and back.model == VISION  # rested: its seat was kept for it
 
 
-def test_a_seat_passes_on_only_when_its_holder_is_gone():
-    def reply(role, body):
-        if body["model"] == VISION:
-            return 404, {}, {"error": {"message": "No endpoints found for seer/vision-a:free"}}
-        return {"x": 1}
-    fake = FakeOpenRouter(reply)
+@pytest.mark.parametrize("gone", [
+    (404, {}, {"error": {"message": "No endpoints found for seer/vision-a:free"}}),  # no provider serves it
+    (403, {}, {"error": {"message": "seer/vision-a:free is only available on agentic harnesses"}}),  # closed to us
+])
+def test_a_seat_whose_holder_is_gone_passes_on_within_the_same_call(gone):
+    # live, 2026-11-02 16:08: two restricted models cost Trader 2's seat a decision each before it passed on
+    fake = FakeOpenRouter(lambda role, body: gone if body["model"] == VISION else {"x": 1})
     c = client(fake)
-    gone = c.chat_json("vision", MSG, accept, dedupe_key="k1", seat=True)
-    assert not gone.ok and [x["model"] for x in fake.calls] == [VISION]  # nobody stands in for this decision
+    res = c.chat_json("vision", MSG, accept, dedupe_key="k1", seat=True)
+    assert res.ok and res.model == DEBATE and [x["model"] for x in fake.calls] == [VISION, DEBATE]
+    assert [m for m, _ in res.tried] == [VISION] and res.record()["tried"][0]["status"] in ("UNAVAILABLE",
+                                                                                        "MODEL_RESTRICTED")
     nxt = c.chat_json("vision", MSG, accept, dedupe_key="k2", seat=True)
-    assert nxt.ok and nxt.model == DEBATE  # the provider cannot serve it for hours: the seat passed on
+    assert nxt.ok and nxt.model == DEBATE and len(fake.calls) == 3  # the new holder keeps it
 
 
 def test_the_status_names_each_seats_holder_even_while_it_rests_never_a_model_kept_off_the_seats():
@@ -494,3 +497,11 @@ def test_the_status_names_each_seats_holder_even_while_it_rests_never_a_model_ke
     assert h["vision_model"] == DEBATE and h["selection"]["seat_excluded"] == {VISION: "sure on every answer"}
     c.exclude_from_seats({})  # replaced at each decision: a model whose habit changed gets its place back
     assert c.health()["vision_model"] == VISION
+
+
+def test_a_seats_holder_that_answers_badly_is_asked_once_and_nobody_stands_in():
+    # an unusable answer is never asked for again, of that model or another, in the same decision
+    fake = FakeOpenRouter(lambda role, body: "not json" if body["model"] == VISION else {"x": 1})
+    c = client(fake)
+    res = c.chat_json("vision", MSG, accept, dedupe_key="k", seat=True)
+    assert not res.ok and res.status.startswith("INVALID") and [x["model"] for x in fake.calls] == [VISION]

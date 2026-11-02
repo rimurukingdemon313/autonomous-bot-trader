@@ -16,7 +16,8 @@ newer. Change it only by a code change that says why, and bump PLAYBOOK_VERSION.
 
 from __future__ import annotations
 
-PLAYBOOK_VERSION = "playbook-1.0.0"
+#: 1.1.0 (2026-11-02): DESK-1's result: taking profit early would have cost money.
+PLAYBOOK_VERSION = "playbook-1.1.0"
 
 
 def build(min_confidence: int, hold_hours: int) -> dict:
@@ -52,6 +53,10 @@ def build(min_confidence: int, hold_hours: int) -> dict:
             "+0.07 R (129, 46%) on Trader 1's. The trade has been placed on Trader 1's levels since 25 October.",
             "Holding 24 h beat closing at 8 h: over 31 paired trades, +0.19 R better, 7 better and none worse "
             "(20 October).",
+            "Taking profit early would have cost money. DESK-1, preregistered on 2 November, capped the profit of 375 "
+            "agreements at 0.75, 1 or 1.25 R. All three did worse than the traders' own targets, by 0.06 to 0.10 R a "
+            "trade (t -2.2 to -2.6). They raise the win rate but cut the winners by more than they save: a target is "
+            "worth placing where the move can really go.",
             "Refusing trades when the H1 structure is a range did not hold up. The refused trades did +0.03 R (34) "
             "against -0.05 R (53) for those taken, and the rule was reversed on 28 October.",
             "Over 375 agreements in the learning weeks, to 2 November: BUYs lost -0.36 R (123, t -3.4); October's "

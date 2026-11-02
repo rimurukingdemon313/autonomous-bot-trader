@@ -69,3 +69,26 @@ A skipped trade is no trade: 0 R.
   October). No rule here was computed on it.
 - **Power:** 109 agreements are few. A real but small improvement may well fail to reach t 2.0 there, and that would
   be reported as NOT CONFIRMED, not explained away.
+
+## Result (run 2026-11-02, after the freeze; `research/knowledge/DESK-1.json`)
+
+**NOT CONFIRMED.** Nothing in the bot changes.
+
+| On LEARNING (375 agreements) | Mean d per agreement | Paired t | Its own net R | Win rate |
+|---|---|---|---|---|
+| The agreements as followed (baseline) | | | -0.069 R | 42.4% |
+| TP-0.75 | -0.100 R | -2.53 | -0.169 R | 51.7% |
+| TP-1.0 | -0.070 R | -2.18 | -0.139 R | 47.2% |
+| TP-1.25 | -0.057 R | -2.60 | -0.126 R | 44.0% |
+| SKIP-COST-0.20 | +0.028 R | 0.54 | -0.096 R (163 trades) | 42.9% |
+| SKIP-OVERLAP | +0.063 R | 2.81 | -0.008 R (321 trades) | 44.9% |
+
+- **Taking profit early would have cost money.** All three caps did worse than the traders' own targets, each with
+  t beyond -2. They raise the win rate but cut the winners by more than they save.
+- **SKIP-OVERLAP was selected** (+0.063 R, t 2.81) and could not be confirmed. The EVALUATION weeks hold no
+  agreement in the overlap at all, because the risk engine has refused new positions there since 19 October, before
+  those weeks. Its EVALUATION d is 0 for every agreement, so it is NOT CONFIRMED as registered. The rule it
+  describes is already in force.
+- **The EVALUATION weeks themselves lost -0.357 R an agreement** (109, 27.5% won, t -3.23), against -0.069 R in
+  LEARNING. No rule tested here makes this record pay. The desk has traded on H1, with wider stops, only since
+  1 November. Its senior and its playbook started on 2 November, and none of it is in this record yet.

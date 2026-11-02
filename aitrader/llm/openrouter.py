@@ -107,7 +107,14 @@ from .provider import extract_json
 #: 1.12.0 (owner, 2026-11-02: "use stronger models if you want, but please make them know"): a paid-only seat
 #:         (paid_trial.PAID_ONLY_ROLES, the senior): no FREE model is ever ranked for it; when its paid model cannot be
 #:         asked (outside its window, its caps, switched off, not as priced) the call is NOT_FUNDED, with no request.
-OPENROUTER_VERSION = "openrouter-1.12.0"
+#: 1.13.0 (live, 2026-11-02 16:08): a seat whose holder is GONE (closed to this key, 403; or no provider serves it, 404)
+#:         passes to the next model of its ranking within the same call, at most SEAT_HANDOVERS times. In the first
+#:         hour of dual-ai 1.18.0 two restricted models ("only available on agentic harnesses") cost Trader 2's seat a
+#:         decision each before it passed on. A holder that is only busy still has no stand-in.
+OPENROUTER_VERSION = "openrouter-1.13.0"
+#: a seat's holder that answers so is gone, not busy: excluded, or resting for hours (1.13.0)
+SEAT_GONE = ("MODEL_RESTRICTED", "UNAVAILABLE")
+SEAT_HANDOVERS = 2
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -526,16 +533,30 @@ class OpenRouterClient:
             why = (f"no FREE {role} model other than {', '.join(avoid)}" if ranked else
                    self._selection.error or "no FREE model qualifies")
             return CallResult(False, "NO_FREE_MODEL", role, error=why)
-        if seat:  # one model holds the seat; when it cannot answer, nobody stands in for it (1.11.0)
-            holder = models[0]
-            with self._lock:
-                until, rest_why = self._cooldown.get(holder, (0.0, ""))
-            if until > self.clock():
-                return CallResult(False, "SEAT_RESTING", role, holder,
-                                  error=f"the seat's model {holder} is resting ({rest_why}) for "
-                                        f"{int(until - self.clock())} s more; no other model stands in for it")
-            models = [holder]
         deadline = self.clock() + deadline_s
+        if seat:  # one model holds the seat; when it cannot answer, nobody stands in for it (1.11.0)
+            gone: list = []
+            for _ in range(SEAT_HANDOVERS + 1):
+                holder = models[0]
+                with self._lock:
+                    until, rest_why = self._cooldown.get(holder, (0.0, ""))
+                if until > self.clock():
+                    return CallResult(False, "SEAT_RESTING", role, holder, tried=list(gone),
+                                      error=f"the seat's model {holder} is resting ({rest_why}) for "
+                                            f"{int(until - self.clock())} s more; no other model stands in for it")
+                res = self._one_model(role, holder, messages, validate, max_tokens, deadline)
+                res.tried = list(gone)
+                if res.ok or res.status not in SEAT_GONE or self.clock() >= deadline:
+                    return res
+                # the holder is gone, not busy: the next model of the seat's ranking holds it, from this call (1.13.0)
+                gone.append((holder, res.status))
+                ranked = self.models_for(role, max_tokens, seat=True)
+                if other_lab_than:
+                    ranked = sorted(ranked, key=lambda m: lab_of(m) in other_lab_than)
+                models = [m for m in ranked if m not in avoid]
+                if not models:
+                    return res
+            return res
         last = CallResult(False, "UNAVAILABLE", role, error="no model answered")
         tried: list = []
         for model in models:

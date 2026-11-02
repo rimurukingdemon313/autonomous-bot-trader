@@ -729,12 +729,14 @@ MUTANTS = [
      '    return {"outcome": "TRADE", "rule": "DISAGREE",', ["tests/unit/test_dual_ai.py"]),
     # ── one model per trader's seat (openrouter 1.11.0, dual-ai 1.17.0; replaces the numbers fallback) ──
     ("or-seat-holder-only", "a trader's seat asks its holder only: nobody stands in when it fails",
-     "aitrader/llm/openrouter.py", "            models = [holder]\n", "            pass\n",
-     ["tests/unit/test_openrouter.py"]),
+     "aitrader/llm/openrouter.py",
+     "                if res.ok or res.status not in SEAT_GONE or self.clock() >= deadline:",
+     "                if res.ok or self.clock() >= deadline:", ["tests/unit/test_openrouter.py", "tests/unit/test_dual_ai.py"]),
     ("or-seat-resting", "while a seat's holder rests briefly, nothing is asked and nobody stands in",
      "aitrader/llm/openrouter.py",
-     '            if until > self.clock():\n                return CallResult(False, "SEAT_RESTING"',
-     '            if False:\n                return CallResult(False, "SEAT_RESTING"', ["tests/unit/test_openrouter.py"]),
+     '                if until > self.clock():\n                    return CallResult(False, "SEAT_RESTING"',
+     '                if False:\n                    return CallResult(False, "SEAT_RESTING"',
+     ["tests/unit/test_openrouter.py"]),
     ("or-seat-kept-while-resting", "a seat's holder resting a short while keeps its seat",
      "aitrader/llm/openrouter.py", 'if until > now and why == "unavailable"}', "if until > now}",
      ["tests/unit/test_openrouter.py"]),
@@ -846,8 +848,8 @@ MUTANTS = [
      'if r.get("symbol") == symbol and str(r.get("family")).startswith("DUAL_AI")',
      ["tests/unit/test_dual_ai_journal.py"]),
     ("or-other-lab-first", "another lab's models are asked first when a caller names a lab (openrouter 1.10.0)",
-     "aitrader/llm/openrouter.py", "            ranked = sorted(ranked, key=lambda m: lab_of(m) in other_lab_than)",
-     "            ranked = list(ranked)", ["tests/unit/test_openrouter.py"]),
+     "aitrader/llm/openrouter.py", "(a stable sort)\n            ranked = sorted(ranked, key=lambda m: lab_of(m) in "
+     "other_lab_than)", "(a stable sort)\n            ranked = list(ranked)", ["tests/unit/test_openrouter.py"]),
     ("dai-trader2-other-lab", "Trader 2 is asked on another lab's model than Trader 1's first (dual-ai 1.14.0)",
      "aitrader/agents/dual_ai.py", "                              other_lab_than=(lab_of(r1.model),), seat=True)",
      "                              other_lab_than=(), seat=True)", ["tests/unit/test_dual_ai.py"]),
@@ -1118,6 +1120,10 @@ MUTANTS = [
     ("report-senior-column", "the report shows each decision's senior verdict",
      "scripts/paper_forward_shift.py", "f\"{sr.get('verdict', '-')} {sr.get('confidence', '')} | \"",
      "f\"- | \"", ["tests/integration/test_dual_ai_paper_forward.py"]),
+    ("or-seat-gone-handover", "a seat whose holder is gone passes to the next model within the same call",
+     "aitrader/llm/openrouter.py",
+     "                if res.ok or res.status not in SEAT_GONE or self.clock() >= deadline:",
+     "                if True:", ["tests/unit/test_openrouter.py"]),
 ]
 
 

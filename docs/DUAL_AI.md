@@ -437,6 +437,22 @@ the risk engine exactly as before, which sizes it and may still refuse it.
 week to 30 October did no better than the free ones. Whether the senior's vetoes save money is what its shadow
 measures.
 
+## DESK-1: what if the agreements had exited or been filtered another way? (2026-11-02)
+
+The owner: "make it profitable; try everything, test everything". Preregistered and frozen first
+(`research/preregistrations/DESK-1.md`, 0d75bd5). It tested the simplest rules the record suggested on the 484
+agreements followed forward (all on M15): a take-profit at 0.75, 1 or 1.25 R, skipping trades whose planned costs
+exceed 0.20 R, and skipping the London/New York overlap. Each was chosen on the LEARNING weeks and judged on the
+EVALUATION weeks. **NOT CONFIRMED; nothing changes.**
+
+- **Taking profit early would have cost money:** -0.06 to -0.10 R an agreement, t -2.2 to -2.6. The winners need
+  their full target.
+- **Skipping costly trades:** no effect (+0.03 R, t 0.5).
+- **Skipping the overlap** helped on LEARNING (+0.06 R, t 2.8). It could not be confirmed, because the risk engine
+  has closed the overlap since 19 October, so no agreement there falls in the EVALUATION weeks.
+- **Those weeks lost -0.36 R an agreement** (109, t -3.2). No rule here makes the M15 record pay. The H1 desk, its
+  senior and its playbook are too new to be in it.
+
 ## The desk's playbook (dual-ai 1.18.0, `agents/playbook.py`)
 
 What this project has learned, written down for every model that sits at the desk: both traders, the debate and
