@@ -2540,6 +2540,13 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPJPY",
+   "decision": "NO_TRADE",
+   "t": 1793671225,
+   "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
+   "data_flags": []
+  },
+  {
    "symbol": "EURJPY",
    "decision": "NO_TRADE",
    "t": 1793671223,
@@ -2699,16 +2706,9 @@
    "t": 1793661318,
    "reason": "risk engine: quiet_hours (18:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPJPY",
-   "decision": "NO_TRADE",
-   "t": 1793660421,
-   "reason": "risk engine: quiet_hours (18:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 4244,
+ "decisions_total": 4245,
  "shift": {
   "started": "2026-11-02 21:45 UTC",
   "decision_mode": "dual_ai",
@@ -2733,21 +2733,21 @@
    "paid_trial_off": false,
    "version": "openrouter-1.13.0",
    "status": "READY",
-   "calls_today": 10,
+   "calls_today": 12,
    "last_call": {
-    "t": 1793671225,
-    "role": "vision",
-    "model": "google/gemma-4-26b-a4b-it:free",
-    "status": "RATE_LIMITED",
+    "t": 1793671539,
+    "role": "judge",
+    "model": "xingchen-agi/xing4.0-29b-a4b:free",
+    "status": "INVALID: direction must be BUY or SELL: the desk always chooses a side",
     "ok": false,
-    "error": "HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
-    "request_id": "cfb8ab06e84745dc879661c8eef7f1a2",
-    "provider_id": null,
+    "error": null,
+    "request_id": "75549fd0447f435b95ce3622efbe424c",
+    "provider_id": "gen-1793671327-pvmORZHDqsBTRYljcN6U",
     "attempts": 1,
-    "latency_ms": 277.1,
+    "latency_ms": 212303.2,
     "cached": false,
-    "tokens": null,
-    "cost": null,
+    "tokens": 36533,
+    "cost": 0.0,
     "tried": []
    },
    "key": {
@@ -2956,7 +2956,7 @@
     ],
     "free_total": 8,
     "catalog_total": 451,
-    "refreshed": 1793671227.0104344,
+    "refreshed": 1793672123.7228885,
     "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
@@ -3005,6 +3005,14 @@
     "google/gemma-4-26b-a4b-it:free": {
      "ok": 0,
      "failed": 3
+    },
+    "dots-studio/dots-3-note-preview:free": {
+     "ok": 1,
+     "failed": 0
+    },
+    "xingchen-agi/xing4.0-29b-a4b:free": {
+     "ok": 1,
+     "failed": 0
     }
    }
   },
@@ -3163,35 +3171,79 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1793667600,
     "last_bar_available": 1793671200
+   },
+   "EURCHF": {
+    "t": 1793672121,
+    "decision_id": "d72df2ce7f631364d5b9ec5c",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30136,
+    "sha256": "37791787ea1d8d57508708d0666b7ccac8fbeea3936ca44d798ddd6f5029aedd",
+    "as_of": 1793672121,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793667600,
+    "last_bar_available": 1793671200
    }
   },
   "last_analysis": {
-   "decision_id": "4e5aca5283fb42a5b49c657a",
-   "symbol": "EURJPY",
-   "t": 1793671223,
+   "decision_id": "02912323a5cca1d158718a77",
+   "symbol": "GBPJPY",
+   "t": 1793671225,
    "decision": "NO_TRADE",
-   "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for",
+   "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it, and there is no decision on one trader alone",
-    "rule": "TRADER1_UNAVAILABLE"
+    "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
+    "rule": "TRADER2_UNAVAILABLE"
    },
    "models": {
-    "trader1": "google/gemma-4-26b-a4b-it:free"
+    "trader1": "dots-studio/dots-3-note-preview:free",
+    "trader2": "xingchen-agi/xing4.0-29b-a4b:free"
    },
-   "trader1": null,
-   "trader2": null,
+   "trader1": {
+    "confidence": 68,
+    "direction": "SELL",
+    "entry": 211.607,
+    "invalidation": "211.83",
+    "liquidity": "Liquidity sweeps on lows at 211.633 show bullish signals, but price remains below this level, indicating potential continuation of the downside pressure; equal lows liquidity sits lower at 210.667 and 210.273.",
+    "market_structure": "H1 shows a DOWN trend (LH+LL) with recent lower highs and a lower low, while H4 is in a RANGE (mixed swings) with a bullish BOS but price is currently in the upper half of the range, favoring a pullback.",
+    "momentum": "Bearish momentum on H1 with consecutive lower highs and a close near the low of the bar, supported by bearish structure breaks on lower timeframes.",
+    "reason": "The H1 chart displays a clear DOWN trend (LH+LL) with price making lower highs and trading below key resistance. SELL has a positive historical expectancy on GBPJPY (+0.455 R) whereas BUY is strongly negative. The stop is placed structurally above the LH at 211.83, targeting the support zone near 211.00 for a reward-to-risk of 2.7.",
+    "reversal_probability": 35,
+    "risk_reward": 2.72,
+    "stop_loss": 211.83,
+    "take_profit": 211.0,
+    "trend": "H1 DOWN, H4 RANGE"
+   },
+   "trader2": {
+    "confidence": null,
+    "direction": null,
+    "entry": null,
+    "invalidation": null,
+    "liquidity": null,
+    "market_structure": null,
+    "momentum": null,
+    "reason": null,
+    "reversal_probability": null,
+    "risk_reward": null,
+    "stop_loss": null,
+    "take_profit": null,
+    "trend": null
+   },
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793671223,
-    "bytes": 30302,
+    "as_of": 1793671225,
+    "bytes": 31040,
     "execution_timeframe": "H1",
     "height": 1000,
     "higher_timeframe": "H4",
     "last_bar_available": 1793671200,
     "last_bar_open": 1793667600,
-    "sha256": "ff027ae8e4d738d56be05a6cdc15a0a1b0dd77b8ed2f8a9b0f25e34d78b0717c",
+    "sha256": "5020c4a66a42edf3f860df80e64016635244b9cdc2188dc87127323c65e48fc6",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -3199,16 +3251,31 @@
     {
      "attempts": 1,
      "cached": false,
-     "cost": null,
-     "error": "HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
-     "latency_ms": 277.1,
-     "model": "google/gemma-4-26b-a4b-it:free",
-     "ok": false,
-     "provider_id": null,
-     "request_id": "cfb8ab06e84745dc879661c8eef7f1a2",
+     "cost": 0.0,
+     "error": null,
+     "latency_ms": 100088.9,
+     "model": "dots-studio/dots-3-note-preview:free",
+     "ok": true,
+     "provider_id": "gen-1793671227-aQ4fmEEZqUyFHQCBTCoE",
+     "request_id": "e0b784f3b0b7488c8ba9e25783163951",
      "role": "vision",
-     "status": "RATE_LIMITED",
-     "tokens": null,
+     "status": "OK",
+     "tokens": 23241,
+     "tried": []
+    },
+    {
+     "attempts": 1,
+     "cached": false,
+     "cost": 0.0,
+     "error": null,
+     "latency_ms": 212303.2,
+     "model": "xingchen-agi/xing4.0-29b-a4b:free",
+     "ok": false,
+     "provider_id": "gen-1793671327-pvmORZHDqsBTRYljcN6U",
+     "request_id": "75549fd0447f435b95ce3622efbe424c",
+     "role": "judge",
+     "status": "INVALID: direction must be BUY or SELL: the desk always chooses a side",
+     "tokens": 36533,
      "tried": []
     }
    ],
@@ -3219,6 +3286,103 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "02912323a5cca1d158718a77",
+    "symbol": "GBPJPY",
+    "t": 1793671225,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free",
+     "trader2": "xingchen-agi/xing4.0-29b-a4b:free"
+    },
+    "trader1": {
+     "confidence": 68,
+     "direction": "SELL",
+     "entry": 211.607,
+     "invalidation": "211.83",
+     "liquidity": "Liquidity sweeps on lows at 211.633 show bullish signals, but price remains below this level, indicating potential continuation of the downside pressure; equal lows liquidity sits lower at 210.667 and 210.273.",
+     "market_structure": "H1 shows a DOWN trend (LH+LL) with recent lower highs and a lower low, while H4 is in a RANGE (mixed swings) with a bullish BOS but price is currently in the upper half of the range, favoring a pullback.",
+     "momentum": "Bearish momentum on H1 with consecutive lower highs and a close near the low of the bar, supported by bearish structure breaks on lower timeframes.",
+     "reason": "The H1 chart displays a clear DOWN trend (LH+LL) with price making lower highs and trading below key resistance. SELL has a positive historical expectancy on GBPJPY (+0.455 R) whereas BUY is strongly negative. The stop is placed structurally above the LH at 211.83, targeting the support zone near 211.00 for a reward-to-risk of 2.7.",
+     "reversal_probability": 35,
+     "risk_reward": 2.72,
+     "stop_loss": 211.83,
+     "take_profit": 211.0,
+     "trend": "H1 DOWN, H4 RANGE"
+    },
+    "trader2": {
+     "confidence": null,
+     "direction": null,
+     "entry": null,
+     "invalidation": null,
+     "liquidity": null,
+     "market_structure": null,
+     "momentum": null,
+     "reason": null,
+     "reversal_probability": null,
+     "risk_reward": null,
+     "stop_loss": null,
+     "take_profit": null,
+     "trend": null
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793671225,
+     "bytes": 31040,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793671200,
+     "last_bar_open": 1793667600,
+     "sha256": "5020c4a66a42edf3f860df80e64016635244b9cdc2188dc87127323c65e48fc6",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 100088.9,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1793671227-aQ4fmEEZqUyFHQCBTCoE",
+      "request_id": "e0b784f3b0b7488c8ba9e25783163951",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 23241,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 212303.2,
+      "model": "xingchen-agi/xing4.0-29b-a4b:free",
+      "ok": false,
+      "provider_id": "gen-1793671327-pvmORZHDqsBTRYljcN6U",
+      "request_id": "75549fd0447f435b95ce3622efbe424c",
+      "role": "judge",
+      "status": "INVALID: direction must be BUY or SELL: the desk always chooses a side",
+      "tokens": 36533,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
    {
     "decision_id": "4e5aca5283fb42a5b49c657a",
     "symbol": "EURJPY",
@@ -3788,29 +3952,6 @@
     "consensus": {
      "outcome": "NO_TRADE",
      "reason": "risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.18.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
-   },
-   {
-    "decision_id": "dca697e677942286578a6195",
-    "symbol": "GBPJPY",
-    "t": 1793665822,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (19:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (19:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
      "rule": "NOT_ASKED"
     },
     "models": {},
@@ -4509,11 +4650,11 @@
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 2233,
     "TRADER1_UNAVAILABLE": 36,
-    "TRADER2_UNAVAILABLE": 25
+    "TRADER2_UNAVAILABLE": 26
    },
    "agreement_rate": 0.655,
    "decisions_with_both_traders": 739,
-   "unavailable": 3181
+   "unavailable": 3182
   },
   "recent_trades": [
    {
@@ -5239,8 +5380,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793670319,
+  "last_cycle": 1793671219,
   "last_cycle_error": null,
-  "cycles": 16
+  "cycles": 17
  }
 }
