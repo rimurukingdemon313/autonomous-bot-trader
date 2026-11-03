@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-03 14:00 UTC**, run 640, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
+Updated **2026-11-03 15:00 UTC**, run 641, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-11-03 14:00 UTC**, run 640, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 26.75
+- days: 26.79
 - run_coverage: 0.9953
 - closed_positions: 149
 - open_positions: 2
 - utilisation: 0.1856
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.6245
-- book_excess_pct: -1.6939
-- ann_excess_deployed_pct: -125.117
-- ann_excess_deployed_costs_x1.5_pct: -220.972
-- ann_excess_deployed_costs_x2_pct: -316.826
+- book_pnl_pct: -1.6238
+- book_excess_pct: -1.6934
+- ann_excess_deployed_pct: -124.864
+- ann_excess_deployed_costs_x1.5_pct: -220.557
+- ann_excess_deployed_costs_x2_pct: -316.25
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.9154
+- book_excess_without_best_coin_pct: -1.9148
 - max_dd_pct: 1.6245
-- t_excess_daily: -3.183
+- t_excess_daily: -3.182
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 48.1 | 9.1 | 17.0 | **40.1** |
-| SOXL | mexc | gate | 2026-11-03 08:00 | 25.1% | 3.4 | -3.1 | 17.0 | **-16.7** |
+| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 48.6 | 6.6 | 17.0 | **38.2** |
+| SOXL | mexc | gate | 2026-11-03 08:00 | 25.1% | 3.7 | -0.2 | 17.0 | **-13.5** |
 
 ## Closed positions (149)
 
@@ -79,6 +79,6 @@ Updated **2026-11-03 14:00 UTC**, run 640, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| SOXL | mexc | gate | 29.2% | 33.3% |
+| SOXL | mexc | gate | 29.6% | 25.2% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
