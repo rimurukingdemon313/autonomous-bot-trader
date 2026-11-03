@@ -730,7 +730,7 @@ MUTANTS = [
     # ── one model per trader's seat (openrouter 1.11.0, dual-ai 1.17.0; replaces the numbers fallback) ──
     ("or-seat-holder-only", "a trader's seat asks its holder only: nobody stands in when it fails",
      "aitrader/llm/openrouter.py",
-     "                if res.ok or res.status not in SEAT_GONE or self.clock() >= deadline:",
+     "                if res.ok or not (res.status in SEAT_GONE or absent) or self.clock() >= deadline:",
      "                if res.ok or self.clock() >= deadline:", ["tests/unit/test_openrouter.py", "tests/unit/test_dual_ai.py"]),
     ("or-seat-resting", "while a seat's holder rests briefly, nothing is asked and nobody stands in",
      "aitrader/llm/openrouter.py",
@@ -747,8 +747,8 @@ MUTANTS = [
      "aitrader/llm/openrouter.py", '"vision_model": seats.vision[0]["id"] if seats.vision else None,',
      '"vision_model": sel["vision"][0]["id"] if sel["vision"] else None,', ["tests/unit/test_openrouter.py"]),
     ("or-seat-excluded", "a model the desk keeps off the seats holds none, and is never named as a seat's model",
-     "aitrader/llm/openrouter.py", "excluded=set(self._excluded) | gone | set(self._seat_excluded))",
-     "excluded=set(self._excluded) | gone)", ["tests/unit/test_openrouter.py"]),
+     "aitrader/llm/openrouter.py", "excluded=set(self._excluded) | gone | self._absent(now) | set(self._seat_excluded))",
+     "excluded=set(self._excluded) | gone | self._absent(now))", ["tests/unit/test_openrouter.py"]),
     ("dai-seat-trader1", "Trader 1 is its seat's model or nobody",
      "aitrader/agents/dual_ai.py", "                              avoid=tuple(sorted(sure)), seat=True)",
      "                              avoid=tuple(sorted(sure)), seat=False)", ["tests/unit/test_dual_ai.py"]),
@@ -1122,8 +1122,22 @@ MUTANTS = [
      "f\"- | \"", ["tests/integration/test_dual_ai_paper_forward.py"]),
     ("or-seat-gone-handover", "a seat whose holder is gone passes to the next model within the same call",
      "aitrader/llm/openrouter.py",
-     "                if res.ok or res.status not in SEAT_GONE or self.clock() >= deadline:",
+     "                if res.ok or not (res.status in SEAT_GONE or absent) or self.clock() >= deadline:",
      "                if True:", ["tests/unit/test_openrouter.py"]),
+    # ── an absent seat holder (openrouter 1.14.0) ──
+    ("or-seat-absent-handover", "a seat's holder that has to rest twice in a row passes the seat on within that call",
+     "aitrader/llm/openrouter.py", "                    absent = holder in self._absent(self.clock())",
+     "                    absent = False", ["tests/unit/test_openrouter.py"]),
+    ("or-seat-absent-off-seat", "an absent model holds no seat for as long as it rests",
+     "aitrader/llm/openrouter.py",
+     "excluded=set(self._excluded) | gone | self._absent(now) | set(self._seat_excluded))",
+     "excluded=set(self._excluded) | gone | set(self._seat_excluded))", ["tests/unit/test_openrouter.py"]),
+    ("or-seat-absent-twice", "a holder busy once keeps its seat: absent only on the second rest in a row",
+     "aitrader/llm/openrouter.py", "SEAT_ABSENT_IN_A_ROW = 2", "SEAT_ABSENT_IN_A_ROW = 1",
+     ["tests/unit/test_openrouter.py"]),
+    ("or-seat-absent-while-resting", "an absent model is ranked as before once its rest is over",
+     "aitrader/llm/openrouter.py", "                if until > now and self._streak.get(m, 0) >= SEAT_ABSENT_IN_A_ROW}",
+     "                if self._streak.get(m, 0) >= SEAT_ABSENT_IN_A_ROW}", ["tests/unit/test_openrouter.py"]),
 ]
 
 

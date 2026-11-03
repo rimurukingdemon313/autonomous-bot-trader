@@ -485,6 +485,41 @@ def test_a_seat_whose_holder_is_gone_passes_on_within_the_same_call(gone):
     assert nxt.ok and nxt.model == DEBATE and len(fake.calls) == 3  # the new holder keeps it
 
 
+def test_a_seats_holder_that_has_to_rest_twice_in_a_row_is_absent_and_the_seat_passes_on_within_that_call():
+    # live, 2026-11-03: two models "temporarily rate-limited upstream" cost Trader 2's seat 37 of its 53 lost
+    # decisions, each keeping it until it had failed three times and lost its rank
+    busy = {"on": True}
+
+    def reply(role, body):
+        if body["model"] == VISION and busy["on"]:
+            return 429, {}, {"error": {"message": "temporarily rate-limited upstream"}}
+        return {"x": 1}
+    now = {"t": 1_790_000_000.0}
+    # far ahead of the next vision model, so no failure rate takes its rank: only its absence moves the seat
+    fake = FakeOpenRouter(reply, catalog=[model(VISION, ii=60), model(TRADER, image=False, ii=28),
+                                          model(DEBATE, ii=15)])
+    c = client(fake, clock=lambda: now["t"], max_retries=0)
+    once = c.chat_json("vision", MSG, accept, dedupe_key="k1", seat=True)
+    assert not once.ok and [x["model"] for x in fake.calls] == [VISION]  # busy once: nobody stands in
+    assert c.health()["vision_model"] == VISION  # and it keeps its seat while it rests
+    assert c.chat_json("vision", MSG, accept, dedupe_key="k2", seat=True).status == "SEAT_RESTING"
+    now["t"] = c.selection()["cooldown"][VISION]["until"] + 1
+    twice = c.chat_json("vision", MSG, accept, dedupe_key="k3", seat=True)  # busy again, no usable reply between
+    assert twice.ok and twice.model == DEBATE and [x["model"] for x in fake.calls] == [VISION, VISION, DEBATE]
+    assert twice.record()["tried"] == [{"model": VISION, "status": "RATE_LIMITED"}]
+    assert c.health()["vision_model"] == DEBATE  # off the seat for as long as it rests
+    held = c.chat_json("vision", MSG, accept, dedupe_key="k4", seat=True)
+    assert held.ok and held.model == DEBATE and len(fake.calls) == 4  # the absent model is not asked meanwhile
+    busy["on"] = False
+    now["t"] = c.selection()["cooldown"][VISION]["until"] + 1  # its rest is over: ranked as before
+    back = c.chat_json("vision", MSG, accept, dedupe_key="k5", seat=True)
+    assert back.ok and back.model == VISION
+    busy["on"] = True  # its usable reply cleared its streak: busy once more, it keeps its seat again
+    again = c.chat_json("vision", MSG, accept, dedupe_key="k6", seat=True)
+    assert not again.ok and again.model == VISION and fake.calls[-1]["model"] == VISION
+    assert c.health()["vision_model"] == VISION
+
+
 def test_the_status_names_each_seats_holder_even_while_it_rests_never_a_model_kept_off_the_seats():
     # the report's "trader 1" line: a stand-in is never asked, so it is never named as the seat's model
     fake = FakeOpenRouter(lambda r, b: (429, {}, {"error": {"message": "temporarily rate-limited upstream"}})

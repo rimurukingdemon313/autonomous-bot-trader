@@ -366,8 +366,14 @@ So, from dual-ai 1.17.0:
    and the decision is NO_TRADE (`TRADER1_UNAVAILABLE`, `TRADER2_UNAVAILABLE`). While it rests a short while
    (busy, rate-limited, failing: an hour at most) it keeps its seat and nothing is asked (`SEAT_RESTING`). The
    seat passes on only when its holder is gone (the provider cannot serve it: a 6 h rest; excluded; out of the
-   catalog) or fails often enough to lose its rank. Trader 1's numbers fallback on a text model is gone. The debate,
-   shadow only, keeps its fallbacks.
+   catalog), absent, or fails often enough to lose its rank. Gone, it passes on within the same call (openrouter
+   1.13.0). **Absent** (openrouter 1.14.0, 2026-11-03): a holder that has to rest twice in a row (busy upstream,
+   failing, too slow) with no usable reply between passes the seat on within that call too, and holds no seat for
+   as long as it rests; then it is ranked as before, and its first usable reply clears its streak. A holder busy
+   once keeps its seat. In the first two days of the H1 desk, Trader 2's seat lost 47 of its 53 lost decisions to
+   holders busy, failing or resting: 37 to two Google models "temporarily rate-limited upstream" (25 asked and busy,
+   12 resting), each keeping the seat until it had failed three times. Trader 1's numbers fallback on a text model
+   is gone. The debate, shadow only, keeps its fallbacks.
 2. **Room to finish.** Each trader's answer may use 16,000 tokens (12,000 before). The seat's usable answers used
    up to about 24,000 tokens with the prompt's ~15,000, and a median 62 s (90% within 105 s).
 3. **A model sure on nearly every answer holds no trader's seat.** `dual_ai_stats.confidence_habits` reads how each

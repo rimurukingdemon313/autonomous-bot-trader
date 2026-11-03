@@ -37,7 +37,8 @@ What this client guarantees:
   is asked, the first of the role's ranking, and a model resting a short while (busy, rate-limited, failing: an
   hour at most) keeps its seat. When the holder cannot answer, nobody stands in for it: the call fails
   (SEAT_RESTING, with no request, while it rests) and the decision is NO_TRADE. The seat passes to the next model
-  only when its holder is gone (the provider cannot serve it: a 6 h rest; excluded; out of the catalog) or fails
+  only when its holder is gone (the provider cannot serve it: a 6 h rest; excluded; out of the catalog), absent
+  (it had to rest twice in a row, with no usable reply between: off the seat while it rests, 1.14.0) or fails
   often enough to lose its rank (30 x its failure rate). Calls without a seat (the debate) still fall back.
 - Images only where they can be read: an `image_url` part is sent to a model the catalog lists with image
   input; for any other model it is left out (the same chart's marks travel as numbers in the text).
@@ -111,10 +112,19 @@ from .provider import extract_json
 #:         passes to the next model of its ranking within the same call, at most SEAT_HANDOVERS times. In the first
 #:         hour of dual-ai 1.18.0 two restricted models ("only available on agentic harnesses") cost Trader 2's seat a
 #:         decision each before it passed on. A holder that is only busy still has no stand-in.
-OPENROUTER_VERSION = "openrouter-1.13.0"
+#: 1.14.0 (live, 2026-11-03): a seat's holder that has to rest twice in a row (busy upstream, failing, too slow), with
+#:         no usable reply between, is ABSENT: the seat passes on within that call, and the absent model is off the
+#:         seat for as long as it rests. In the first two days of the H1 desk, Trader 2's seat lost 47 of its 53 lost
+#:         decisions to holders busy, failing or resting, 37 of them to two models "temporarily rate-limited upstream"
+#:         (25 asked and busy, 12 resting), each keeping the seat until it had failed three times and lost its rank. A
+#:         holder busy once still keeps its seat: a busy minute is not a new trader. When the rest ends it is ranked as
+#:         before, and its first usable reply clears its streak.
+OPENROUTER_VERSION = "openrouter-1.14.0"
 #: a seat's holder that answers so is gone, not busy: excluded, or resting for hours (1.13.0)
 SEAT_GONE = ("MODEL_RESTRICTED", "UNAVAILABLE")
 SEAT_HANDOVERS = 2
+#: a seat's holder that has rested this many times in a row, with no usable reply between, is absent (1.14.0)
+SEAT_ABSENT_IN_A_ROW = 2
 PRIVACY_URL = "https://openrouter.ai/settings/privacy"
 PLACEHOLDERS = {"", "PASTE_MY_KEY_HERE", "PASTE_YOUR_KEY_HERE", "YOUR_KEY", "changeme"}
 #: cooldowns, seconds: a model the provider says it cannot serve rests long; a rate-limited one briefly
@@ -347,12 +357,18 @@ class OpenRouterClient:
 
     def _seat_selection(self) -> Selection:
         """The ranking that decides who holds a seat (1.11.0): as `_reselect`, except that a model resting a short
-        while (busy, rate-limited, failing: an hour at most) keeps its place. Only a model the provider cannot serve
-        (a 6 h rest) is left out with the excluded ones, so the seat passes on. Called under the lock."""
+        while (busy, rate-limited, failing: an hour at most) keeps its place. Left out with the excluded ones, so the
+        seat passes on: a model the provider cannot serve (a 6 h rest), and one absent (1.14.0: resting after its
+        SEAT_ABSENT_IN_A_ROW-th rest in a row), for as long as it rests. Called under the lock."""
         now = self.clock()
         gone = {m for m, (until, why) in self._cooldown.items() if until > now and why == "unavailable"}
         return select(self._catalog, now=now, penalties=self._penalties(),
-                      excluded=set(self._excluded) | gone | set(self._seat_excluded))
+                      excluded=set(self._excluded) | gone | self._absent(now) | set(self._seat_excluded))
+
+    def _absent(self, now: float) -> set:
+        """The models resting after their SEAT_ABSENT_IN_A_ROW-th rest in a row (1.14.0). Called under the lock."""
+        return {m for m, (until, _) in self._cooldown.items()
+                if until > now and self._streak.get(m, 0) >= SEAT_ABSENT_IN_A_ROW}
 
     def exclude_from_seats(self, models: dict[str, str]) -> None:
         """The models the desk keeps off the traders' seats, with why (dual-ai 1.17.0: sure on nearly every answer).
@@ -546,9 +562,12 @@ class OpenRouterClient:
                                             f"{int(until - self.clock())} s more; no other model stands in for it")
                 res = self._one_model(role, holder, messages, validate, max_tokens, deadline)
                 res.tried = list(gone)
-                if res.ok or res.status not in SEAT_GONE or self.clock() >= deadline:
+                with self._lock:
+                    absent = holder in self._absent(self.clock())
+                if res.ok or not (res.status in SEAT_GONE or absent) or self.clock() >= deadline:
                     return res
-                # the holder is gone, not busy: the next model of the seat's ranking holds it, from this call (1.13.0)
+                # the holder is gone (1.13.0) or absent (1.14.0), not busy for a minute: the next model of the
+                # seat's ranking holds it, from this call
                 gone.append((holder, res.status))
                 ranked = self.models_for(role, max_tokens, seat=True)
                 if other_lab_than:
