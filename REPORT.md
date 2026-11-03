@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-03 11:41 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-03 08:56 UTC · decision system `dual_ai`
+Updated 2026-11-03 11:57 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-03 08:56 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,9 +8,9 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: GBPJPY لا صفقة (اتفقوا بس مو الاثنين واثقين 65 أو أكثر).
+- آخر قرار: AUDJPY لا صفقة (اتفقوا بس مو الاثنين واثقين 65 أو أكثر).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 0، ما جاوب 0؛ صرف $0.00 من $8.50.
-- آلة الزمن لآخر اتفاق (GBPJPY، 10000 إعادة): الهدف أول 45%، الستوب أول 53%، ولا واحد 2%: قريب من التعادل.
+- آلة الزمن لآخر اتفاق (AUDJPY، 10000 إعادة): الهدف أول 27%، الستوب أول 73%، ولا واحد 0%: يميل للستوب.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
 ## The new account: the setup trading now (from 2026-11-01 22:00 UTC)
@@ -72,8 +72,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4321 so far)
+## Latest decisions, NO TRADE included (4323 so far)
 
+- 11-03 11:47 AUDJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
+- 11-03 11:45 EURCHF NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 61, Trader 2 62): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-03 11:35 GBPJPY NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 55, Trader 2 50): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-03 11:30 EURJPY NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-03 11:22 EURGBP NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 62, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
@@ -84,8 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-03 10:45 USDJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 60, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-03 10:34 GBPUSD NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 56, Trader 2 58): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-03 10:30 EURUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 57, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-03 10:20 AUDJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-03 10:15 EURCHF NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 62): no trade unless both are that sure; followed forward in shadow, not traded
 
 ## Open paper positions
 
@@ -119,7 +119,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `xingchen-agi/xing4.0-29b-a4b:free` · calls today 41/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `xingchen-agi/xing4.0-29b-a4b:free` · calls today 45/900
 
 Paid trial `senior-2026-11-02` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $0.00 of $8.50, today $0.00 of $1.50 (the key's own reading)
 
@@ -131,7 +131,7 @@ Exits in shadow (the same trades, followed again; measured, never traded): break
 
 Trader 2's own levels in shadow (a trade is on Trader 1's since dual-ai 1.10.0; measured, never traded): -0.235R vs -0.264R as taken (31, adequate)
 
-Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0; not traded, followed forward as the trades they would have been): 122 · if taken: 0 resolved (none)
+Agreements below the confidence floor (both traders at 65 or more since dual-ai 1.12.0; not traded, followed forward as the trades they would have been): 124 · if taken: 0 resolved (none)
 
 Trades taken by session (UTC): ASIA 60 resolved (adequate), expectancy -0.257R · LONDON 42 resolved (adequate), expectancy -0.032R · OVERLAP 8 resolved (insufficient), expectancy -0.382R · NEW_YORK 28 resolved (insufficient), expectancy +0.050R · LATE 3 resolved (insufficient), expectancy -1.106R
 
@@ -139,6 +139,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-03 11:47 | AUDJPY | SELL 55 | SELL 65 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 27% / S 73% / - 0%: leans toward the stop |
+| 11-03 11:45 | EURCHF | SELL 61 | SELL 62 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 53% / S 47% / - 0%: close to break-even |
 | 11-03 11:35 | GBPJPY | BUY 55 | BUY 50 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 45% / S 53% / - 2%: close to break-even |
 | 11-03 11:30 | EURJPY | BUY 55 | BUY 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 43% / S 57% / - 0%: leans toward the stop |
 | 11-03 11:22 | EURGBP | SELL 62 | SELL 60 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 57% / S 34% / - 9%: leans toward the target |
@@ -149,12 +151,10 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-03 10:45 | USDJPY | SELL 60 | SELL 65 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 29% / S 71% / - 0%: strongly toward the stop |
 | 11-03 10:34 | GBPUSD | BUY 56 | BUY 58 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 32% / S 68% / - 0%: leans toward the stop |
 | 11-03 10:30 | EURUSD | SELL 57 | SELL 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 54% / S 45% / - 1%: leans toward the target |
-| 11-03 10:20 | AUDJPY | SELL 55 | SELL 60 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 38% / S 62% / - 0%: leans toward the stop |
-| 11-03 10:15 | EURCHF | SELL 55 | SELL 62 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 34% / S 65% / - 1%: close to break-even |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
-Time machine of the latest agreement (GBPJPY): the levels replayed 10,000 times on the pair's own last 60 days of hours; a simulation of the recent past, not a forecast, and it refuses nothing (dual-ai 1.16.0).
+Time machine of the latest agreement (AUDJPY): the levels replayed 10,000 times on the pair's own last 60 days of hours; a simulation of the recent past, not a forecast, and it refuses nothing (dual-ai 1.16.0).
 
 ![time machine](last_time_machine.png)
 
