@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-03 04:06 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-03 03:20 UTC · decision system `dual_ai`
+Updated 2026-11-03 04:21 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-03 03:20 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: USDCHF لا صفقة (TRADER2_UNAVAILABLE).
+- آخر قرار: EURGBP لا صفقة (TRADER2_UNAVAILABLE).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 0، ما جاوب 0؛ صرف $0.00 من $8.50.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -71,8 +71,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4261 so far)
+## Latest decisions, NO TRADE included (4263 so far)
 
+- 11-03 04:16 EURGBP NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 473 s more; no other model stands in for it): nobody stands in for i
+- 11-03 04:15 NZDUSD NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provi
 - 11-03 04:01 USDCHF NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provi
 - 11-03 04:00 USDCAD NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider 
 - 11-03 03:46 AUDUSD NO_TRADE: risk engine: news (High-impact release AUD Cash Rate 17 min ago; High-impact release AUD RBA Monetary Policy Statement 17 min ago; High-impact release AUD RBA Rate Statement 17 min ago: no new positio
@@ -83,8 +85,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-03 03:15 NZDUSD NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model recursive/flint-v1.0:free is resting (failing) for 914 s more; no other model stands in for it): nobody stands in for it, and the
 - 11-03 03:02 USDCHF NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model recursive/flint-v1.0:free is resting (failing) for 1731 s more; no other model stands in for it): nobody stands in for it, and th
 - 11-03 03:00 USDCAD NO_TRADE: Trader 2's model gave no usable answer (HTTP_503: HTTP 503: Provider returned error {"error":"no upstreams available"}): nobody stands in for it, and there is no decision on one trader alone
-- 11-03 02:46 AUDUSD NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model recursive/flint-v1.0:free is resting (failing) for 827 s more; no other model stands in for it): nobody stands in for it, and the
-- 11-03 02:45 USDJPY NO_TRADE: Trader 2's model gave no usable answer (HTTP_503: HTTP 503: Provider returned error {"error":"no upstreams available"}): nobody stands in for it, and there is no decision on one trader alone
 
 ## Open paper positions
 
@@ -118,7 +118,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-26b-a4b-it:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 9/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-26b-a4b-it:free` · debate `xingchen-agi/xing4.0-29b-a4b:free` · calls today 12/900
 
 Paid trial `senior-2026-11-02` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $0.00 of $8.50, today $0.00 of $1.50 (the key's own reading)
 
@@ -138,6 +138,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-03 04:16 | EURGBP | SELL 59 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
+| 11-03 04:15 | NZDUSD | SELL 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 04:01 | USDCHF | SELL 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 04:00 | USDCAD | SELL 56 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 03:46 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -148,8 +150,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-03 03:15 | NZDUSD | SELL 65 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 03:02 | USDCHF | SELL 65 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 03:00 | USDCAD | SELL 72 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
-| 11-03 02:46 | AUDUSD | BUY 60 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
-| 11-03 02:45 | USDJPY | SELL 65 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
