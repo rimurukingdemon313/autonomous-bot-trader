@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-03 21:00 UTC**, run 647, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
+Updated **2026-11-03 22:00 UTC**, run 648, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-03 21:00 UTC**, run 647, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 27.04
+- days: 27.08
 - run_coverage: 0.9954
 - closed_positions: 151
 - open_positions: 3
-- utilisation: 0.1872
+- utilisation: 0.1873
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.6374
-- book_excess_pct: -1.7163
-- ann_excess_deployed_pct: -124.46
-- ann_excess_deployed_costs_x1.5_pct: -220.418
-- ann_excess_deployed_costs_x2_pct: -316.375
+- book_pnl_pct: -1.6431
+- book_excess_pct: -1.7221
+- ann_excess_deployed_pct: -124.574
+- ann_excess_deployed_costs_x1.5_pct: -220.293
+- ann_excess_deployed_costs_x2_pct: -316.013
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.9377
-- max_dd_pct: 1.6412
-- t_excess_daily: -3.195
+- book_excess_without_best_coin_pct: -1.9435
+- max_dd_pct: 1.6431
+- t_excess_daily: -3.199
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 52.1 | 32.9 | 17.0 | **67.9** |
-| SOXL | mexc | gate | 2026-11-03 08:00 | 25.1% | 3.9 | -8.8 | 17.0 | **-21.9** |
-| AGT | gate | mexc | 2026-11-03 16:00 | 28.3% | 2.2 | 9.1 | 17.0 | **-5.7** |
+| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 52.3 | 4.3 | 17.0 | **39.6** |
+| SOXL | mexc | gate | 2026-11-03 08:00 | 25.1% | 3.9 | -3.1 | 17.0 | **-16.2** |
+| AGT | gate | mexc | 2026-11-03 16:00 | 28.3% | 2.1 | 20.4 | 17.0 | **5.6** |
 
 ## Closed positions (151)
 
