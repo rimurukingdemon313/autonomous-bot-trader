@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-03 18:00 UTC**, run 644, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
+Updated **2026-11-03 19:00 UTC**, run 645, version `radar-1.0.0`. State from: cache. Quotes this hour: 2399.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-03 18:00 UTC**, run 644, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 26.92
+- days: 26.96
 - run_coverage: 0.9954
 - closed_positions: 150
 - open_positions: 3
-- utilisation: 0.1865
+- utilisation: 0.1867
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.6412
-- book_excess_pct: -1.7197
-- ann_excess_deployed_pct: -125.745
-- ann_excess_deployed_costs_x1.5_pct: -221.882
-- ann_excess_deployed_costs_x2_pct: -318.019
+- book_pnl_pct: -1.6342
+- book_excess_pct: -1.7128
+- ann_excess_deployed_pct: -124.929
+- ann_excess_deployed_costs_x1.5_pct: -220.826
+- ann_excess_deployed_costs_x2_pct: -316.723
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -1.9411
+- book_excess_without_best_coin_pct: -1.9342
 - max_dd_pct: 1.6412
-- t_excess_daily: -3.198
+- t_excess_daily: -3.192
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 50.3 | 18.6 | 17.0 | **51.9** |
-| SOXL | mexc | gate | 2026-11-03 08:00 | 25.1% | 3.9 | -3.0 | 17.0 | **-16.1** |
-| AGT | gate | mexc | 2026-11-03 16:00 | 28.3% | 1.5 | -0.5 | 17.0 | **-16.0** |
+| AIN | mexc | gate | 2026-11-01 08:00 | 68.9% | 50.9 | 31.1 | 17.0 | **65.1** |
+| SOXL | mexc | gate | 2026-11-03 08:00 | 25.1% | 3.9 | -3.0 | 17.0 | **-16.0** |
+| AGT | gate | mexc | 2026-11-03 16:00 | 28.3% | 1.8 | 0.0 | 17.0 | **-15.2** |
 
 ## Closed positions (150)
 
@@ -80,6 +80,5 @@ Updated **2026-11-03 18:00 UTC**, run 644, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| AGT | gate | mexc | 32.8% | 42.0% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
