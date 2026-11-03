@@ -712,6 +712,29 @@ both of these hold:
 - its high group beats its low group by 0.3 R or more, with t of 2 or more, over 30+ agreements in each;
 - the raw floor's split does not do as well on the same agreements.
 
+**Retired on 2026-11-03 without a verdict: it cannot be judged with these models.** Counted blind (stated
+confidences and models only, before any H1 agreement had an outcome):
+
+- Of 136 H1 agreements whose two models had 30+ earlier answers, none had both traders in their model's top third.
+  With the history read on H1 alone, also none of 131.
+- On H1, Trader 1's model (`nemotron-3.5-super-vl`) says 55 to 57 nearly every time: 65 or more in 1 of its last 100
+  answers. Trader 2's (`dots-3-note`) most often says exactly 65.
+
+So the floor refused 141 H1 agreements in two days and let 5 through, and those 5 came from other models in Trader
+1's seat.
+
+**What changes: nothing.**
+
+- The floor stays. A model that is never sure is not moved off its seat to get trades. Moving it would loosen the
+  floor in practice on no evidence, and choosing a model by how often it says 65 is choosing it for the trades.
+- Every refused agreement is followed forward (`DUAL_AI_LOW_CONFIDENCE`). The question they can answer is
+  pre-registered as **CONF-1** (`research/preregistrations/CONF-1.md`, frozen before the first H1 outcome): did
+  the agreements the floor refused pay?
+  - It is judged once on LEARNING (decided 2 to 16 November, judged 20 November).
+  - It is confirmed on EVALUATION (16 to 23 November, judged 27 November).
+  - Each look is judged per agreement and per day, since agreements of one day move together.
+  - Only a confirmed result lifts the floor on H1.
+
 ## Configuration and activation
 
 Local (`.env` is in `.gitignore`; the environment always wins over the file):
