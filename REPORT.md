@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-03 20:25 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-03 20:09 UTC · decision system `dual_ai`
+Updated 2026-11-03 20:40 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-03 20:09 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: GBPUSD لا صفقة (TRADER2_UNAVAILABLE).
+- آخر قرار: AUDUSD لا صفقة (TRADER2_UNAVAILABLE).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 0، ما جاوب 0؛ صرف $0.00 من $8.50.
 - آلة الزمن لآخر اتفاق (EURGBP، 10000 إعادة): الهدف أول 40%، الستوب أول 59%، ولا واحد 1%: قريب من التعادل.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
@@ -72,8 +72,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4391 so far)
+## Latest decisions, NO TRADE included (4393 so far)
 
+- 11-03 20:31 AUDUSD NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 530 s more; no other model stands in for it): nobody stands in for it, a
+- 11-03 20:30 USDJPY NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider 
 - 11-03 20:16 GBPUSD NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 250 s more; no other model stands in for it): nobody stands in for it, a
 - 11-03 20:15 EURUSD NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider 
 - 11-03 20:03 EURGBP NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 62, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
@@ -84,8 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-03 19:30 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 62): no trade unless both choose the same side; the debate (cohere/north-mini-code:free) would have chosen BUY: followed forward in shadow, not tra
 - 11-03 19:17 GBPUSD NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-03 19:15 EURUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 53, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-03 19:03 AUDJPY NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-03 19:00 EURCHF NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 56, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
 
 ## Open paper positions
 
@@ -119,7 +119,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-31b-it:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 3/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-31b-it:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 6/900
 
 Paid trial `senior-2026-11-02` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $0.00 of $8.50, today $0.00 of $1.50 (the key's own reading)
 
@@ -139,6 +139,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-03 20:31 | AUDUSD | SELL 54 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
+| 11-03 20:30 | USDJPY | BUY 58 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 20:16 | GBPUSD | BUY 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 20:15 | EURUSD | SELL 45 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-03 20:03 | EURGBP | SELL 62 | SELL 60 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 40% / S 59% / - 1%: close to break-even |
@@ -149,8 +151,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-03 19:30 | USDJPY | BUY 55 | SELL 62 | BUY | -  | DISAGREE | NO_TRADE | - | - |
 | 11-03 19:17 | GBPUSD | BUY 55 | BUY 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 49% / S 51% / - 0%: close to break-even |
 | 11-03 19:15 | EURUSD | SELL 53 | SELL 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 35% / S 65% / - 0%: leans toward the stop |
-| 11-03 19:03 | AUDJPY | BUY 55 | BUY 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 31% / S 69% / - 0%: strongly toward the stop |
-| 11-03 19:00 | EURCHF | SELL 56 | SELL 60 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 47% / S 53% / - 0%: close to break-even |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
