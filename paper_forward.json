@@ -2540,6 +2540,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "AUDJPY",
+   "decision": "NO_TRADE",
+   "t": 1793672230,
+   "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it): nobody stands in fo",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURCHF",
+   "decision": "NO_TRADE",
+   "t": 1793672121,
+   "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own pr",
+   "data_flags": []
+  },
+  {
    "symbol": "GBPJPY",
    "decision": "NO_TRADE",
    "t": 1793671225,
@@ -2692,23 +2706,9 @@
    "t": 1793662219,
    "reason": "risk engine: quiet_hours (18:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDJPY",
-   "decision": "NO_TRADE",
-   "t": 1793661320,
-   "reason": "risk engine: quiet_hours (18:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURCHF",
-   "decision": "NO_TRADE",
-   "t": 1793661318,
-   "reason": "risk engine: quiet_hours (18:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 4245,
+ "decisions_total": 4247,
  "shift": {
   "started": "2026-11-02 21:45 UTC",
   "decision_mode": "dual_ai",
@@ -2733,21 +2733,21 @@
    "paid_trial_off": false,
    "version": "openrouter-1.13.0",
    "status": "READY",
-   "calls_today": 12,
+   "calls_today": 15,
    "last_call": {
-    "t": 1793671539,
+    "t": 1793672320,
     "role": "judge",
     "model": "xingchen-agi/xing4.0-29b-a4b:free",
-    "status": "INVALID: direction must be BUY or SELL: the desk always chooses a side",
+    "status": "SEAT_RESTING",
     "ok": false,
-    "error": null,
-    "request_id": "75549fd0447f435b95ce3622efbe424c",
-    "provider_id": "gen-1793671327-pvmORZHDqsBTRYljcN6U",
-    "attempts": 1,
-    "latency_ms": 212303.2,
+    "error": "the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it",
+    "request_id": null,
+    "provider_id": null,
+    "attempts": 0,
+    "latency_ms": 0.0,
     "cached": false,
-    "tokens": 36533,
-    "cost": 0.0,
+    "tokens": null,
+    "cost": null,
     "tried": []
    },
    "key": {
@@ -2814,6 +2814,19 @@
       "image": true,
       "intelligence_index": null,
       "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "score": 26.53,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 26.0,
       "structured": true,
       "reasoning": true,
       "family": "google",
@@ -2956,19 +2969,13 @@
     ],
     "free_total": 8,
     "catalog_total": 451,
-    "refreshed": 1793672123.7228885,
+    "refreshed": 1793673021.125957,
     "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
     },
     "version": "free-models-1.4.0",
-    "cooldown": {
-     "google/gemma-4-26b-a4b-it:free": {
-      "until": 1793672425,
-      "why": "rate_limited",
-      "in_a_row": 3
-     }
-    },
+    "cooldown": {},
     "excluded": {},
     "seat_excluded": {
      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": "stated 65 or more in 53 of its 53 answers as a trader"
@@ -3007,12 +3014,12 @@
      "failed": 3
     },
     "dots-studio/dots-3-note-preview:free": {
-     "ok": 1,
+     "ok": 3,
      "failed": 0
     },
     "xingchen-agi/xing4.0-29b-a4b:free": {
      "ok": 1,
-     "failed": 0
+     "failed": 1
     }
    }
   },
@@ -3023,19 +3030,19 @@
   },
   "charts": {
    "EURUSD": {
-    "t": 1793667621,
-    "decision_id": "d589d7784ac0c98c752569c0",
+    "t": 1793673019,
+    "decision_id": "1f1e163533886abd6bfbf68b",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 30228,
-    "sha256": "60be1f86f4c2c912cea6d0a3818d22ccc6fbdf11a8ae8371218582d6fb84c911",
-    "as_of": 1793667621,
+    "bytes": 30002,
+    "sha256": "5247f3edf4b6ae152c6e4ba98046c32fa979b081cb7cfa4d07feb298cffd5e5e",
+    "as_of": 1793673019,
     "execution_timeframe": "H1",
     "higher_timeframe": "H4",
-    "last_bar_open": 1793664000,
-    "last_bar_available": 1793667600
+    "last_bar_open": 1793667600,
+    "last_bar_available": 1793671200
    },
    "GBPUSD": {
     "t": 1793667654,
@@ -3186,17 +3193,32 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1793667600,
     "last_bar_available": 1793671200
+   },
+   "AUDJPY": {
+    "t": 1793672230,
+    "decision_id": "ca451fc7102772fd0487eeac",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30806,
+    "sha256": "4c5487f93be64933550d5ec39f008c9eab45778ee759dde509066bb043fbdbe6",
+    "as_of": 1793672230,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793667600,
+    "last_bar_available": 1793671200
    }
   },
   "last_analysis": {
-   "decision_id": "02912323a5cca1d158718a77",
-   "symbol": "GBPJPY",
-   "t": 1793671225,
+   "decision_id": "ca451fc7102772fd0487eeac",
+   "symbol": "AUDJPY",
+   "t": 1793672230,
    "decision": "NO_TRADE",
-   "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
+   "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 2's model gave no usable answer (INVALID: direction must be BUY or SELL: the desk always chooses a side): nobody stands in for it, and there is no decision on one trader alone",
+    "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
     "rule": "TRADER2_UNAVAILABLE"
    },
    "models": {
@@ -3204,46 +3226,32 @@
     "trader2": "xingchen-agi/xing4.0-29b-a4b:free"
    },
    "trader1": {
-    "confidence": 68,
-    "direction": "SELL",
-    "entry": 211.607,
-    "invalidation": "211.83",
-    "liquidity": "Liquidity sweeps on lows at 211.633 show bullish signals, but price remains below this level, indicating potential continuation of the downside pressure; equal lows liquidity sits lower at 210.667 and 210.273.",
-    "market_structure": "H1 shows a DOWN trend (LH+LL) with recent lower highs and a lower low, while H4 is in a RANGE (mixed swings) with a bullish BOS but price is currently in the upper half of the range, favoring a pullback.",
-    "momentum": "Bearish momentum on H1 with consecutive lower highs and a close near the low of the bar, supported by bearish structure breaks on lower timeframes.",
-    "reason": "The H1 chart displays a clear DOWN trend (LH+LL) with price making lower highs and trading below key resistance. SELL has a positive historical expectancy on GBPJPY (+0.455 R) whereas BUY is strongly negative. The stop is placed structurally above the LH at 211.83, targeting the support zone near 211.00 for a reward-to-risk of 2.7.",
-    "reversal_probability": 35,
-    "risk_reward": 2.72,
-    "stop_loss": 211.83,
-    "take_profit": 211.0,
-    "trend": "H1 DOWN, H4 RANGE"
+    "confidence": 60,
+    "direction": "BUY",
+    "entry": 110.446,
+    "invalidation": "A break below the today's low at 110.34 and the strong support at 110.354, which would confirm that the liquidity sweep failed and the downtrend is resuming.",
+    "liquidity": "Triple bullish sweep of the 110.423 equal-low liquidity, grabbing stop losses below the PDL and indicating strong demand. Upside liquidity targets lie at the EQHs (110.93, 111.111).",
+    "market_structure": "H1 is in a DOWN trend (LH+LL) but has formed a triple bullish liquidity sweep at 110.423, rejecting the PDL and key support. H4 is in a RANGE, with price near the bottom of the range, favoring a pullback/reversal.",
+    "momentum": "Lower timeframes (M1, M5, M15) show a strong bullish reversal, with M5 closing at the high of the range and M1 pushing higher, indicating immediate buying momentum.",
+    "reason": "The triple bullish sweep of the PDL at 110.423 shows strong rejection of the lows, and the lower timeframe momentum is bullish. Buying from the current ask inside the entry zone targets the LH/resistance at 110.80, with a structural stop below key support at 110.30, offering a reward-to-risk of 2.4.",
+    "reversal_probability": 65,
+    "risk_reward": 2.4,
+    "stop_loss": 110.3,
+    "take_profit": 110.8,
+    "trend": "H1: DOWN (counter-trend buy); H4: RANGE (buying near the bottom of the range)."
    },
-   "trader2": {
-    "confidence": null,
-    "direction": null,
-    "entry": null,
-    "invalidation": null,
-    "liquidity": null,
-    "market_structure": null,
-    "momentum": null,
-    "reason": null,
-    "reversal_probability": null,
-    "risk_reward": null,
-    "stop_loss": null,
-    "take_profit": null,
-    "trend": null
-   },
+   "trader2": null,
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793671225,
-    "bytes": 31040,
+    "as_of": 1793672230,
+    "bytes": 30806,
     "execution_timeframe": "H1",
     "height": 1000,
     "higher_timeframe": "H4",
     "last_bar_available": 1793671200,
     "last_bar_open": 1793667600,
-    "sha256": "5020c4a66a42edf3f860df80e64016635244b9cdc2188dc87127323c65e48fc6",
+    "sha256": "4c5487f93be64933550d5ec39f008c9eab45778ee759dde509066bb043fbdbe6",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -3253,29 +3261,29 @@
      "cached": false,
      "cost": 0.0,
      "error": null,
-     "latency_ms": 100088.9,
+     "latency_ms": 88494.0,
      "model": "dots-studio/dots-3-note-preview:free",
      "ok": true,
-     "provider_id": "gen-1793671227-aQ4fmEEZqUyFHQCBTCoE",
-     "request_id": "e0b784f3b0b7488c8ba9e25783163951",
+     "provider_id": "gen-1793672232-bjOetFP4mxbH6UL8Lco1",
+     "request_id": "3b3588208da44a9d847b86d5e52b3c5c",
      "role": "vision",
      "status": "OK",
-     "tokens": 23241,
+     "tokens": 22318,
      "tried": []
     },
     {
-     "attempts": 1,
+     "attempts": 0,
      "cached": false,
-     "cost": 0.0,
-     "error": null,
-     "latency_ms": 212303.2,
+     "cost": null,
+     "error": "the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it",
+     "latency_ms": 0.0,
      "model": "xingchen-agi/xing4.0-29b-a4b:free",
      "ok": false,
-     "provider_id": "gen-1793671327-pvmORZHDqsBTRYljcN6U",
-     "request_id": "75549fd0447f435b95ce3622efbe424c",
+     "provider_id": null,
+     "request_id": null,
      "role": "judge",
-     "status": "INVALID: direction must be BUY or SELL: the desk always chooses a side",
-     "tokens": 36533,
+     "status": "SEAT_RESTING",
+     "tokens": null,
      "tried": []
     }
    ],
@@ -3286,6 +3294,172 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "ca451fc7102772fd0487eeac",
+    "symbol": "AUDJPY",
+    "t": 1793672230,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free",
+     "trader2": "xingchen-agi/xing4.0-29b-a4b:free"
+    },
+    "trader1": {
+     "confidence": 60,
+     "direction": "BUY",
+     "entry": 110.446,
+     "invalidation": "A break below the today's low at 110.34 and the strong support at 110.354, which would confirm that the liquidity sweep failed and the downtrend is resuming.",
+     "liquidity": "Triple bullish sweep of the 110.423 equal-low liquidity, grabbing stop losses below the PDL and indicating strong demand. Upside liquidity targets lie at the EQHs (110.93, 111.111).",
+     "market_structure": "H1 is in a DOWN trend (LH+LL) but has formed a triple bullish liquidity sweep at 110.423, rejecting the PDL and key support. H4 is in a RANGE, with price near the bottom of the range, favoring a pullback/reversal.",
+     "momentum": "Lower timeframes (M1, M5, M15) show a strong bullish reversal, with M5 closing at the high of the range and M1 pushing higher, indicating immediate buying momentum.",
+     "reason": "The triple bullish sweep of the PDL at 110.423 shows strong rejection of the lows, and the lower timeframe momentum is bullish. Buying from the current ask inside the entry zone targets the LH/resistance at 110.80, with a structural stop below key support at 110.30, offering a reward-to-risk of 2.4.",
+     "reversal_probability": 65,
+     "risk_reward": 2.4,
+     "stop_loss": 110.3,
+     "take_profit": 110.8,
+     "trend": "H1: DOWN (counter-trend buy); H4: RANGE (buying near the bottom of the range)."
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793672230,
+     "bytes": 30806,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793671200,
+     "last_bar_open": 1793667600,
+     "sha256": "4c5487f93be64933550d5ec39f008c9eab45778ee759dde509066bb043fbdbe6",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 88494.0,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1793672232-bjOetFP4mxbH6UL8Lco1",
+      "request_id": "3b3588208da44a9d847b86d5e52b3c5c",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 22318,
+      "tried": []
+     },
+     {
+      "attempts": 0,
+      "cached": false,
+      "cost": null,
+      "error": "the seat's model xingchen-agi/xing4.0-29b-a4b:free is resting (rate_limited) for 210 s more; no other model stands in for it",
+      "latency_ms": 0.0,
+      "model": "xingchen-agi/xing4.0-29b-a4b:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": null,
+      "role": "judge",
+      "status": "SEAT_RESTING",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
+   {
+    "decision_id": "d72df2ce7f631364d5b9ec5c",
+    "symbol": "EURCHF",
+    "t": 1793672121,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in ",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "dots-studio/dots-3-note-preview:free",
+     "trader2": "xingchen-agi/xing4.0-29b-a4b:free"
+    },
+    "trader1": {
+     "confidence": 72,
+     "direction": "SELL",
+     "entry": 0.91671,
+     "invalidation": "A close and daily/weekly break above the key structural resistance at 0.91803, which would invalidate the bearish BOS and suggest a deeper pullback or transition to a ranging market.",
+     "liquidity": "Liquidity is concentrated in equal highs (EQH) much higher up (0.926-0.927), while recent liquidity sweeps occurred on the lows (0.91932, 0.91815), which were subsequently sold into further lows (LL at 0.91512). The price is holding below key resistance at 0.91803 and inside an open bearish fair value gap (0.91721-0.91737), keeping the path of least resistance to the downside.",
+     "market_structure": "H1 and H4 show a clear lower high / lower low (LH+LL) sequence with multiple confirmed bearish Break of Structure (BOS) levels at 0.91815 (H1) and 0.91789/0.91906 (H4). The current price action is a minor pullback (LH at 0.91641) within a strong bearish trend, with a recent bullish CHoCH at 0.91641 representing a minor countertrend correction, not a structural shift.",
+     "momentum": "Bearish momentum remains dominant, highlighted by historical bearish displacement candles and a failure to sustain bullish momentum above 0.9169. Volatility is normal (ATR percentile 47), allowing for a sustained directional move of 1.6 ATRs to the target over the 48-hour holding period.",
+     "reason": "Both H1 and H4 charts display a clear downtrend (LH+LL) with recent bearish BOS levels unchallenged. The price is currently pulling back into the open bearish FVG (0.91721-0.91737) and key S/R at 0.91803, offering a high-probability sell-the-pullback setup. A stop above 0.91803 invalidates the immediate bearish structure, while targeting 0.9145 provides a reward-to-risk of 1.67, comfortably exceeding the 1.2 minimum. Historically, SELL trades on EURCHF have a 67% win rate (+0.61 R), while BUY trades have performed very poorly (-0.63 R).",
+     "reversal_probability": 25,
+     "risk_reward": 1.67,
+     "stop_loss": 0.91803,
+     "take_profit": 0.9145,
+     "trend": "The execution timeframe (H1) and the higher timeframe (H4) are both firmly in a DOWN trend (LH+LL), aligned for a continuation of the bearish move."
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793672121,
+     "bytes": 30136,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793671200,
+     "last_bar_open": 1793667600,
+     "sha256": "37791787ea1d8d57508708d0666b7ccac8fbeea3936ca44d798ddd6f5029aedd",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 106364.7,
+      "model": "dots-studio/dots-3-note-preview:free",
+      "ok": true,
+      "provider_id": "gen-1793672123-kXia7Gd765lV8hBkiyWl",
+      "request_id": "bbd3dd7b92e9468baf025b30b8aa465f",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 24367,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": null,
+      "error": "HTTP 429: Provider returned error xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
+      "latency_ms": 610.0,
+      "model": "xingchen-agi/xing4.0-29b-a4b:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": "80cec561e3f24111982654285fe844a3",
+      "role": "judge",
+      "status": "RATE_LIMITED",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
    {
     "decision_id": "02912323a5cca1d158718a77",
     "symbol": "GBPJPY",
@@ -3915,52 +4089,6 @@
      }
     ],
     "trader1_input": "image",
-    "version": "dual-ai-1.18.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
-   },
-   {
-    "decision_id": "2fb84cfecfd92d96d77cf3ba",
-    "symbol": "AUDJPY",
-    "t": 1793666724,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.18.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
-   },
-   {
-    "decision_id": "0de49b1ae09b1b112d3b1eae",
-    "symbol": "EURCHF",
-    "t": 1793666722,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
     "version": "dual-ai-1.18.0",
     "time_machine": null,
     "senior": null,
@@ -4650,11 +4778,11 @@
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 2233,
     "TRADER1_UNAVAILABLE": 36,
-    "TRADER2_UNAVAILABLE": 26
+    "TRADER2_UNAVAILABLE": 28
    },
    "agreement_rate": 0.655,
    "decisions_with_both_traders": 739,
-   "unavailable": 3182
+   "unavailable": 3184
   },
   "recent_trades": [
    {
@@ -5380,8 +5508,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1793671219,
+  "last_cycle": 1793672117,
   "last_cycle_error": null,
-  "cycles": 17
+  "cycles": 18
  }
 }
