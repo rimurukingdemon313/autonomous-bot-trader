@@ -2540,6 +2540,13 @@
  ],
  "last_decisions": [
   {
+   "symbol": "EURJPY",
+   "decision": "NO_TRADE",
+   "t": 1793671223,
+   "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provi",
+   "data_flags": []
+  },
+  {
    "symbol": "EURGBP",
    "decision": "NO_TRADE",
    "t": 1793670325,
@@ -2699,16 +2706,9 @@
    "t": 1793660421,
    "reason": "risk engine: quiet_hours (18:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "EURJPY",
-   "decision": "NO_TRADE",
-   "t": 1793660419,
-   "reason": "risk engine: quiet_hours (18:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 4243,
+ "decisions_total": 4244,
  "shift": {
   "started": "2026-11-02 21:45 UTC",
   "decision_mode": "dual_ai",
@@ -2733,25 +2733,25 @@
    "paid_trial_off": false,
    "version": "openrouter-1.13.0",
    "status": "READY",
-   "calls_today": 8,
+   "calls_today": 10,
    "last_call": {
-    "t": 1793670326,
+    "t": 1793671225,
     "role": "vision",
     "model": "google/gemma-4-26b-a4b-it:free",
-    "status": "SEAT_RESTING",
+    "status": "RATE_LIMITED",
     "ok": false,
-    "error": "the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 598 s more; no other model stands in for it",
-    "request_id": null,
+    "error": "HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
+    "request_id": "cfb8ab06e84745dc879661c8eef7f1a2",
     "provider_id": null,
-    "attempts": 0,
-    "latency_ms": 0.0,
+    "attempts": 1,
+    "latency_ms": 277.1,
     "cached": false,
     "tokens": null,
     "cost": null,
     "tried": []
    },
    "key": {
-    "checked": 1793669423,
+    "checked": 1793671225,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 0.958358864,
@@ -2762,8 +2762,8 @@
    },
    "paid_usage": null,
    "data_policy": null,
-   "vision_model": "google/gemma-4-26b-a4b-it:free",
-   "judge_model": "dots-studio/dots-3-note-preview:free",
+   "vision_model": "dots-studio/dots-3-note-preview:free",
+   "judge_model": "xingchen-agi/xing4.0-29b-a4b:free",
    "verifier_model": "xingchen-agi/xing4.0-29b-a4b:free",
    "selection": {
     "vision": [
@@ -2804,6 +2804,19 @@
       "structured": true,
       "reasoning": true,
       "family": "nvidia",
+      "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 26.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
       "expires": null
      }
     ],
@@ -2926,26 +2939,34 @@
       "reasoning": true,
       "family": "cohere",
       "expires": null
+     },
+     {
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "score": 3.88,
+      "context": 262144,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": 31.0,
+      "structured": true,
+      "reasoning": true,
+      "family": "google",
+      "expires": null
      }
     ],
     "free_total": 8,
     "catalog_total": 451,
-    "refreshed": 1793670326.7614434,
+    "refreshed": 1793671227.0104344,
     "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
     },
     "version": "free-models-1.4.0",
     "cooldown": {
-     "google/gemma-4-31b-it:free": {
-      "until": 1793670622,
+     "google/gemma-4-26b-a4b-it:free": {
+      "until": 1793672425,
       "why": "rate_limited",
       "in_a_row": 3
-     },
-     "google/gemma-4-26b-a4b-it:free": {
-      "until": 1793670925,
-      "why": "rate_limited",
-      "in_a_row": 2
      }
     },
     "excluded": {},
@@ -2983,7 +3004,7 @@
     },
     "google/gemma-4-26b-a4b-it:free": {
      "ok": 0,
-     "failed": 2
+     "failed": 3
     }
    }
   },
@@ -3112,17 +3133,47 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1793664000,
     "last_bar_available": 1793667600
+   },
+   "EURJPY": {
+    "t": 1793671223,
+    "decision_id": "4e5aca5283fb42a5b49c657a",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30302,
+    "sha256": "ff027ae8e4d738d56be05a6cdc15a0a1b0dd77b8ed2f8a9b0f25e34d78b0717c",
+    "as_of": 1793671223,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793667600,
+    "last_bar_available": 1793671200
+   },
+   "GBPJPY": {
+    "t": 1793671225,
+    "decision_id": "02912323a5cca1d158718a77",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 31040,
+    "sha256": "5020c4a66a42edf3f860df80e64016635244b9cdc2188dc87127323c65e48fc6",
+    "as_of": 1793671225,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793667600,
+    "last_bar_available": 1793671200
    }
   },
   "last_analysis": {
-   "decision_id": "29bbaa2a57a17fac00e732be",
-   "symbol": "EURGBP",
-   "t": 1793670325,
+   "decision_id": "4e5aca5283fb42a5b49c657a",
+   "symbol": "EURJPY",
+   "t": 1793671223,
    "decision": "NO_TRADE",
-   "reason": "Trader 1's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 598 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+   "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 1's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 598 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+    "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it, and there is no decision on one trader alone",
     "rule": "TRADER1_UNAVAILABLE"
    },
    "models": {
@@ -3133,30 +3184,30 @@
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793670325,
-    "bytes": 30681,
+    "as_of": 1793671223,
+    "bytes": 30302,
     "execution_timeframe": "H1",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1793667600,
-    "last_bar_open": 1793664000,
-    "sha256": "371f8f57e73bae0df7783f7b69640afdd189f58f95c47730a65384bb1950d438",
+    "last_bar_available": 1793671200,
+    "last_bar_open": 1793667600,
+    "sha256": "ff027ae8e4d738d56be05a6cdc15a0a1b0dd77b8ed2f8a9b0f25e34d78b0717c",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
    "calls": [
     {
-     "attempts": 0,
+     "attempts": 1,
      "cached": false,
      "cost": null,
-     "error": "the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 598 s more; no other model stands in for it",
-     "latency_ms": 0.0,
+     "error": "HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
+     "latency_ms": 277.1,
      "model": "google/gemma-4-26b-a4b-it:free",
      "ok": false,
      "provider_id": null,
-     "request_id": null,
+     "request_id": "cfb8ab06e84745dc879661c8eef7f1a2",
      "role": "vision",
-     "status": "SEAT_RESTING",
+     "status": "RATE_LIMITED",
      "tokens": null,
      "tried": []
     }
@@ -3168,6 +3219,59 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "4e5aca5283fb42a5b49c657a",
+    "symbol": "EURJPY",
+    "t": 1793671223,
+    "decision": "NO_TRADE",
+    "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 1's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER1_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "google/gemma-4-26b-a4b-it:free"
+    },
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793671223,
+     "bytes": 30302,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793671200,
+     "last_bar_open": 1793667600,
+     "sha256": "ff027ae8e4d738d56be05a6cdc15a0a1b0dd77b8ed2f8a9b0f25e34d78b0717c",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": null,
+      "error": "HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
+      "latency_ms": 277.1,
+      "model": "google/gemma-4-26b-a4b-it:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": "cfb8ab06e84745dc879661c8eef7f1a2",
+      "role": "vision",
+      "status": "RATE_LIMITED",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
    {
     "decision_id": "29bbaa2a57a17fac00e732be",
     "symbol": "EURGBP",
@@ -3702,29 +3806,6 @@
     "decision_id": "dca697e677942286578a6195",
     "symbol": "GBPJPY",
     "t": 1793665822,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (19:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (19:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.18.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
-   },
-   {
-    "decision_id": "0e73cc84368fc1c7491e2bde",
-    "symbol": "EURJPY",
-    "t": 1793665821,
     "decision": "NO_TRADE",
     "reason": "risk engine: quiet_hours (19:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
     "consensus": {
@@ -4427,12 +4508,12 @@
     "LOW_CONFIDENCE": 85,
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 2233,
-    "TRADER1_UNAVAILABLE": 35,
+    "TRADER1_UNAVAILABLE": 36,
     "TRADER2_UNAVAILABLE": 25
    },
    "agreement_rate": 0.655,
    "decisions_with_both_traders": 739,
-   "unavailable": 3180
+   "unavailable": 3181
   },
   "recent_trades": [
    {
