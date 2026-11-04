@@ -86,3 +86,37 @@ Met, it is VALIDATED; otherwise REJECTED.
 - **Anything else.** It is reported as it is. Nothing changes.
 - **Power.** 6.5 years of daily returns is a short sample for a volatile asset. A real but modest effect may well
   fail t ≥ 3.09, and that would be reported, not explained away.
+
+## Result (run 2026-11-04 on GitHub's runner; `research/knowledge/XTS-1.json`)
+
+**FAILED.** Two gates failed, so the holdout stays unread and nothing changes.
+
+- Data: 3,317 days per coin (2017-09-01 to 2026-09-30), and every monthly archive matched its sha256.
+- The judged period was 2018-01 to 2024-06 (2,373 days).
+
+| | Mean a day | Annual (arithmetic) | Sharpe | t | Gate |
+|---|---|---|---|---|---|
+| The book, net | 0.140% | +51% | 1.13 | **2.87** | t ≥ 3.09: **failed** |
+| Development 2018-2021 | 0.190% | +69% | 1.35 | 2.71 | > 0: passed |
+| Validation 2022-01 to 2024-06 | 0.060% | +22% | 0.65 | 1.03 | > 0: passed |
+| Cost doubled | 0.123% | +45% | 0.99 | 2.52 | > 0: passed |
+| BTC alone / ETH alone | 0.113% / 0.167% | +41% / +61% | 0.96 / 1.06 | 2.46 / 2.71 | > 0: passed |
+| Timing (beyond each coin's average exposure) | 0.059% | +22% | 0.73 | **1.87** | t ≥ 2.0: **failed** |
+| Reported: with a CFD's 20% a year financing | 0.111% | +41% | 0.90 | 2.28 | never a gate |
+| Reported: buy and hold BTC / ETH | 0.132% / 0.177% | +48% / +64% | 0.69 / 0.72 | 1.76 / 1.84 | never a gate |
+
+**By year** (sum of daily net): 2018 −31%, 2019 +46%, 2020 +150%, 2021 +114%, 2022 −22%, 2023 +52%, 2024 H1 +25%. The
+top year supplied 45% of the total. The worst drawdown was −54%.
+
+**What it means, and no more.**
+
+- The rule earned a lot, but the evidence that it beats chance at the registered bar is not there: t 2.87 against
+  3.09.
+- The timing gate also failed. Timing added 22% a year over holding each coin at the same average exposure, but at
+  t 1.87.
+- The effect was much weaker in validation (Sharpe 0.65) than in development (1.35), the pattern of an effect that
+  fades.
+- A drawdown of 54% would have been very hard to hold.
+- As registered, the holdout (2024-07 to 2026-09) is not opened for a hypothesis that failed. Testing the same rule
+  on it now would have to be registered as a new trial, and it would be biased: what is publicly known of that
+  period's market favours a long-or-flat rule. So it is not done.
