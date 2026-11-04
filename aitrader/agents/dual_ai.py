@@ -22,7 +22,9 @@ with a refusal.
   every trade both traders agree on at the floor, with everything the desk knows (the chart, the data, both
   analyses, the journal, the levels replayed), and answers APPROVE or VETO. It can only refuse: never a side, a
   level or a size. A veto, an unusable answer, an approval below even odds or no review at all is NO_TRADE, and the
-  trade it would have been is followed forward in shadow (DUAL_AI_SENIOR_VETO).
+  trade it would have been is followed forward in shadow (DUAL_AI_SENIOR_VETO). Since 1.20.0 it also judges, in
+  shadow only, every agreement below the floor (`senior_shadow`): the decision stays NO_TRADE whatever it says, and
+  its verdicts are followed forward so CONF-2 can tell whether its judgement picks the trades that win.
   TRADER 2 (IndependentTradingJudge) is a different model: it reads the raw data (OHLCV rows on both timeframes,
   volatility, spread, costs, structure, calendar), the chart (the image when its model can read images, its
   marks as numbers always) and Trader 1's analysis, forms its own view and picks its own side.
@@ -202,7 +204,16 @@ from .types import MarketContext
 #:         traders together: 261 s at the 90th percentile). Trader 2's seat keeps 16,000: 2 of its 202 answers were
 #:         cut, and its long answers already take 160-180 s. How long a trader may think changes; no rule, level,
 #:         limit or size does.
-DUAL_AI_VERSION = "dual-ai-1.19.0"
+#: 1.20.0 (owner, 2026-11-04: "change everything if you must; the most important thing is a profit; the budget can
+#:         be $100"): the senior trader also judges, IN SHADOW ONLY, every agreement below the confidence floor: the
+#:         trade it would have been, exactly as it would be placed, with everything the desk knows, under a system
+#:         prompt that says the desk will not take it whatever it answers (SENIOR_SHADOW_SYSTEM). Its verdict is
+#:         recorded (`senior_shadow`) and the decision stays NO_TRADE (LOW_CONFIDENCE): it can never cause, change or
+#:         size a trade. On H1 the traders' stated confidence is each model's habit (CONF-1), so the floor refuses
+#:         nearly every agreement; CONF-2 (research/preregistrations/CONF-2.md) asks whether the strongest model's
+#:         judgement picks the ones that win. Paid (paid-trial 1.4.0), and only while today's spend leaves room for
+#:         REAL_REVIEWS_KEPT reviews of real trade candidates after it.
+DUAL_AI_VERSION = "dual-ai-1.20.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -244,6 +255,10 @@ MAX_TOKENS = {"vision": 20000, "judge": 16000, "verifier": 12000, "senior": 1000
 #: the senior's approval must be at least even odds by its own account: an approval it is less sure of than not
 #: contradicts itself, and a contradictory answer is NO_TRADE (1.18.0)
 SENIOR_EVEN_ODDS = 50
+#: the senior's shadow review of an agreement below the floor (1.20.0): measurement only, so it never holds up the
+#: next decision long, and it is paid for only while today's budget still has room for this many real reviews after it
+SHADOW_SENIOR_DEADLINE_S = 180.0
+REAL_REVIEWS_KEPT = 2
 CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
 SHADOW_DEBATE_DEADLINE_S = 120.0  # the shadow debate is measurement only: it never holds up the next decision long
 MIN_CALL_S = 30.0                # less time left than this: the trader is not asked (its answer would come too late)
@@ -364,6 +379,35 @@ would take with your own money at these levels, after costs. VETO when the evide
 traders' reasoning does not hold against the data, when the costs and the reward:risk leave no edge, or when the
 journal shows this kind of trade losing. A veto is a normal answer: the desk stands aside and loses nothing. Say what
 in the data decides it.
+
+Reply with ONE JSON object only, no other text:
+{{"verdict": "APPROVE|VETO", "confidence": <0-100: how sure you are that your verdict is right>,
+  "reason": "what in the data decides it, at most 5 sentences",
+  "main_risk": "the one thing most likely to make this trade lose"}}"""
+
+SENIOR_SHADOW_SYSTEM = """You are the SENIOR TRADER on a professional trading desk: its most experienced trader. The time is {time}
+UTC; treat it as the present and use nothing you may know about later prices or events.
+
+Two traders of the desk, each on a different model, have both chosen the same side of this instrument, but not both
+with a confidence of {floor} or more, so the desk will NOT take this trade, whatever you answer. Your answer is
+recorded and the trade is followed forward to its outcome, to learn whether your judgement picks the trades that win.
+So judge it exactly as if it would be taken: on Trader 1's levels, held up to {hold_h} hours and closed by 16:00 New
+York on Friday. "the_trade" is that trade, exactly: its side, the price it would fill at, its stop and target, its
+reward:risk, its costs as a share of the risk, and the win rate it needs to pay them. "time_machine", when present, is
+the trade's own levels replayed 10,000 times on the pair's own recent hours: a simulation of the recent past, not a
+forecast. The confidence each trader states is how its model habitually answers; it is not evidence about this trade.
+
+You have everything the desk knows: the chart (the image if you can see it; every mark as numbers in "chart_marks"),
+the raw bars on both timeframes, volatility, spread and costs, market structure, the economic calendar, both traders'
+full analyses ("trader1_analysis", "trader2_analysis"), the desk's own journal ("desk_memory": its record after
+costs, how its trades did under each condition, and the lessons confirmed out of sample), and the desk's playbook
+("desk_playbook": its rules, the lessons of its record with their dates and samples, and the research behind it).
+
+You decide ONE thing: whether you would take this exact trade. Answer APPROVE or VETO. You cannot change the side, the
+entry, the stop, the target or the size. APPROVE only a trade you would take with your own money at these levels,
+after costs. VETO when the evidence for it is weak or mixed, when the traders' reasoning does not hold against the
+data, when the costs and the reward:risk leave no edge, or when the journal shows this kind of trade losing. A veto
+is a normal answer. Say what in the data decides it.
 
 Reply with ONE JSON object only, no other text:
 {{"verdict": "APPROVE|VETO", "confidence": <0-100: how sure you are that your verdict is right>,
@@ -666,17 +710,47 @@ def trader2_messages(ctx, reports, chart, t1, hold) -> list[dict]:
             {"role": "user", "content": _with_image(packet, chart)}]
 
 
-def senior_messages(ctx, reports, chart, t1, t2, trade, tm, hold) -> list[dict]:
+def senior_messages(ctx, reports, chart, t1, t2, trade, tm, hold, system: str | None = None) -> list[dict]:
     """The senior's review (1.18.0): the market packet both traders read (the journal included), both analyses, the
-    trade exactly as it would be placed and the time machine's replay of its levels."""
+    trade exactly as it would be placed and the time machine's replay of its levels. `system` is SENIOR_SHADOW_SYSTEM
+    for a review in shadow (1.20.0); the packet is the same."""
     packet = {**market_packet(ctx, reports, chart, hold), "trader1_analysis": _clean(t1, TRADER_KEYS),
               "trader2_analysis": _clean(t2, TRADER_KEYS), "the_trade": trade,
               "time_machine": None if not tm else {k: tm.get(k) for k in (
                   "target_first", "stop_first", "neither", "target_share_of_decided", "win_rate_needed",
                   "mean_r_after_costs", "verdict", "hours", "replays", "based_on")}}
-    return [{"role": "system", "content": SENIOR_SYSTEM.format(time=_iso(ctx.t), floor=MIN_CONFIDENCE,
-                                                               hold_h=round(hold / 60))},
+    return [{"role": "system", "content": (system or SENIOR_SYSTEM).format(time=_iso(ctx.t), floor=MIN_CONFIDENCE,
+                                                                         hold_h=round(hold / 60))},
             {"role": "user", "content": _with_image(packet, chart)}]
+
+
+def the_trade(ctx, px, side: str, lead: dict, exit_after: int, levels_from: str) -> dict:
+    """The trade exactly as it would be placed (1.18.0): the price it fills at, its levels, its reward:risk, its costs
+    as a share of the risk, and the win rate it needs to pay them."""
+    fill = px["ask"] if side == "BUY" else px["bid"]
+    sl, tp = float(lead["stop_loss"]), float(lead["take_profit"])
+    risk = abs(fill - sl)
+    cost_r = float((ctx.costs or {}).get("total") or 0.0) / risk if risk > 0 else None
+    rr = abs(tp - fill) / risk if risk > 0 else None
+    return {"side": side, "fills_at": fill, "stop_loss": sl, "take_profit": tp,
+            "reward_risk": None if rr is None else round(rr, 2),
+            "costs_as_share_of_risk": None if cost_r is None else round(cost_r, 3),
+            "win_rate_needed_after_costs": None if rr is None or cost_r is None else round((1 + cost_r) / (1 + rr), 3),
+            "held_up_to_hours": round(exit_after / 60, 1), "levels_from": levels_from}
+
+
+def room_for_shadow_review(client) -> bool:
+    """Whether a review in shadow may be paid for now (1.20.0): only while the funded period is open and today's spend,
+    read from the key, still leaves room for REAL_REVIEWS_KEPT reviews of real trade candidates after this one. An
+    unread spend is no room: measurement never takes a real trade's review."""
+    status = getattr(client, "trial_status", None)
+    st = status() if callable(status) else None
+    if not isinstance(st, dict) or not st.get("active"):
+        return False
+    today, daily, per_call = st.get("spent_today"), st.get("daily_usd"), st.get("max_call_usd")
+    if not all(_num(x) for x in (today, daily, per_call)):
+        return False
+    return today + (1 + REAL_REVIEWS_KEPT) * per_call <= daily
 
 
 def _funded(client, role: str, t: int) -> bool:
@@ -866,6 +940,25 @@ class DualAITrader:
             # levels and held as a trade, is followed forward in shadow, so the floor stays measured
             rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3)}
             rec["shadow"] = [_shadow_side(t1, "trader1", LOWCONF_FAMILY, exit_after)]
+            if _funded(client, "senior", ctx.t):
+                # the senior's judgement, measured (1.20.0): it judges the trade this would have been as if it could
+                # be taken; the decision stays NO_TRADE whatever it answers, and CONF-2 follows its verdict forward
+                dl = budget(SHADOW_SENIOR_DEADLINE_S)
+                if dl is None:
+                    rec["senior_shadow"] = {"asked": False, "why": late("the senior trader")}
+                elif not room_for_shadow_review(client):
+                    rec["senior_shadow"] = {"asked": False, "why": "today's paid budget is kept for the reviews of "
+                                                                   "real trade candidates"}
+                else:
+                    trade = the_trade(ctx, px, res["agreed"], t1, exit_after, "trader1")
+                    r5 = client.chat_json(
+                        "senior", senior_messages(ctx, reports, chart, t1, t2, trade, rec.get("time_machine"), hold,
+                                                  SENIOR_SHADOW_SYSTEM),
+                        validate_senior, dedupe_key=key + "|senior-shadow", max_tokens=MAX_TOKENS["senior"],
+                        deadline_s=dl, seat=True)
+                    rec["calls"].append(r5.record())
+                    rec["senior_shadow"] = {"asked": True, "model": r5.model, "status": r5.status,
+                                            **((_clean(r5.data, SENIOR_KEYS) or {}) if r5.ok else {})}
             return stop(f"both traders chose {res['agreed']}, but not both at {MIN_CONFIDENCE} or more (Trader 1 "
                         f"{t1['confidence']}, Trader 2 {t2['confidence']}): no trade unless both are that sure; "
                         "followed forward in shadow, not traded", "LOW_CONFIDENCE")
@@ -887,17 +980,7 @@ class DualAITrader:
         # the senior trader (1.18.0): while the owner's funded period declares one, no trade is taken without its
         # approval. It reads everything the desk knows and can only refuse: never a side, a level or a size
         if _funded(client, "senior", ctx.t):
-            fill = px["ask"] if res["direction"] == "BUY" else px["bid"]
-            sl, tp = float(lead["stop_loss"]), float(lead["take_profit"])
-            risk = abs(fill - sl)
-            cost_r = float((ctx.costs or {}).get("total") or 0.0) / risk if risk > 0 else None
-            rr = abs(tp - fill) / risk if risk > 0 else None
-            trade = {"side": res["direction"], "fills_at": fill, "stop_loss": sl, "take_profit": tp,
-                     "reward_risk": None if rr is None else round(rr, 2),
-                     "costs_as_share_of_risk": None if cost_r is None else round(cost_r, 3),
-                     "win_rate_needed_after_costs": None if rr is None or cost_r is None else round(
-                         (1 + cost_r) / (1 + rr), 3),
-                     "held_up_to_hours": round(exit_after / 60, 1), "levels_from": res["levels_from"]}
+            trade = the_trade(ctx, px, res["direction"], lead, exit_after, res["levels_from"])
             dl = budget(CALL_DEADLINE_S)
             r4 = None if dl is None else client.chat_json(
                 "senior", senior_messages(ctx, reports, chart, t1, t2, trade, rec.get("time_machine"), hold),
@@ -980,7 +1063,7 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["ALWAYS_SURE_MIN", "ALWAYS_SURE_SHARE", "DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD",
+__all__ = ["ALWAYS_SURE_MIN", "ALWAYS_SURE_SHARE", "REAL_REVIEWS_KEPT", "SENIOR_SHADOW_SYSTEM", "DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD",
            "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX", "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE",
            "PICK_FAMILY", "PICK_SUFFIX", "PLAYBOOK", "SENIOR_EVEN_ODDS", "SENIOR_FAMILY", "SENIOR_SUFFIX", "SENIOR_SYSTEM",
            "T2LEVELS_FAMILY", "T2LEVELS_SUFFIX", "always_sure", "analysis_now", "build_chart", "check_levels",

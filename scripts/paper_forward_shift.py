@@ -136,9 +136,13 @@ def arabic_summary(v: dict) -> list[str]:
                    f"({AR_RULE.get(rule, rule)}).")
     pt = (dai.get("openrouter") or {}).get("paid_trial") or {}
     if (pt.get("models") or {}).get("senior"):
-        rules = (dai.get("record") or {}).get("decisions_by_rule") or {}
+        rec = dai.get("record") or {}
+        rules = rec.get("decisions_by_rule") or {}
+        sh = rec.get("senior_shadow_reviews") or {}
+        judged = (sh.get("approved") or 0) + (sh.get("not_approved") or 0)
+        shadow = f"؛ حكم بالظل على {judged} اتفاق تحت الحد ووافق على {sh.get('approved') or 0}" if sh else ""
         out.append(f"- المتداول الكبير (‎{pt['models']['senior'].split('/')[-1]}‎، مدفوع): رفض "
-                   f"{rules.get('SENIOR_VETO', 0)}، ما جاوب {rules.get('SENIOR_UNAVAILABLE', 0)}؛ صرف "
+                   f"{rules.get('SENIOR_VETO', 0)}، ما جاوب {rules.get('SENIOR_UNAVAILABLE', 0)}{shadow}؛ صرف "
                    f"{amount(pt.get('spent_total'))} من {amount(pt.get('total_usd'))}.")
     tm = next((x for x in dai.get("analyses") or [] if x.get("time_machine")), None)
     m = (tm or {}).get("time_machine") or {}
@@ -305,6 +309,9 @@ def report_md(v: dict, shift: dict) -> str:
         for a in dai.get("analyses") or []:
             when = datetime.fromtimestamp(a["t"], timezone.utc).strftime("%m-%d %H:%M") if a.get("t") else "?"
             t1, t2, vf, sr = a.get("trader1") or {}, a.get("trader2") or {}, a.get("verifier") or {}, a.get("senior") or {}
+            ss = a.get("senior_shadow") or {}
+            if not sr and ss.get("verdict"):  # its review in shadow (dual-ai 1.20.0): measured, never traded
+                sr = {"verdict": f"shadow {ss['verdict']}", "confidence": ss.get("confidence", "")}
             risk = a.get("risk")
             read = " (numbers)" if t1 and a.get("trader1_input") == "numbers" else ""
             lines.append(f"| {when} | {a['symbol']} | {t1.get('direction', '-')} {t1.get('confidence', '')}{read} | "

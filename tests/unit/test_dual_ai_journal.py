@@ -209,3 +209,19 @@ def test_an_agreement_the_senior_did_not_approve_is_one_agreement_set_beside_the
     assert vetoed["n"] == 2 and vetoed["expectancy_r"] == pytest.approx(-1.0) and "senior" in vetoed["note"]
     assert "DUAL_AI_SENIOR_VETO" in dual_ai_stats.AGREEMENTS
     assert "senior_vetoes_in_shadow" in JOURNAL_RECORD  # the senior reads its own vetoes' record in the journal
+
+
+def test_the_seniors_reviews_in_shadow_are_counted_never_scored_and_never_reach_the_traders():
+    db = Database(":memory:")
+    for did, ss in (("a", {"asked": True, "verdict": "APPROVE", "confidence": 70}),
+                    ("b", {"asked": True, "verdict": "APPROVE", "confidence": 45}),  # below even odds: not approved
+                    ("c", {"asked": True, "verdict": "VETO", "confidence": 80}),
+                    ("d", {"asked": True, "status": "INVALID: not json"}),
+                    ("e", {"asked": False, "why": "today's paid budget is kept"})):
+        db.append("decisions", {"id": did, "symbol": "EURUSD", "timeframe": "H1", "decision": "NO_TRADE",
+                                "mode": "PAPER_FORWARD", "payload": {"family": "DUAL_AI", "timestamp": AS_OF - 3600,
+                                                                     "ai": {"dual_ai": {"senior_shadow": ss}}}})
+    got = dual_ai_stats.record(db, as_of=AS_OF)["senior_shadow_reviews"]
+    assert {k: got[k] for k in ("approved", "not_approved", "unusable", "not_asked")} == {
+        "approved": 1, "not_approved": 2, "unusable": 1, "not_asked": 1}
+    assert "CONF-2" in got["note"] and "senior_shadow_reviews" not in JOURNAL_RECORD

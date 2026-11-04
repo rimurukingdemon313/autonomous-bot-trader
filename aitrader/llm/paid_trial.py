@@ -32,7 +32,13 @@ from datetime import datetime
 #: 1.3.0 (owner, 2026-11-02: "use stronger models if you want, but please make them know"): a third paid seat, the
 #:        SENIOR TRADER (dual-ai 1.18.0), and the only one with no FREE model (PAID_ONLY_ROLES). The first trial's
 #:        declaration stays as TRIAL_2026_10_26; PAID_TRIAL is now the senior's.
-PAID_TRIAL_VERSION = "paid-trial-1.3.0"
+#: 1.4.0 (owner, 2026-11-04: "change everything if you must; the most important thing is a profit; you can make the
+#:        budget $100, it is there"): the owner's cap on the key is $100 (OWNER_CAP_USD; it was $10). The senior's
+#:        funded period is SENIOR_2026_11B: $95 in all and $7.50 a day, enough for the senior to judge every H1
+#:        agreement the desk makes, below the floor in shadow too (dual-ai 1.20.0, research/preregistrations/CONF-2.md).
+#:        The same window and baseline as SENIOR_2026_11, so no decision is ever left without its senior. What the key
+#:        holds still bounds every call: a 402 ends the trial, and the desk then takes no trade a senior must review.
+PAID_TRIAL_VERSION = "paid-trial-1.4.0"
 #: the seats a paid model may take: the two traders and the senior. The debate is never paid.
 PAID_ROLES = ("vision", "judge", "senior")
 #: the seats with no FREE model: when the paid one cannot be asked, nobody is (dual-ai 1.18.0: then no trade is taken)
@@ -51,6 +57,8 @@ CHARGED = CHARGED_PER_IN_TOKEN | CHARGED_PER_OUT_TOKEN | CHARGED_PER_ITEM
 #: the key's spend may run ahead of what this process's paid replies reported by at most this before every request
 #: stops (a reply lost to a timeout is still billed; it is reserved at its most until the next key read)
 UNACCOUNTED_TOLERANCE_USD = 0.05
+#: the most the owner allows the key to spend on paid models, in all (owner, 2026-11-04; $10 before)
+OWNER_CAP_USD = 100.0
 
 
 @dataclass(frozen=True)
@@ -114,7 +122,7 @@ class PaidTrial:
         assert set(self.models) <= set(PAID_ROLES), f"paid seats are only {PAID_ROLES}"
         assert len({m.id for m in self.models.values()}) == len(self.models), "two seats, two different models"
         if self.models:
-            assert 0 < self.daily_usd <= self.total_usd <= 10.0, "caps: 0 < daily <= total <= the owner's $10"
+            assert 0 < self.daily_usd <= self.total_usd <= OWNER_CAP_USD, "caps: 0 < daily <= total <= the owner's cap"
             assert 0 < self.max_call_usd <= self.daily_usd, "one call can never cost more than a day"
             assert self.window()[0] < self.window()[1], "the trial ends after it starts"
 
@@ -172,10 +180,22 @@ SENIOR_2026_11 = PaidTrial(
     total_usd=8.50, daily_usd=1.50, max_call_usd=0.40,
     usage_baseline=0.958,
 )
+#: The owner, 2026-11-04: "you can make the budget $100, it is there; I rely on you". The same senior, now funded to
+#: judge every H1 agreement the desk makes: the trade candidates as before, and the agreements below the confidence
+#: floor in shadow (dual-ai 1.20.0), so CONF-2 can measure whether its judgement picks the trades that win. A review
+#: cost about $0.10 on 2026-11-04 (two for $0.21); about 60 agreements a day is about $6.30. $7.50 a day and $95 in all,
+#: of the $100, with what the senior spent since 2 November inside the $95 (the same baseline).
+SENIOR_2026_11B = PaidTrial(
+    name="senior-2026-11-04",
+    models={"senior": PaidModel("anthropic/claude-opus-5.5", max_in_per_m=4.0, max_out_per_m=20.0)},
+    starts="2026-11-02T15:00:00Z", ends="2026-12-01T00:00:00Z",
+    total_usd=95.0, daily_usd=7.50, max_call_usd=0.40,
+    usage_baseline=0.958,
+)
 #: the funded period declared now: the client's default
-PAID_TRIAL = SENIOR_2026_11
+PAID_TRIAL = SENIOR_2026_11B
 
 
-__all__ = ["CHARGED", "NO_TRIAL", "PAID_ONLY_ROLES", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION",
-           "PROMPT_TOKENS_RESERVE", "SENIOR_2026_11", "TRIAL_2026_10_26", "UNACCOUNTED_TOLERANCE_USD", "PaidModel",
-           "PaidTrial", "call_reserve"]
+__all__ = ["CHARGED", "NO_TRIAL", "OWNER_CAP_USD", "PAID_ONLY_ROLES", "PAID_ROLES", "PAID_TRIAL", "PAID_TRIAL_VERSION",
+           "PROMPT_TOKENS_RESERVE", "SENIOR_2026_11", "SENIOR_2026_11B", "TRIAL_2026_10_26", "UNACCOUNTED_TOLERANCE_USD",
+           "PaidModel", "PaidTrial", "call_reserve"]

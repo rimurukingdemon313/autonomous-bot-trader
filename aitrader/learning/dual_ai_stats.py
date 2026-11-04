@@ -49,7 +49,10 @@ from ..learning.paper_metrics import MIN_SAMPLE
 #:         answers, never their results), so the desk can tell a model whose confidence can still say "not sure".
 #: 1.13.0: the agreements the senior trader did not approve (dual-ai 1.18.0, DUAL_AI_SENIOR_VETO) are agreements: in the
 #:         analysis and the instrument's record once each, and set beside the trades taken (`senior_vetoes_in_shadow`).
-DUAL_AI_STATS_VERSION = "dual-ai-stats-1.13.0"
+#: 1.14.0: the senior's reviews in shadow of the agreements below the floor (dual-ai 1.20.0), counted from the decisions:
+#:         approved at even odds or more, not approved, unusable, not asked (`senior_shadow_reviews`). Counts only:
+#:         CONF-2 alone judges what they did, at its registered dates.
+DUAL_AI_STATS_VERSION = "dual-ai-stats-1.14.0"
 FAMILY, PICK_FAMILY, LOSER_FAMILY = "DUAL_AI", "DUAL_AI_DEBATE_PICK", "DUAL_AI_DEBATE_LOSER"
 T2LEVELS_FAMILY = "DUAL_AI_T2_LEVELS"
 LOWCONF_FAMILY = "DUAL_AI_LOW_CONFIDENCE"
@@ -152,6 +155,7 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
             st["difference_r"] = round(sum(v - a for a, v in pairs) / len(pairs), 3)
         return st
     rules: Counter = Counter()
+    reviews: Counter = Counter({"approved": 0, "not_approved": 0, "unusable": 0, "not_asked": 0})
     for row in db.query("SELECT payload FROM decisions ORDER BY seq"):
         p = json.loads(row["payload"])
         if p.get("family") != FAMILY or (as_of is not None and (p.get("timestamp") or 0) > as_of):
@@ -159,6 +163,12 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
         if partition_ and partition(int(p.get("timestamp") or 0)) != partition_:
             continue
         rules[(((p.get("ai") or {}).get("dual_ai") or {}).get("consensus") or {}).get("rule") or "?"] += 1
+        ss = ((p.get("ai") or {}).get("dual_ai") or {}).get("senior_shadow")
+        if isinstance(ss, dict):
+            c = ss.get("confidence")
+            usable = ss.get("verdict") in ("APPROVE", "VETO") and isinstance(c, (int, float)) and not isinstance(c, bool)
+            reviews["not_asked" if not ss.get("asked") else "unusable" if not usable else
+                    "approved" if ss["verdict"] == "APPROVE" and c >= 50 else "not_approved"] += 1
     both = rules["AGREE"] + rules["DISAGREE"] + rules["DEBATE"] + rules["DEBATE_UNRESOLVED"] + rules["LOW_CONFIDENCE"]
     return {"version": DUAL_AI_STATS_VERSION, "partition": partition_ or "ALL",
             "trades_taken": _r([o["r"] for o in trades]),
@@ -193,6 +203,9 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
                                         "on these trades. Measured, never traded"},
             "taken_by_session": {s: _r([r for r, ss in taken.values() if ss == s]) for s in SESSIONS},
             "decisions_by_rule": dict(sorted(rules.items())),
+            "senior_shadow_reviews": {**reviews, "note": "since dual-ai 1.20.0 the senior judges each agreement below "
+                                      "the floor in shadow (never traded); counts only, its results are judged by "
+                                      "CONF-2 at its registered dates"},
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,
             "unavailable": sum(rules[k] for k in UNAVAILABLE)}

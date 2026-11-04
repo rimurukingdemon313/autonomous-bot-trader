@@ -446,6 +446,47 @@ the risk engine exactly as before, which sizes it and may still refuse it.
 week to 30 October did no better than the free ones. Whether the senior's vetoes save money is what its shadow
 measures.
 
+## The senior's judgement, measured on every agreement (dual-ai 1.20.0, paid-trial 1.4.0, owner, 2026-11-04)
+
+The owner: "change everything if you must; the most important thing is a profit; don't fool me with promises; the
+budget can be $100".
+
+**The question.** On H1 the traders' stated confidence is each model's habit, so the floor refuses nearly every
+agreement (CONF-1). Can the strongest model at the desk tell the agreements that win from the ones that lose?
+
+**What changes.** The senior also judges every agreement below the floor, **in shadow only**:
+
+- It reviews the trade the agreement would have been, exactly as it would be placed (`the_trade`), with the same
+  packet as a real review.
+- Its system prompt (`SENIOR_SHADOW_SYSTEM`) tells it the desk will not take the trade, whatever it answers, and asks
+  it to judge as if it would.
+- Its verdict is recorded before the outcome (`senior_shadow`). The decision stays NO_TRADE (`LOW_CONFIDENCE`), so it
+  can never cause, change or size a trade. The agreement is followed forward as before (`DUAL_AI_LOW_CONFIDENCE`).
+- The report shows it in the Senior column as "shadow APPROVE" or "shadow VETO". The Arabic summary counts how many
+  it judged and approved. Their results are never shown before CONF-2's dates.
+
+**Who judges it.** CONF-2 (`research/preregistrations/CONF-2.md`, frozen before the first review):
+
+- It asks whether the trades the senior approved pay, and whether they beat the ones it did not approve.
+- LEARNING covers 5 to 16 November, judged on 20 November. EVALUATION covers 16 to 23 November, judged on
+  27 November.
+- Only a CONFIRMED result changes anything: then the senior's approval replaces the floor on H1, in a new version,
+  the owner told first.
+
+**Cost and caps** (`paid_trial.SENIOR_2026_11B`, `OWNER_CAP_USD` = $100).
+
+- About $0.10 a review. About 60 agreements a day is about $6.30 a day.
+- $95 in all and $7.50 a day. These have the same window and the same baseline as before, so no decision is left
+  without its senior.
+- A review in shadow is paid for only while today's spend leaves room for two more real reviews
+  (`room_for_shadow_review`, `REAL_REVIEWS_KEPT`). An unread spend is no room.
+- What the key holds bounds every call. A 402 ends the period, and the desk then takes no trade a senior must
+  review.
+
+**Why this is not "AI adds a trade".** The senior is asked only after the deterministic pre-checks, on an agreement
+the desk's own rule already refused, and its answer is measurement only, like the shadow debate on a disagreement.
+Whether its approval may ever replace the floor is decided by CONF-2's registered test, not by its answers.
+
 ## DESK-1: what if the agreements had exited or been filtered another way? (2026-11-02)
 
 The owner: "make it profitable; try everything, test everything". Preregistered and frozen first

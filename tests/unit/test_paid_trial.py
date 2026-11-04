@@ -12,7 +12,8 @@ import pytest
 from aitrader.llm.openrouter import KEY_CHECK_S, OpenRouterClient, OpenRouterConfig
 from aitrader.agents.dual_ai import MAX_TOKENS
 from aitrader.llm.paid_trial import (
-    PAID_TRIAL, PROMPT_TOKENS_RESERVE, SENIOR_2026_11, TRIAL_2026_10_26, PaidModel, PaidTrial, call_reserve,
+    OWNER_CAP_USD, PAID_TRIAL, PROMPT_TOKENS_RESERVE, SENIOR_2026_11, SENIOR_2026_11B, TRIAL_2026_10_26, PaidModel,
+    PaidTrial, call_reserve,
 )
 
 from tests.openrouter_kit import DEBATE, KEY, TRADER, VISION, model, ok
@@ -221,7 +222,7 @@ LIVE_PRICING = {
 
 
 def test_the_declared_trials_models_pass_on_their_live_catalog_prices_and_a_call_stays_under_its_cap():
-    for trial in (TRIAL_2026_10_26, SENIOR_2026_11):
+    for trial in (TRIAL_2026_10_26, SENIOR_2026_11, SENIOR_2026_11B):
         for role, m in trial.models.items():
             live = {"id": m.id, "pricing": LIVE_PRICING[m.id]}
             assert m.priced_as_declared(live) is None, (role, m.priced_as_declared(live))
@@ -304,7 +305,8 @@ def test_the_first_trial_was_the_owners_week_within_the_owners_ten_dollars():
         assert PROMPT_TOKENS_RESERVE * m.max_in_per_m / 1e6 + 12000 * m.max_out_per_m / 1e6 <= t.max_call_usd
 
 
-@pytest.mark.parametrize("kw", [{"total_usd": 11.0}, {"daily_usd": 2.0, "total_usd": 1.0}, {"max_call_usd": 5.0},
+@pytest.mark.parametrize("kw", [{"total_usd": 101.0, "daily_usd": 1.0}, {"daily_usd": 2.0, "total_usd": 1.0},
+                                {"max_call_usd": 5.0},
                                 {"ends": "2026-10-25T00:00:00Z"}])
 def test_a_trial_declared_outside_the_owners_limits_is_refused(kw):
     base = dict(name="x", models={"vision": PaidModel("a/b", 1, 1)}, starts="2026-10-26T00:00:00Z",
@@ -322,11 +324,15 @@ SENIOR_TRIAL = PaidTrial(name="test-senior", models={"senior": PaidModel(PS, 1.0
                          ends="2026-10-31T00:00:00Z", total_usd=1.0, daily_usd=0.30, max_call_usd=0.10)
 
 
-def test_the_declared_senior_is_the_strongest_listed_within_what_the_owner_has_left():
+def test_the_declared_senior_is_the_strongest_listed_within_what_the_owner_allows():
     t = PAID_TRIAL
-    assert t is SENIOR_2026_11 and set(t.models) == {"senior"}
+    assert t is SENIOR_2026_11B and set(t.models) == {"senior"}
     assert t.models["senior"].id == "anthropic/claude-opus-5.5"  # index 58.4, the highest on 2026-11-02
-    assert t.usage_baseline + t.total_usd <= 10.0  # what the first trial spent and this one may, within the $10
+    # the owner, 2026-11-04: "$100"; what the first trial spent and this one may, within it
+    assert OWNER_CAP_USD == 100.0 and t.usage_baseline + t.total_usd <= OWNER_CAP_USD
+    # the same window and baseline as the funded period it replaces: no decision is left without its senior
+    assert (t.starts, t.ends, t.usage_baseline) == (SENIOR_2026_11.starts, SENIOR_2026_11.ends,
+                                                    SENIOR_2026_11.usage_baseline)
     assert t.starts == "2026-11-02T15:00:00Z" and t.daily_usd * 5 <= t.total_usd + 1e-9
     m = t.models["senior"]  # a review at the declared prices never trips its own per-call cap
     assert PROMPT_TOKENS_RESERVE * m.max_in_per_m / 1e6 + MAX_TOKENS["senior"] * m.max_out_per_m / 1e6 <= t.max_call_usd

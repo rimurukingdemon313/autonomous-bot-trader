@@ -12,8 +12,9 @@ import pytest
 
 from aitrader.agents.brain import Brain, BrainConfig
 from aitrader.agents.dual_ai import (
-    FAMILY, LOSER_FAMILY, MIN_CONFIDENCE, PICK_FAMILY, PLAYBOOK, SENIOR_FAMILY, TIME_EXIT_MINUTES, check_levels,
-    counterfactual_decisions, resolve, time_exit_minutes, validate_senior, validate_trader, validate_verifier,
+    FAMILY, LOSER_FAMILY, MIN_CONFIDENCE, PICK_FAMILY, PLAYBOOK, REAL_REVIEWS_KEPT, SENIOR_FAMILY, TIME_EXIT_MINUTES,
+    check_levels, counterfactual_decisions, resolve, room_for_shadow_review, time_exit_minutes, validate_senior,
+    validate_trader, validate_verifier,
 )
 
 from tests.integration.test_pipeline import market
@@ -587,7 +588,7 @@ def test_the_desk_trades_h1_held_up_to_48h_and_the_m15_path_stays_when_named():
 SENIOR = "wise/senior-x"
 
 
-def senior_desk(reply, *, active=True, off=False):
+def senior_desk(reply, *, active=True, off=False, usage_daily=0.0):
     """A desk whose funded period declares a senior at the test's decision time (T, July 2017), unless `active` is
     False. The client's clock is that time too, so nothing here depends on the wall clock."""
     from aitrader.llm.openrouter import OpenRouterClient, OpenRouterConfig
@@ -598,7 +599,7 @@ def senior_desk(reply, *, active=True, off=False):
     trial = PaidTrial(name="test-senior", models={"senior": PaidModel(SENIOR, 4.0, 20.0)}, starts=month[0],
                       ends=month[1], total_usd=8.5, daily_usd=1.5, max_call_usd=0.4)
     paid = {**model(SENIOR, image=True, ii=58), "pricing": {"prompt": "0.000004", "completion": "0.00002"}}
-    fake = FakeOpenRouter(reply, catalog=CATALOG + [paid], usage_daily=0.0)
+    fake = FakeOpenRouter(reply, catalog=CATALOG + [paid], usage_daily=usage_daily)
     c = OpenRouterClient(OpenRouterConfig(api_key=KEY, paid_trial_off=off), transport=fake, clock=lambda: T,
                          sleep=lambda s: None, trial=trial)
     return Brain(config=BrainConfig(llm_agents=(), parallel=False, decision_mode="dual_ai"), openrouter=c), fake
@@ -660,11 +661,58 @@ def test_without_the_seniors_funding_no_trade_is_approved_and_nothing_is_sent_to
     assert [c["role"] for c in fake.calls] == ["trader1", "trader2"]
 
 
-def test_the_senior_is_asked_only_on_a_trade_candidate():
-    for t1, t2 in ((("BUY", 60), ("BUY", 80)), (("SELL", 80), ("BUY", 80))):  # under the floor; a disagreement
-        brain, fake = senior_desk(scripted(t1=t1, t2=t2, senior=says("APPROVE")))
-        assert brain.think(desk_ctx(), V).decision.decision == "NO_TRADE"
-        assert "senior" not in [c["role"] for c in fake.calls]
+def test_the_senior_decides_only_on_a_trade_candidate_and_is_never_asked_on_a_disagreement():
+    brain, fake = senior_desk(scripted(t1=("SELL", 80), t2=("BUY", 80), senior=says("APPROVE")))
+    assert brain.think(desk_ctx(), V).decision.decision == "NO_TRADE"
+    assert "senior" not in [c["role"] for c in fake.calls]
+
+
+# ── the senior's judgement measured below the floor (dual-ai 1.20.0, CONF-2) ──
+
+@pytest.mark.parametrize("verdict", [says("APPROVE", 99), says("VETO", 90), "not json"])
+def test_below_the_floor_the_senior_judges_in_shadow_and_the_decision_never_changes(verdict):
+    brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=verdict))
+    d = brain.think(desk_ctx(), V).decision
+    rec = d.ai["dual_ai"]
+    assert d.decision == "NO_TRADE" and rec["consensus"]["rule"] == "LOW_CONFIDENCE"  # whatever the senior said
+    (shadow,) = counterfactual_decisions(d)  # the floor's own shadow, unchanged: CONF-1 reads it as before
+    assert shadow.family == "DUAL_AI_LOW_CONFIDENCE" and shadow.decision == "BUY"
+    assert [c["role"] for c in fake.calls] == ["trader1", "trader2", "senior"]
+    review = fake.calls[2]["body"]
+    assert "will NOT take this trade, whatever you answer" in review["messages"][0]["content"]
+    sent = packet_of(review)
+    assert sent["the_trade"]["side"] == "BUY" and sent["the_trade"]["levels_from"] == "trader1"
+    assert sent["the_trade"]["stop_loss"] == pytest.approx(shadow.stop_loss)  # the trade the floor refused, exactly
+    assert sent["the_trade"]["take_profit"] == pytest.approx(shadow.take_profit)
+    assert sent["trader1_analysis"]["confidence"] == 55 and has_image(review)
+    ss = rec["senior_shadow"]
+    assert ss["asked"] is True and ss["model"] == SENIOR
+    if isinstance(verdict, dict):
+        assert (ss["verdict"], ss["confidence"]) == (verdict["verdict"], verdict["confidence"])
+    else:
+        assert "verdict" not in ss and ss["status"].startswith("INVALID")  # never repaired
+
+
+def test_the_shadow_review_leaves_room_for_the_real_reviews_and_is_never_paid_from_an_unread_spend():
+    # senior_desk's trial: $1.50 a day, $0.40 a call; the key says today's spend leaves one cent less than the room
+    brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=says("APPROVE")),
+                              usage_daily=1.5 - (1 + REAL_REVIEWS_KEPT) * 0.4 + 0.01)
+    d = brain.think(desk_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and "senior" not in [x["role"] for x in fake.calls]
+    assert d.ai["dual_ai"]["senior_shadow"] == {"asked": False, "why": "today's paid budget is kept for the reviews "
+                                                                       "of real trade candidates"}
+    assert room_for_shadow_review(type("C", (), {"trial_status": lambda self: {
+        "active": True, "spent_today": None, "daily_usd": 7.5, "max_call_usd": 0.4}})()) is False
+    brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=says("APPROVE")),
+                              usage_daily=1.5 - (1 + REAL_REVIEWS_KEPT) * 0.4 - 0.01)  # a cent of room: asked
+    assert brain.think(desk_ctx(), V).decision.ai["dual_ai"]["senior_shadow"]["asked"] is True
+
+
+def test_outside_its_funded_period_the_senior_judges_nothing_in_shadow_either():
+    brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=says("APPROVE")), active=False)
+    d = brain.think(desk_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and "senior_shadow" not in d.ai["dual_ai"]
+    assert "senior" not in [x["role"] for x in fake.calls]
 
 
 def test_outside_its_funded_period_the_desk_decides_without_a_senior():

@@ -51,3 +51,13 @@ def test_the_summary_names_the_senior_its_refusals_and_its_spend_when_one_is_dec
     unread = {**dai, "openrouter": {"paid_trial": {**senior, "spent_total": None}}}
     assert f"صرف {UNREAD}" in "\n".join(arabic_summary(view(dual_ai=unread)))  # an unread spend is never $0.00
     assert "المتداول الكبير" not in "\n".join(arabic_summary(view()))  # none declared: nothing said
+    assert "بالظل" not in text  # no review in shadow recorded: nothing said of one
+
+
+def test_the_summary_counts_the_seniors_reviews_in_shadow_without_their_results():
+    senior = {"models": {"senior": "anthropic/claude-opus-5.5"}, "spent_total": 3.2, "total_usd": 95.0}
+    reviews = {"approved": 3, "not_approved": 9, "unusable": 1, "not_asked": 2}
+    dai = {**view()["dual_ai"], "openrouter": {"paid_trial": senior},
+           "record": {"decisions_by_rule": {"LOW_CONFIDENCE": 15}, "senior_shadow_reviews": reviews}}
+    text = "\n".join(arabic_summary(view(dual_ai=dai)))
+    assert "حكم بالظل على 12 اتفاق تحت الحد ووافق على 3" in text and "صرف $3.20 من $95.00" in text

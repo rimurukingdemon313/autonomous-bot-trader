@@ -319,7 +319,7 @@ def test_each_rule_is_its_own_figure_and_the_retired_debate_rule_is_shown_apart_
     assert "| Account | Equity |" not in head and "| Account | Equity |" in md and total in md.split(head)[1]
     assert "| DEBATE |" in md and "| AGREE |" in md  # each closed trade carries its rule
     assert "| Risk | Time machine |" in md  # dual-ai 1.16.0: each agreement's levels replayed, in the desk's table
-    assert "Paid trial `senior-2026-11-02`" in md and "(the key's own reading)" in md  # the funded seat and its spend
+    assert "Paid trial `senior-2026-11-04`" in md and "(the key's own reading)" in md  # the funded seat and its spend
     # who lost it: the two trades written straight into the journal passed no check (no verdict, no gate): ours
     b = pf["blame"]
     assert (b["trades"], b["losses"], b["market_losses"], b["ours_losses"], b["ours_loss_usd"]) == (3, 2, 0, 2, -450.0)
