@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-04 21:17 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-04 18:32 UTC · decision system `dual_ai`
+Updated 2026-11-04 21:32 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-04 18:32 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: GBPJPY لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: AUDJPY لا صفقة (ما انسألوا: قاعدة منعت قبلها).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 4، ما جاوب 0؛ حكم بالظل على 10 اتفاق تحت الحد ووافق على 0؛ صرف $1.47 من $95.00.
 - آلة الزمن لآخر اتفاق (USDCHF، 10000 إعادة): الهدف أول 41%، الستوب أول 59%، ولا واحد 0%: قريب من التعادل.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
@@ -72,8 +72,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4587 so far)
+## Latest decisions, NO TRADE included (4589 so far)
 
+- 11-04 21:30 AUDJPY NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
+- 11-04 21:30 EURCHF NO_TRADE: risk engine: quiet_hours (16:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-04 21:15 GBPJPY NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-04 21:15 EURJPY NO_TRADE: risk engine: quiet_hours (16:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-04 21:00 EURGBP NO_TRADE: risk engine: quiet_hours (16:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
@@ -84,8 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-04 20:30 USDJPY NO_TRADE: both traders chose SELL at 65 or more, but the senior trader vetoed it (60): The 2.99 reward:risk needs only a 27% win rate, and the time machine gives about 32% and +0.20 R. But that replay is patter
 - 11-04 20:18 GBPUSD NO_TRADE: the traders disagree (Trader 1 SELL 55, Trader 2 BUY 65): no trade unless both choose the same side; the debate (cohere/north-mini-code:free) would have chosen BUY: followed forward in shadow, not tra
 - 11-04 20:15 EURUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-04 20:04 AUDJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 58): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-04 20:00 EURCHF NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
 
 ## Open paper positions
 
@@ -139,6 +139,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-04 21:30 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-04 21:30 | EURCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-04 21:15 | GBPJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-04 21:15 | EURJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-04 21:00 | EURGBP | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -149,8 +151,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-04 20:30 | USDJPY | SELL 70 | SELL 70 | - | VETO 60 | SENIOR_VETO | NO_TRADE | - | T 32% / S 68% / - 1%: close to break-even |
 | 11-04 20:18 | GBPUSD | SELL 55 | BUY 65 | BUY | -  | DISAGREE | NO_TRADE | - | - |
 | 11-04 20:15 | EURUSD | SELL 55 | SELL 55 | - | shadow VETO 62 | LOW_CONFIDENCE | NO_TRADE | - | T 37% / S 44% / - 19%: close to break-even |
-| 11-04 20:04 | AUDJPY | SELL 55 | SELL 58 | - | shadow VETO 66 | LOW_CONFIDENCE | NO_TRADE | - | T 15% / S 72% / - 12%: close to break-even |
-| 11-04 20:00 | EURCHF | SELL 55 | SELL 60 | - | shadow VETO 66 | LOW_CONFIDENCE | NO_TRADE | - | T 47% / S 53% / - 0%: close to break-even |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
