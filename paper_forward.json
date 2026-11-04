@@ -2540,6 +2540,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "GBPUSD",
+   "decision": "NO_TRADE",
+   "t": 1793757658,
+   "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it): nobody stands in for it, a",
+   "data_flags": []
+  },
+  {
+   "symbol": "EURUSD",
+   "decision": "NO_TRADE",
+   "t": 1793757616,
+   "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider ",
+   "data_flags": []
+  },
+  {
    "symbol": "EURGBP",
    "decision": "NO_TRADE",
    "t": 1793755970,
@@ -2692,23 +2706,9 @@
    "t": 1793746820,
    "reason": "risk engine: quiet_hours (18:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPJPY",
-   "decision": "NO_TRADE",
-   "t": 1793745920,
-   "reason": "risk engine: quiet_hours (17:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURJPY",
-   "decision": "NO_TRADE",
-   "t": 1793745918,
-   "reason": "risk engine: quiet_hours (17:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 4433,
+ "decisions_total": 4435,
  "shift": {
   "started": "2026-11-04 01:45 UTC",
   "decision_mode": "dual_ai",
@@ -2733,8 +2733,23 @@
    "paid_trial_off": false,
    "version": "openrouter-1.14.0",
    "status": "READY",
-   "calls_today": 1,
-   "last_call": {},
+   "calls_today": 4,
+   "last_call": {
+    "t": 1793757756,
+    "role": "judge",
+    "model": "google/gemma-4-31b-it:free",
+    "status": "SEAT_RESTING",
+    "ok": false,
+    "error": "the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it",
+    "request_id": null,
+    "provider_id": null,
+    "attempts": 0,
+    "latency_ms": 0.0,
+    "cached": false,
+    "tokens": null,
+    "cost": null,
+    "tried": []
+   },
    "key": {
     "checked": 1793757618,
     "ok": true,
@@ -2954,7 +2969,7 @@
     ],
     "free_total": 8,
     "catalog_total": 454,
-    "refreshed": 1793757618.1439607,
+    "refreshed": 1793758521.3559482,
     "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
@@ -2985,7 +3000,16 @@
     "reserved_unconfirmed": 0.0,
     "not_asked_because": {}
    },
-   "model_stats": {}
+   "model_stats": {
+    "nvidia/nemotron-3.5-super-vl:free": {
+     "ok": 2,
+     "failed": 0
+    },
+    "google/gemma-4-31b-it:free": {
+     "ok": 0,
+     "failed": 1
+    }
+   }
   },
   "rules": {
    "max_calls_per_decision": 3,
@@ -3007,35 +3031,80 @@
     "higher_timeframe": "H4",
     "last_bar_open": 1793754000,
     "last_bar_available": 1793757600
+   },
+   "GBPUSD": {
+    "t": 1793757658,
+    "decision_id": "ac324f3ff58e4f2a9cec5c93",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 30526,
+    "sha256": "fad55a5407c5b980836a625c50e71afc6049b28d15c54a9e028cd793e214b213",
+    "as_of": 1793757658,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793754000,
+    "last_bar_available": 1793757600
+   },
+   "USDJPY": {
+    "t": 1793758519,
+    "decision_id": "1decf6331683c4f1d6b08620",
+    "version": "chart-render-1.0.0",
+    "annotate_version": "chart-annotate-1.0.0",
+    "width": 1280,
+    "height": 1000,
+    "bytes": 31289,
+    "sha256": "0afc07ab44730935a2ba10d3f58c29d9a365a9f93de99881bc38cedb7639a46b",
+    "as_of": 1793758519,
+    "execution_timeframe": "H1",
+    "higher_timeframe": "H4",
+    "last_bar_open": 1793754000,
+    "last_bar_available": 1793757600
    }
   },
   "last_analysis": {
-   "decision_id": "d59ec4f53937d2ce330e995d",
-   "symbol": "EURGBP",
-   "t": 1793755970,
+   "decision_id": "ac324f3ff58e4f2a9cec5c93",
+   "symbol": "GBPUSD",
+   "t": 1793757658,
    "decision": "NO_TRADE",
-   "reason": "Trader 1's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone",
+   "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 1's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone",
-    "rule": "TRADER1_UNAVAILABLE"
+    "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+    "rule": "TRADER2_UNAVAILABLE"
    },
    "models": {
-    "trader1": "nvidia/nemotron-3.5-super-vl:free"
+    "trader1": "nvidia/nemotron-3.5-super-vl:free",
+    "trader2": "google/gemma-4-31b-it:free"
    },
-   "trader1": null,
+   "trader1": {
+    "confidence": 55,
+    "direction": "BUY",
+    "entry": 1.34666,
+    "invalidation": 1.34284,
+    "liquidity": "Untested demand order block 1.341\u20131.34288 and open bullish FVGs below provide support; EQL liquidity rests lower at 1.33797/1.33613",
+    "market_structure": "H4 uptrend (HH+HL); H1 bullish CHoCH/BOS sequence with fresh BOS at 1.34477 and bullish displacement on the last bar",
+    "momentum": "Bullish displacement on bar 0; H1 range position 0.84 near top of range but structure breaks favor upside",
+    "reason": "H4 trend is UP with HH+HL structure and H1 just printed a bullish BOS at 1.34477 with bullish displacement on the last bar. An untested demand order block at 1.341\u20131.34288 and open bullish FVGs sit below, supporting continuation. Desk memory shows BUYs historically losing, but that was in October's falling-major regime; the cause is absent now with H4 bullish. Stop below the 1.34284 LH invalidates the bullish structure; target projects a measured continuation within 48 hours.",
+    "reversal_probability": 45,
+    "risk_reward": 1.2,
+    "stop_loss": 1.34284,
+    "take_profit": 1.35125,
+    "trend": "H4 UP (HH+HL); H1 RANGE (mixed swings) but recent swings are HH/HL bullish"
+   },
    "trader2": null,
    "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1793755970,
-    "bytes": 30669,
+    "as_of": 1793757658,
+    "bytes": 30526,
     "execution_timeframe": "H1",
     "height": 1000,
     "higher_timeframe": "H4",
-    "last_bar_available": 1793754000,
-    "last_bar_open": 1793750400,
-    "sha256": "535ae23f93e0f75afdc750968debc6ffd256c18dc75fdb45ebfd2e372b97ce81",
+    "last_bar_available": 1793757600,
+    "last_bar_open": 1793754000,
+    "sha256": "fad55a5407c5b980836a625c50e71afc6049b28d15c54a9e028cd793e214b213",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -3045,14 +3114,29 @@
      "cached": false,
      "cost": 0.0,
      "error": null,
-     "latency_ms": 152128.4,
+     "latency_ms": 97591.8,
      "model": "nvidia/nemotron-3.5-super-vl:free",
-     "ok": false,
-     "provider_id": "gen-1793755972-fZvu6mpmMjS9a9Wt5cvq",
-     "request_id": "112e62bb8036459fa27e5c4efcc84184",
+     "ok": true,
+     "provider_id": "gen-1793757659-pm3aXxdgxQH0oI0U1hjo",
+     "request_id": "e227c6f8d6804ad49042bf8fbcd4e9d4",
      "role": "vision",
-     "status": "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)",
-     "tokens": 31146,
+     "status": "OK",
+     "tokens": 26376,
+     "tried": []
+    },
+    {
+     "attempts": 0,
+     "cached": false,
+     "cost": null,
+     "error": "the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it",
+     "latency_ms": 0.0,
+     "model": "google/gemma-4-31b-it:free",
+     "ok": false,
+     "provider_id": null,
+     "request_id": null,
+     "role": "judge",
+     "status": "SEAT_RESTING",
+     "tokens": null,
      "tried": []
     }
    ],
@@ -3063,6 +3147,172 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "ac324f3ff58e4f2a9cec5c93",
+    "symbol": "GBPUSD",
+    "t": 1793757658,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "google/gemma-4-31b-it:free"
+    },
+    "trader1": {
+     "confidence": 55,
+     "direction": "BUY",
+     "entry": 1.34666,
+     "invalidation": 1.34284,
+     "liquidity": "Untested demand order block 1.341\u20131.34288 and open bullish FVGs below provide support; EQL liquidity rests lower at 1.33797/1.33613",
+     "market_structure": "H4 uptrend (HH+HL); H1 bullish CHoCH/BOS sequence with fresh BOS at 1.34477 and bullish displacement on the last bar",
+     "momentum": "Bullish displacement on bar 0; H1 range position 0.84 near top of range but structure breaks favor upside",
+     "reason": "H4 trend is UP with HH+HL structure and H1 just printed a bullish BOS at 1.34477 with bullish displacement on the last bar. An untested demand order block at 1.341\u20131.34288 and open bullish FVGs sit below, supporting continuation. Desk memory shows BUYs historically losing, but that was in October's falling-major regime; the cause is absent now with H4 bullish. Stop below the 1.34284 LH invalidates the bullish structure; target projects a measured continuation within 48 hours.",
+     "reversal_probability": 45,
+     "risk_reward": 1.2,
+     "stop_loss": 1.34284,
+     "take_profit": 1.35125,
+     "trend": "H4 UP (HH+HL); H1 RANGE (mixed swings) but recent swings are HH/HL bullish"
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793757658,
+     "bytes": 30526,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793757600,
+     "last_bar_open": 1793754000,
+     "sha256": "fad55a5407c5b980836a625c50e71afc6049b28d15c54a9e028cd793e214b213",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 97591.8,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1793757659-pm3aXxdgxQH0oI0U1hjo",
+      "request_id": "e227c6f8d6804ad49042bf8fbcd4e9d4",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 26376,
+      "tried": []
+     },
+     {
+      "attempts": 0,
+      "cached": false,
+      "cost": null,
+      "error": "the seat's model google/gemma-4-31b-it:free is resting (rate_limited) for 201 s more; no other model stands in for it",
+      "latency_ms": 0.0,
+      "model": "google/gemma-4-31b-it:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": null,
+      "role": "judge",
+      "status": "SEAT_RESTING",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
+   {
+    "decision_id": "dcbf13d8069596d9309084ef",
+    "symbol": "EURUSD",
+    "t": 1793757616,
+    "decision": "NO_TRADE",
+    "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it,",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it, and there is no decision on one trader alone",
+     "rule": "TRADER2_UNAVAILABLE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "google/gemma-4-31b-it:free"
+    },
+    "trader1": {
+     "confidence": 55,
+     "direction": "BUY",
+     "entry": 1.12444,
+     "invalidation": 1.12322,
+     "liquidity": "EQH at 1.12638 (2 touches, today's high) is the natural upside target; EQL at 1.11794 (4 touches) and untested demand OB at 1.11932-1.11995 sit below as support.",
+     "market_structure": "H1 just flipped bullish with a fresh BOS at 1.12322 and CHOCH at 1.12032; H4 shows a large bullish range bar with bullish BOS breaks at 1.12171 and 1.12082, though H4 trend label remains mixed range.",
+     "momentum": "Bullish displacement 12 bars ago, open bullish FVGs below at 1.11957-1.12196 and 1.1197-1.12032, bullish sweeps of lows at 1.11807; M1 shows a pullback from 1.12638 into the entry zone.",
+     "reason": "H1 structure just turned bullish with a fresh BOS at 1.12322 and CHOCH at 1.12032, backed by an untested demand order block and open bullish FVGs below. The desk's historical BUY weakness occurred during falling majors; that regime has changed, and my stop at ~0.95 ATR avoids the losing 1.25-2 ATR zone. Price is at a 4-touch resistance near 1.12432, but the breakout structure favors continuation to the EQH at 1.12638 within the holding window.",
+     "reversal_probability": 45,
+     "risk_reward": 1.5,
+     "stop_loss": 1.12315,
+     "take_profit": 1.12638,
+     "trend": "H1 UP (HH+HL); H4 RANGE (mixed swings) but current H4 bar is strongly bullish with close at 1.12423 near the top of its range."
+    },
+    "trader2": null,
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1793757616,
+     "bytes": 30163,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1793757600,
+     "last_bar_open": 1793754000,
+     "sha256": "ce439c7d7f98bbd0f619910239554f4e13adf7ad1b2089410248ebe80096418d",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 39640.6,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1793757618-lfAZliZGGqcD9KiRklPu",
+      "request_id": "20c59df9a8c6496eb5aceafcaa4e0fbb",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 20867,
+      "tried": []
+     },
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": null,
+      "error": "HTTP 429: Provider returned error google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
+      "latency_ms": 181.5,
+      "model": "google/gemma-4-31b-it:free",
+      "ok": false,
+      "provider_id": null,
+      "request_id": "357e3cf101ca42d9907e9a12512cee7c",
+      "role": "judge",
+      "status": "RATE_LIMITED",
+      "tokens": null,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.18.0",
+    "time_machine": null,
+    "senior": null,
+    "risk": null
+   },
    {
     "decision_id": "d59ec4f53937d2ce330e995d",
     "symbol": "EURGBP",
@@ -4108,52 +4358,6 @@
     "time_machine": null,
     "senior": null,
     "risk": null
-   },
-   {
-    "decision_id": "f1eb53e5b5477019710e7c15",
-    "symbol": "GBPJPY",
-    "t": 1793751319,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (19:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (19:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.18.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
-   },
-   {
-    "decision_id": "4b0b1a9230c34db16ac6901e",
-    "symbol": "EURJPY",
-    "t": 1793751317,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (19:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (19:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.18.0",
-    "time_machine": null,
-    "senior": null,
-    "risk": null
    }
   ],
   "open_positions": [],
@@ -4696,21 +4900,21 @@
     "rate": 0.389
    },
    "debate_pick_if_taken": {
-    "n": 145,
+    "n": 146,
     "sample": "adequate",
-    "win_rate": 0.372,
-    "expectancy_r": -0.196,
-    "total_r": -28.36,
-    "profit_factor_r": 0.716,
+    "win_rate": 0.377,
+    "expectancy_r": -0.18,
+    "total_r": -26.34,
+    "profit_factor_r": 0.737,
     "note": "on a disagreement (not traded), the side the shadow debate picked, followed forward as if taken, after costs: what standing aside skipped"
    },
    "debate_losing_side_if_taken": {
-    "n": 150,
+    "n": 151,
     "sample": "adequate",
-    "win_rate": 0.38,
-    "expectancy_r": -0.225,
-    "total_r": -33.69,
-    "profit_factor_r": 0.683,
+    "win_rate": 0.377,
+    "expectancy_r": -0.23,
+    "total_r": -34.75,
+    "profit_factor_r": 0.676,
     "note": "the side the debate rejected, followed forward as if taken, after costs: if it does better than the side picked, the debate is choosing the wrong side"
    },
    "trader2_levels_in_shadow": {
@@ -4733,12 +4937,12 @@
     "note": "since dual-ai 1.10.0 a trade is on Trader 1's levels; the same agreement on Trader 2's own levels, followed forward and never traded. difference_r > 0 would mean Trader 2's levels did better"
    },
    "low_confidence_in_shadow": {
-    "n": 6,
+    "n": 7,
     "sample": "insufficient",
-    "win_rate": 0.333,
-    "expectancy_r": -0.022,
-    "total_r": -0.13,
-    "profit_factor_r": 0.97,
+    "win_rate": 0.429,
+    "expectancy_r": 0.234,
+    "total_r": 1.64,
+    "profit_factor_r": 1.38,
     "note": "since dual-ai 1.12.0 an agreement is a trade only when both traders state 65 or more; the agreements below, followed forward as the trades they would have been, after costs. Doing better than the trades taken would mean the floor costs money"
    },
    "senior_vetoes_in_shadow": {
@@ -4843,11 +5047,11 @@
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 2301,
     "TRADER1_UNAVAILABLE": 37,
-    "TRADER2_UNAVAILABLE": 73
+    "TRADER2_UNAVAILABLE": 75
    },
    "agreement_rate": 0.597,
    "decisions_with_both_traders": 811,
-   "unavailable": 3298
+   "unavailable": 3300
   },
   "recent_trades": [
    {
@@ -5573,8 +5777,8 @@
   ]
  },
  "health": {
-  "last_cycle": null,
+  "last_cycle": 1793757615,
   "last_cycle_error": null,
-  "cycles": 0
+  "cycles": 1
  }
 }
