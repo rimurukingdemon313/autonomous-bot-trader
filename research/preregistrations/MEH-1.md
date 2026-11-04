@@ -80,3 +80,33 @@ FLOW-1 asked whether the 4 pm fix's own move reverses, and it did not. MEH-1 ask
   That is a reason the effect could differ between the halves, not an excuse if it does.
 - **The calendar.** Weekdays only: UK holidays at a month-end (the late-May bank holiday) are not removed, as in
   FLOW-1. The fix is still published on those days.
+
+## Result (run 2026-11-04; `research/knowledge/MEH-1.json`)
+
+**FAILED.** Neither hypothesis passed its gates, so the sealed holdout stays sealed and nothing changes.
+
+- The index closes were fetched on GitHub's runner (branch `meh1-data`, `60e16c6`). All eight series ran from
+  2008-01 to 2026-11, and every file matched its manifest sha256.
+- The judge read 96 month-ends, 2009-01 to 2016-12.
+
+| | H1: 13:00 → 16:00 London | H2: 15:00 → 16:00 London |
+|---|---|---|
+| Gross, mean bps a month-end (t) | +0.10 (0.05) | **+3.29 (2.86)** |
+| Costs, mean bps | 2.00 | 2.10 |
+| Net, mean bps (t) | −1.90 (−0.99) | +1.19 (**1.04**) |
+| Development / validation, net | −0.99 / −2.81 | +1.71 / +0.67 |
+| Costs ×2, net | −3.90 | −0.91 |
+| The same rule on every other weekday (placebo), net | −2.30 | −1.92 |
+| Specificity, Welch t | 0.21 | 2.67 |
+| Failed gates | all eight | t, costs ×2, top year |
+
+**What it means, and no more.**
+
+- **In the last hour into the fix there is a month-end move in the direction the hedging flow predicts.** It is
+  +3.3 bps gross, it is specific to month-end (Welch t 2.67 against the other weekdays), and it appears in both
+  halves. That is consistent with Melvin & Prins.
+- **It is not a trade.** The spread, slippage and commission take 2.1 bps of it. What is left, +1.2 bps, is far
+  from the registered t of 3.61, and it turns negative when costs double.
+- **The three hours from 13:00 show nothing.** If the flow exists, it is in the last hour.
+- This is the project's recurring finding: a gross effect too small for retail costs. A desk paying less than about
+  1 bp a round trip might see it differently, but this one does not.
