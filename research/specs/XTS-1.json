@@ -1,0 +1,51 @@
+{
+ "code_sha256": "629138aff11632cbfef3c12725e5a75c2885150bc31f6cb240b7fdb7eae83632",
+ "sha256": "6c92d8b532457536ae16ea1d866c556339cef350f47e248e11523815e049ae0a",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cfd_financing_pa_reported_only": 0.2,
+  "cost_per_side": 0.0015,
+  "data": "Binance spot daily klines (data.binance.vision), monthly archives checked against their sha256; a month that cannot be fetched or checked stops the judge, never filled",
+  "gates": {
+   "costs_x2": "mean daily net > 0 with the cost doubled",
+   "development": "mean daily net > 0 in 2018..2021",
+   "leave_one_coin_out": "mean daily net > 0 for BTC alone and for ETH alone",
+   "t": "t of the mean daily net return of the two-coin book over 2018-01..2024-06 >= the threshold",
+   "timing": "the book beats holding each coin at its own average exposure: mean daily difference > 0 with t >= 2.0",
+   "top_year": "no calendar year supplies more than 50% of the total net",
+   "validation": "mean daily net > 0 in 2022-01..2024-06"
+  },
+  "holdout_rule": "2024-07..2026-09: mean daily net > 0 with one-sided t >= 1.645, mean daily net > 0 with the cost doubled, and the timing difference's mean > 0",
+  "lookbacks_days": [
+   7,
+   14,
+   28
+  ],
+  "periods": {
+   "development": [
+    "2018-01-01",
+    "2022-01-01"
+   ],
+   "holdout": [
+    "2024-07-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2022-01-01",
+    "2024-07-01"
+   ]
+  },
+  "program": "XTS-1",
+  "question": "does time-series momentum in bitcoin and ether earn a positive net return, and beat holding them at the same average exposure?",
+  "rule": "exposure for the next day = share of the lookbacks over which the close rose (long or flat); half the capital per coin; a change of exposure pays the cost on the notional traded; a day without its prices is no trade",
+  "symbols": [
+   "BTCUSDT",
+   "ETHUSDT"
+  ],
+  "tests": 2,
+  "threshold_t": 3.0902
+ }
+}
