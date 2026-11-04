@@ -465,10 +465,11 @@ def test_a_models_habit_counts_only_from_enough_answers_and_nine_in_ten():
 
 
 def test_the_traders_seats_have_room_to_finish_their_answer():
-    # 12,000 tokens cut Trader 1's model off 7 times in a day while it was still thinking, and a stand-in took over
+    # 12,000 tokens cut Trader 1's model off 7 times in a day while it was still thinking, and a stand-in took over;
+    # on H1, 16,000 cut it off 4 times in the morning of 4 November, each a decision lost (dual-ai 1.19.0)
     d, fake = think(scripted(t1=("SELL", 80), t2=("BUY", 80)))
     sent = {x["role"]: x["body"]["max_tokens"] for x in fake.calls}
-    assert sent == {"trader1": 16000, "trader2": 16000, "debate": 12000}
+    assert sent == {"trader1": 20000, "trader2": 16000, "debate": 12000}
 
 
 # ── an agreement uses levels the risk engine can accept, when one trader has them ──

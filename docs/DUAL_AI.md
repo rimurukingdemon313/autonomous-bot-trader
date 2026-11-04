@@ -374,8 +374,11 @@ So, from dual-ai 1.17.0:
    holders busy, failing or resting: 37 to two Google models "temporarily rate-limited upstream" (25 asked and busy,
    12 resting), each keeping the seat until it had failed three times. Trader 1's numbers fallback on a text model
    is gone. The debate, shadow only, keeps its fallbacks.
-2. **Room to finish.** Each trader's answer may use 16,000 tokens (12,000 before). The seat's usable answers used
-   up to about 24,000 tokens with the prompt's ~15,000, and a median 62 s (90% within 105 s).
+2. **Room to finish.** Each trader's answer may use 16,000 tokens (12,000 before). On 2 November the seat's usable
+   answers used up to about 24,000 tokens with the prompt's ~15,000, and a median 62 s (90% within 105 s). Since
+   dual-ai 1.19.0 (2026-11-04) Trader 1's may use 20,000. On H1 its usable answers had grown to ~15,200 tokens after
+   the prompt, and 4 of its 50 answers that morning were cut at 16,000 while it was still thinking, each a decision
+   lost. Trader 2's stay at 16,000: 2 of its 202 were cut, and its long answers already take 160 to 180 s.
 3. **A model sure on nearly every answer holds no trader's seat.** `dual_ai_stats.confidence_habits` reads how each
    model stated its confidence as a trader in the decisions made before this one: its answers, not their results.
    A model that stated MIN_CONFIDENCE or more in 90% (ALWAYS_SURE_SHARE) of at least 30 (ALWAYS_SURE_MIN) holds no

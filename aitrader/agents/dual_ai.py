@@ -195,7 +195,14 @@ from .types import MarketContext
 #:         And THE DESK'S PLAYBOOK (agents/playbook.py; the owner: "not only what the company trained it on: it must
 #:         know all the steps we learned"): the desk's rules, the lessons of its forward record with their samples
 #:         and dates, and the research behind it, in every packet (both traders, the debate, the senior).
-DUAL_AI_VERSION = "dual-ai-1.18.0"
+#: 1.19.0 (live, 2026-11-04): Trader 1's answer may use 20,000 tokens (16,000 before). On H1 its usable answers ran
+#:         to ~15,200 tokens after the ~15,000 of the prompt, and 6 of its 267 answers since 1 November were cut at
+#:         16,000 while it was still thinking, 4 of them among the 50 of the morning of 4 November: each one a decision
+#:         lost (TRADER1_UNAVAILABLE). A cut answer had taken 83-152 s, and no decision has run out of time (both
+#:         traders together: 261 s at the 90th percentile). Trader 2's seat keeps 16,000: 2 of its 202 answers were
+#:         cut, and its long answers already take 160-180 s. How long a trader may think changes; no rule, level,
+#:         limit or size does.
+DUAL_AI_VERSION = "dual-ai-1.19.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -232,8 +239,8 @@ MIN_EXEC_BARS = {"M15": 60}  # fewer completed M15 bars than this: the chart exe
 EXECUTION_TF = "H1"
 EXEC_ROWS, HTF_ROWS = 60, 30
 #: reasoning models think before they answer; the traders' seats have room to finish (1.17.0: 12,000 cut Trader 1's
-#: model off 7 times in a day, and a stand-in took the decision)
-MAX_TOKENS = {"vision": 16000, "judge": 16000, "verifier": 12000, "senior": 10000}
+#: model off 7 times in a day, and a stand-in took the decision; 1.19.0: 16,000 cut it off 4 times in a morning)
+MAX_TOKENS = {"vision": 20000, "judge": 16000, "verifier": 12000, "senior": 10000}
 #: the senior's approval must be at least even odds by its own account: an approval it is less sure of than not
 #: contradicts itself, and a contradictory answer is NO_TRADE (1.18.0)
 SENIOR_EVEN_ODDS = 50
