@@ -1,0 +1,37 @@
+# MEH-1 (research/preregistrations/MEH-1.md): fetch the daily closes of the S&P 500 and the seven home indices from
+# Yahoo on GitHub's runner (this environment cannot reach it), with a manifest of each file's sha256, and commit them
+# to this branch. It reads no FX price and computes no outcome: the judge runs where the FX data is.
+name: MEH-1 index closes (fetch only)
+on:
+  push:
+    branches: [meh1-data]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Fetch (retries on transient errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/meh1.py fetch 2>&1 | tee -a meh1-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a meh1-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/meh/manifest.json
+      - name: Commit the closes and the log
+        if: always()
+        run: |
+          git config user.name "meh-runner"; git config user.email "meh-runner@users.noreply.github.com"
+          mkdir -p research/results
+          [ -f meh1-fetch.log ] && mv meh1-fetch.log research/results/
+          git add -f data/meh research/results/meh1-fetch.log || true
+          git commit -m "MEH-1 index closes fetched on the GitHub runner [skip ci]" || true
+          git push origin HEAD:meh1-data

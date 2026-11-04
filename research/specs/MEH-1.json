@@ -1,0 +1,81 @@
+{
+ "code_sha256": "299d0cb2c4aadfbd152ab0588124b67e608086c69ed5f00c38f72f23a7b29eb7",
+ "sha256": "3e8700907777bdb5f6e648013f604d647477d0800af6076fb034d73bb9853b5a",
+ "spec": {
+  "after": {
+   "a passer validated on the holdout": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "costs": {
+   "commission_pips_rt": 0.7,
+   "slippage_pips": 0.1,
+   "spread_multiple": 1.0
+  },
+  "entry_london": {
+   "MEH1-H1-13-16": [
+    13,
+    0
+   ],
+   "MEH1-H2-15-16": [
+    15,
+    0
+   ]
+  },
+  "exit_london": [
+   16,
+   0
+  ],
+  "gates": {
+   "costs_x2": "mean net > 0 with spread, slippage and commission all doubled",
+   "development": "mean net > 0 in 2009-2012",
+   "leave_one_pair_out": "mean net > 0 leaving out any one pair",
+   "specificity": "the month-end mean exceeds the same rule on every other weekday of the month (Welch t >= 2)",
+   "t": "t of the mean net bps over 2009-2016 >= the registry's Bonferroni threshold",
+   "top_year": "no single year supplies more than 50% of the total net",
+   "validation": "mean net > 0 in 2013-2016",
+   "years": ">= 60% of the years have positive net"
+  },
+  "holdout_rule": "only for a passer, through the registry's final-test procedure on 2017-01..2018-05 (the sealed fx-majors holdout): mean net > 0 and mean net > 0 with costs x2",
+  "home_index": {
+   "AUDUSD": "^AXJO",
+   "EURUSD": "^STOXX50E",
+   "GBPUSD": "^FTSE",
+   "NZDUSD": "^NZ50",
+   "USDCAD": "^GSPTSE",
+   "USDCHF": "^SSMI",
+   "USDJPY": "^N225"
+  },
+  "hypotheses": {
+   "MEH1-H1-13-16": "On the last weekday of the month each USD major moves from 13:00 to 16:00 London in the direction month-end equity-hedge rebalancing implies: the dollar weakens when the S&P 500 beat the pair's home index month to date through the day before, and strengthens when it trailed",
+   "MEH1-H2-15-16": "The same, from 15:00 to 16:00 London"
+  },
+  "min_pairs": 4,
+  "pairs": [
+   "EURUSD",
+   "GBPUSD",
+   "AUDUSD",
+   "NZDUSD",
+   "USDJPY",
+   "USDCHF",
+   "USDCAD"
+  ],
+  "periods": {
+   "development": [
+    "2009-01-01",
+    "2013-01-01"
+   ],
+   "holdout": [
+    "2017-01-01",
+    "2018-06-01"
+   ],
+   "validation": [
+    "2013-01-01",
+    "2017-01-01"
+   ]
+  },
+  "program": "MEH-1",
+  "question": "does month-end equity-hedge rebalancing move the USD majors into the London 4 pm fix, in the direction the month's US-versus-home equity returns imply?",
+  "threshold_t": 3.6143,
+  "us_index": "^GSPC"
+ }
+}
