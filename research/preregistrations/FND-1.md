@@ -80,3 +80,9 @@ The timing gate is the one that tells skill from the market's rise.
   is the question.
 - **Exposure to these years.** XTS-1 has already been judged on these coins and years (2018-2024), with momentum.
   These years are not unseen data, and FND-1's threshold counts it.
+
+## Status (2026-11-04)
+
+**ABANDONED before any outcome.** Its run (`fnd1-run`, `ab13f67`) stopped at the data guard, because Binance's
+funding archive begins in 2020-01 and the guard required 2019-12. Superseded by FND-1A
+(`research/preregistrations/FND-1A.md`), the same rule with that one guard amended. FND-1A FAILED.

@@ -29,3 +29,28 @@ any day without its settlements.
 seven gates and the holdout rule. They are all in `research/preregistrations/FND-1.md`.
 
 **Raised:** the threshold, from 3.11 to 3.13, because FND-1's registration still counts.
+
+## Result (run 2026-11-04, locally on the runner's fetched archives; `research/knowledge/FND-1A.json`)
+
+**FAILED.** Two gates failed, so the holdout stays unread and nothing changes. The judged period was 2020-01 to
+2024-06 (1,637 days). The book stood aside on 12.7% of BTC's days and 16.0% of ETH's.
+
+| | Mean a day | Annual (arithmetic) | Sharpe | t | Gate |
+|---|---|---|---|---|---|
+| The book, net | 0.185% | +68% | 1.04 | **2.20** | t ≥ 3.13: **failed** |
+| Development 2020-01 to 2022-06 | 0.169% | +62% | 0.83 | 1.31 | > 0: passed |
+| Validation 2022-07 to 2024-06 | 0.205% | +75% | 1.45 | 2.05 | > 0: passed |
+| Cost doubled | 0.182% | +66% | 1.02 | 2.16 | > 0: passed |
+| BTC alone / ETH alone | 0.163% / 0.208% | +59% / +76% | 0.98 / 0.99 | 2.08 / 2.11 | > 0: passed |
+| **Timing** (beyond each coin's average exposure) | **−0.023%** | **−8%** | −0.30 | **−0.64** | t ≥ 2.0: **failed** |
+
+**By year** (sum of daily net): 2020 +144%, 2021 +97%, 2022 −78%, 2023 +91%, 2024 H1 +49%. The worst drawdown was
+−75%.
+
+**What it means, and no more.**
+
+- **The book's return is the coins' own rise, not the rule.** Standing aside when funding was crowded did worse
+  than holding the same average exposure (−8% a year, t −0.64). Crowded funding was not followed by weaker returns
+  here; if anything, the rule missed gains.
+- **The contrarian reading of extreme funding is not supported** for BTC and ETH in 2020 to 2024-06, at a daily
+  horizon.
