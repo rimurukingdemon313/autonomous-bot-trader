@@ -120,3 +120,17 @@ top year supplied 45% of the total. The worst drawdown was −54%.
 - As registered, the holdout (2024-07 to 2026-09) is not opened for a hypothesis that failed. Testing the same rule
   on it now would have to be registered as a new trial, and it would be biased: what is publicly known of that
   period's market favours a long-or-flat rule. So it is not done.
+
+## Correction (2026-11-04, after the result)
+
+"Momentum in crypto prices was never tested here" (under "Why this question") is **wrong**.
+
+- **What CR-1 tested.** CR-1 (2026-10, `research/preregistrations/CR-1.md`) had a TSMOM family on Binance USDT-M
+  perpetuals: the sign of the 28-day return (14 and 56 as neighbours), long or short, on 11 coins, 2020-2022.
+- **How it did.** It reached t 1.19 a day (Sharpe 0.68) and was not promoted (`research/knowledge/CR-1-dev.json`).
+- **How it differed.** XTS-1's rule was different: spot, long or flat, BTC and ETH only, blended 7/14/28-day
+  lookbacks, 2018-2024.
+- **What does not change.** XTS-1's threshold already counted CR-1's eight tests among the 23 crypto tests, so its
+  verdict and statistics stand.
+- **What the correction adds.** Two different crypto momentum rules, on different instruments and periods, both
+  fell short of their bars. That is more evidence against the family, not less.

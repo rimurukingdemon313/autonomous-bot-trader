@@ -1,0 +1,48 @@
+{
+ "code_sha256": "8dd89162717fe12dca104b65465cde64da454231acce61cdda5f6fade9e0f519",
+ "sha256": "86590f1005d9460547071f73432db17671081da872d38a234b2f9771d8e17ddc",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_per_side": 0.0015,
+  "crowded_rate_per_settlement": 0.0003,
+  "data": "Binance spot daily klines and USDT-M funding settlements (data.binance.vision), monthly archives checked against their sha256; a month not fetched or not checked stops the judge, never filled",
+  "gates": {
+   "costs_x2": "mean daily net > 0 with the cost doubled",
+   "development": "mean daily net > 0 in 2020-01..2022-06",
+   "leave_one_coin_out": "mean daily net > 0 for BTC alone and for ETH alone",
+   "t": "t of the mean daily net return of the two-coin book over 2020-01..2024-06 >= the threshold",
+   "timing": "the book beats holding each coin at its own average exposure: mean daily difference > 0 with t >= 2.0",
+   "top_year": "no calendar year supplies more than 50% of the total net",
+   "validation": "mean daily net > 0 in 2022-07..2024-06"
+  },
+  "holdout_rule": "2024-07..2026-09: mean daily net > 0 with one-sided t >= 1.645, mean daily net > 0 with the cost doubled, and the timing difference's mean > 0",
+  "min_settlements": 18,
+  "periods": {
+   "development": [
+    "2020-01-01",
+    "2022-07-01"
+   ],
+   "holdout": [
+    "2024-07-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2022-07-01",
+    "2024-07-01"
+   ]
+  },
+  "program": "FND-1",
+  "question": "is crowded long leverage, read from extreme perpetual funding, followed by weaker bitcoin and ether returns, so that standing aside then beats holding?",
+  "rule": "exposure for the next day = 0 when the mean funding of the 7 days before the close exceeds the crowded rate, else 1; spot returns; half the capital per coin; a change of exposure pays the cost; a day without its prices or its settlements is no trade",
+  "symbols": [
+   "BTCUSDT",
+   "ETHUSDT"
+  ],
+  "tests": 2,
+  "threshold_t": 3.113,
+  "window_days": 7
+ }
+}

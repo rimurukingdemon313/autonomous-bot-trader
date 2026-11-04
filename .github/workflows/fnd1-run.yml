@@ -1,0 +1,63 @@
+# One-time execution of FND-1 (research/preregistrations/FND-1.md) on GitHub's runner, which can reach Binance's
+# public archives: fetch the daily klines and funding settlements, judge 2020-01..2024-06, and open the 2024-07..2026-09
+# holdout only if the judge PASSED. Research only: nothing here touches the paper desk.
+name: FND-1 judge (once)
+on:
+  push:
+    branches: [fnd1-run]
+permissions:
+  contents: write
+jobs:
+  fnd1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to run twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("FND-1", "FND-1-H"):
+                  sys.exit(f"FND-1 already has a verdict ({r['status']})")
+          PY
+      - name: Fetch the klines and the funding settlements (retries on transient errors)
+        timeout-minutes: 30
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/fnd1.py fetch 2>&1 | tee -a fnd1-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a fnd1-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/fnd/manifest.json
+      - name: Judge 2020-01..2024-06
+        run: |
+          set -o pipefail
+          python scripts/fnd1.py judge 2>&1 | tee fnd1-judge.log
+      - name: Open the holdout once, only if the judge PASSED
+        run: |
+          set -o pipefail
+          if grep -q '"verdict": "PASSED"' research/knowledge/FND-1.json; then
+            python scripts/fnd1.py holdout 2>&1 | tee fnd1-holdout.log
+          else
+            echo "FND-1 did not pass: the holdout stays unread" | tee fnd1-holdout.log
+          fi
+      - name: Commit the artifacts and logs
+        if: always()
+        run: |
+          git config user.name "fnd-runner"; git config user.email "fnd-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in fnd1-fetch.log fnd1-judge.log fnd1-holdout.log; do if [ -f "$f" ]; then mv "$f" research/results/; fi; done
+          for f in research/results/fnd1-*.log data/fnd/manifest.json data/fnd/BTCUSDT_1d.csv data/fnd/ETHUSDT_1d.csv \
+                   data/fnd/BTCUSDT_funding.csv data/fnd/ETHUSDT_funding.csv research/knowledge/FND-1.json \
+                   research/knowledge/FND-1-H.json research/registry.jsonl; do
+            if [ -e "$f" ]; then git add -f "$f"; fi
+          done
+          git commit -m "FND-1 run on the GitHub runner [skip ci]" || true
+          git push origin HEAD:fnd1-run
