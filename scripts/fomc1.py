@@ -35,6 +35,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 import sys
 import time as _time
 import urllib.error
@@ -174,12 +175,25 @@ def minute_end(d: date, hm: tuple[int, int]) -> int:
 
 # ── the calendar, checked at its source ─────────────────────────────────
 
+RELEASE = re.compile(r"for\s+(?:immediate\s+)?release(?:\s+at\s+[0-9:]{1,5}\s*[ap]\.?\s*m\.?(?:\s*E[SD]T)?)?", re.I)
+
+
+def page_text(html: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>|&nbsp;", " ", html))
+
+
+def release_phrase(html: str) -> str | None:
+    """The page's own words for when it was released ("For release at 2:00 p.m. EDT"), or None."""
+    m = RELEASE.search(page_text(html))
+    return m.group(0) if m else None
+
+
 def verify_page(html: str) -> str | None:
-    """None if the page is the FOMC statement released at 2:00 p.m., else why not."""
-    if "FOMC statement" not in html:
+    """None if the page is the FOMC statement and says it was released at 2:00 p.m., else why not."""
+    if "FOMC statement" not in page_text(html):
         return "not the FOMC statement"
-    if "2:00 p.m." not in html:
-        return "not released at 2:00 p.m."
+    if not re.search(r"2:00\s*p\.?\s*m", release_phrase(html) or ""):
+        return f"not released at 2:00 p.m. (the page says: {release_phrase(html)!r})"
     return None
 
 
@@ -187,11 +201,12 @@ def cmd_calendar() -> None:
     DATA.mkdir(parents=True, exist_ok=True)
     rows = []
     for d in EVENTS:
-        url, why = FED.format(d=d), None
+        url, why, said = FED.format(d=d), None, None
         for k in range(4):
             try:
                 with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=40) as r:
-                    why = verify_page(r.read().decode("utf-8", "replace"))
+                    html = r.read().decode("utf-8", "replace")
+                why, said = verify_page(html), release_phrase(html)
                 break
             except urllib.error.HTTPError as exc:
                 why = f"HTTP {exc.code}"
@@ -200,7 +215,7 @@ def cmd_calendar() -> None:
             except Exception as exc:  # noqa: BLE001 - retried, then recorded
                 why = f"{type(exc).__name__}: {exc}"
             _time.sleep(5 * 2 ** k)
-        rows.append({"date": str(d), "url": url, "ok": why is None, "why": why})
+        rows.append({"date": str(d), "url": url, "ok": why is None, "why": why, "release": said})
         print(d, "ok" if why is None else why, flush=True)
         _time.sleep(1.0)
     per_year: dict = {}

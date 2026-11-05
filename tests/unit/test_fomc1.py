@@ -75,11 +75,14 @@ def test_a_drift_the_ordinary_weeks_share_fails_the_timing_gate():
 
 
 def test_the_calendar_is_checked_at_its_source():
-    assert F.verify_page("Federal Reserve issues FOMC statement ... For release at 2:00 p.m. EDT") is None
+    page = "<h3>Federal Reserve issues FOMC statement</h3><p>For release at 2:00&nbsp;p.m.\n EDT</p>"
+    assert F.verify_page(page) is None and F.release_phrase(page) == "For release at 2:00 p.m. EDT"
     assert F.verify_page("Minutes of the Federal Open Market Committee ... For release at 2:00 p.m.") == \
         "not the FOMC statement"
-    assert F.verify_page("Federal Reserve issues FOMC statement ... For release at 2:15 p.m. EDT") == \
-        "not released at 2:00 p.m."
+    assert F.verify_page("Federal Reserve issues FOMC statement ... For release at 2:15 p.m. EDT").startswith(
+        "not released at 2:00 p.m.")
+    assert "For immediate release" in F.verify_page("Federal Reserve issues FOMC statement. For immediate release")
+    assert "None" in F.verify_page("Federal Reserve issues FOMC statement. Released at 2:00 p.m.")  # not its words
     assert len(F.EVENTS) == len(set(F.EVENTS)) and all(d.weekday() in (2, 3) for d in F.EVENTS)
     per_year = {y: sum(1 for d in F.EVENTS if d.year == y) for y in range(2013, 2027)}
     assert per_year == {**{y: 8 for y in range(2013, 2026)}, 2020: 7, 2026: 6}
