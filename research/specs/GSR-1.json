@@ -1,0 +1,52 @@
+{
+ "code_sha256": "9ade6758879667c0e3eaadaf2c4c230118722d2fb59a033dbc0c2e4f7295e337",
+ "sha256": "f12af81e026a889ca4843d24714d1fc4290e1316eba6f95e7a93a151c62afd98",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), on XAUUSD and XAGUSD, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_each_side": {
+   "GC=F": 0.0003,
+   "SI=F": 0.001
+  },
+  "data": "Yahoo daily closes of the front-month futures GC=F and SI=F (the probe of 2026-11-05: stooq answered a page without data, LBMA refused); each file's sha256 in the manifest",
+  "enter_z": 2.0,
+  "exit": "z crosses 0",
+  "gates": {
+   "both_sides": "the trades against a high ratio and those against a low one each net > 0 in total",
+   "costs_x2": "mean daily net > 0 with every cost and the financing doubled",
+   "development": "mean daily net > 0 in 2002..2010",
+   "t": "t of the mean daily net return (flat days count as zero), 2002..2019, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total net",
+   "validation": "mean daily net > 0 in 2011..2019"
+  },
+  "holdout_rule": "2020-01..2026-09: mean daily net > 0 with one-sided t >= 1.645, > 0 with every cost and the financing doubled",
+  "instruments": [
+   "GC=F",
+   "SI=F"
+  ],
+  "lag": "the signal at a close, the trade at the next close",
+  "max_held_days": 252,
+  "pair_financing_pa": 0.05,
+  "periods": {
+   "development": [
+    "2002-01-01",
+    "2011-01-01"
+   ],
+   "holdout": [
+    "2020-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2011-01-01",
+    "2020-01-01"
+   ]
+  },
+  "program": "GSR-1",
+  "question": "does a gold/silver pair traded against a ratio two standard deviations from its year's mean, held until it is back, pay after a retail CFD's costs?",
+  "tests": 1,
+  "threshold_t": 3.0,
+  "window_days": 252
+ }
+}
