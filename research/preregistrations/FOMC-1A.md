@@ -51,3 +51,39 @@ published size can pass t ≥ 3.163 with 47 events.
   failures have nothing to do with what the market did, so this costs power, not honesty.
 - **A limit on lost events.** If more than one in ten of a period's event windows is lost to failed days, that period
   is not judged at all. That means more than 4 of the 47, or more than 3 of the 38.
+
+## Result (run 2026-11-05 on GitHub's runners; `research/knowledge/FOMC-1A.json`)
+
+**FAILED.** Three gates failed: t, top year and timing. The holdout (2022-01 to 2026-09) stays unread, and nothing
+changes.
+
+**The data.** The 16 shards ran in 22 to 55 minutes each.
+
+- All 510 days were fetched, none failed and none was empty, so no event window was lost to a failed day.
+- Of the 1,020 minutes the windows read, 1,002 had a quote on both sides.
+- Two listed events had no trade, each for one minute without a two-sided quote: 2017-07-26 (its 13:55 exit) and
+  2017-09-20 (its entry, 14:00 on the 19th). The rule says a missing quote is no trade, never filled.
+
+**The figures.** 45 events were traded in 2016 to 2021.
+
+| | Mean per event | t | Gate |
+|---|---|---|---|
+| Net | +0.070% | **0.81** | t ≥ 3.163: **failed** |
+| Gross / cost | +0.107% / 0.037% | | reported |
+| Development 2016-2018 (22) | +0.092% | 1.38 | > 0: passed |
+| Validation 2019-2021 (23) | +0.049% | 0.31 | > 0: passed |
+| Cost doubled | +0.032% | 0.38 | > 0: passed |
+| The controls (the same window on ordinary weeks, 89) | +0.162% | 2.18 | reported |
+| Events minus controls | −0.093% | **−0.81** | t ≥ 2.0: **failed** |
+
+- The hit rate was 44%.
+- By year (sum of net): 2016 +0.03%, 2017 +0.35%, 2018 +1.64%, 2019 −0.88%, 2020 +3.46%, 2021 −1.46%.
+- 2020 alone supplied 110% of the total, so the top year gate failed too.
+
+**What it means, and no more.**
+
+- From 2016 to 2021, the 24 hours before a scheduled FOMC statement earned about +0.11% gross. Lucca & Moench found
+  about +0.49% for 1994 to 2011.
+- Ordinary weeks earned more in the same clock window (+0.16%) than FOMC weeks did. Nothing distinguished the event.
+- This agrees with Kurov, Wolfe & Gilbert (2021): the drift disappeared after it was published.
+- As registered, the holdout is not opened for a hypothesis that failed.
