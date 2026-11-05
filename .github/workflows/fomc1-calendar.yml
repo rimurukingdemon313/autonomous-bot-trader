@@ -1,0 +1,34 @@
+# FOMC-1's calendar, checked at its source before anything is frozen (research/preregistrations/FOMC-1.md): each
+# listed statement day must be the Fed's FOMC statement, released at 2:00 p.m. It reads no price. Research only:
+# nothing here touches the paper desk.
+name: FOMC-1 calendar check
+on:
+  push:
+    branches: [fomc1-calendar]
+permissions:
+  contents: write
+jobs:
+  calendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Check every statement day on federalreserve.gov
+        run: |
+          set -o pipefail
+          python scripts/fomc1.py calendar 2>&1 | tee fomc1-calendar.log
+      - name: Commit the check
+        if: always()
+        run: |
+          git config user.name "fomc-runner"; git config user.email "fomc-runner@users.noreply.github.com"
+          mkdir -p research/results
+          if [ -f fomc1-calendar.log ]; then mv fomc1-calendar.log research/results/; fi
+          for f in research/results/fomc1-calendar.log data/fomc/calendar.json; do
+            if [ -e "$f" ]; then git add -f "$f"; fi
+          done
+          git commit -m "FOMC-1 calendar check on the GitHub runner [skip ci]" || true
+          git push origin HEAD:fomc1-calendar
