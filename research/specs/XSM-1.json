@@ -1,0 +1,72 @@
+{
+ "code_sha256": "5a4df02339a6243771152ff86dcbb1119af7729ada08c82b4746b2fad8a29a64",
+ "sha256": "a02eb4a23cde9759643c8425f8712f0102fd7d571849b0ab4e6c6d02bedec8f7",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_per_side": 0.0015,
+  "data": "Binance spot daily klines (data.binance.vision), every USDT pair the archive lists, delisted ones included; each monthly archive checked against its published sha256; a month that cannot be fetched or checked stops the judge, never filled",
+  "gates": {
+   "book_pays": "the book's own mean weekly net > 0 over 2018-10..2024-06",
+   "costs_x2": "mean weekly difference > 0 with the cost doubled",
+   "development": "mean weekly difference > 0 in 2018-10..2021",
+   "t": "t of the mean weekly difference (the book's net minus the benchmark's net), 2018-10..2024-06, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total difference",
+   "validation": "mean weekly difference > 0 in 2022..2024-06"
+  },
+  "held": 4,
+  "holdout_rule": "2024-07..2026-09: mean weekly difference > 0 with one-sided t >= 1.645, > 0 with the cost doubled, and the book's own mean weekly net > 0",
+  "lookback_days": 21,
+  "not_coins": [
+   "AEUR",
+   "ARS",
+   "AUD",
+   "BIDR",
+   "BKRW",
+   "BRL",
+   "BVND",
+   "COP",
+   "CZK",
+   "DAI",
+   "EUR",
+   "EURI",
+   "GBP",
+   "IDRT",
+   "JPY",
+   "MXN",
+   "NGN",
+   "PAX",
+   "PLN",
+   "RON",
+   "RUB",
+   "TRY",
+   "UAH",
+   "UST",
+   "USTC",
+   "VAI",
+   "ZAR"
+  ],
+  "periods": {
+   "development": [
+    "2018-10-01",
+    "2022-01-01"
+   ],
+   "holdout": [
+    "2024-07-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2022-01-01",
+    "2024-07-01"
+   ]
+  },
+  "program": "XSM-1",
+  "question": "among the 20 largest Binance spot coins, do the 4 that rose most over the last 21 days beat the 20 over the next week, after costs?",
+  "rebalance": "weekly, at Sunday's daily close (00:00 UTC)",
+  "tests": 1,
+  "threshold_t": 3.144,
+  "universe": "top 20 USDT pairs by USDT volume over 28 days, among pairs with a close on each of the 90 days to the rebalance; no stablecoins, fiat or leveraged tokens; fewer than 12: no trade"
+ }
+}
