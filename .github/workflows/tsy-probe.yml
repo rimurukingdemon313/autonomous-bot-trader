@@ -1,0 +1,31 @@
+# TSY-1's source probe (scripts/tsy_probe.py): which public sources have the Treasury auction calendar and the prices.
+# Metadata only (status, field names, rows, first and last dates, counts by term and year); nothing is computed from a
+# price, a yield or an amount. Research only.
+name: TSY-1 source probe
+on:
+  push:
+    branches: [tsy-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Probe the sources
+        run: python scripts/tsy_probe.py 2>&1 | tee tsy-probe.log
+      - name: Commit the probe
+        if: always()
+        run: |
+          git config user.name "tsy-runner"; git config user.email "tsy-runner@users.noreply.github.com"
+          mkdir -p research/results
+          if [ -f tsy-probe.log ]; then mv tsy-probe.log research/results/; fi
+          for f in research/results/tsy-probe.log research/results/TSY-probe.json; do
+            if [ -e "$f" ]; then git add -f "$f"; fi
+          done
+          git commit -m "TSY-1 source probe on the GitHub runner [skip ci]" || true
+          for i in 1 2 3 4; do git push origin HEAD:tsy-probe && break; sleep $((i * 15)); done

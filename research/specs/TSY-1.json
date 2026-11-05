@@ -1,0 +1,47 @@
+{
+ "code_sha256": "88638611afef2809044ee24e88f5fb90a17db8b51943cdf55a4da956c395f26f",
+ "sha256": "9478e74f189851bbaa91758929366c57d645690cba95fa403621231da22cc399",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), on a 10-year Treasury CFD if the broker quotes one, about twelve events a year, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "bond": "IEF",
+  "cost_each_side": 0.0003,
+  "data": "Yahoo daily closes: IEF adjusted for distributions and splits, ^IRX as published (negative and zero yields kept); each file's sha256 in the manifest",
+  "events": "every auction of a 10-year nominal note (new issue or reopening; not TIPS, not floating), from the Treasury's auction records (fiscaldata auctions_query: dates, terms and type flags only)",
+  "gates": {
+   "both_legs": "the short leg's mean net > 0 and the long leg's mean net > 0",
+   "costs_x2": "mean net per event > 0 with the cost per side and the markup doubled",
+   "development": "mean net per event > 0 in 2009..2014",
+   "t": "t of the mean net return per event, 2009..2020, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total",
+   "validation": "mean net per event > 0 in 2015..2020"
+  },
+  "holdout_rule": "2021-01..2026-09: mean net per event > 0 with one-sided t >= 1.645, and > 0 with the costs doubled",
+  "markup_pa": 0.025,
+  "periods": {
+   "development": [
+    "2009-01-01",
+    "2015-01-01"
+   ],
+   "holdout": [
+    "2021-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2015-01-01",
+    "2021-01-01"
+   ]
+  },
+  "post_days": 5,
+  "pre_days": 5,
+  "program": "TSY-1",
+  "question": "does shorting the 7-10 year Treasury ETF in the five trading days before each 10-year note auction and holding it long in the five after earn a positive net return at a CFD's costs?",
+  "rate": "^IRX",
+  "rate_stale_days": 7,
+  "rule": "short from the close of trading day a-6 to the close of a-1; flat on the auction day a; long from the close of a to the close of a+5; an auction off IEF's calendar, an event overlapping the previous traded one, or one with unknown financing is no trade",
+  "tests": 1,
+  "threshold_t": 3.0654
+ }
+}

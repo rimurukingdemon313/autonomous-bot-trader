@@ -1,0 +1,46 @@
+{
+ "code_sha256": "e5d338b44617c45dabe9054f91b3bb10bc173bfbe667d5233432ec864f2373b1",
+ "sha256": "dd838eccb0a08b9de0fe99df9abd6bf62f4c2b607c1281364e93cee38b7132ce",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), on a 10-year Treasury CFD if the broker quotes one, twelve trades a year, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "bond": "IEF",
+  "calendar": "NYSE trading days computed from its rules and its unscheduled closures (scripts/phd1.py); a month is no trade unless IEF has a close on each of its last four",
+  "control": "every other run of three trading days in the same period, held the same way (reported only)",
+  "cost_each_side": 0.0003,
+  "data": "Yahoo daily closes: IEF adjusted for distributions and splits, ^IRX as published (negative and zero yields kept); each file's sha256 in the manifest",
+  "gates": {
+   "costs_x2": "mean net per month-end > 0 with the cost per side and the markup doubled",
+   "development": "mean net per month-end > 0 in 2003..2010",
+   "t": "t of the mean net return per month-end, 2003..2018, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total",
+   "validation": "mean net per month-end > 0 in 2011..2018"
+  },
+  "hold_days": 3,
+  "holdout_rule": "2019-01..2026-09: mean net per month-end > 0 with one-sided t >= 1.645, and > 0 with the costs doubled",
+  "markup_pa": 0.025,
+  "periods": {
+   "development": [
+    "2003-01-01",
+    "2011-01-01"
+   ],
+   "holdout": [
+    "2019-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2011-01-01",
+    "2019-01-01"
+   ]
+  },
+  "program": "TME-1",
+  "question": "does holding the 7-10 year Treasury ETF over each month's last three trading days earn a positive net return at a CFD's costs?",
+  "rate": "^IRX",
+  "rate_stale_days": 7,
+  "rule": "long from the close of the month's fourth-last trading day to the close of its last",
+  "tests": 1,
+  "threshold_t": 3.0781
+ }
+}
