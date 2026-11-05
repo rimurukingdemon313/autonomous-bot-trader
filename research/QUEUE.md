@@ -69,6 +69,16 @@ first to check:
 - the CFTC's positioning in gold, oil and the index futures (COT-1 tested only the currencies). Checked and dropped:
   hedging pressure needs a wide cross-section of commodities, and the broker quotes five, which gives about t 1.5.
 
+**What the wider literature says (checked 2026-11-05, 21:30 UTC).** It agrees with this registry:
+
+- a study of 60 published strategies found their Sharpe ratios fell by about half after publication;
+- Chen & Velikov (2023, "Zeroing in on the Expected Returns of Anomalies") put the average stock anomaly's expected
+  return, net of costs and of the decay after publication, at about 8 basis points a month;
+- no study was found of a futures or currency anomaly with an out-of-sample Sharpe ratio above 1.5.
+
+A test on fresh data can confirm only an effect strong enough to reach its bar. Published effects, halved by
+publication and cut again by retail costs, rarely are.
+
 With these, no idea found so far can pass at a retail CFD's costs. The queue waits for the owner's word on cheaper
 execution. Each check-in keeps looking for new information, and builds a candidate only when its power check
 passes.
