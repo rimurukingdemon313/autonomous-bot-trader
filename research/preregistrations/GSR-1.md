@@ -93,3 +93,34 @@ the worst drawdown, and each year.
 - **The bar.** t ≥ 3.0 over 18 years needs a Sharpe ratio of about 0.7 a year on the daily series, flat days
   included.
 - **What that means.** A real but modest reversion would FAIL here, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/GSR-1.json`)
+
+**FAILED.** Every gate failed: t, development, validation, costs ×2, both sides and top year. The holdout (2020-01 to
+2026-09) stays unread, and nothing changes.
+
+**The data.** GC=F had 6,572 daily closes and SI=F 6,573, from 2000-08-30 to 2026-11-05, dated by the exchange's own
+calendar.
+
+**The figures, 2002 to 2019.** The judged period had 4,516 days with both closes. The rule held a pair on 53.5% of
+them, over 19 trades.
+
+| | Mean a day (annual) | Sharpe | t | Gate |
+|---|---|---|---|---|
+| Net | −0.0046% (−1.16%) | −0.07 | **−0.31** | t ≥ 3.0: **failed** |
+| Development 2002-2010 | −1.12% a year | −0.07 | −0.20 | > 0: **failed** |
+| Validation 2011-2019 | −1.20% a year | −0.08 | −0.25 | > 0: **failed** |
+| Costs and financing doubled | −4.11% a year | −0.26 | −1.10 | > 0: **failed** |
+
+- **By side.** The 11 trades against a high ratio netted −1.3% in total, and the 8 against a low ratio −19.5%.
+- **One trade decided it.** Long gold and short silver from 2010-09-30 to 2011-09-15 lost 40.3% in 242 days, as
+  silver doubled into its April 2011 peak and the ratio kept falling.
+- **Drawdown.** The worst was −53%.
+- **By year.** 9 of the 18 years were negative, and the total was below zero.
+
+**What it means, and no more.**
+
+- A ratio two standard deviations from its year's mean did not come back reliably enough to pay a pair's costs and
+  financing.
+- The worst case was the one feared before freezing: a stretch that was the start of a new move, not its end.
+- As registered, the holdout is not opened for a hypothesis that failed.

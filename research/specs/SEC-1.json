@@ -1,0 +1,52 @@
+{
+ "code_sha256": "c7d9cf76e3ba4d110194700fe7f6340049fa06eaac2b2ce20cc4b2903a23c86d",
+ "sha256": "02182e32212ebf6bff71697c8470d4c379928a88eedd2562acf47678467018c5",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_per_unit_traded": 0.0005,
+  "data": "Yahoo daily closes adjusted for dividends and splits; each file's sha256 in the manifest; a fund without the closes a month needs is no trade that month for both books",
+  "formation_months": 6,
+  "gates": {
+   "costs_x2": "mean monthly difference > 0 with the cost doubled",
+   "development": "mean monthly difference > 0 in 2000..2008",
+   "t": "t of the mean monthly difference (book net minus benchmark net), 2000..2017, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total difference",
+   "validation": "mean monthly difference > 0 in 2009..2017"
+  },
+  "held": 3,
+  "holdout_rule": "2018-01..2026-09: mean monthly difference > 0 with one-sided t >= 1.645, and > 0 with the cost doubled",
+  "periods": {
+   "development": [
+    "2000-01-01",
+    "2009-01-01"
+   ],
+   "holdout": [
+    "2018-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2009-01-01",
+    "2018-01-01"
+   ]
+  },
+  "program": "SEC-1",
+  "question": "do the three US sectors that rose most over six months beat all nine over the next month, after costs?",
+  "rule": "at each month's last close, the top three sector funds by six-month total return (ties by name), equally weighted, held for the month; the benchmark holds all nine equally; both traded back to their weights monthly",
+  "sectors": [
+   "XLB",
+   "XLE",
+   "XLF",
+   "XLI",
+   "XLK",
+   "XLP",
+   "XLU",
+   "XLV",
+   "XLY"
+  ],
+  "tests": 1,
+  "threshold_t": 3.1237
+ }
+}
