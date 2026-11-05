@@ -93,3 +93,35 @@ TRY's Yahoo history begins on 2005-01-03, so the first common month-end is Janua
 - **The bar.** With 179 months, t ≥ 3.0 needs a Sharpe ratio of about 0.78 a year.
 - **What that means.** Emerging-market carry has been reported at about 0.3 to 0.6 over long samples, with its worst
   years in this very period. A real but ordinary carry premium would FAIL here, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/EMC-1.json`)
+
+**FAILED.** Five gates failed: t, validation, costs ×2, leave one out and top year. The holdout (2020-01 to 2026-09)
+stays unread, and nothing changes.
+
+**The data.** The six currencies had 5,679 to 5,971 daily closes each, to 2026-11-05. The BIS file had daily policy
+rates for all seven areas to November 2026. All 179 judged months traded.
+
+**The figures, 2005-02 to 2019-12.** Monthly figures are net; the annual figures are the monthly mean × 12.
+
+| | Annual | Sharpe | t | Gate |
+|---|---|---|---|---|
+| Net | −0.63% | −0.05 | **−0.19** | t ≥ 3.0: **failed** |
+| Development 2005-2012 | +3.15% | 0.22 | 0.63 | > 0: passed |
+| Validation 2013-2019 | **−4.91%** | −0.45 | −1.19 | > 0: **failed** |
+| Costs doubled | −3.17% | −0.25 | −0.96 | > 0: **failed** |
+| Reported: the carry part | +6.71% | | | never a gate |
+| Reported: the spot part | −4.81% | −0.38 | −1.47 | never a gate |
+
+- **Leave one out.** Without any one currency, the mean stayed negative: from −0.05% to −0.11% a month.
+- **What it held.** TRY in all 179 months, ZAR 173, MXN 97, HUF 88. PLN and CZK never ranked in the top three.
+- **Drawdown.** The worst was −50.3%; the worst month was −14.9%.
+- **By year.** 2007 +15.1% and 2009 +16.0%; 2008 −11.3%, 2011 −13.4%, 2013 −10.0% and 2015 −19.4%.
+
+**What it means, and no more.**
+
+- The differential was real and large: +6.7% a year.
+- The high-yielding currencies fell by about 4.8% a year against the dollar. The swap markup and the spreads took the
+  rest.
+- Before 2013 the carry paid a little (t 0.63), and from 2013 it lost.
+- As registered, the holdout is not opened for a hypothesis that failed.

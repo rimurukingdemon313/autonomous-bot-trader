@@ -1,0 +1,47 @@
+{
+ "code_sha256": "abdbe5f9e9a5bf0e1755a080e3f19820f04ac4aae940ee23447177fb10a1c89f",
+ "sha256": "dd8a32e363bc57291e0f99a945749c5a08e8320f0f69bd74b1eb7f066cb2c826",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), if the broker quotes the funds, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "book": [
+   "SPLV",
+   "USMV"
+  ],
+  "cost_per_unit_traded": 0.0005,
+  "data": "Yahoo daily closes adjusted for dividends and splits, ^IRX as published; each file's sha256 in the manifest",
+  "gates": {
+   "costs_x2": "alpha > 0 with the trading cost and the markup doubled",
+   "development": "alpha > 0 in 2012..2016",
+   "each_fund": "SPLV alone and USMV alone each have an alpha > 0",
+   "t": "White t of the book's monthly alpha on SPY, 2012..2020, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total alpha",
+   "validation": "alpha > 0 in 2017..2020"
+  },
+  "holdout_rule": "2021-01..2026-09: alpha > 0 with one-sided White t >= 1.645, and alpha > 0 with the costs doubled",
+  "market": "SPY",
+  "markup_pa": 0.025,
+  "periods": {
+   "development": [
+    "2012-01-01",
+    "2017-01-01"
+   ],
+   "holdout": [
+    "2021-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2017-01-01",
+    "2021-01-01"
+   ]
+  },
+  "program": "LVOL-1",
+  "question": "do the US low-volatility ETFs (SPLV, USMV) earn a positive alpha on the S&P 500 at its own risk, held as a retail CFD holds them?",
+  "rate": "^IRX",
+  "rule": "half SPLV, half USMV, traded back to half each at every common month-end; monthly excess returns net of the T-bill yield known at the month's start, the markup and the cost; OLS alpha on SPY's excess return, White standard errors",
+  "tests": 1,
+  "threshold_t": 3.1536
+ }
+}
