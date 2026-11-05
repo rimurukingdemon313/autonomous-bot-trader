@@ -8,9 +8,11 @@ Gilbert (2021) report that the drift faded later. FOMC-1 asks one question: did 
 retail CFD's real costs?
 
 The rule, fixed before any FOMC-1 price was fetched:
-- events: the scheduled FOMC meetings whose statement was released at 2:00 pm New York time, 2013-01 to 2026-09
-  (EVENTS). Each is checked against the Fed's own press release before any price is fetched (`calendar`): its page
-  must exist, be the FOMC statement and say 2:00 p.m. One that fails stops everything after it;
+- events: the scheduled FOMC meetings whose statement the Fed's own press release says was released at 2:00 pm New
+  York time, 2016-01 to 2026-09 (EVENTS). Each is checked at its source before any price is fetched (`calendar`):
+  its page must exist, be the FOMC statement and say "For release at 2:00 p.m.". One that fails stops everything
+  after it. The pages of 2013 to 2015 say only "For immediate release", so their time cannot be confirmed there and
+  they are not events;
 - buy the US 500 CFD at the ASK at 14:00 New York on the weekday before the statement (the close of the minute that
   ends then), and sell at the BID at 13:55 New York on the statement's day, five minutes before it;
 - costs: the quoted spread at both fills, slippage of a quarter of the quoted spread at each fill, and overnight
@@ -23,7 +25,7 @@ The rule, fixed before any FOMC-1 price was fetched:
     python scripts/fomc1.py spec         # freeze the design (reads no price)
     python scripts/fomc1.py preregister  # register FOMC-1 in research/registry.jsonl
     python scripts/fomc1.py fetch        # Dukascopy minute quotes (on GitHub's runner: blocked here)
-    python scripts/fomc1.py judge        # 2013..2021: development, validation, the gates
+    python scripts/fomc1.py judge        # 2016..2021: development, validation, the gates
     python scripts/fomc1.py holdout      # only if FOMC-1 PASSED: 2022-01..2026-09, once
 
 Each command after `spec` refuses to run if the code or the spec changed since registration. Nothing here changes the
@@ -61,8 +63,8 @@ UNIVERSE = "index-cfd-intraday"
 SYMBOL, BAND = "USA500IDXUSD", (500.0, 9000.0)
 NEW_YORK = ZoneInfo("America/New_York")
 ENTRY_NY, EXIT_NY = (14, 0), (13, 55)  # the close of the minute that ENDS at these New York times
-DEV = (date(2013, 1, 1), date(2018, 1, 1))
-VAL = (date(2018, 1, 1), date(2022, 1, 1))
+DEV = (date(2016, 1, 1), date(2019, 1, 1))
+VAL = (date(2019, 1, 1), date(2022, 1, 1))
 JUDGE = (DEV[0], VAL[1])
 HOLD = (date(2022, 1, 1), date(2026, 10, 1))
 SLIP_SPREAD = 0.25     # slippage at each fill, as a share of the spread quoted then
@@ -71,12 +73,10 @@ TESTS = 2              # the mean's t (G1) and the event-against-control t (G6)
 UA = {"User-Agent": "Mozilla/5.0 (research; aitrader FOMC-1)"}
 FED = "https://www.federalreserve.gov/newsevents/pressreleases/monetary{d:%Y%m%d}a.htm"
 
-#: the statement days of the scheduled meetings, 2:00 pm New York. 2020 has seven: its March meeting was replaced by
-#: the unscheduled Sunday decision of 15 March, which had no 2:00 pm statement
+#: the statement days of the scheduled meetings, 2:00 pm New York, each confirmed by its own press release (calendar
+#: check of 2026-11-05). 2020 has seven: its March meeting was replaced by the unscheduled Sunday decision of 15 March,
+#: which had no 2:00 pm statement
 EVENTS = tuple(date.fromisoformat(d) for d in """
-2013-01-30 2013-03-20 2013-05-01 2013-06-19 2013-07-31 2013-09-18 2013-10-30 2013-12-18
-2014-01-29 2014-03-19 2014-04-30 2014-06-18 2014-07-30 2014-09-17 2014-10-29 2014-12-17
-2015-01-28 2015-03-18 2015-04-29 2015-06-17 2015-07-29 2015-09-17 2015-10-28 2015-12-16
 2016-01-27 2016-03-16 2016-04-27 2016-06-15 2016-07-27 2016-09-21 2016-11-02 2016-12-14
 2017-02-01 2017-03-15 2017-05-03 2017-06-14 2017-07-26 2017-09-20 2017-11-01 2017-12-13
 2018-01-31 2018-03-21 2018-05-02 2018-06-13 2018-08-01 2018-09-26 2018-11-08 2018-12-19
@@ -91,9 +91,9 @@ EVENTS = tuple(date.fromisoformat(d) for d in """
 """.split())
 
 GATES = {
-    "t": "t of the mean net return per event over 2013..2021 >= the threshold",
-    "development": "mean net per event > 0 in 2013..2017",
-    "validation": "mean net per event > 0 in 2018..2021",
+    "t": "t of the mean net return per event over 2016..2021 >= the threshold",
+    "development": "mean net per event > 0 in 2016..2018",
+    "validation": "mean net per event > 0 in 2019..2021",
     "costs_x2": "mean net per event > 0 with every cost doubled",
     "top_year": "no calendar year supplies more than 50% of the total net",
     "timing": "the events beat the same window a week before and after: mean difference > 0, Welch t >= 2.0",

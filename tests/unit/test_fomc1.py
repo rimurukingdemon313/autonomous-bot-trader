@@ -65,7 +65,7 @@ def test_a_drift_only_the_events_have_passes_every_gate():
     move = lambda w: (0.005 if w["kind"] == "event" else 0.0004) + wiggle(w, 0.002)  # noqa: E731
     res = F.gates(quotes_for(judged_windows(), move), lambda d: 0.25, thr=3.24)
     assert res["passed"], res["failed_gates"]
-    assert res["net_per_event"]["n"] == res["events_listed"] == 71 and res["timing"]["controls"] > 100
+    assert res["net_per_event"]["n"] == res["events_listed"] == 47 and res["timing"]["controls"] == 94
 
 
 def test_a_drift_the_ordinary_weeks_share_fails_the_timing_gate():
@@ -84,8 +84,8 @@ def test_the_calendar_is_checked_at_its_source():
     assert "For immediate release" in F.verify_page("Federal Reserve issues FOMC statement. For immediate release")
     assert "None" in F.verify_page("Federal Reserve issues FOMC statement. Released at 2:00 p.m.")  # not its words
     assert len(F.EVENTS) == len(set(F.EVENTS)) and all(d.weekday() in (2, 3) for d in F.EVENTS)
-    per_year = {y: sum(1 for d in F.EVENTS if d.year == y) for y in range(2013, 2027)}
-    assert per_year == {**{y: 8 for y in range(2013, 2026)}, 2020: 7, 2026: 6}
+    per_year = {y: sum(1 for d in F.EVENTS if d.year == y) for y in range(2010, 2027)}
+    assert per_year == {**{y: 0 for y in range(2010, 2016)}, **{y: 8 for y in range(2016, 2026)}, 2020: 7, 2026: 6}
 
 
 def test_the_judge_never_reads_the_holdout_and_refuses_a_quote_it_cannot_trust(tmp_path, monkeypatch):
