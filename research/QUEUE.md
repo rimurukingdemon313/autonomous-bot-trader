@@ -46,6 +46,7 @@ effect is real is not run. Each of these was checked and dropped:
 | S&P 500 index-inclusion effect | Reported to have gone in the 2010s |
 | US overnight drift at the European open | Flat since 2021 (New York Fed, 2026) |
 | RSI(2) dip-buying on index CFDs | About +0.26% a trade on the S&P 500 in 2016-2026, roughly t 1 |
+| Monetary momentum: the market for 15 days after a dovish FOMC surprise (Neuhierl & Weber) | Sharpe 0.52 in 1994-2009, read from the paper. Over the fresh 2010-2026 that is about t 2 at full strength, at CFD or futures costs alike, against a bar of about 3.18 |
 
 **What the record says about costs.** Real effects keep showing before costs and vanishing after them:
 
