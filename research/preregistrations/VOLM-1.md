@@ -93,3 +93,45 @@ REJECTED.
 - **The bar.** With 324 months, t ≥ 3.113 needs an alpha of about 0.6 of its own tracking error a year.
 - **What that means.** Moreira & Muir's market alpha was about half that over 1926 to 2015. A real effect of the
   published size would most likely FAIL here, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/VOLM-1.json`)
+
+**FAILED.** Only the t gate failed. Every other gate passed, but significance is required. The holdout (2022-01 to
+2026-09) stays unread, and nothing changes.
+
+**The data.** SPY had 8,500 closes (1993-01-29 to 2026-11-04) and `^IRX` had 8,490.
+
+**The figures, 1995 to 2021.** Monthly figures are net excess returns. Both books pay the T-bill yield plus 2.5% on
+their exposure.
+
+| | Value | t | Gate |
+|---|---|---|---|
+| Alpha on the market (a month / a year) | +0.216% / +2.59% (beta 0.92) | **1.27** | t ≥ 3.113: **failed** |
+| Development 1995-2008 | +0.81% a year | 0.37 | > 0: passed |
+| Validation 2009-2021 | +1.80% a year | 0.56 | > 0: passed |
+| Costs doubled | +1.35% a year | 0.68 | > 0: passed |
+| The managed book on its own | +9.5% a year, Sharpe 0.57 | 2.95 | > 0: passed |
+| Reported: the market | +7.5% a year, Sharpe 0.51 | 2.65 | never a gate |
+
+- **Drawdowns.** The managed book's worst was −49.9%; the market's was −64.7%.
+- **Exposure.** It averaged 1.34 (from 0.04 to 2.0), and 128 of the 323 months were at the cap.
+- **By year.** The largest yearly alpha was 2013 (+24.8%), and the worst 2020 (−23.4%). The top year supplied 36% of
+  the total, so that gate passed.
+
+**One month had no trade: March 2020.** This is a flaw in the fetch, found after the verdict and stated here.
+
+- Yahoo's `^IRX` has no rows from 2020-03-19 to 2020-03-27. Those were the days the 3-month T-bill yield went to
+  zero and below.
+- The fetch kept a zero yield but dropped a negative one as invalid. The last yield known on 26 and 27 March was then
+  more than 7 days old, so by the rule the yield was unknown and the month was no trade.
+- **Checked:** with those days at a zero yield (a diagnostic, not a judgement), 324 months give an alpha of +2.81% a
+  year at t 1.39, and the same single failed gate. The verdict does not depend on it.
+
+**What it means, and no more.**
+
+- Managing exposure by last month's variance raised the S&P 500's Sharpe ratio a little (0.57 against 0.51) and cut
+  its worst drawdown (−50% against −65%).
+- It did so in both halves of the period, and with costs doubled.
+- But the alpha, +2.6% a year, is well within what chance gives over 27 years (t 1.27). That fits the literature: a
+  real but weak effect, which the bar here cannot confirm.
+- As registered, the holdout is not opened for a hypothesis that failed.
