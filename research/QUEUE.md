@@ -15,8 +15,8 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 
 | # | Id | Question | Why it might pay | Known against it | Status |
 |---|---|---|---|---|---|
-| 1 | VRP-1 | Short VIX futures (VIXY) while the VIX curve is in contango | The insurance premium: buyers of crash protection overpay on average | Rare catastrophic days (Feb 2018, Mar 2020); a famous trade | **NEXT: running** |
-| 2 | FOMC-1 | Long the S&P 500 into scheduled FOMC announcements | Lucca & Moench (2015): most of the equity premium 1994-2011 was earned in the 24 h before FOMC | Kurov, Wolfe & Gilbert (2021) find it faded after 2015 | queued |
+| 1 | VRP-1 | Short VIX futures (VIXY) while the VIX curve is in contango | The insurance premium: buyers of crash protection overpay on average | Rare catastrophic days (Feb 2018, Mar 2020); a famous trade | FAILED (2026-11-05) |
+| 2 | FOMC-1 | Long the S&P 500 into scheduled FOMC announcements | Lucca & Moench (2015): most of the equity premium 1994-2011 was earned in the 24 h before FOMC | Kurov, Wolfe & Gilbert (2021) find it faded after 2015 | **NEXT** |
 | 3 | XSM-1 | Crypto cross-sectional momentum: hold last week's strongest large coins | Liu, Tsyvinski & Wu (2022): momentum across coins, retail-driven | Point-in-time universe and costs; CR-1's time-series momentum failed | queued |
 | 4 | VOLM-1 | Volatility-managed S&P 500 exposure (Moreira & Muir 2017) against the same average exposure held constant | Volatility clusters while returns do not scale with it | Cederburg et al. (2020): weak out of sample | queued |
 | 5 | GSR-1 | Gold/silver ratio mean reversion | Two metals with a shared driver; the ratio has historically reverted | Long regimes without reversion; costs on silver | queued |
@@ -27,6 +27,7 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 pay?) and CONF-2 (does the strongest model's judgement pick the winners?), both on 2026-11-20 and 2026-11-27.
 
 **Done:**
+- VRP-1 FAILED (short VIX futures in contango: +61% a year at t 2.33 against 3.0; the filter added nothing, t 0.46; drawdown −77%).
 - XTS-1 FAILED (crypto time-series momentum: t 2.87 against 3.09; timing t 1.87).
 - MEH-1 FAILED (month-end hedge flows: +3.3 bps gross, +1.2 net, t 1.04 against 3.61).
 - FND-1 was ABANDONED before any outcome; FND-1A FAILED (crowded funding: the timing was negative).

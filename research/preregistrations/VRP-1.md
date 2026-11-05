@@ -83,3 +83,33 @@ own record, worst day and drawdown included.
   public knowledge. The rule was fixed before any of this data was read, and nothing in it can be tuned to them.
 - **Even a pass is not a guarantee.** A strategy that sells insurance can look excellent for years and then lose
   much of it in days. The drawdown and the worst day are reported for that reason.
+
+## Result (run 2026-11-05 on GitHub's runner, `vrp1-run` `7b92c8a`; `research/knowledge/VRP-1.json`)
+
+**FAILED.** Two gates failed, so the holdout stays unread and nothing changes.
+
+- Data: VIXY from 2011-01-04, and the VIX and VIX3M from 2010, all to 2026-11-04.
+- The judged period was 2011-02 to 2021 (2,749 days). The rule was short on 91% of them.
+
+| | Mean a day | Annual (arithmetic) | Sharpe | t | Gate |
+|---|---|---|---|---|---|
+| The rule, net | 0.168% | +61% | 0.85 | **2.33** | t ≥ 3.0: **failed** |
+| Development 2011-02 to 2016 | 0.172% | +63% | 0.90 | 1.83 | > 0: passed |
+| Validation 2017 to 2021 | 0.164% | +60% | 0.79 | 1.46 | > 0: passed |
+| Costs doubled | 0.150% | +55% | 0.75 | 2.07 | > 0: passed |
+| **Timing** (beyond an always-held short at the same exposure) | 0.018% | +7% | 0.17 | **0.46** | t ≥ 2.0: **failed** |
+| Reported: the short always held | 0.164% | +60% | 0.71 | 1.95 | never a gate |
+
+**The tail.** The rule's worst day was −34% and its worst drawdown −77%. The always-held short's were −39% and −92%.
+
+**By year** (sum of daily net): 2011 −22%, 2012 +124%, 2013 +66%, 2014 +3%, 2015 +3%, 2016 +82%, 2017 +109%,
+**2018 −106%**, 2019 +75%, 2020 +16%, 2021 +111%.
+
+**What it means, and no more.**
+
+- **The premium is there,** positive in both halves. But its swings are so large that 11 years do not show it at
+  t 3.0. At full size a single bad year (2018) wipes out more than it earned in one good one.
+- **The contango filter added almost nothing** (t 0.46). It did not step aside in time for the worst days. A
+  one-day lag is the price of not reading the close early, and on these days that is the whole loss.
+- A strategy with a −77% drawdown at 1x would have to run at a small fraction of capital to be survivable. That
+  makes its return small too. Not a candidate.
