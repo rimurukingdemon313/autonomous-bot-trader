@@ -105,3 +105,43 @@ auction left out, with the reason.
   spread, twelve times a year. TSY-1 can pass only if the cycle kept most of its old strength after 2008. A cycle at
   half its old size would FAIL. Its failure would then say only that the cycle is too small to pay a retail CFD, and
   that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/TSY-1.json`)
+
+**FAILED.** Five gates failed: t, validation, costs ×2, both legs and top year. The holdout (2021-01 to 2026-09) stays
+unread, and nothing changes.
+
+**The data.** IEF had 6,108 daily closes from 2002-07-30 and ^IRX 8,498, both to 2026-11-05. The Treasury's records
+gave 1,650 note auctions from 2002, 268 of them 10-year nominal by the rule. All 144 judged events traded. Two 2019
+auctions were left out as overlapping (below).
+
+**The figures, 2009-01 to 2020-12 (144 events).** Each figure is per event, net unless it says gross.
+
+| | Mean | t | Gate |
+|---|---|---|---|
+| Both legs, net | −0.017% | **−0.16** | t ≥ 3.065: **failed** |
+| Development 2009-2014 | +0.119% | 0.73 | > 0: passed |
+| Validation 2015-2020 | **−0.153%** | −1.23 | > 0: **failed** |
+| Costs doubled | −0.235% | −2.28 | > 0: **failed** |
+| Short leg, the five days before | +0.004% (gross +0.104%) | 0.06 (gross 1.48) | both > 0: **failed** |
+| Long leg, the five days after | −0.021% (gross +0.098%) | −0.30 (gross 1.38) | |
+
+- The hit rate was 46.5%.
+- By year (the sum of its events): 2009 +9.4% and 2013 +4.7%; 2016 −7.4% and 2019 −6.1%.
+- The total was negative, so no year's share is defined, and the top-year gate fails.
+
+**Found after the verdict, disclosed, and changing nothing.**
+
+- The rule counts an auction as a 10-year note's when its original term is 10 years. On 2019-11-05 the Treasury sold
+  a 3-year note as a reopening of an old 10-year note, and the rule took it as November 2019's event. The real 10-year
+  auction the next day was then left out as overlapping.
+- A second June 2019 record of a 10-year reopening (2019-06-21) was also left out as overlapping.
+- So one event in 144 was a day early. Even a 1% swing in that one event moves the mean by under 0.01% and t by under
+  0.1, so the verdict stands.
+
+**What it means, and no more.**
+
+- In IEF since 2009, prices still fell a little before the 10-year auctions and rose a little after. Gross, that was
+  about 0.1% each side, at t about 1.4 each. That is far smaller than the paper's 1980-2008 cycle.
+- A retail CFD's spread and markup cost about 0.22% per event, more than the whole cycle. Net, it lost.
+- It paid in 2009-2014 and lost in 2015-2020.

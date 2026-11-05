@@ -90,3 +90,43 @@ The owner, 2026-11-05: "don't fixate on the AI trading; anything that makes us a
 - **What that means.** That is about the size the summary reports for 1990-2018. TME-1 can pass only if the effect in
   IEF over 2003-2018 was as large as the paper's average. A smaller one would FAIL. Its failure would then say only that
   the effect is too small to pay a retail CFD, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/TME-1.json`)
+
+**FAILED, on t alone.** Every other gate passed. As registered, the holdout (2019-01 to 2026-09) stays unread, and
+nothing changes.
+
+**The data.** IEF had 6,108 daily closes from 2002-07-30 and ^IRX 8,498, both to 2026-11-05. All 192 judged
+month-ends traded: IEF had a close on each of the computed last four trading days of every month.
+
+**The figures, 2003-01 to 2018-12 (192 month-ends).** Each figure is per month-end, net.
+
+| | Mean | t | Gate |
+|---|---|---|---|
+| Net | **+0.106%** | **2.24** | t ≥ 3.078: **failed** |
+| Development 2003-2010 | +0.099% | 1.29 | > 0: passed |
+| Validation 2011-2018 | +0.113% | 2.03 | > 0: passed |
+| Costs doubled | +0.019% | 0.40 | > 0: passed |
+| Top year | 2010, 22.8% of the total | | ≤ 50%: passed |
+| Control: every other three-day hold (1,090) | −0.075% | −3.56 | reported only |
+
+- The hit rate was 57.8%, and 12 of the 16 years were positive.
+
+**Described after the verdict, on the judged data only.** These figures are descriptions, not tests, and they change
+nothing.
+
+- Before the spread and the markup, the month-ends earned +0.194% over the T-bill (t 4.07).
+- The other three-day holds earned +0.015% on the same basis (t 0.71).
+
+**What it means, and no more.**
+
+- The month-end effect Hartley & Schwarz found was there in IEF over 2003-2018. Those years lie inside their sample,
+  so this is a replication on a tradable fund, not new evidence.
+- A retail CFD's spread and markup, about 0.09% per month-end, took about half of it. What was left, +0.106% a month
+  (about 1.3% a year on money held three days a month), does not clear the bar that 23 earlier tests on this data set.
+- With the costs doubled, it earned almost nothing.
+- Whether it lasted after 2018 is the holdout's question. As registered, the holdout is not opened for a hypothesis
+  that failed.
+- A cheaper instrument, such as Treasury futures, would keep more of it. That is a new question, for data not yet
+  seen. TME-1's holdout stays sealed against it.
+- Like VOLM-1, this is a real-looking but weak effect that this bar cannot confirm. Nothing is proposed.
