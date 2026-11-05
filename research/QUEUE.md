@@ -20,13 +20,14 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | 3 | XSM-1 | Crypto cross-sectional momentum: hold last week's strongest large coins | Liu, Tsyvinski & Wu (2022): momentum across coins, retail-driven | Point-in-time universe and costs; CR-1's time-series momentum failed | FAILED (2026-11-05) |
 | 4 | VOLM-1 | Volatility-managed S&P 500 exposure (Moreira & Muir 2017): its alpha on the market, at the market's own risk | Volatility clusters while returns do not scale with it | Cederburg et al. (2020): weak out of sample | FAILED (2026-11-05; only t: alpha +2.6% a year at t 1.27) |
 | 5 | GSR-1 | Gold/silver ratio mean reversion | Two metals with a shared driver; the ratio has historically reverted | Long regimes without reversion; costs on silver | FAILED (2026-11-05) |
-| 6 | SEC-1 | US sector ETF momentum, monthly (industry momentum, Moskowitz & Grinblatt 1999) | Industries trend for months | Crowded since publication | **RUNNING** (registered 2026-11-05: top 3 of 9 by six-month return, monthly, against the 9; t >= 3.124) |
-| 7 | PHD-1 | The pre-holiday effect in US equity indices | Ariel (1990) and later | Likely faded; few events a year | queued |
+| 6 | SEC-1 | US sector ETF momentum, monthly (industry momentum, Moskowitz & Grinblatt 1999) | Industries trend for months | Crowded since publication | FAILED (2026-11-05) |
+| 7 | PHD-1 | The pre-holiday effect in US equity indices | Ariel (1990) and later | Likely faded; few events a year | **RUNNING** (registered 2026-11-05: the S&P 500 held over each holiday's eve, against every other day; t >= 3.144) |
 
 **Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
 pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
 
 **Done:**
+- SEC-1 FAILED: the top 3 of 9 US sectors by six-month return lost 0.53% a year to all nine over 2000-2017 (t -0.31). It was positive to 2008 (t 0.93), negative after (t -1.58).
 - GSR-1 FAILED, every gate: the gold/silver pair against a two-sigma ratio lost 1.2% a year over 2002-2019 (t -0.31), in 19 trades. One trade against the 2010-11 silver run lost 40%.
 - VOLM-1 FAILED, on t alone: volatility-managed S&P 500 exposure earned an alpha of +2.6% a year over 1995-2021 (t 1.27 against 3.113). It was positive in both halves and with costs doubled, and its drawdown was -50% against the market's -65%. A real but weak effect the bar cannot confirm.
 - XSM-1 FAILED: among the 20 largest coins, the top 4 by 21-day return beat the 20 by +0.22% a week, 2018-10..2024-06, at t 0.48 against 3.144: positive to 2021, negative from 2022.

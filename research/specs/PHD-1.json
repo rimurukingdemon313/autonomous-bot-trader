@@ -1,0 +1,56 @@
+{
+ "code_sha256": "031a5dfdcd9e1c986d0680094c816b0bd2656b9827ce456d5d0973d47f553d67",
+ "sha256": "77ecc265ad5e2e818c9ce7a0f976c408e3ad34eaadd991535f3dd4b4ea9cd902",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), on the US 500 CFD, about nine trades a year, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_each_side": 0.0002,
+  "data": "Yahoo daily closes: SPY adjusted for dividends and splits, ^IRX as published; each file's sha256 in the manifest; the computed calendar checked against the data's trading days",
+  "gates": {
+   "beats_ordinary_days": "event days beat every other day held the same way: mean difference > 0, Welch t >= 2.0",
+   "costs_x2": "mean net per event > 0 with the costs and the markup doubled",
+   "development": "mean net per event > 0 in 1995..2008",
+   "t": "t of the mean net return on event days, 1995..2021, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total net",
+   "validation": "mean net per event > 0 in 2009..2021"
+  },
+  "holdout_rule": "2022-01..2026-09: mean net per event > 0 with one-sided t >= 1.645, > 0 with the costs doubled, and above the ordinary days' mean",
+  "holidays": "NYSE scheduled full-day holidays by their rules: New Year's Day (not observed on a Friday), Martin Luther King Jr. Day from 1998, Washington's Birthday, Good Friday, Memorial Day, Juneteenth from 2022, Independence Day, Labor Day, Thanksgiving, Christmas; Saturday holidays observed on Friday, Sunday ones on Monday",
+  "market": "SPY",
+  "markup_pa": 0.025,
+  "periods": {
+   "development": [
+    "1995-01-01",
+    "2009-01-01"
+   ],
+   "holdout": [
+    "2022-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2009-01-01",
+    "2022-01-01"
+   ]
+  },
+  "program": "PHD-1",
+  "question": "does the S&P 500 earn a positive net return on the trading day before a market holiday, and more than on an ordinary day, after a CFD's costs?",
+  "rate": "^IRX",
+  "tests": 2,
+  "threshold_t": 3.144,
+  "unscheduled": [
+   "1994-04-27",
+   "2001-09-11",
+   "2001-09-12",
+   "2001-09-13",
+   "2001-09-14",
+   "2004-06-11",
+   "2007-01-02",
+   "2012-10-29",
+   "2012-10-30",
+   "2018-12-05",
+   "2025-01-09"
+  ]
+ }
+}

@@ -85,3 +85,35 @@ The owner, 2026-11-05: "don't fixate on the AI trading; anything that makes us a
   deviation. That is a Sharpe ratio of about 0.74 a year on the difference.
 - **What that means.** If the difference moves about 3% a month, the book must beat the nine by about 0.64% a month.
 - **The likely outcome.** A real but modest effect would FAIL here, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/SEC-1.json`)
+
+**FAILED.** Four gates failed: t, validation, costs ×2 and top year. The holdout (2018-01 to 2026-09) stays unread,
+and nothing changes.
+
+**The data.** Each of the nine funds had 7,010 daily closes, from 1998-12-22 to 2026-11-04. All 216 judged months
+traded.
+
+**The figures, 2000 to 2017.** Monthly figures are net; the annual figures are the monthly mean × 12.
+
+| | Mean a month (annual) | Sharpe | t | Gate |
+|---|---|---|---|---|
+| The difference (book − benchmark) | −0.044% (−0.53%) | −0.07 | **−0.31** | t ≥ 3.124: **failed** |
+| Development 2000-2008 | +0.200% (+2.40%) | 0.31 | 0.93 | > 0: passed |
+| Validation 2009-2017 | **−0.288%** (−3.46%) | −0.53 | −1.58 | > 0: **failed** |
+| Cost doubled | −0.072% (−0.87%) | −0.12 | −0.51 | > 0: **failed** |
+| Reported: the book (top 3) | +0.62% (+7.45%) | 0.53 | 2.25 | never a gate |
+| Reported: the benchmark (all 9) | +0.67% (+7.98%) | 0.56 | 2.39 | never a gate |
+
+- **Drawdowns.** The book's worst was −44.5%; the benchmark's was −49.1%.
+- **By year** (sum of the monthly difference): 2000 +14.1%, 2009 −11.3%, 2012 −9.4%, 2001 −9.4%. The total was below
+  zero, so the top year gate failed too.
+- **What it held.** Every fund was held between 56 months (XLI) and 86 (XLB).
+
+**What it means, and no more.**
+
+- Over 2000 to 2008, the three sectors that had risen most beat the nine slightly (t 0.93). Over 2009 to 2017 they
+  fell behind (t −1.58), the 2009 rebound of the laggards first.
+- Across the eighteen years, sector momentum earned nothing over holding all nine: the book's +7.45% a year against
+  the benchmark's +7.98%.
+- As registered, the holdout is not opened for a hypothesis that failed.
