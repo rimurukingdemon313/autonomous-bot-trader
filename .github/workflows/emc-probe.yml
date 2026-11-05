@@ -1,0 +1,30 @@
+# EMC-1's source probe (scripts/emc_probe.py): which public sources have the currencies and the policy rates. Metadata only
+# (status, rows, first and last dates); nothing is computed from a price. Research only.
+name: EMC-1 source probe
+on:
+  push:
+    branches: [emc-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Probe the sources
+        run: python scripts/emc_probe.py 2>&1 | tee emc-probe.log
+      - name: Commit the probe
+        if: always()
+        run: |
+          git config user.name "emc-runner"; git config user.email "emc-runner@users.noreply.github.com"
+          mkdir -p research/results
+          if [ -f emc-probe.log ]; then mv emc-probe.log research/results/; fi
+          for f in research/results/emc-probe.log research/results/EMC-probe.json; do
+            if [ -e "$f" ]; then git add -f "$f"; fi
+          done
+          git commit -m "EMC-1 source probe on the GitHub runner [skip ci]" || true
+          git push origin HEAD:emc-probe
