@@ -100,3 +100,45 @@ REJECTED.
 - **What that means.** If the difference moves about 6% a week, the book must beat the 20 by about 1.1% a week.
 - **The likely outcome.** Only an effect near the published one, surviving among large coins, can pass. A smaller real
   effect would FAIL here, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/XSM-1.json`)
+
+**FAILED.** Three gates failed: t, validation and top year. The holdout (2024-07 to 2026-09) stays unread, and
+nothing changes.
+
+**The data.**
+
+- The archive listed 3,767 spot pairs. 700 were USDT coins by the rule (76 USDT pairs were excluded as stablecoins,
+  fiat or leveraged tokens), and 681 had data from 2018-01.
+- 26,515 monthly archives matched their sha256.
+- 10 months could not be fetched, all in 2026 and from two new pairs whose names are Chinese characters
+  ("币安人生USDT" and "牛来USDT"). The likely cause: the fetch did not percent-encode those names in the archive's
+  URL. None is in the judged period, so the judge read nothing filled. They would have stopped the holdout, which is
+  not opened.
+- Every one of the 299 weeks had a universe of 20.
+
+**The figures, 2018-10 to 2024-06.** Weekly figures are net; the annual figures are the weekly mean × 52.
+
+| | Mean a week | Annual | Sharpe | t | Gate |
+|---|---|---|---|---|---|
+| The difference (book − benchmark) | +0.22% | +11.6% | 0.20 | **0.48** | t ≥ 3.144: **failed** |
+| Development 2018-10 to 2021 (169 weeks) | +0.84% | +43.8% | 0.64 | 1.16 | > 0: passed |
+| Validation 2022 to 2024-06 (130 weeks) | **−0.58%** | −30.2% | −0.72 | −1.14 | > 0: **failed** |
+| Cost doubled | +0.11% | +5.9% | 0.10 | 0.24 | > 0: passed |
+| The book (top 4) on its own | +1.01% | +52.5% | 0.52 | 1.24 | > 0: passed |
+| Reported: the benchmark (the 20) | +0.79% | +40.9% | 0.49 | 1.17 | never a gate |
+
+- **By year** (sum of the weekly difference): 2018 +6.0%, 2019 +44.9%, 2020 −0.1%, 2021 +91.5%, 2022 −46.1%,
+  2023 −31.1%, 2024 H1 +1.8%. 2021 alone supplied 137% of the total, so the top year gate failed too.
+- **Drawdowns.** The book's worst drawdown was −96%; the benchmark's was −89%.
+- **What it held.** BTC (59 weeks), BNB 58, XRP 44, LINK 43, ETH 41, ADA 37, TRX 37, MATIC 36.
+- **Delistings.** 6 coin-weeks ended before the week did, with their losses kept.
+
+**What it means, and no more.**
+
+- Among the 20 largest coins, the ones that rose most over three weeks beat the rest in 2018 to 2021.
+- They lost to them in 2022 to 2024, and the six years together are indistinguishable from chance (t 0.48).
+- The cross-sectional momentum Liu, Tsyvinski & Wu found does not show among large coins after costs since 2018.
+- Holding the top 4 earned a lot in arithmetic terms, but with a −96% drawdown. That is crypto's own swings, not the
+  rule's skill: the 20 earned almost as much with almost as deep a fall.
+- As registered, the holdout is not opened for a hypothesis that failed.
