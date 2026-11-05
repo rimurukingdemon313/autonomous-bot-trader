@@ -16,7 +16,7 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | # | Id | Question | Why it might pay | Known against it | Status |
 |---|---|---|---|---|---|
 | 1 | VRP-1 | Short VIX futures (VIXY) while the VIX curve is in contango | The insurance premium: buyers of crash protection overpay on average | Rare catastrophic days (Feb 2018, Mar 2020); a famous trade | FAILED (2026-11-05) |
-| 2 | FOMC-1 | Long the S&P 500 into scheduled FOMC announcements | Lucca & Moench (2015): most of the equity premium 1994-2011 was earned in the 24 h before FOMC | Kurov, Wolfe & Gilbert (2021) find it faded after 2015 | **NEXT** |
+| 2 | FOMC-1 | Long the S&P 500 into scheduled FOMC announcements | Lucca & Moench (2015): most of the equity premium 1994-2011 was earned in the 24 h before FOMC | Kurov, Wolfe & Gilbert (2021) find it faded after 2015 | **RUNNING** (registered 2026-11-05; 85 events checked at the Fed's own pages) |
 | 3 | XSM-1 | Crypto cross-sectional momentum: hold last week's strongest large coins | Liu, Tsyvinski & Wu (2022): momentum across coins, retail-driven | Point-in-time universe and costs; CR-1's time-series momentum failed | queued |
 | 4 | VOLM-1 | Volatility-managed S&P 500 exposure (Moreira & Muir 2017) against the same average exposure held constant | Volatility clusters while returns do not scale with it | Cederburg et al. (2020): weak out of sample | queued |
 | 5 | GSR-1 | Gold/silver ratio mean reversion | Two metals with a shared driver; the ratio has historically reverted | Long regimes without reversion; costs on silver | queued |
