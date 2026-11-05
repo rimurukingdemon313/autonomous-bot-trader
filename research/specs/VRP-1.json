@@ -1,0 +1,47 @@
+{
+ "code_sha256": "6d8fff5ad62f74adcd880dbf70fcf8b0a6b4e07ebb6ba5a1d6158d067482d015",
+ "sha256": "c5020c0a17df388762cd18baeb7ac049fa5b11beb08ccdc170fe4d788f1c5734",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine for its tail, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "borrow_pa": 0.03,
+  "cost_per_side": 0.001,
+  "data": "Yahoo daily closes (VIXY adjusted for its splits; the two indices as published), each file's sha256 in the manifest; a missing day is no trade",
+  "gates": {
+   "costs_x2": "mean daily net > 0 with the trading cost and the borrow fee doubled",
+   "development": "mean daily net > 0 in 2011-02..2016",
+   "t": "t of the mean daily net return over 2011-02..2021-12 >= the threshold",
+   "timing": "the rule beats an always-held short at its own average exposure: mean daily difference > 0, t >= 2.0",
+   "top_year": "no calendar year supplies more than 50% of the total net",
+   "validation": "mean daily net > 0 in 2017..2021"
+  },
+  "holdout_rule": "2022-01..2026-09: mean daily net > 0 with one-sided t >= 1.645, mean daily net > 0 with costs doubled, and the timing difference's mean > 0",
+  "instrument": "VIXY",
+  "lag_days": 1,
+  "periods": {
+   "development": [
+    "2011-02-01",
+    "2017-01-01"
+   ],
+   "holdout": [
+    "2022-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2017-01-01",
+    "2022-01-01"
+   ]
+  },
+  "program": "VRP-1",
+  "question": "does shorting short-term VIX futures while the VIX term structure is in contango earn a positive net return, and beat always holding the short?",
+  "rule": "exposure for the day = -1 (short) when VIX / VIX3M at the previous close < 1, else 0; constant notional resized daily; costs on exposure changes and on each day's resizing; borrow on the short",
+  "signal": [
+   "^VIX",
+   "^VIX3M"
+  ],
+  "tests": 2,
+  "threshold_t": 3.0
+ }
+}
