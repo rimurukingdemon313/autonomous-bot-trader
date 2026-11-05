@@ -1,0 +1,74 @@
+{
+ "code_sha256": "9f7746ecde0cc3e83ce149282097ed19caa162fe0464799ebfc9ad17d7cf0052",
+ "sha256": "68c72e40e032a937a2d42249fe6f859e96d1151b8b2eea4600ff0edec773510e",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), on the broker's USD pairs, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "currencies": {
+   "CZK": {
+    "bis_area": "CZ",
+    "spread_each_side": 0.0005,
+    "yahoo": "CZK=X"
+   },
+   "HUF": {
+    "bis_area": "HU",
+    "spread_each_side": 0.0006,
+    "yahoo": "HUF=X"
+   },
+   "MXN": {
+    "bis_area": "MX",
+    "spread_each_side": 0.0003,
+    "yahoo": "MXN=X"
+   },
+   "PLN": {
+    "bis_area": "PL",
+    "spread_each_side": 0.0005,
+    "yahoo": "PLN=X"
+   },
+   "TRY": {
+    "bis_area": "TR",
+    "spread_each_side": 0.0015,
+    "yahoo": "TRY=X"
+   },
+   "ZAR": {
+    "bis_area": "ZA",
+    "spread_each_side": 0.0006,
+    "yahoo": "ZAR=X"
+   }
+  },
+  "data": "Yahoo daily closes (units per dollar, dated by the source's own calendar); the BIS WS_CBPOL bulk file, its daily rows for the seven areas; each file's sha256 in the manifest",
+  "gates": {
+   "costs_x2": "mean monthly net > 0 with the spreads and the markup doubled",
+   "development": "mean monthly net > 0 in 2005-02..2012",
+   "leave_one_out": "the rule run without any one of the six currencies still earns a mean monthly net > 0",
+   "t": "t of the mean monthly net return of the carry book, 2005-02..2019-12, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total net",
+   "validation": "mean monthly net > 0 in 2013..2019"
+  },
+  "held": 3,
+  "holdout_rule": "2020-01..2026-09: mean monthly net > 0 with one-sided t >= 1.645, and > 0 with the spreads and the markup doubled",
+  "markup_pa": 0.025,
+  "periods": {
+   "development": [
+    "2005-02-01",
+    "2013-01-01"
+   ],
+   "holdout": [
+    "2020-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2013-01-01",
+    "2020-01-01"
+   ]
+  },
+  "program": "EMC-1",
+  "question": "does holding the three highest-yielding of six emerging currencies against the dollar, monthly, earn a positive net return after a CFD's costs?",
+  "rate_stale_days": 10,
+  "rule": "at each month's last close common to all six, rank by policy-rate differential against the Fed (BIS WS_CBPOL, in force that day); hold the top three, a third each, long against the dollar, to the next common month-end; earn the spot move and the differential by calendar days; pay the markup on what is held and each spread on what is traded",
+  "tests": 1,
+  "threshold_t": 3.0
+ }
+}
