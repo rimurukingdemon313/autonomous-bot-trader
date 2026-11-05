@@ -30,6 +30,49 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | 13 | FCY-1 | The FOMC cycle: hold the S&P 500 in the even weeks of FOMC cycle time, flat in the odd weeks | Cieslak, Morse & Vissing-Jorgensen (2019): over 1994-2016 the equity premium was earned in weeks 0, 2, 4 and 6 after FOMC meetings, which they trace to the Fed's information flow | Weekly returns give little power; the pre-FOMC drift faded after publication (FOMC-1A). Fresh: 2017 on is after the paper's sample | DROPPED before building (2026-11-05): even at its published strength (Sharpe 0.8 against 0.4), 2017-2026 would give t of about 2.5, below the bar of about 3.18. It cannot pass, so it is not run |
 | 14 | EAP-1 | The earnings announcement premium: hold US large caps over the week of their scheduled earnings announcements, against the S&P 500 | Announcing firms earn more in announcement weeks (Frazzini & Lamont 2007; Savor & Wilson 2016; Barber et al. 2013, around the globe): attention and the systematic risk that announcements carry. Hundreds of announcements a year give a test real power | Survivorship: today's index members had good news in their past, which would inflate exactly this effect. The universe must be fixed at the start, from a point-in-time member list, before any price is read; a probe must first show that the earnings dates and that list can be had. Single-stock CFD costs | DROPPED before building (2026-11-05): the published premium is about 9.9% a year while announcing, about 0.19% a week, below a single-stock CFD's round trip and a week's markup; and a working paper reports it has disappeared in the US. It cannot pay, so it is not run |
 
+**Considered on 2026-11-05 and dropped before any code or data.** Before a candidate is built, its power at the
+published strength, after a retail CFD's costs, is now checked against its bar. A test that cannot pass even if the
+effect is real is not run. Each of these was checked and dropped:
+
+| Idea | Why it was dropped |
+|---|---|
+| Gotobi USD/JPY flows at the Tokyo fix | Already judged: FLOW-1 (2007-2016) lost money in most years. A rerun on the same data is not allowed |
+| Earnings-announcement premium in single stocks | About 0.19% a week while announcing, below a single-stock CFD's round trip. A working paper reports it has gone in the US. Survivorship would also inflate it |
+| FOMC-cycle even weeks (FCY-1) | At full published strength, 2017-2026 gives t of about 2.5 against a bar of about 3.18 |
+| Macro-announcement-day premium (CPI, payrolls, FOMC days) | At full strength, about t 2.1 over 2010-2026, and about half of it goes on costs |
+| Variance-risk-premium timing of the S&P 500 | The timing difference reaches about t 1.5 over 2008-2026 |
+| Short natural gas in contango | About t 2.5 at full strength over 2009-2026, with squeezes that wipe out a short |
+| Commodity index-roll front-running | Reported to have gone after 2004 |
+| S&P 500 index-inclusion effect | Reported to have gone in the 2010s |
+| US overnight drift at the European open | Flat since 2021 (New York Fed, 2026) |
+| RSI(2) dip-buying on index CFDs | About +0.26% a trade on the S&P 500 in 2016-2026, roughly t 1 |
+
+**What the record says about costs.** Real effects keep showing before costs and vanishing after them:
+
+- the Treasury month-end effect: t 4.07 before costs, 2.24 after (TME-1);
+- the Treasury auction cycle: about t 2 before costs, below zero after (TSY-1);
+- diversified trend following (DIV-2): validated at futures-style costs, at +2.3% a year in its holdout. A retail CFD
+  would have lost 5.7% a year on it.
+
+A retail CFD's spread and its 2.5% a year financing markup are the obstacle. Cheaper execution, such as futures or
+ETFs, is a question for the owner, and it would still be paper first. Until then the queue continues with candidates
+that can pass at CFD costs.
+
+**Next (from 2026-11-05 evening).** No idea checked so far can pass at CFD costs. Each check-in now looks for new
+*information*, not new periods of old prices. It runs the power check first and builds only what can pass. The
+first to check:
+
+- the EIA's weekly natural-gas storage against its five-year average, for NATGAS (the theory of storage). Checked the
+  same evening and dropped: natural gas moves 7-8% a week, so even a 0.5% a week edge reaches only about t 2.5 over
+  25 years;
+- the CFTC's positioning in gold, oil and the index futures (COT-1 tested only the currencies). Checked and dropped:
+  hedging pressure needs a wide cross-section of commodities, and the broker quotes five, which gives about t 1.5.
+
+With these, no idea found so far can pass at a retail CFD's costs. The queue waits for the owner's word on cheaper
+execution. Each check-in keeps looking for new information, and builds a candidate only when its power check
+passes.
+
+
 **Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
 pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
 
