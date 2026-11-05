@@ -78,3 +78,43 @@ The owner, 2026-11-05: "don't fixate on the AI trading; anything that makes us a
   effect several times the published one, and a real one of ordinary size would FAIL. It is run because the queue
   holds it and its data is fresh. Its likely failure says little against the effect itself, and that would be reported
   as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/LVOL-1.json`)
+
+**FAILED.** Three gates failed: t, validation and top year. The holdout (2021-01 to 2026-09) stays unread, and nothing
+changes.
+
+**The data.** SPLV had 3,900 daily closes from 2011-05-05, USMV 3,783 from 2011-10-20, SPY 8,501 and ^IRX 8,491, all
+to 2026-11-05. All 108 judged months traded.
+
+**The figures, 2012-01 to 2020-12.**
+
+| | Value | Gate |
+|---|---|---|
+| Alpha on SPY, net | +0.076% a month, **+0.91% a year** | |
+| White t | **0.44** | t ≥ 3.154: **failed** |
+| Beta on SPY | 0.70 | reported |
+| Development 2012-2016 | alpha > 0 | passed |
+| Validation 2017-2020 | alpha ≤ 0 | **failed** |
+| Costs doubled | alpha > 0 | passed |
+| Each fund alone | SPLV > 0 and USMV > 0 | passed |
+| Top year | one year gave more than 50% of the total | **failed** |
+
+**What was lost, and why there is no second run.**
+
+- The runner committed the data, this result in full and the registry verdict as 44225df. GitHub refused its push
+  with "fatal error in commit_refs". The same GitHub-side failure refused this session's pushes from about 16:00 to
+  16:06 UTC. The runner is gone.
+- Its job log kept the judge's own line. That line, with the fetch and holdout lines, is copied to
+  `research/results/lvol1-*.log`. The verdict is recorded from it.
+- The judge prints every failed gate, so a gate it does not name passed. The magnitudes behind development,
+  validation, costs ×2, each fund and each year are lost, and so are the data's hashes.
+- LVOL-1 is not run again. A judged program never is, on the same data.
+
+**What it means, and no more.**
+
+- Over 2012-2020 the low-volatility ETFs earned about 0.9% a year more than their 0.70 beta to the S&P 500 implied.
+  That is far inside the noise of 108 months.
+- It was positive to 2016 and not after.
+- As declared before the run, this test could confirm only an effect several times the published one. It says
+  nothing more, either way.
