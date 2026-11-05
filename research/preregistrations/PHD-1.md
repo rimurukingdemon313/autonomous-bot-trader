@@ -92,3 +92,32 @@ REJECTED.
 - **The bar.** With about 240 events and daily moves of about 1.2%, t ≥ 3.144 needs a mean of about 0.24% per event,
   after costs. That is the effect at about its size before 1990.
 - **What that means.** A real but faded effect would FAIL here, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/PHD-1.json`)
+
+**FAILED.** Four gates failed: t, costs ×2, beats ordinary days and top year. The holdout (2022-01 to 2026-09)
+stays unread, and nothing changes.
+
+**The data.** SPY had 8,500 closes and `^IRX` 8,490 (1993 to 2026-11-04). The computed holiday calendar agreed with
+the data's own trading days, so the judge ran.
+
+**The figures, 1995 to 2021.** Each figure is a one-day hold, net of both sides and the night's financing.
+
+| | Mean per day | t | Gate |
+|---|---|---|---|
+| Event days (236) | +0.053% | **0.82** | t ≥ 3.144: **failed** |
+| Development 1995-2008 (121) | +0.035% | 0.36 | > 0: passed |
+| Validation 2009-2021 (115) | +0.073% | 0.86 | > 0: passed |
+| Costs doubled | −0.001% | −0.01 | > 0: **failed** |
+| Reported: ordinary days (6,561) | −0.012% | −0.78 | never a gate |
+| Events minus ordinary days | +0.065% | **0.98** | Welch t ≥ 2.0: **failed** |
+
+- The hit rate was 54.7%.
+- 1999 alone supplied 71% of the total, so the top year gate failed too.
+
+**What it means, and no more.**
+
+- The eve of a market holiday still paid a little more than an ordinary day, about +0.065% after the same costs.
+  That is a fraction of the 1963-1987 effect, and well within chance (t 0.98).
+- After a CFD's costs it is about zero.
+- As registered, the holdout is not opened for a hypothesis that failed.
