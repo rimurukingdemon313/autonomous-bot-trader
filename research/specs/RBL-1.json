@@ -1,0 +1,50 @@
+{
+ "code_sha256": "c3fc2cd8ad82f4870961904343f93070dd4dbee8d86ebf1ba1d6874de0d81696",
+ "sha256": "7cede37add71e267ad1de1b8868f44d7fef617a715e41e58a7ce3621c9f7cf3a",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), on the US 500 CFD, twelve trades a year, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "bond": "IEF",
+  "calendar": "NYSE trading days computed from its rules and its unscheduled closures (scripts/phd1.py)",
+  "closes_at": "the close of T+1",
+  "cost_each_side": 0.0002,
+  "data": "Yahoo daily closes: SPY and IEF adjusted for dividends and splits, ^IRX as published (negative and zero yields kept); each file's sha256 in the manifest",
+  "equity_target": 0.6,
+  "gates": {
+   "both_signs": "the months it shorts and the months it holds long each have a mean net > 0",
+   "costs_x2": "mean net per month > 0 with the cost per side and the markup doubled",
+   "development": "mean net per month > 0, holds closing in 2003..2010",
+   "t": "t of the mean net return per month, holds closing in 2003..2018, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total",
+   "validation": "mean net per month > 0, holds closing in 2011..2018"
+  },
+  "holdout_rule": "holds closing in 2019-01..2026-09: mean net per month > 0 with one-sided t >= 1.645, and > 0 with the costs doubled",
+  "market": "SPY",
+  "markup_pa": 0.025,
+  "opens_at": "the close of T-4",
+  "periods": {
+   "development": [
+    "2003-01-01",
+    "2011-01-01"
+   ],
+   "holdout": [
+    "2019-01-01",
+    "2026-10-01"
+   ],
+   "membership": "a month belongs to the period its hold closes in",
+   "validation": [
+    "2011-01-01",
+    "2019-01-01"
+   ]
+  },
+  "program": "RBL-1",
+  "question": "does trading the S&P 500 against the month-end rebalancing of 60/40 funds, from the close of the month's fifth-last trading day to the close of the next month's first, earn a positive net return at a CFD's costs?",
+  "rate": "^IRX",
+  "rate_stale_days": 7,
+  "signal": "the equity weight of a 60/40 SPY/IEF portfolio rebalanced at the previous month's last close, drifted to the close of T-4, minus 60%; short when positive, long when negative",
+  "tests": 1,
+  "threshold_t": 3.1804
+ }
+}
