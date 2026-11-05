@@ -14,16 +14,11 @@ from pypdf import PdfReader
 UA = {"User-Agent": "Mozilla/5.0 (research reader)"}
 LIMIT = 140
 PAPERS = {
-    "RBL (Harvey, Mazzoleni & Melone 2025)": (
-        ["https://www.edhec.edu/sites/default/files/2026-03/Scientific%20paper.%20ssrn-5122748.pdf",
-         "https://www.nber.org/system/files/working_papers/w33554/w33554.pdf"],
-        r"calendar signal|month-end|month end|last (trading )?day|next day|basis points|bps|60/40|t-stat|sharpe|"
-        r"signal is|we define|trading strategy|days before|day before|turn of the month"),
-    "FCY (Cieslak, Morse & Vissing-Jorgensen 2019)": (
-        ["https://stern.nyu.edu/sites/default/files/assets/documents/cycle_paper_cieslak_morse_vissingjorgensen.pdf",
-         "https://conference.nber.org/conf_papers/f74573/f74573.pdf"],
-        r"week 0|even week|odd week|days? -1|day -1|excess return|basis points|bps|trading days|sample|post-|"
-        r"out of sample|out-of-sample|sharpe|strategy"),
+    "MOM (Neuhierl & Weber, Monetary Momentum)": (
+        ["https://nber.org/system/files/working_papers/w24748/w24748.pdf",
+         "https://www.lawfin.uni-frankfurt.de/fileadmin/user_upload/ANeuhierl_paper_09252020.pdf"],
+        r"sharpe|trading strateg|fed funds futures|slope|25 days|15 days|expansionary|contractionary|"
+        r"surprise is|we define|we measure|basis points|bps|per year|annual|sample|transaction cost"),
 }
 
 
