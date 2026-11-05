@@ -1,0 +1,18 @@
+# Short keyword excerpts from public research papers, printed to the job log only (scripts/paper_notes.py). Research only.
+name: Paper notes
+on:
+  push:
+    branches: [paper-notes]
+permissions:
+  contents: read
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pypdf
+      - run: python scripts/paper_notes.py
