@@ -1,0 +1,45 @@
+{
+ "code_sha256": "f7689ff04d784e74734136b680e5d4f0d34c575fb207295474481da42343fc34",
+ "sha256": "41b98c864d370876b7ab7f16246175fec8e1c485ec09d6e132b7bf8a651d1ffd",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14), sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_per_unit_traded": 0.0005,
+  "data": "Yahoo daily closes: SPY adjusted for dividends and splits, ^IRX as published; each file's sha256 in the manifest; a missing day is not filled: a month without all its days is no trade",
+  "gates": {
+   "book_pays": "the managed book's own mean monthly excess return, net, > 0",
+   "costs_x2": "alpha > 0 with the trading cost and the markup doubled",
+   "development": "alpha > 0 in 1995..2008",
+   "t": "White t of the managed book's monthly alpha on the market, 1995..2021, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total alpha",
+   "validation": "alpha > 0 in 2009..2021"
+  },
+  "holdout_rule": "2022-01..2026-09: alpha > 0 with one-sided White t >= 1.645, alpha > 0 with the costs doubled, and the managed book's own mean monthly excess return > 0",
+  "market": "SPY",
+  "markup_pa": 0.025,
+  "max_exposure": 2.0,
+  "periods": {
+   "development": [
+    "1995-01-01",
+    "2009-01-01"
+   ],
+   "holdout": [
+    "2022-01-01",
+    "2026-10-01"
+   ],
+   "validation": [
+    "2009-01-01",
+    "2022-01-01"
+   ]
+  },
+  "program": "VOLM-1",
+  "question": "does scaling S&P 500 exposure by the inverse of last month's realised variance earn a positive alpha on the market, after a retail CFD's costs?",
+  "rate": "^IRX",
+  "rule": "exposure for month m+1 = mean RV of months up to m / RV of m, capped at 2; RV = sum of squared daily returns in the month; held for the month, its drift traded back at the next month's last close",
+  "test": "OLS of the managed book's monthly net excess return on the market's (both pay the short rate plus the markup on their exposure), White standard errors",
+  "tests": 1,
+  "threshold_t": 3.113
+ }
+}
