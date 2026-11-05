@@ -487,6 +487,25 @@ agreement (CONF-1). Can the strongest model at the desk tell the agreements that
 the desk's own rule already refused, and its answer is measurement only, like the shadow debate on a disagreement.
 Whether its approval may ever replace the floor is decided by CONF-2's registered test, not by its answers.
 
+**Stopped (dual-ai 1.21.0, 2026-11-05).** The senior approved none of the 52 agreements it judged in shadow, from
+4 November 19:15 to 5 November 08:00 UTC. The 40 in the published database were all VETO, at confidence 57 to 74. The
+reasons read were about the trades:
+
+- stops of about 0.7 H1 ATR in high volatility;
+- costs up to about a quarter of the stop;
+- trades against the H4 trend;
+- a time machine leaning to the stop.
+
+CONF-2 needs 30 approved in LEARNING, and from 0 of 52 the chance of that was about 2.5%. Paying on would have cost
+about $45 for an INCONCLUSIVE, then the rest of the $95. So CONF-2 was abandoned on that blind count, before any
+outcome was read, and `SENIOR_SHADOW_REVIEWS` is off.
+
+What stays:
+
+- The senior still reviews every real trade candidate.
+- The agreements below the floor are still followed forward (`DUAL_AI_LOW_CONFIDENCE`), so CONF-1 is unchanged.
+- The code stays, tested, in case a new registered question needs it. The owner is told first.
+
 ## DESK-1: what if the agreements had exited or been filtered another way? (2026-11-02)
 
 The owner: "make it profitable; try everything, test everything". Preregistered and frozen first

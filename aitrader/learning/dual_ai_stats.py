@@ -203,9 +203,10 @@ def record(db, as_of: int | None = None, partition_: str | None = None) -> dict:
                                         "on these trades. Measured, never traded"},
             "taken_by_session": {s: _r([r for r, ss in taken.values() if ss == s]) for s in SESSIONS},
             "decisions_by_rule": dict(sorted(rules.items())),
-            "senior_shadow_reviews": {**reviews, "note": "since dual-ai 1.20.0 the senior judges each agreement below "
-                                      "the floor in shadow (never traded); counts only, its results are judged by "
-                                      "CONF-2 at its registered dates"},
+            "senior_shadow_reviews": {**reviews, "note": "from dual-ai 1.20.0 to 1.21.0 (2026-11-04 and 05) the "
+                                      "senior judged each agreement below the floor in shadow (never traded); counts "
+                                      "only. It approved none, and CONF-2 was abandoned on that count before any "
+                                      "outcome was read"},
             "agreement_rate": round(rules["AGREE"] / both, 3) if both else None,
             "decisions_with_both_traders": both,
             "unavailable": sum(rules[k] for k in UNAVAILABLE)}

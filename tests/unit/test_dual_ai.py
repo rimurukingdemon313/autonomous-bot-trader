@@ -667,8 +667,26 @@ def test_the_senior_decides_only_on_a_trade_candidate_and_is_never_asked_on_a_di
     assert "senior" not in [c["role"] for c in fake.calls]
 
 
-# ── the senior's judgement measured below the floor (dual-ai 1.20.0, CONF-2) ──
+# ── the senior's judgement measured below the floor (dual-ai 1.20.0, CONF-2; off since 1.21.0) ──
 
+def test_since_1_21_0_the_senior_judges_nothing_in_shadow_and_the_floors_own_shadow_is_unchanged():
+    # funded, and an approval waiting: still no review in shadow, and nothing is paid for one
+    brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=says("APPROVE", 99)))
+    d = brain.think(desk_ctx(), V).decision
+    assert d.decision == "NO_TRADE" and d.ai["dual_ai"]["consensus"]["rule"] == "LOW_CONFIDENCE"
+    assert "senior_shadow" not in d.ai["dual_ai"] and [c["role"] for c in fake.calls] == ["trader1", "trader2"]
+    (shadow,) = counterfactual_decisions(d)  # CONF-1 still reads the floor's own shadow
+    assert shadow.family == "DUAL_AI_LOW_CONFIDENCE" and shadow.decision == "BUY"
+
+
+@pytest.fixture
+def shadow_on(monkeypatch):
+    """The reviews in shadow switched on, as in 1.20.0: the code stays tested while it is off."""
+    import aitrader.agents.dual_ai as dual_ai
+    monkeypatch.setattr(dual_ai, "SENIOR_SHADOW_REVIEWS", True)
+
+
+@pytest.mark.usefixtures("shadow_on")
 @pytest.mark.parametrize("verdict", [says("APPROVE", 99), says("VETO", 90), "not json"])
 def test_below_the_floor_the_senior_judges_in_shadow_and_the_decision_never_changes(verdict):
     brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=verdict))
@@ -693,6 +711,7 @@ def test_below_the_floor_the_senior_judges_in_shadow_and_the_decision_never_chan
         assert "verdict" not in ss and ss["status"].startswith("INVALID")  # never repaired
 
 
+@pytest.mark.usefixtures("shadow_on")
 def test_the_shadow_review_leaves_room_for_the_real_reviews_and_is_never_paid_from_an_unread_spend():
     # senior_desk's trial: $1.50 a day, $0.40 a call; the key says today's spend leaves one cent less than the room
     brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=says("APPROVE")),
@@ -708,6 +727,7 @@ def test_the_shadow_review_leaves_room_for_the_real_reviews_and_is_never_paid_fr
     assert brain.think(desk_ctx(), V).decision.ai["dual_ai"]["senior_shadow"]["asked"] is True
 
 
+@pytest.mark.usefixtures("shadow_on")
 def test_outside_its_funded_period_the_senior_judges_nothing_in_shadow_either():
     brain, fake = senior_desk(scripted(t1=("BUY", 55), t2=("BUY", 65), senior=says("APPROVE")), active=False)
     d = brain.think(desk_ctx(), V).decision
