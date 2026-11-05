@@ -1146,8 +1146,11 @@ MUTANTS = [
     # ── the senior's judgement measured below the floor (dual-ai 1.20.0, paid-trial 1.4.0, CONF-2) ──
     ("dai-shadow-senior-funded", "the senior judges in shadow only while its funded period covers the decision",
      "aitrader/agents/dual_ai.py",
-     '            if _funded(client, "senior", ctx.t):\n                # the senior\'s judgement, measured (1.20.0)',
-     '            if True:\n                # the senior\'s judgement, measured (1.20.0)', ["tests/unit/test_dual_ai.py"]),
+     '            if SENIOR_SHADOW_REVIEWS and _funded(client, "senior", ctx.t):',
+     '            if SENIOR_SHADOW_REVIEWS:', ["tests/unit/test_dual_ai.py"]),
+    ("dai-shadow-off", "since 1.21.0 the senior judges nothing in shadow (CONF-2 abandoned: it approved none)",
+     "aitrader/agents/dual_ai.py", "SENIOR_SHADOW_REVIEWS = False", "SENIOR_SHADOW_REVIEWS = True",
+     ["tests/unit/test_dual_ai.py"]),
     ("dai-shadow-senior-prompt", "a review in shadow tells the senior the desk will not take the trade",
      "aitrader/agents/dual_ai.py",
      "rec.get(\"time_machine\"), hold,\n                                                  SENIOR_SHADOW_SYSTEM),",

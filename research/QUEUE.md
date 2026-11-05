@@ -24,9 +24,10 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | 7 | PHD-1 | The pre-holiday effect in US equity indices | Ariel (1990) and later | Likely faded; few events a year | queued |
 
 **Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
-pay?) and CONF-2 (does the strongest model's judgement pick the winners?), both on 2026-11-20 and 2026-11-27.
+pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
 
 **Done:**
+- CONF-2 ABANDONED (2026-11-05, before any outcome was read). The senior approved none of the 52 agreements it judged in shadow, so its approved group could not fill. The reviews stopped to save the owner's money.
 - VRP-1 FAILED (short VIX futures in contango: +61% a year at t 2.33 against 3.0; the filter added nothing, t 0.46; drawdown −77%).
 - XTS-1 FAILED (crypto time-series momentum: t 2.87 against 3.09; timing t 1.87).
 - MEH-1 FAILED (month-end hedge flows: +3.3 bps gross, +1.2 net, t 1.04 against 3.61).

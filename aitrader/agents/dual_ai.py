@@ -22,9 +22,10 @@ with a refusal.
   every trade both traders agree on at the floor, with everything the desk knows (the chart, the data, both
   analyses, the journal, the levels replayed), and answers APPROVE or VETO. It can only refuse: never a side, a
   level or a size. A veto, an unusable answer, an approval below even odds or no review at all is NO_TRADE, and the
-  trade it would have been is followed forward in shadow (DUAL_AI_SENIOR_VETO). Since 1.20.0 it also judges, in
-  shadow only, every agreement below the floor (`senior_shadow`): the decision stays NO_TRADE whatever it says, and
-  its verdicts are followed forward so CONF-2 can tell whether its judgement picks the trades that win.
+  trade it would have been is followed forward in shadow (DUAL_AI_SENIOR_VETO). From 1.20.0 to 1.21.0 it also
+  judged, in shadow only, every agreement below the floor (`senior_shadow`), the decision NO_TRADE whatever it said,
+  so CONF-2 could tell whether its judgement picks the trades that win. It approved none, CONF-2 could not fill, and
+  the reviews in shadow stopped (SENIOR_SHADOW_REVIEWS).
   TRADER 2 (IndependentTradingJudge) is a different model: it reads the raw data (OHLCV rows on both timeframes,
   volatility, spread, costs, structure, calendar), the chart (the image when its model can read images, its
   marks as numbers always) and Trader 1's analysis, forms its own view and picks its own side.
@@ -213,7 +214,14 @@ from .types import MarketContext
 #:         nearly every agreement; CONF-2 (research/preregistrations/CONF-2.md) asks whether the strongest model's
 #:         judgement picks the ones that win. Paid (paid-trial 1.4.0), and only while today's spend leaves room for
 #:         REAL_REVIEWS_KEPT reviews of real trade candidates after it.
-DUAL_AI_VERSION = "dual-ai-1.20.0"
+#: 1.21.0 (2026-11-05): the senior's reviews in shadow stop (SENIOR_SHADOW_REVIEWS). It approved none of the 52
+#:         agreements it judged from 2026-11-04 19:15 to 2026-11-05 08:00 UTC; the 40 in the published database were
+#:         all VETO, at confidence 57 to 74. CONF-2 needs 30 approved in LEARNING. From 0 of 52, the chance of that
+#:         was about 2.5% (uniform prior; the 95% upper bound on the approval rate is 5.6%). LEARNING would have cost
+#:         about $45 of the owner's money, and the rest of the $95 within three weeks. CONF-2 is abandoned on that
+#:         count alone, before any outcome was read. Unchanged: the senior's reviews of real trade candidates, and
+#:         every rule, level, limit and size. The code stays, tested, for a new registered question, owner told first.
+DUAL_AI_VERSION = "dual-ai-1.21.0"
 #: whose stop and target a trade is placed on (1.10.0): Trader 1's, the trader that reads the chart
 LEVELS_FROM = "trader1"
 FAMILY = "DUAL_AI"
@@ -259,6 +267,9 @@ SENIOR_EVEN_ODDS = 50
 #: next decision long, and it is paid for only while today's budget still has room for this many real reviews after it
 SHADOW_SENIOR_DEADLINE_S = 180.0
 REAL_REVIEWS_KEPT = 2
+#: whether the senior judges the agreements below the floor in shadow (1.20.0): off since 1.21.0, when CONF-2 was
+#: abandoned because it approved none
+SENIOR_SHADOW_REVIEWS = False
 CALL_DEADLINE_S = 420.0          # a trader's call, across its retries and fallbacks
 SHADOW_DEBATE_DEADLINE_S = 120.0  # the shadow debate is measurement only: it never holds up the next decision long
 MIN_CALL_S = 30.0                # less time left than this: the trader is not asked (its answer would come too late)
@@ -940,9 +951,9 @@ class DualAITrader:
             # levels and held as a trade, is followed forward in shadow, so the floor stays measured
             rec["consensus"] = {**res, "desk_confidence": round(min(t1["confidence"], t2["confidence"]) / 100, 3)}
             rec["shadow"] = [_shadow_side(t1, "trader1", LOWCONF_FAMILY, exit_after)]
-            if _funded(client, "senior", ctx.t):
-                # the senior's judgement, measured (1.20.0): it judges the trade this would have been as if it could
-                # be taken; the decision stays NO_TRADE whatever it answers, and CONF-2 follows its verdict forward
+            if SENIOR_SHADOW_REVIEWS and _funded(client, "senior", ctx.t):
+                # the senior's judgement, measured (1.20.0, off since 1.21.0): it judges the trade this would have
+                # been as if it could be taken; the decision stays NO_TRADE whatever it answers
                 dl = budget(SHADOW_SENIOR_DEADLINE_S)
                 if dl is None:
                     rec["senior_shadow"] = {"asked": False, "why": late("the senior trader")}
@@ -1063,7 +1074,7 @@ def counterfactual_decisions(d: Decision) -> list[Decision]:
     return out
 
 
-__all__ = ["ALWAYS_SURE_MIN", "ALWAYS_SURE_SHARE", "REAL_REVIEWS_KEPT", "SENIOR_SHADOW_SYSTEM", "DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD",
+__all__ = ["ALWAYS_SURE_MIN", "ALWAYS_SURE_SHARE", "REAL_REVIEWS_KEPT", "SENIOR_SHADOW_REVIEWS", "SENIOR_SHADOW_SYSTEM", "DUAL_AI_VERSION", "DualAITrader", "FAMILY", "JOURNAL_RECORD",
            "LEVELS_FROM", "LOSER_FAMILY", "LOSER_SUFFIX", "LOWCONF_FAMILY", "LOWCONF_SUFFIX", "MIN_CONFIDENCE",
            "PICK_FAMILY", "PICK_SUFFIX", "PLAYBOOK", "SENIOR_EVEN_ODDS", "SENIOR_FAMILY", "SENIOR_SUFFIX", "SENIOR_SYSTEM",
            "T2LEVELS_FAMILY", "T2LEVELS_SUFFIX", "always_sure", "analysis_now", "build_chart", "check_levels",

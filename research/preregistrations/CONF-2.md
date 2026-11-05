@@ -88,3 +88,33 @@ was kept for real reviews. These are counted and reported.
   only refuse. So the units are an upper bound on what trading them would add.
 - **The model can change.** If OpenRouter stops serving `anthropic/claude-opus-5.5` at its declared price, the
   senior is not asked. The units record the model.
+
+## Status: ABANDONED (2026-11-05 08:00 UTC, before any outcome was read)
+
+The senior judged 52 agreements in shadow, from 2026-11-04 19:15 to 2026-11-05 08:00 UTC, and **approved none**. The
+40 in the published database were all VETO, at confidence 57 to 74. The reasons read were about the trades:
+
+- stops of about 0.7 H1 ATR in volatility at its 94th to 95th percentile;
+- costs up to about a quarter of the stop;
+- trades against the H4 trend;
+- a time machine leaning to the stop.
+
+**Why it cannot be judged.** LEARNING needs 30 approved, and from 0 of 52 it could not plausibly get them.
+
+- The 95% upper bound on the approval rate is 5.6%.
+- LEARNING has seven trading days. The daily cap pays for about 60 reviews a day, so it would hold about 420.
+- With a uniform prior, the chance of 30 approved among 420 was about 2.5% (0.7% with Jeffreys').
+- The likely result was INCONCLUSIVE, after about $45 of the owner's money in LEARNING and the rest of the $95 within
+  three weeks.
+
+**What was used, and what was not.**
+
+- The decision used only the count of verdicts: the grouping variable, which the shift report prints every hour.
+- No outcome of any reviewed agreement was computed or read. `scripts/conf2.py` was not run.
+- CONF-2 is not judged on 2026-11-20 or 2026-11-27.
+
+**What changed.**
+
+- dual-ai 1.21.0 switches the reviews in shadow off (`SENIOR_SHADOW_REVIEWS`).
+- The senior still reviews every real trade candidate.
+- CONF-1 is unchanged and continues: its units are the floor's own shadow, which never depended on the senior.
