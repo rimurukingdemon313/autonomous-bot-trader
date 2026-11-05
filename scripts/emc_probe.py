@@ -55,8 +55,10 @@ def bis_meta() -> dict:
     with z.open(name) as f:
         reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8"))
         cols = reader.fieldnames
+        code = lambda r, k: (r.get(k) or r.get(next((c for c in cols if c.startswith(k + ":")), k)) or "").split(":")[0]  # noqa: E731
         for r in reader:
-            area, freq, t = r.get("REF_AREA"), r.get("FREQ"), r.get("TIME_PERIOD")
+            area, freq = code(r, "REF_AREA"), code(r, "FREQ")
+            t = (r.get("TIME_PERIOD") or r.get("TIME_PERIOD:Time period or range") or "").strip()
             if area in AREAS and freq == "D" and t:
                 s = seen.setdefault(area, {"rows": 0, "first": t, "last": t})
                 s["rows"] += 1
