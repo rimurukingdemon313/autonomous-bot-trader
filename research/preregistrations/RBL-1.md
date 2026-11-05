@@ -105,3 +105,34 @@ otherwise it is REJECTED.
 - **What that means.** RBL-1 can pass only if the effect in 2003-2018 was at least as strong as the paper's average. A
   weaker one would FAIL. Its failure would then say only that the month-end part alone, on stocks alone, does not pay
   a retail CFD, and that would be reported as it is.
+
+## Result (run 2026-11-05 on GitHub's runner; `research/knowledge/RBL-1.json`)
+
+**FAILED.** Two gates failed: t and both signs. The holdout (2019-01 to 2026-09) stays unread, and nothing changes.
+
+**The data.** SPY had 8,501 daily closes from 1993-01-29, IEF 6,108 from 2002-07-30, and ^IRX 8,498, all to 2026-11-05.
+All 192 judged months traded.
+
+**The figures, holds closing in 2003-01 to 2018-12 (192 months).** Each figure is per month, net.
+
+| | Mean | t | Gate |
+|---|---|---|---|
+| All months | +0.260% | **1.57** | t ≥ 3.180: **failed** |
+| Development 2003-2010 | +0.364% | 1.35 | > 0: passed |
+| Validation 2011-2018 | +0.156% | 0.81 | > 0: passed |
+| Costs doubled | +0.168% | 1.02 | > 0: passed |
+| Short months: stocks ahead of bonds (114) | **−0.290%** | −2.14 | both > 0: **failed** |
+| Long months: stocks behind bonds (78) | +1.063% | 3.16 | |
+| Top year | 2008, 45.4% of the total | | ≤ 50%: passed |
+
+- The hit rate was 53.1%.
+
+**What it means, and no more.**
+
+- The rebalancing reversal did not show in both directions. When stocks had run ahead of bonds, they kept rising over
+  the last week and the next month's first day, and the short lost.
+- When stocks had fallen behind, they rose strongly over the same days. That side's t of 3.16 is one of two sides,
+  chosen after the result, and 2008's rebounds supply much of it. It is not a finding, and it is not tested further
+  on these data.
+- Together, the S&P 500 rose around month-end whichever way the month had gone. That fits the turn-of-the-month effect,
+  which TOM-F already follows forward, better than the rebalancing story.
