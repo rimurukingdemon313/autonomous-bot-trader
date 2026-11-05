@@ -113,3 +113,23 @@ REJECTED.
   24-hour moves of about 1%, that is a mean near 0.46% per event: the drift at about its full published size.
 - **What that means.** A real drift at half that size would FAIL here, and that would be reported as it is.
 - **The holdout.** Its 38 events can confirm a drift that size, at one-sided t of about 2.8.
+
+## Status: ABANDONED (2026-11-05, before any outcome was computed); superseded by FOMC-1A
+
+**The fetch could not finish.** The run started at 08:45 UTC on one runner (`fomc1-run` 74edc12):
+
+- Dukascopy's datafeed served it about one day of minute quotes every 150 seconds: 14 of the 510 days in 35 minutes.
+- At that rate the fetch needs about 21 hours, against the job's 150-minute limit.
+- The frozen fetch also refused the whole run on any one day that could not be fetched. Earlier ingests here lost a
+  few days in a hundred that way (`ix4b-data`: 6 failed days in 132).
+
+**What was and was not done.**
+
+- The run was cancelled at about 09:20 UTC.
+- No quotes file was written and the judge never ran. The log of the 14 days fetched is in `fomc1-run` ade5236; it
+  holds no price.
+- The registry records FOMC-1 as ABANDONED, with `outcome_computed: false`.
+
+**What replaces it.** FOMC-1A (`research/preregistrations/FOMC-1A.md`) is the same rule, events, costs, control,
+periods, gates and holdout. It imports them from this script unchanged. The only change is that the fetch runs in
+parallel shards.

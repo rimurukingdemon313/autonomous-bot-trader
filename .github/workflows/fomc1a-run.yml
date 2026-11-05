@@ -1,0 +1,93 @@
+# One-time execution of FOMC-1A (research/preregistrations/FOMC-1A.md) on GitHub's runners, which can reach
+# Dukascopy's datafeed. Sixteen shards fetch at once, each its own share of the days; one job then joins them, judges
+# 2016..2021, and opens the 2022-01..2026-09 holdout only if the judge PASSED. Research only: nothing here touches the
+# paper desk. At most 16 jobs at once, so the paper desk's own shifts still find a runner.
+name: FOMC-1A judge (once)
+on:
+  push:
+    branches: [fomc1a-run]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Fetch this shard's days
+        run: |
+          set -o pipefail
+          python scripts/fomc1a.py fetch ${{ matrix.shard }} 16 2>&1 | tee fomc1a-fetch-${{ matrix.shard }}.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fomc1a-part-${{ matrix.shard }}
+          path: |
+            data/fomc/part-${{ matrix.shard }}.json
+            fomc1a-fetch-${{ matrix.shard }}.log
+          if-no-files-found: ignore
+  judge:
+    needs: fetch
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to run twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("FOMC-1A", "FOMC-1A-H"):
+                  sys.exit(f"FOMC-1A already has a verdict ({r['status']})")
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fomc1a-part-*
+          merge-multiple: true
+          path: shards
+      - name: Join the shards
+        run: |
+          set -o pipefail
+          mkdir -p data/fomc research/results
+          cp shards/data/fomc/part-*.json data/fomc/ 2>/dev/null || cp shards/part-*.json data/fomc/ 2>/dev/null || true
+          cat shards/fomc1a-fetch-*.log > research/results/fomc1a-fetch.log 2>/dev/null || true
+          python scripts/fomc1a.py merge 16 2>&1 | tee fomc1a-merge.log
+      - name: Judge 2016..2021
+        run: |
+          set -o pipefail
+          python scripts/fomc1a.py judge 2>&1 | tee fomc1a-judge.log
+      - name: Open the holdout once, only if the judge PASSED
+        run: |
+          set -o pipefail
+          if grep -q '"verdict": "PASSED"' research/knowledge/FOMC-1A.json; then
+            python scripts/fomc1a.py holdout 2>&1 | tee fomc1a-holdout.log
+          else
+            echo "FOMC-1A did not pass: the holdout stays unread" | tee fomc1a-holdout.log
+          fi
+      - name: Commit the artifacts and logs
+        if: always()
+        run: |
+          git config user.name "fomc-runner"; git config user.email "fomc-runner@users.noreply.github.com"
+          mkdir -p research/results
+          for f in fomc1a-merge.log fomc1a-judge.log fomc1a-holdout.log; do if [ -f "$f" ]; then mv "$f" research/results/; fi; done
+          for f in research/results/fomc1a-*.log data/fomc/manifest.json data/fomc/quotes.csv data/fomc/part-*.json \
+                   research/knowledge/FOMC-1A.json research/knowledge/FOMC-1A-H.json research/registry.jsonl; do
+            if [ -e "$f" ]; then git add -f "$f"; fi
+          done
+          git commit -m "FOMC-1A run on the GitHub runners [skip ci]" || true
+          git push origin HEAD:fomc1a-run
