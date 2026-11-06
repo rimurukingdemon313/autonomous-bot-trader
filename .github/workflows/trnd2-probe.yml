@@ -1,0 +1,32 @@
+# TRND-2 data probe (scripts/trnd2_probe.py): which stock indices have a daily history from before 1990, from Yahoo and
+# Stooq. Dates only (rows, first and last dates, closes per decade, months without a close before 1990); nothing is
+# computed from a price. Research only.
+name: TRND-2 data probe
+on:
+  push:
+    branches: [trnd2-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Probe the fetch
+        run: python scripts/trnd2_probe.py 2>&1 | tee trnd2-probe.log
+      - name: Commit the probe
+        if: always()
+        run: |
+          git config user.name "trnd-runner"; git config user.email "trnd-runner@users.noreply.github.com"
+          mkdir -p research/results
+          if [ -f trnd2-probe.log ]; then mv trnd2-probe.log research/results/; fi
+          for f in research/results/trnd2-probe.log research/results/TRND2-probe.json; do
+            if [ -e "$f" ]; then git add -f "$f"; fi
+          done
+          git commit -m "TRND-2 data probe on the GitHub runner [skip ci]" || true
+          for i in 1 2 3 4; do git push origin HEAD:trnd2-probe && break; sleep $((i * 15)); done

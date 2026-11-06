@@ -109,6 +109,18 @@ data that exists. A candidate is built only when its published effect is several
 during Ramadan in the indices of 14 Muslim-majority countries). The broker quotes none of those indices, and each
 gives one event a year.
 
+**After TRND-1 (checked on 2026-11-06, 18:30 UTC, and dropped before building).** TRND-1 waits for the owner's word.
+These were checked for fresh data and for power, and none can pass:
+
+| Idea | Why it was dropped |
+|---|---|
+| TRND-2: TRND-1's rule, unchanged, on other markets' pre-1990 histories | A dates-only probe (`scripts/trnd2_probe.py`, `research/results/TRND2-probe.json`) found daily pre-1990 history on Yahoo for only the Nikkei 225 (from 1965), the Nasdaq Composite (from 1971) and the TSX (from 1979). The others start between 1984 and 1987 or after 1990, and Stooq answered with a web page instead of data. Those years are dominated by Japan's bubble and hold about two independent crashes. A pass would mostly measure the bubble, and a test of the filter's advantage would have no power |
+| Gold under TRND-1's rule, 1968-2001 (a daily London fixing, such as the Bundesbank's) | Fresh, but a rough estimate gives about t 2.7 at full strength. Many scholars also hold that gold must be exchanged hand to hand, which a CFD is not |
+| Currency trend rules, 1974-1999 (fresh) | Moving-average profits in currencies were documented in those years and documented to have faded by the late 1990s (Olson 2004; Neely, Weller & Ulrich 2009). A pass would describe a market that no longer exists. An FX position also always sells one currency |
+| Holding the index CFDs overnight only, swap-free | Two spreads a day would take most of the overnight premium even without a swap, and NE-1 already failed on it |
+| Yield-curve or margin-debt crash filters on top of TRND-1 | Any fresh sample holds six to eight recessions or leverage cycles: no power for an effect added to TRND-1's |
+| Currency carry | A swap-free account earns no carry by construction |
+
 **Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
 pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
 
