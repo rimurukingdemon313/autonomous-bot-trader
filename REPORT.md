@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-06 13:11 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-06 11:25 UTC · decision system `dual_ai`
+Updated 2026-11-06 13:26 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-06 11:25 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,9 +8,8 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: GBPUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: AUDUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 5، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف $7.84 من $95.00.
-- آلة الزمن لآخر اتفاق (AUDUSD، 10000 إعادة): الهدف أول 10%، الستوب أول 15%، ولا واحد 76%: قريب من التعادل.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
 ## The new account: the setup trading now (from 2026-11-01 22:00 UTC)
@@ -72,8 +71,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (4888 so far)
+## Latest decisions, NO TRADE included (4890 so far)
 
+- 11-06 13:15 AUDUSD NO_TRADE: risk engine: trading_calendar (Friday 13:15 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release USD Average Hourly Earnings m/m in 14 min; High-impact release USD Non-Farm Employm
+- 11-06 13:15 USDJPY NO_TRADE: risk engine: trading_calendar (Friday 13:15 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release USD Average Hourly Earnings m/m in 14 min; High-impact release USD Non-Farm Employm
 - 11-06 13:00 GBPUSD NO_TRADE: risk engine: trading_calendar (Friday 13:00 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release USD Average Hourly Earnings m/m in 29 min; High-impact release USD Non-Farm Employm
 - 11-06 13:00 EURUSD NO_TRADE: risk engine: trading_calendar (Friday 13:00 UTC: no new position from 12:00 to 16:00 UTC); news (High-impact release USD Average Hourly Earnings m/m in 29 min; High-impact release USD Non-Farm Employm
 - 11-06 12:45 AUDJPY NO_TRADE: risk engine: trading_calendar (Friday 12:45 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
@@ -84,8 +85,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-06 12:15 NZDUSD NO_TRADE: risk engine: trading_calendar (Friday 12:15 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 11-06 12:00 USDCHF NO_TRADE: risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
 - 11-06 12:00 USDCAD NO_TRADE: risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted
-- 11-06 11:50 AUDUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 42, Trader 2 45): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-06 11:45 USDJPY NO_TRADE: the traders disagree (Trader 1 BUY 55, Trader 2 SELL 62): no trade unless both choose the same side; the debate (recursive/flint-v1.0:free) would have chosen SELL: followed forward in shadow, not trad
 
 ## Open paper positions
 
@@ -139,6 +138,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-06 13:15 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-06 13:15 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-06 13:00 | GBPUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-06 13:00 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-06 12:45 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -149,13 +150,7 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-06 12:15 | NZDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-06 12:00 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-06 12:00 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-06 11:50 | AUDUSD | SELL 42 | SELL 45 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 10% / S 15% / - 76%: close to break-even |
-| 11-06 11:45 | USDJPY | BUY 55 | SELL 62 | SELL | -  | DISAGREE | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
-
-Time machine of the latest agreement (AUDUSD): the levels replayed 10,000 times on the pair's own last 60 days of hours; a simulation of the recent past, not a forecast, and it refuses nothing (dual-ai 1.16.0).
-
-![time machine](last_time_machine.png)
 
 Full figures: `paper_forward.json`. Rules: `docs/PAPER_FORWARD.md` on main.
