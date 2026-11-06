@@ -99,6 +99,15 @@ verdict. TOM-D's report (docs/TOM_INVESTIGATION_REPORT.md) also shows the calend
 indices the bot trades. About 85% of what a TOM trade earned gross since then is the market's own drift, and the net
 since 2009 cannot be told from zero. So it is not proposed, and TOM-F keeps following it forward.
 
+**The power ceiling (checked 2026-11-06).** Holding the broker's four index CFDs long at equal risk, swap-free, is the
+market's own drift with no prediction at all. Over 1988-2020 it reaches only about t 2.5-2.9, below the bar of about
+3.19 that US equity data now carries. A strategy weaker than the equity premium itself cannot be confirmed on the
+data that exists. A candidate is built only when its published effect is several times stronger than that.
+
+**Also dropped on 2026-11-06:** the Ramadan effect (Białkowski, Etebari & Wisniewski 2012: higher, calmer returns
+during Ramadan in the indices of 14 Muslim-majority countries). The broker quotes none of those indices, and each
+gives one event a year.
+
 **Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
 pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
 
