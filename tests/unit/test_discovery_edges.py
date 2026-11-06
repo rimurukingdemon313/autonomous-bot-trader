@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from aitrader.research.discovery.edges import (STATUSES, TransitionError, build, from_confirmatory,
+from aitrader.research.discovery.edges import (STATUSES, TransitionError, _single, build, from_confirmatory,
+                                               from_single,
                                                from_walk_forward, transition)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -88,15 +89,22 @@ def test_the_committed_registry_matches_the_committed_evidence():
     for f in (ROOT / "research" / "knowledge").glob("*.json"):
         art = json.loads(f.read_text())
         if isinstance(art, dict) and art.get("holdout_of"):
+            if isinstance(art.get("classification"), str):  # a single program's holdout: one verdict, its own t
+                if art["classification"] == "VALIDATED":
+                    holdouts[art["holdout_of"]] = (art.get("months") or {}).get("t")
+                continue
             holdouts.update({h: ((art.get("results") or {}).get(h) or {}).get("net", {}).get("t")
                              for h, v in art.get("classification", {}).items() if v == "VALIDATED"})
     validated = {e["edge_id"] for e in reg["edges"] if e["status"] == "VALIDATED"}
     assert validated == {h for h, t in holdouts.items() if t is not None and t >= 2.5}
-    assert reg["counts"]["VALIDATED"] == len(validated) == 0  # DIV2-H1-TSMOM12: holdout t 0.263 -> REJECTED
+    # TRND-1 (holdout t 2.74) is the only one; DIV2-H1-TSMOM12 (holdout t 0.263) is REJECTED
+    assert reg["counts"]["VALIDATED"] == len(validated) == 1 and validated == {"TRND-1"}
+    trnd = next(e for e in reg["edges"] if e["edge_id"] == "TRND-1")
+    assert trnd["t_stat"] >= trnd["t_required"] and trnd["out_of_sample_expectancy"] > 0
     div = next(e for e in reg["edges"] if e["edge_id"] == "DIV2-H1-TSMOM12")
     assert div["status"] == "REJECTED" and any("holdout" in c for c in div["failed_checks"])
     passed = {k for k, p in reg["programs"].items() if p["verdict"] == "PASSED"}
-    assert passed <= {"DIV-2"}
+    assert passed <= {"DIV-2", "TRND-1"}
     assert all(p["verdict"] in ("FAILED", "FAIL", "PASSED") or p["verdict"].startswith("BLOCKED")
                for p in reg["programs"].values())
     vix = next((e for e in reg["edges"] if e["edge_id"] == "R4-XA-VIX-A"), None)
@@ -104,6 +112,26 @@ def test_the_committed_registry_matches_the_committed_evidence():
         assert vix["note"] and "registered population" in vix["note"] and vix["status"] == "REJECTED"
     committed = ROOT / "research" / "knowledge" / "edge_registry.json"
     assert json.loads(committed.read_text())["counts"] == reg["counts"]
+
+
+def test_a_single_program_is_validated_only_by_its_own_holdout_at_t_2_5():
+    art = {"program": "X-9", "verdict": "PASSED", "gates": {"t": True}, "failed_gates": [], "threshold_t": 3.2,
+           "months": {"n": 700, "mean": 0.005, "t": 3.5}}
+    assert _single(art) and from_single(art, None).status == "TESTING"  # judged; its holdout is not opened
+    hold = {"program": "X-9-H", "holdout_of": "X-9", "verdict": "PASSED", "gates": {}, "failed_gates": [],
+            "classification": "VALIDATED", "months": {"n": 69, "mean": 0.007, "t": 2.6}}
+    rec = from_single(art, hold)
+    assert rec.status == "VALIDATED" and rec.t_stat == 3.5 and rec.t_required == 3.2
+    assert rec.out_of_sample_expectancy == 0.007 and rec.direction is None  # the artifact does not record the side
+    weak = from_single(art, {**hold, "months": {"n": 69, "mean": 0.007, "t": 2.4}})  # a sign alone validates nothing
+    assert weak.status == "REJECTED" and any("holdout" in c for c in weak.failed_checks)
+    assert from_single(art, {**hold, "classification": "REJECTED"}).status == "REJECTED"
+    assert from_single({**art, "verdict": "FAILED", "failed_gates": ["t"]}, hold).status == "REJECTED"
+    other = from_single({"program": "Y-1", "verdict": "FAILED", "gates": {"t": False}, "failed_gates": ["t"],
+                         "events": {"n": 140, "mean": 0.001, "t": 1.0}}, None)
+    assert other.t_stat is None and other.net_expectancy is None  # not a monthly statistic: nothing is guessed
+    assert not any(_single({**art, k: v}) for k, v in (("judged", []), ("kind", "trend"), ("stage", 1),
+                                                        ("verdict", "PROMOTED")))
 
 
 def test_an_intraday_gate_stored_as_the_string_false_is_a_failed_check():

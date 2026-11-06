@@ -135,3 +135,84 @@ Estimated, not measured: no TRND-1 price has been read.
   was found on.
 - **What a pass would be worth.** In that model the rule earned about 5-6% a year in price, before dividends. That is
   the stock market's own return made calmer. It is not high profit, and the past is not a forecast.
+
+## Result (run 2026-11-06 on GitHub's runner; `research/knowledge/TRND-1.json` and `TRND-1-H.json`)
+
+**PASSED, and the holdout VALIDATED it.** Every gate passed, and then every holdout rule. It is the first candidate in
+this registry to do both. As the preregistration says, it is proposed to the owner as a paper strategy, and nothing is
+built until the owner says so.
+
+**The data.** ^GSPC had 24,831 daily closes from 1927-12-30, ^NDX 10,356 from 1985-10-01, ^GDAXI 9,827 from 1987-12-30
+and ^FTSE 10,825 from 1984-01-03, all to 2026-11-06. All 732 judged months and all 69 holdout months were present.
+
+**The judged months, 1929-01 to 1989-12 (732).** Each figure is per month, net, in price.
+
+| | Mean | t | Gate |
+|---|---|---|---|
+| All months | +0.509% | **3.83** | t ≥ 3.376: passed |
+| Development 1929-1958 | +0.569% | 2.65 | > 0: passed |
+| Validation 1959-1989 | +0.451% | 2.84 | > 0: passed |
+| Costs doubled | +0.502% | 3.79 | > 0: passed |
+| Worst fall | 51.5%, against 86.0% holding the index | | smaller: passed |
+| Top year | 1954, 10.3% of the total | | ≤ 50%: passed |
+| Complete | 732 of 732 months | | passed |
+
+- **Reported.** Holding the index all the time earned +0.539% a month at t 2.48. Its monthly spread was 5.88%,
+  against the rule's 3.59%.
+- **Activity.** The rule was in the market 62.8% of months, with 94 switches in 61 years.
+- **The holding fee.** A yearly fee of 9.7%, charged only while holding, would have taken the whole return.
+- **Best and worst years.** Best: 1954 (+38.5%) and 1935 (+38.0%). Worst: 1932 (−23.5%) and 1939 (−19.3%).
+
+**The holdout, 2021-01 to 2026-09 (69 months).** The four indices at equal weight, each with its own filter.
+
+| | Mean | t | Rule |
+|---|---|---|---|
+| The rule | +0.785% | 2.74 | > 0: passed |
+| Costs doubled | +0.779% | 2.71 | > 0: passed |
+| Worst fall | 10.6%, against 22.2% holding all four | | smaller: passed |
+| Complete | 69 of 69 months | | passed |
+
+Holding all four all the time earned +1.069% a month (t 2.38).
+
+**Found after the verdict.** These are descriptive. They were computed with the frozen code from the same files, and
+they change nothing.
+
+- **Growth over 1929-1989, in price.** The rule grew 25.5 times (5.45% a year). Holding grew 14.5 times (4.48% a year).
+- **Where the lead came from.** All of it came in the 1930s.
+
+  | Years | The rule | Holding |
+  |---|---|---|
+  | 1929-1939 | ×1.27 | ×0.51 |
+  | 1940-1959 | ×4.77 | ×4.81 |
+  | 1960-1979 | ×1.78 | ×1.80 |
+  | 1980s | ×2.38 | ×3.27 |
+
+  In the 1980s the rule held through October 1987 (−21.8%, its worst month), then stepped aside and missed the
+  rebound.
+- **The worst fall** ran from the August 1929 peak to March 1933. The rule held through September and October 1929
+  (−4.9% and −19.9%), stepped aside, and was caught again by false starts in late 1932 and early 1933.
+- **Growth in the holdout.** The rule grew 1.68 times (9.5% a year). Holding all four grew 1.99 times (12.7% a year).
+  - The rule trailed holding in every index: the US 500 most (×1.47 against ×2.04), the US Tech 100 least (×2.27
+    against ×2.36).
+  - Its worst fall ran from December 2021 to December 2022.
+
+**What it means, and no more.**
+
+- **What it did.** In a swap-free account, owning the index only above its 10-month average earned a clearly positive
+  return:
+  - on the S&P 500 in 1929-1989;
+  - on the broker's four indices in 2021-2026.
+
+  Its worst fall was about half the index's.
+- **It is not an edge over the market.** Month by month it earned slightly less than holding: 0.509% against 0.539%
+  then, and 0.785% against 1.069% in the holdout. It came out ahead overall only because it missed most of one great
+  crash.
+- **The limits declared before the run still apply.** This is a replication on the data the rule was found on, and
+  the holdout was not untouched.
+- **Its own worst fall was 51%.** A crash that comes in one month, like October 1929 or October 1987, is taken in
+  full before the rule can act. A month-end check also misses rebounds that start soon after it.
+- **What it earned.** About 5.5% a year in price over 1929-1989, and about 9.5% a year in the holdout. That is the
+  market's return made calmer. It is not high profit, and the past is not a forecast.
+- **Next.** As preregistered, it is proposed to the owner as a paper strategy of its own (CLAUDE.md rule 14), and never
+  with real money. Nothing is built until the owner says so. Sizing a position held for months without a stop is a
+  design question for the owner first.

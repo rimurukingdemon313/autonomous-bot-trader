@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 0 | REJECTED 123 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 137 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -31,9 +31,15 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | DIV-2 | PASSED | — | 2 | 1 | 3.000 |
 | DP-001 | FAILED | 1734 | 0 | 0 | 3.078 |
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
+| EMC-1 | FAILED | — | 1 | 0 | 3.000 |
 | FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
+| FND-1A | FAILED | — | 1 | 0 | 3.134 |
+| FOMC-1A | FAILED | — | 1 | 0 | 3.163 |
+| GSR-1 | FAILED | — | 1 | 0 | 3.000 |
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
 | ID-2 | FAILED | — | 30 | 0 | 3.552 |
+| LVOL-1 | FAILED | — | 1 | 0 | 3.154 |
+| PHD-1 | FAILED | — | 1 | 0 | 3.144 |
 | QT-1 | FAILED | — | 5 | 0 | 3.566 |
 | QT-2 | FAILED | — | 1 | 0 | 3.568 |
 | R2A | FAILED | — | 2 | 0 | 3.279 |
@@ -42,16 +48,25 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | R2D | FAILED | — | 2 | 0 | 3.312 |
 | R3 | FAILED | — | 8 | 0 | 3.351 |
 | R4 | FAILED | — | 5 | 0 | 3.372 |
+| RBL-1 | FAILED | — | 1 | 0 | 3.180 |
 | RC-EQ | FAILED | — | 7 | 0 | 3.000 |
 | RC-EQ2 | FAILED | — | 1 | 0 | 3.000 |
 | RC-FX | FAILED | — | 2 | 0 | 3.455 |
 | RV-1 | FAILED | — | 6 | 0 | 2.807 |
+| SEC-1 | FAILED | — | 1 | 0 | 3.124 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
+| TME-1 | FAILED | — | 1 | 0 | 3.078 |
+| TRND-1 | PASSED | — | 1 | 1 | 3.376 |
+| TSY-1 | FAILED | — | 1 | 0 | 3.065 |
+| VOLM-1 | FAILED | — | 1 | 0 | 3.113 |
+| VRP-1 | FAILED | — | 1 | 0 | 3.000 |
 | WF-001 | FAIL | — | 1 | 0 | 3.189 |
 | WF-002 | FAIL | — | 1 | 0 | 3.197 |
 | WF-003 | FAIL | — | 1 | 0 | 3.205 |
 | XS-001 | FAILED | — | 2 | 0 | 3.267 |
+| XSM-1 | FAILED | — | 1 | 0 | 3.144 |
+| XTS-1 | FAILED | — | 1 | 0 | 3.090 |
 
 ## Edges
 
@@ -112,6 +127,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t 0.263 | | | | | | | | | |
 | DIV2-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 216 | +0.015 | +4.38 (3.00) | +0.015 | — | 1 | **REJECTED** | holdout (t -0.636 < 2.5) |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t -0.636 | | | | | | | | | |
+| EMC-1 | — | — | `see research/preregistrations/EMC-1.md` | see research/preregistrations/EMC-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_out, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | FLOW1-H1-GOTOBI-PRE | BUY | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | -1.328 | -1.68 (3.43) | -3.370 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, specificity |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | FLOW1-H2-GOTOBI-POST | SELL | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | +0.646 | +0.60 (3.43) | -1.163 | — | 1 | **REJECTED** | t, costs_x2, specificity |
@@ -120,6 +137,14 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | FLOW1-H4-FIX-DAILY | BOTH | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 2419 | -2.200 | -11.59 (3.43) | -4.458 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, leave_one_pair_out |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
+| FND-1A | — | — | `see research/preregistrations/FND-1A.md` | see research/preregistrations/FND-1A.md | — | — | — | — | — | 1 | **REJECTED** | t, timing |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| FOMC-1A | — | — | `see research/preregistrations/FOMC-1A.md` | see research/preregistrations/FOMC-1A.md | — | — | — | — | — | 1 | **REJECTED** | t, top_year, timing |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| GSR-1 | — | — | `see research/preregistrations/GSR-1.md` | see research/preregistrations/GSR-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x2, both_sides, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| LVOL-1 | — | — | `see research/preregistrations/LVOL-1.md` | see research/preregistrations/LVOL-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | M-ridge-S15-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4534 | -0.015 | -0.70 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 5.401 | | | | | | | | | |
 | M-ridge-S15-tau0.05 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1475 | +0.054 | +1.56 (3.55) | — | — | 1 | **REJECTED** | development:profit_factor, development:symbols_positive, development:t_day |
@@ -156,6 +181,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.673 | | | | | | | | | |
 | M-trees-S60-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1115 | -0.003 | -0.08 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.86 | | | | | | | | | |
+| PHD-1 | — | — | `see research/preregistrations/PHD-1.md` | see research/preregistrations/PHD-1.md | — | — | — | — | — | 1 | **REJECTED** | t, costs_x2, beats_ordinary_days, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | Q1-QUARTER-FADE | BOTH | M5 | `see research/preregistrations/QT-1.md` | stop / target / time (bid/ask) | 9787 | -0.193 | -12.44 (3.57) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -2.824 | | | | | | | | | |
 | Q2-QUARTER-BREAK | BOTH | M5 | `see research/preregistrations/QT-1.md` | stop / target / time (bid/ask) | 30919 | -0.211 | -26.56 (3.57) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
@@ -206,6 +233,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | R4-XA-GOLD-B | SELL | D1 | `gold_pull=low&own5=high` | D3 | 84 | -0.163 | -1.98 (3.37) | -0.193 | — | 2 | **REJECTED** | min_trades, significance, beats_random, permutation, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
 | R4-XA-VIX-A | SELL | D1 | `vix_jump=high&own5=high` | D3 | 361 | -0.056 | -1.34 (3.37) | -0.083 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, years, leave_one_out, regimes, outliers |
 | ↳ correction | | | judged by confirm-1.0.0 on all 11 of the program's instruments (361 trades) instead of its 5 registered safe-haven pairs; fixed in confirm-1.1.0 (tests/unit/test_discovery_confirm.py::test_each_hypothesis_is_judged_on_its_own_registered_instruments_only) -> on the registered population: {"verdict": "REJECTED", "n": 156, "net_R": -0.1336, "t": -2.067, "note": "descriptive re-run of the same battery after the fix; not a registry verdict"} | | | | | | | | | |
+| RBL-1 | — | MN | `see research/preregistrations/RBL-1.md` | see research/preregistrations/RBL-1.md | 192 | +0.003 | +1.57 (3.18) | +0.002 | — | 1 | **REJECTED** | t, both_signs |
+| ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R | | | | | | | | | |
 | RCEQ-E1-TOM | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +2.24 (3.00) | +0.001 | — | 1 | **PROMISING** | t |
 | ↳ correction | | | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout PROMISING_REPLICATED: 441 months, net t 2.175 | | | | | | | | | |
 | RCEQ-E2-DIP | BUY | D1 | `see research/preregistrations/RC-EQ.md` | rule exit (calendar, signal or monthly rebalance) | 372 | +0.002 | +1.44 (3.00) | +0.001 | — | 1 | **REJECTED** | t, region |
@@ -238,6 +267,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | cross-sectional book: t is the Stage-1 information-coefficient t; expectancies are weekly returns of notional, not R | | | | | | | | | |
 | RV1-H6-MOMENTUM-VOL | BOTH | W1 | `cross-sectional rank: RV1-H6-MOMENTUM-VOL` | weekly rebalance of a currency-neutral book | 372 | — | +2.10 (2.81) | — | — | 1 | **REJECTED** | t |
 | ↳ correction | | | cross-sectional book: t is the Stage-1 information-coefficient t; expectancies are weekly returns of notional, not R | | | | | | | | | |
+| SEC-1 | — | — | `see research/preregistrations/SEC-1.md` | see research/preregistrations/SEC-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, costs_x2, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | SL-001-01 | BUY | D1 | `brk_hi120=high` | D5 | 266 | -0.038 | -0.42 (3.25) | -0.104 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
 | SL-001-02 | SELL | D1 | `brk_lo120=low` | D5 | 290 | +0.175 | +0.65 (3.25) | +0.113 | — | 1 | **REJECTED** | significance, beats_random, permutation, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-03 | BUY | D1 | `ma_slope=high&r6=low` | D3 | 395 | -0.014 | -0.33 (3.25) | -0.046 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, outliers |
@@ -253,8 +284,22 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.968 | | | | | | | | | |
 | T3W-LONDON-TRUE-OPEN-WIDE | BOTH | M5 | `see research/preregistrations/QT-2.md` | stop / target / time (bid/ask) | 2405 | -0.044 | -1.32 (3.57) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 3.226 | | | | | | | | | |
+| TME-1 | — | — | `see research/preregistrations/TME-1.md` | see research/preregistrations/TME-1.md | — | — | — | — | — | 1 | **REJECTED** | t |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| TRND-1 | — | MN | `see research/preregistrations/TRND-1.md` | see research/preregistrations/TRND-1.md | 732 | +0.005 | +3.83 (3.38) | +0.005 | — | 1 | **VALIDATED** | — |
+| ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R; holdout 69 months, net t 2.737 | | | | | | | | | |
+| TSY-1 | — | — | `see research/preregistrations/TSY-1.md` | see research/preregistrations/TSY-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, costs_x2, both_legs, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| VOLM-1 | — | — | `see research/preregistrations/VOLM-1.md` | see research/preregistrations/VOLM-1.md | — | — | — | — | — | 1 | **REJECTED** | t |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| VRP-1 | — | — | `see research/preregistrations/VRP-1.md` | see research/preregistrations/VRP-1.md | — | — | — | — | — | 1 | **REJECTED** | t, timing |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | WF-001 | BOTH | H1 | `knn on 18 features, trade where predicted net R > 0.0` | template T2 | 22539 | -0.116 | -12.62 (3.19) | -0.163 | -0.116 | 18 | **REJECTED** | mean_R_positive, t_above_registry_threshold, positive_fold_share, robust |
 | WF-002 | BOTH | H1 | `stumps on 23 features, trade where predicted net R > 0.0` | template T2 | 1328 | -0.126 | -3.31 (3.20) | -0.095 | -0.126 | 23 | **REJECTED** | mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust |
 | WF-003 | BOTH | M15 | `stumps on 33 features, trade where predicted net R > 0.0` | template T2 | 359 | -0.199 | -2.73 (3.21) | -0.425 | -0.199 | 33 | **REJECTED** | mean_R_positive, t_above_registry_threshold, beats_random, positive_fold_share, robust |
 | XS-001-L | BUY | D1 | `xs_mom=high` | D4 | 203 | -0.130 | -2.13 (3.27) | -0.183 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | XS-001-S | SELL | D1 | `xs_mom=low` | D4 | 188 | -0.112 | -1.74 (3.27) | -0.157 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
+| XSM-1 | — | — | `see research/preregistrations/XSM-1.md` | see research/preregistrations/XSM-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, top_year |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| XTS-1 | — | — | `see research/preregistrations/XTS-1.md` | see research/preregistrations/XTS-1.md | — | — | — | — | — | 1 | **REJECTED** | t, timing |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |

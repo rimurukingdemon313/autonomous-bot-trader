@@ -60,7 +60,7 @@ def markdown(reg: dict) -> str:
               "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for e in reg["edges"]:
         req = f"{e['t_stat']:+.2f} ({e['t_required']:.2f})" if e["t_stat"] is not None and e["t_required"] else "—"
-        lines.append(f"| {e['edge_id']} | {e['direction']} | {e['timeframe'] or '—'} | `{e['entry_conditions']}` | "
+        lines.append(f"| {e['edge_id']} | {e['direction'] or '—'} | {e['timeframe'] or '—'} | `{e['entry_conditions']}` | "
                      f"{e['exit_conditions']} | {_f(e['sample_size'])} | {_f(e['net_expectancy'])} | {req} | "
                      f"{_f(e['cost_sensitivity'])} | {_f(e['walk_forward_expectancy'])} | {e['complexity']} | "
                      f"**{e['status']}** | {', '.join(e['failed_checks']) or '—'} |")

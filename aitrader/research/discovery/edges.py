@@ -16,7 +16,8 @@ Promotion levels (Round 2; transitions outside TRANSITIONS are refused):
 PROMISING is NOT validated. A judged hypothesis is PROMISING when it failed the registry's bar but
 its judged, out-of-sample result is positive after costs with t >= 2, survives the cost stress and
 beats random entries: evidence worth a fresh, preregistered test on NEW data, never a trade. A
-VALIDATED edge passed everything (battery, board, registry threshold); none exists yet.
+VALIDATED edge passed everything (battery, board, registry threshold). The first, TRND-1 (2026-11-06), is
+owning a stock index with an exit rule: not an edge over the market, and, like every record, not a promotion.
 
 REJECTED and RETIRED are final: a rejected idea returns only as a NEW hypothesis with a new id,
 charged against the registry like any other test. A registry record is research evidence, not a
@@ -36,14 +37,17 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.9.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.10.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
 #                                1.8.1: a gate stored as the string "False" (numpy bool via JSON) counts as failed;
 #                                1.9.0 (takeover audit): VALIDATED needs a holdout t >= 2.5 (promotion.py); a trend
 #                                edge "validated" by the holdout's sign alone is REJECTED; a retail edge that failed
-#                                a preregistered robustness gate (anything but t) is REJECTED, not PROMISING
+#                                a preregistered robustness gate (anything but t) is REJECTED, not PROMISING;
+#                                1.10.0: single-program verdicts (the programs judged by their own script,
+#                                RBL-1, TRND-1 and the like), which no earlier reader recorded: one record each,
+#                                VALIDATED only with its holdout's VALIDATED at a holdout t >= 2.5
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -85,7 +89,7 @@ class TransitionError(ValueError):
 class EdgeRecord:
     edge_id: str
     program: str
-    direction: str  # BUY | SELL | BOTH (a model trading either side)
+    direction: str | None  # BUY | SELL | BOTH (a model trading either side); None where the evidence does not say
     instrument: tuple[str, ...]
     timeframe: str | None
     market_regime: dict | None  # measured per-regime means, not a claim about when it works
@@ -277,6 +281,46 @@ def from_trend(stages: list[dict]) -> list[EdgeRecord]:
     return out
 
 
+def _single(art) -> bool:
+    """A program judged by its own script (scripts/<id>.py): one verdict from named gates."""
+    return (isinstance(art, dict) and isinstance(art.get("program"), str) and art.get("verdict") in ("PASSED", "FAILED")
+            and isinstance(art.get("gates"), dict) and isinstance(art.get("failed_gates"), list)
+            and not any(k in art for k in ("judged", "kind", "stage")))
+
+
+def from_single(art: dict, hold: dict | None) -> EdgeRecord:
+    """The record of a single-program verdict, decided by its holdout once one is opened: VALIDATED needs the
+    holdout's VALIDATED and a holdout t >= 2.5. Each script names its own statistic, so t and the expectancies are
+    filled only where it is the mean net monthly return (`months`); elsewhere they are None, never guessed. Nor is
+    the side, which the artifact does not record."""
+    m = art["months"] if isinstance(art.get("months"), dict) else {}
+    hm = hold["months"] if hold and isinstance(hold.get("months"), dict) else {}
+    ht = hm.get("t")
+    failed = tuple(art["failed_gates"])
+    if art["verdict"] != "PASSED":
+        status = "REJECTED"
+    elif hold is None:
+        status = "TESTING"  # passed its judge; its holdout is not opened yet
+    elif hold.get("classification") == "VALIDATED" and ht is not None and ht >= STRICT_HOLDOUT_T:
+        status = "VALIDATED"
+    else:
+        status = "REJECTED"
+        failed += (f"holdout ({hold.get('classification')}, t {_r(ht, 3)}; {STRICT_HOLDOUT_T} needed)",)
+    x2 = art.get("costs_x2") if isinstance(art.get("costs_x2"), dict) else {}
+    doc = f"see research/preregistrations/{art['program']}.md"
+    return EdgeRecord(
+        edge_id=art["program"], program=art["program"], direction=None, instrument=(), timeframe="MN" if m else None,
+        market_regime=None, entry_conditions=doc, exit_conditions=doc, sample_size=m.get("n"), gross_expectancy=None,
+        net_expectancy=_r(m.get("mean")), t_stat=_r(m.get("t"), 3), t_required=_r(art.get("threshold_t"), 3),
+        profit_factor=None, drawdown=_r(art.get("worst_fall")), out_of_sample_expectancy=_r(hm.get("mean")),
+        walk_forward_expectancy=None, cost_sensitivity=_r(x2.get("mean")) if m else None, complexity=1,
+        stability={"by_year": art["by_year"]} if art.get("by_year") else None, status=status, failed_checks=failed,
+        source=f"research/knowledge/{art['program']}.json",
+        note=("single-program verdict: expectancies are monthly net returns, not R" if m else
+              "single-program verdict: its statistic is named in its artifact and preregistration")
+             + (f"; holdout {hm.get('n')} months, net t {_r(ht, 3)}" if hold else ""))
+
+
 _RETAIL_LONG_ONLY = ("TOM", "DIP", "REGIME", "VOLMAN", "BREAKOUT", "HALLOWEEN")
 _RETAIL_STATUS = {"HOLDOUT_ELIGIBLE": "TESTING", "PROMISING": "PROMISING", "REJECTED": "REJECTED",
                   "VALIDATED": "VALIDATED", "PROMISING_REPLICATED": "PROMISING"}
@@ -427,6 +471,23 @@ def build(root: Path | str) -> dict:
         programs[pid] = {"verdict": arts[-1].get("verdict"), "judged": len(arts[0]["results"]),
                          "validated": [k for k, v in arts[-1].get("classification", {}).items() if v == "VALIDATED"],
                          "threshold_t": arts[0].get("threshold") or (3.0 if arts[0]["kind"] == "trend" else None)}
+    singles: dict[str, dict] = {}
+    single_holds: dict[str, dict] = {}
+    for p in sorted((root / "knowledge").glob("*.json")):
+        try:
+            art = json.loads(p.read_text())
+        except ValueError:
+            continue
+        if _single(art):
+            if art.get("holdout_of"):
+                single_holds[art["holdout_of"]] = art
+            else:
+                singles[art["program"]] = art
+    for pid, art in sorted(singles.items()):
+        rec = from_single(art, single_holds.get(pid))
+        edges.append(rec)
+        programs[pid] = {"verdict": art["verdict"], "judged": 1,
+                         "validated": [pid] if rec.status == "VALIDATED" else [], "threshold_t": art.get("threshold_t")}
     retail: list[dict] = []
     for p in sorted((root / "knowledge").glob("*.json")):
         try:
