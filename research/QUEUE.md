@@ -84,6 +84,21 @@ execution. Each check-in keeps looking for new information, and builds a candida
 passes.
 
 
+**The owner's condition (2026-11-06): "everything is fine; the most important thing is Islamic".** Every new candidate
+from now on:
+
+- is costed as a swap-free (Islamic) CFD account: spread, slippage and commission, and no overnight financing. A
+  broker's administration fee on long holds is unknown, so the costs-doubled gate stays;
+- uses no interest-bearing instrument, which rules out Treasuries and other bonds whatever they earn;
+- says plainly whether it needs short selling or leverage, which some readings of Islamic finance exclude.
+
+**Checked the same morning, so that swap-free costs do not revive it by mistake: the turn of the month (TOM).** Its
+recorded cost lines show a swap-free account would have kept about 3.6% a year on universe A (t about 3.1) and 2.9%
+on universe B (t about 3.4) over 1990-2026. That is arithmetic on recorded results, not a test, and it changes no
+verdict. TOM-D's report (docs/TOM_INVESTIGATION_REPORT.md) also shows the calendar effect gone from 2009 on the
+indices the bot trades. About 85% of what a TOM trade earned gross since then is the market's own drift, and the net
+since 2009 cannot be told from zero. So it is not proposed, and TOM-F keeps following it forward.
+
 **Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
 pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
 
