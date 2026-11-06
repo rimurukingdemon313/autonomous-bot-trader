@@ -121,8 +121,14 @@ These were checked for fresh data and for power, and none can pass:
 | Yield-curve or margin-debt crash filters on top of TRND-1 | Any fresh sample holds six to eight recessions or leverage cycles: no power for an effect added to TRND-1's |
 | Currency carry | A swap-free account earns no carry by construction |
 
-**Live, on fresh forward data, judged at fixed dates:** CONF-1 (do the H1 agreements the confidence floor refuses
-pay?), on 2026-11-20 and 2026-11-27. It costs nothing.
+**Live, on fresh forward data, judged at fixed dates:**
+
+- CONF-1 (do the H1 agreements the confidence floor refuses pay?), on 2026-11-20 and 2026-11-27. It costs
+  nothing.
+- TRND-F (registered 2026-11-06): TRND-1's rule, unchanged, on the four index CFDs over the months December 2026
+  to November 2029, which did not exist when the rule was chosen. It is judged once, on or after 2029-12-03
+  (`research/preregistrations/TRND-F.md`), and needs nothing until then. It is recorded whatever the owner
+  decides about TRND-1 as a paper strategy.
 
 **Done:**
 - TRND-1 PASSED and VALIDATED, the first in this registry. Owning the S&P 500 only above its 10-month average earned +0.509% a month net in price, 1929-1989 (t 3.83 against 3.376), with a worst fall of 51% against holding's 86%. The holdout (the four index CFDs, 2021-01..2026-09) earned +0.785% a month, with a worst fall of 11% against 22%. It is not an edge: month by month it earned slightly less than holding, and its whole lead over 1929-1989 came in the 1930s. It reached the bar the power ceiling says a plain long position cannot, with the same premium at about half the spread and over twice the years. Proposed to the owner as a paper strategy; nothing is built until they say so.

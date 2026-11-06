@@ -1,0 +1,38 @@
+{
+ "code_sha256": "d59e42040767c703a83a7447d664a73e114ea5c04c7654c3780532319306dd32",
+ "sha256": "181670d7a9be9d0fd30e6d96dcabd7e5b375cc86c67726309dae773815cc7b04",
+ "spec": {
+  "after": {
+   "FAILED": "reported as it is; if TRND-1 is then a paper strategy, the owner is told it failed forward, and it is stopped unless they decide otherwise",
+   "PASSED": "reported as a forward confirmation of TRND-1; it changes nothing by itself"
+  },
+  "cost_each_switch_side": 0.0005,
+  "dividends": "not counted (price indices)",
+  "financing": "none (a swap-free account)",
+  "forward": [
+   "2026-12-01",
+   "2029-12-01"
+  ],
+  "forward_of": "TRND-1",
+  "gates": {
+   "complete": "all 36 months, December 2026 to November 2029, for all four indices",
+   "costs_x2": "mean net monthly return > 0 with the switching cost doubled",
+   "mean": "mean net monthly return of the equal-weight basket > 0",
+   "smaller_crash": "a worst fall smaller than holding all four all the time"
+  },
+  "indices": [
+   "^GSPC",
+   "^NDX",
+   "^GDAXI",
+   "^FTSE"
+  ],
+  "judge_from": "2029-12-03",
+  "months": 10,
+  "program": "TRND-F",
+  "question": "does TRND-1's rule, unchanged, still earn a positive net return with a smaller worst fall than holding the four index CFDs, on months that did not exist when it was chosen?",
+  "rule": "TRND-1's, unchanged: at each month-end close, hold each index for the next month if the close is above the mean of its last 10 month-end closes (this one included), otherwise hold nothing for it; the four at equal weight; a calendar month without a close is never bridged",
+  "t": "no t gate: 36 months cannot show significance. The check is whether the validated rule still earns and still protects, as its holdout's was",
+  "tests": 1,
+  "warmup_from": "2026-01-01"
+ }
+}
