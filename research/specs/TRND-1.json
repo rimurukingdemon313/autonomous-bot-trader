@@ -1,0 +1,63 @@
+{
+ "code_sha256": "2d9db914f337f5e2a1d2e28523ba8a1ce97980f587c518ce3825250187114384",
+ "sha256": "cdd2f51e5ab655516550eff14efb10fe61e97d490cc215008ed5e65561047aa0",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed to the owner as a paper strategy of its own (rule 14) on the four index CFDs, a decision a month, sized by the risk engine, followed forward on paper; never real money. It is described as owning the market with an exit rule, not as an edge",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "cost_each_switch_side": 0.0005,
+  "counted_universes": [
+   "multi-asset-etf",
+   "multi-asset-long",
+   "equity-index-b",
+   "equity-index-forward",
+   "index-cfd-intraday",
+   "us-equity-etf",
+   "us-vol-etp",
+   "equity-index-monthly"
+  ],
+  "data": "Yahoo daily closes from 1927; month-end closes are each month's last close; each file's sha256 in the manifest",
+  "dividends": "not counted (price indices; ^GDAXI is a performance index)",
+  "financing": "none (a swap-free account)",
+  "gates": {
+   "complete": "every one of the 732 months 1929-01..1989-12 has its close and its decision",
+   "costs_x2": "mean net monthly return > 0 with the switching cost doubled",
+   "development": "mean net monthly return > 0 in 1929..1958",
+   "smaller_crash": "the worst peak-to-trough fall is smaller than holding the index all the time",
+   "t": "t of the mean net monthly return, 1929..1989, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total",
+   "validation": "mean net monthly return > 0 in 1959..1989"
+  },
+  "holdout_indices": [
+   "^GSPC",
+   "^NDX",
+   "^GDAXI",
+   "^FTSE"
+  ],
+  "holdout_rule": "the four index CFDs at equal weight, each with its own filter, over all 69 months 2021-01..2026-09: mean net monthly return > 0, > 0 with the cost doubled, and a worst fall smaller than holding all four all the time; a missing month fails it",
+  "islamic": "long or flat only; no short sale, no leverage, no interest-bearing instrument",
+  "judged_index": "^GSPC",
+  "months": 10,
+  "periods": {
+   "development": [
+    "1929-01-01",
+    "1959-01-01"
+   ],
+   "holdout": [
+    "2021-01-01",
+    "2026-10-01"
+   ],
+   "membership": "a month belongs to the period of the month it is held",
+   "validation": [
+    "1959-01-01",
+    "1990-01-01"
+   ]
+  },
+  "program": "TRND-1",
+  "question": "does holding a stock index only while its month-end close is above its 10-month mean earn a positive net return, with a smaller worst fall than holding it all the time, in a swap-free account?",
+  "rule": "at each month-end close, hold the index for the next month if the close is above the mean of the last 10 month-end closes (this one included); otherwise hold nothing and earn nothing. A calendar month without a close is never bridged",
+  "tests": 1,
+  "threshold_t": 3.3761
+ }
+}
