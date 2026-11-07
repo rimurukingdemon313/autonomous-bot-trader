@@ -1,6 +1,6 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-07 21:20 UTC · funded-paper-1.0.0 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-07 21:43 UTC · funded-paper-1.1.0 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
