@@ -130,6 +130,16 @@ These were checked for fresh data and for power, and none can pass:
 | The pre-holiday effect on the European indices | PHD-1 found none in the US (t 0.82). Eight or so events a year give no power at a CFD's costs |
 | Calendar-month seasonality (January, September) in the four indices | One event a year per index |
 
+**Checked on 2026-11-07, 03:30 UTC (a literature search), and dropped.** The search looked for recent out-of-sample
+evidence in index futures, gold and crude oil. It found the index calendar effects gone after 1990 (an Atlanta Fed
+working paper on the turn of the month in S&P 500 futures), and only mixed or academic-only evidence for oil. For
+gold it found two leads:
+
+| Idea | Why it was dropped |
+|---|---|
+| Gold's "autumn effect": September and November positive in 1980-2010 (Baur, "The autumn effect of gold") | Two months a year. On the 16 years since the paper's sample, even half its strength gives about t 1.3 |
+| Gold rising in Asian hours and falling in Western ones (two master's theses; drops around the London fixes in the years of alleged manipulation) | Not peer-reviewed. The intraday gold data here are either already used (2009-2016) or sealed (2017 on, the global holdout), and a daily round trip's spread takes most of it |
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
