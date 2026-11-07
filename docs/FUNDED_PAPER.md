@@ -67,3 +67,27 @@ verdict.
 
 It is not a promise. A pass on paper would say the rule behaved as it did in history; the next crash can be the one
 that fails it.
+
+## If it is used on a funded account later (decided 2026-11-07)
+
+The owner, 2026-11-07: "everything is allowed; don't ask me; you are the brain". These are the choices made for that
+day, so that it needs no new decision. None of them is a promise.
+
+- **The account is chosen to fit the rule.** It must be swap-free (Islamic), and it must allow positions held for
+  months, over weekends and through news; some firms call this a "swing" account. Index CFDs on the US 500,
+  US Tech 100, GER 40 and UK 100 must be quoted. An account without these is not used for this rule.
+- **The size is HALF:** $25,000 of each index the rule holds, $100,000 at most in all. In the replay HALF failed least,
+  and it never failed in 2021-2026. FULL stays on paper only, as the comparison.
+- **The month-end decision:** on the month's last trading day, a few minutes before each exchange's close.
+  - **When:** the US 500 and US Tech 100 at about 15:55 New York, the GER 40 at about 17:25 Berlin, the UK 100 at about
+    16:25 London.
+  - **The rule:** hold the index if its price then is above the mean of the ten month-end closes, the current month's
+    included; otherwise close it.
+  - **The approximation:** acting minutes before the close, instead of at it, is declared. In RC-EQ, acting a full day
+    later cost the same rule about 0.2% a year.
+- **A phase's first days:** a minimal trade on each of its first four trading days, to meet the four-day minimum.
+- **Inactivity:** where the firm closes inactive accounts, a minimal trade each month.
+- **No stop beyond the firm's own limits, and nothing added after a loss.** No martingale, no doubling, no "winning it
+  back" (CLAUDE.md rule 2).
+- **The bot does not trade it.** The bot is DEMO-only by its own permanent rule (CLAUDE.md rule 1), and nothing here
+  changes that. The rule needs one decision a month, which this report gives, so a person can follow it by hand.
