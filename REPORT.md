@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-07 16:08 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-07 15:23 UTC · decision system `dual_ai`
+Updated 2026-11-07 16:23 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-07 15:23 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: USDCHF لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: EURGBP لا صفقة (ما انسألوا: قاعدة منعت قبلها).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 5، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف ما ينقرى هسه من $95.00.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -71,8 +71,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (5104 so far)
+## Latest decisions, NO TRADE included (5106 so far)
 
+- 11-07 16:15 EURGBP NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 1035 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 63947s old [data: latest bar closed 1035 minutes ago]
+- 11-07 16:15 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 1035 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 37548s old [data: latest bar closed 1035 minutes ago]
 - 11-07 16:00 USDCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 1020 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 64817s old [data: latest bar closed 1020 minutes ago]
 - 11-07 16:00 USDCAD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 1020 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 38339s old [data: latest bar closed 1020 minutes ago]
 - 11-07 15:45 AUDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 1005 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 35750s old [data: latest bar closed 1005 minutes ago]
@@ -83,8 +85,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-07 15:15 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 975 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 33946s old [data: latest bar closed 975 minutes ago]
 - 11-07 15:00 USDCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 960 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 61220s old [data: latest bar closed 960 minutes ago]
 - 11-07 15:00 USDCAD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 960 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 34741s old [data: latest bar closed 960 minutes ago]
-- 11-07 14:45 AUDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 945 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 32151s old [data: latest bar closed 945 minutes ago]
-- 11-07 14:45 USDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 945 minutes ago; DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 33843s old [data: latest bar closed 945 minutes ago]
 
 ## Open paper positions
 
@@ -138,6 +138,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-07 16:15 | EURGBP | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-07 16:15 | NZDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-07 16:00 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-07 16:00 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-07 15:45 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -148,8 +150,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-07 15:15 | NZDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-07 15:00 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-07 15:00 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-07 14:45 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-07 14:45 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
