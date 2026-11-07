@@ -93,7 +93,31 @@ def test_an_unknown_decision_is_flat_and_said_so():
     assert all(h["pl"] == pytest.approx(-P.COMPLIANCE_COST if i < 4 else 0.0) for i, h in enumerate(r["history"]))
 
 
-def test_the_tracks_are_half_and_full_of_the_balance():
-    assert P.TRACKS == {"HALF": 0.5, "FULL": 1.0}
+def test_the_tracks_are_half_with_its_stop_and_full_without():
+    assert P.TRACKS == {"HALF": {"expo": 0.5, "stop": 0.06}, "FULL": {"expo": 1.0, "stop": None}}
     four = {s: one_index([100.0, 100.0])["^GSPC"] for s in T.HOLDOUT_INDICES}
     assert P.run(four, expo=0.5)["notional_each"] == 25_000.0 and P.run(four, expo=1.0)["notional_each"] == 50_000.0
+
+
+def test_the_one_day_stop_caps_a_crash_day_and_waits_for_the_next_decision():
+    days = [100.0, 100.0, 100.0, 100.0, 80.0, 82.0, 84.0]  # a 20% crash on the fifth day (no four-day trades left)
+    with_stop = P.run(one_index(days), expo=0.5, stop=0.06)
+    n = 0.5 * P.BALANCE
+    crash = with_stop["history"][4]["pl"]
+    assert crash == pytest.approx(-n * (0.06 + P.STOP_SLIPPAGE) - n * T.COST_SIDE)  # -8%: $8,000 and the exit
+    assert with_stop["status"] == "PHASE 1" and with_stop["stops"] == 1 and with_stop["held"] == {"^GSPC": False}
+    assert [h["pl"] for h in with_stop["history"][5:]] == [0.0, 0.0]  # flat for the rest of the month
+    without = P.run(one_index(days), expo=0.5)
+    assert without["status"] == "FAILED" and "a day lost $20,000" in without["events"][-1]["event"]
+    small = P.run(one_index([100.0, 100.0, 100.0, 100.0, 94.1]), expo=0.5, stop=0.06)  # -5.9%: not a stop
+    assert small["stops"] == 0 and small["history"][4]["pl"] == pytest.approx(n * -0.059)
+
+
+def test_after_a_stop_the_next_months_decision_reenters():
+    hist = {date(2025, m, 28): 50.0 + m for m in range(1, 13)} | {date(2026, m, 28): 70.0 + m for m in range(1, 11)}
+    nov = {date(2026, 11, 9) + timedelta(days=i): p for i, p in enumerate([100.0, 100.0, 100.0, 100.0, 90.0])}
+    dec = {date(2026, 11, 30): 95.0, date(2026, 12, 1): 96.0}  # November's close 95 is above its ten-month mean
+    r = P.run({"^GSPC": hist | nov | dec}, expo=0.5, stop=0.06)
+    assert r["stops"] == 1 and r["held"] == {"^GSPC": True}
+    n = 0.5 * P.BALANCE
+    assert r["history"][-1]["pl"] == pytest.approx(n * (96.0 / 95.0 - 1) - n * T.COST_SIDE, abs=0.01)  # back in at 95

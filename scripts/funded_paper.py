@@ -16,6 +16,10 @@ The rules, fixed before the first day:
   whose ten closes are not all there is unknown, and unknown is flat;
 - costs: 0.05% of the position for each switch in or out, booked at the first close after it; no swap (an Islamic
   account) and no dividends;
+- HALF carries a one-day catastrophe stop: an index that closes 6% or more below its previous close is out, booked at
+  -8% (2 points of slippage), and flat until the next month's decision. A crash day like 1987-10-19 is then a loss of
+  about $8,000, inside the $10,000 daily limit, where without it the account would end. FULL has no stop: its daily
+  limit is 5% of its position, which no workable stop keeps;
 - each day after the closes: equity is the phase's start plus every closed and open P&L. A day that loses $10,000 or
   more (5% of the start), or equity at or below $180,000 (10% below it), ends the track as FAILED, as a funded
   account's rules would. Equity at $220,000 (+10%) passes phase 1, and phase 2 then starts a fresh $200,000 with a
@@ -43,7 +47,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 import scripts.trnd1 as T  # noqa: E402
 
-VERSION = "funded-paper-1.0.0"
+VERSION = "funded-paper-1.1.0"  # 1.1.0: HALF carries a one-day catastrophe stop at 6%
 START = date(2026, 11, 9)  # the first close of the record: the rule's positions are opened at it
 BALANCE = 200_000.0
 DAILY_LOSS = 10_000.0  # 5% of the start
@@ -51,7 +55,11 @@ MAX_LOSS = 20_000.0  # 10%: equity at or below $180,000 fails
 TARGETS = {1: 20_000.0, 2: 10_000.0}  # phase 1 +10%, phase 2 +5%; then FUNDED, with no target
 MIN_TRADING_DAYS = 4
 COMPLIANCE_COST = 5.0  # one minimal trade, opened and closed the same day
-TRACKS = {"HALF": 0.5, "FULL": 1.0}  # the share of the balance in the market when the rule holds all four
+#: each track: the share of the balance in the market when the rule holds all four, and its one-day stop. FULL has
+#: none: its $10,000 daily limit is 5% of its $200,000, which only a stop near 3% could keep, and such a stop would
+#: be hit every few months
+TRACKS = {"HALF": {"expo": 0.5, "stop": 0.06}, "FULL": {"expo": 1.0, "stop": None}}
+STOP_SLIPPAGE = 0.02  # a stop is booked 2 points beyond its level: closes cannot show where it really filled
 FETCH_FROM = date(2025, 9, 1)  # ten month-ends before the first decision, and more
 #: when each index's close is final: the exchange's close, plus 30 minutes
 CLOSE = {"^GSPC": ("America/New_York", time(16, 0)), "^NDX": ("America/New_York", time(16, 0)),
@@ -83,10 +91,11 @@ def final_only(sym: str, closes: dict[date, float], now: datetime) -> dict[date,
 
 
 def run(closes: dict[str, dict[date, float]], expo: float, start: date = START, until: date | None = None,
-        swap_pa: float = 0.0) -> dict:
-    """One funded-account track from `start` (positions opened at its first close), through `until`. `swap_pa` is
-    for the descriptive replay only: a yearly swap on a held position's notional, charged per calendar day. The live
-    tracks are swap-free (0)."""
+        swap_pa: float = 0.0, stop: float | None = None) -> dict:
+    """One funded-account track from `start` (positions opened at its first close), through `until`. `stop`: an index
+    that closes that fraction or more below its previous close is out at the stop plus STOP_SLIPPAGE, and flat until
+    the next month's decision. `swap_pa` is for the descriptive replay only: a yearly swap on a held position's
+    notional, charged per calendar day. The live tracks are swap-free (0)."""
     syms = list(closes)
     notional = expo * BALANCE / len(syms)
     dates = sorted({d for s in syms for d in closes[s] if d >= start and (until is None or d <= until)})
@@ -95,6 +104,8 @@ def run(closes: dict[str, dict[date, float]], expo: float, start: date = START, 
     held: dict[str, bool] = {s: False for s in syms}
     last: dict[str, float | None] = {s: None for s in syms}
     seen: dict[str, date] = {}
+    stopped: dict[str, tuple[int, int]] = {}
+    stops = 0
     events, history, unknown = [], [], set()
     status = "PHASE 1"
     for d in dates:
@@ -107,6 +118,8 @@ def run(closes: dict[str, dict[date, float]], expo: float, start: date = START, 
             if want is None:
                 unknown.add(f"{s} {d.year}-{d.month:02d}")
                 want = False
+            if stopped.get(s) == (d.year, d.month):
+                want = False  # stopped out earlier this month: flat until the next decision
             if last[s] is not None and want != held[s]:  # switched at the previous close (a month-end)
                 pl -= notional * T.COST_SIDE
                 traded = True
@@ -114,7 +127,15 @@ def run(closes: dict[str, dict[date, float]], expo: float, start: date = START, 
                 pl -= notional * T.COST_SIDE
                 traded = True
             elif last[s] is not None and want:
-                pl += notional * (c / last[s] - 1.0) - notional * swap_pa * (d - seen[s]).days / 365.0
+                move = c / last[s] - 1.0
+                if stop is not None and move <= -stop:  # the one-day catastrophe stop
+                    pl -= notional * (stop + STOP_SLIPPAGE) + notional * T.COST_SIDE
+                    stopped[s], want, traded, stops = (d.year, d.month), False, True, stops + 1
+                    events.append({"date": str(d), "event": f"STOP: {s} closed {move:.1%}; out at "
+                                                            f"-{stop + STOP_SLIPPAGE:.0%} until the next decision"})
+                else:
+                    pl += notional * move
+                pl -= notional * swap_pa * (d - seen[s]).days / 365.0
             held[s], last[s], seen[s] = want, c, d
         if phase in TARGETS and phase_days < MIN_TRADING_DAYS:  # the minimal trade that meets the 4-day rule
             pl -= COMPLIANCE_COST
@@ -145,7 +166,8 @@ def run(closes: dict[str, dict[date, float]], expo: float, start: date = START, 
             base, trading_days, phase_days = BALANCE, 1 if n_open else 0, 0
     return {"status": status, "phase": phase, "equity": round(equity, 2), "base": base,
             "target": base + TARGETS[phase] if phase in TARGETS else None, "trading_days": trading_days,
-            "held": {s: held[s] for s in syms}, "notional_each": notional, "events": events, "history": history,
+            "held": {s: held[s] for s in syms}, "notional_each": notional, "stop": stop, "stops": stops,
+            "events": events, "history": history,
             "unknown_decisions": sorted(unknown), "last_date": history[-1]["date"] if history else None}
 
 
@@ -196,7 +218,8 @@ def report(tracks: dict[str, dict], now: datetime) -> str:
         if r["last_date"] is None:
             lines.append(f"| {name} | not started: the record starts at the close of {START} | | | | | | |")
             continue
-        lines.append(f"| {name} ({TRACKS[name]:.0%} of the balance when all four are held) | **{r['status']}** | "
+        stop = f", stop {r['stop']:.0%} a day" if r["stop"] else ", no stop"
+        lines.append(f"| {name} ({TRACKS[name]['expo']:.0%} of the balance when all four are held{stop}) | **{r['status']}** | "
                      f"${r['equity']:,.2f} | {r['equity'] - r['base']:+,.2f} | {tgt} | {r['trading_days']} | {held} | "
                      f"{r['last_date']} |")
     for name, r in tracks.items():
@@ -216,7 +239,7 @@ def report(tracks: dict[str, dict], now: datetime) -> str:
 
 def cmd_run(now: datetime) -> None:
     closes = fetch(now)
-    tracks = {name: run(closes, expo) for name, expo in TRACKS.items()}
+    tracks = {name: run(closes, t["expo"], stop=t["stop"]) for name, t in TRACKS.items()}
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "state.json").write_text(json.dumps({"version": VERSION, "updated": now.isoformat(), "start": str(START),
                                                 "tracks": tracks}, indent=1, sort_keys=True, default=str) + "\n")

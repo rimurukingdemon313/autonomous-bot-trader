@@ -41,6 +41,7 @@ def failures_by_year(runs: list[dict]) -> dict[str, int]:
 
 def summarise(rows: list[dict]) -> dict:
     n = len(rows)
+    # (each run continues to the data's end; `alive_at_end` counts the runs no limit had ended by then)
     passed = sorted(x["days_in_phase1"] for x in rows if x["phase1"] == "PASS")
     return {"starts": n, "phase1_passed": sum(x["phase1"] == "PASS" for x in rows),
             "phase1_failed": sum(x["phase1"] == "FAIL" for x in rows),
@@ -59,12 +60,16 @@ def main() -> int:
              date(1989, 12, 31)),
             ("four index CFDs 2021-2026", four, [date(y, m, 1) for y in range(2021, 2027) for m in range(1, 13)
                                                  if date(y, m, 1) < T.HOLD[1]], date(2026, 9, 30))):
-        for name, expo in P.TRACKS.items():
+        variants = {name: (tr["expo"], tr["stop"]) for name, tr in P.TRACKS.items()}
+        variants["HALF without its stop"] = (P.TRACKS["HALF"]["expo"], None)  # the comparison
+        for name, (expo, stop) in variants.items():
             for swap in (0.0, SWAP):
-                runs = [P.run(data, expo, start=m0, until=until, swap_pa=swap) for m0 in months]
+                runs = [P.run(data, expo, start=m0, until=until, swap_pa=swap, stop=stop) for m0 in months]
                 key = f"{label}, {name}" + ("" if swap == 0 else f", with a {SWAP:.1%} yearly swap")
                 report["runs"][key] = summarise([outcome(r) for r in runs])
                 report["runs"][key]["failures_by_year"] = failures_by_year(runs)
+                report["runs"][key]["alive_at_end"] = sum(r["status"] != "FAILED" for r in runs)
+                report["runs"][key]["stops_hit_median"] = sorted(r["stops"] for r in runs)[len(runs) // 2]
                 print(key, json.dumps(report["runs"][key]))
     OUT.write_text(json.dumps(report, indent=1, sort_keys=True) + "\n")
     return 0

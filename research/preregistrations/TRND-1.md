@@ -233,6 +233,9 @@ day or $180,000 equity to fail, then +5%, then FUNDED. The account was swap-free
 
 - **One crash day can end the account at either size.** 1987-10-19 ended 547 of the 732 half-size runs, in whatever
   phase they were.
+- **A one-day stop guards against that.** The stop exits an index that closes 6% below its previous close, booked
+  at -8%. With it, half size passed in 87% of starts, and 548 of the 732 runs were still alive at the end of 1989,
+  against 26 without it. FUNDED-P's half-size track carries it from its first day.
 - **A 6.5% yearly swap** (a non-Islamic account) cut the half-size pass rate on the S&P 500 from 86% to 56%.
 - **This is not a test.** It is the same data, and the past is not a forecast. The forward measure is FUNDED-P, a
   paper track from 2026-11-09.

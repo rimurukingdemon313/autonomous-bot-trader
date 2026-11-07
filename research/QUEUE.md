@@ -153,7 +153,9 @@ broker, no bot change.
 
 **Live, on fresh forward data, judged at fixed dates:**
 
-- FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows.
+- FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows. Its HALF
+  track carries a one-day stop at 6% (funded-paper-1.1.0, added before the first day). Without it, 1987-10-19
+  alone ended 547 of 732 replayed runs.
 - CONF-1 (do the H1 agreements the confidence floor refuses pay?), on 2026-11-20 and 2026-11-27. It costs
   nothing.
 - TRND-F (registered 2026-11-06): TRND-1's rule, unchanged, on the four index CFDs over the months December 2026

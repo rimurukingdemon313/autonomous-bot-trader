@@ -20,6 +20,7 @@ recomputed from the same start (2026-11-09) after every weekday's closes, on Git
 | The rule | TRND-1's, unchanged: hold an index for a month if the last month-end close before it is above the mean of the ten month-end closes before it; never short. A decision that cannot be computed is flat |
 | Instruments | US 500, US Tech 100, GER 40, UK 100 (^GSPC, ^NDX, ^GDAXI, ^FTSE) |
 | Tracks | Two $200,000 accounts. HALF: $25,000 in each index the rule holds. FULL: $50,000 in each |
+| One-day stop (HALF only, from funded-paper-1.1.0) | An index that closes 6% or more below its previous close is out, booked at -8% (2 points of slippage, since closes cannot show the fill), and flat until the next month's decision. A crash day then costs HALF about $8,000, inside the $10,000 limit. FULL has none: its limit is 5% of its position, which only a stop near 3% could keep, and that would be hit every few months |
 | Costs | 0.05% of the position for each switch; no swap (an Islamic account); no dividends |
 | Failure | A day losing $10,000 (5%), or equity at or below $180,000 (10%). The track stops |
 | Phases | +10% passes phase 1. Phase 2 is a fresh $200,000 with a +5% target. Then FUNDED: no target, same limits |
@@ -32,17 +33,24 @@ recomputed from the same start (2026-11-09) after every weekday's closes, on Git
 already judged (`research/results/TRND-1-funded.json`). This was computed after TRND-1's verdict, and it changes no
 verdict.
 
-| Data | Track | Starts | Phase 1 passed | Failed | Unresolved | Reached FUNDED | Median trading days to pass phase 1 |
-|---|---|---|---|---|---|---|---|
-| S&P 500, 1929-1989 | HALF | 732 | 627 (86%) | 95 (13%) | 10 | 568 (78%) | 438 (about 1 year 9 months) |
-| S&P 500, 1929-1989 | FULL | 732 | 539 (74%) | 191 (26%) | 2 | 406 (55%) | 174 (about 8 months) |
-| Four index CFDs, 2021-2026 | HALF | 69 | 47 (68%) | 0 | 22 (the data ended) | 40 | 389 |
-| Four index CFDs, 2021-2026 | FULL | 69 | 55 (80%) | 2 (3%) | 12 (the data ended) | 48 | 176 |
+| Data | Track | Starts | Phase 1 passed | Failed | Unresolved | Reached FUNDED | Median trading days to pass phase 1 | Alive when the data end |
+|---|---|---|---|---|---|---|---|---|
+| S&P 500, 1929-1989 | HALF, with its stop | 732 | 635 (87%) | 81 (11%) | 16 | 571 (78%) | 464 (about 1 year 10 months) | 548 (75%) |
+| S&P 500, 1929-1989 | HALF without the stop | 732 | 627 (86%) | 95 (13%) | 10 | 568 (78%) | 438 | 26 (4%) |
+| S&P 500, 1929-1989 | FULL | 732 | 539 (74%) | 191 (26%) | 2 | 406 (55%) | 174 (about 8 months) | 2 |
+| Four index CFDs, 2021-2026 | HALF, with its stop | 69 | 47 (68%) | 0 | 22 (the data ended) | 40 | 389 | 69 |
+| Four index CFDs, 2021-2026 | FULL | 69 | 55 (80%) | 2 (3%) | 12 (the data ended) | 48 | 176 | 62 |
 
-- **One crash day can end the account at either size.** Each run continues until its data end, through phase 2 and
-  FUNDED. The fall of about 20% on 1987-10-19 ended 547 of the 732 HALF runs, in whatever phase each was then.
-  On the S&P 500 the whole exposure is one index, so HALF holds $100,000 of it, and a 20% day is a $20,000 day.
-- **Other failures were spread out.** HALF's other failures came in 1929-1934, 1939-1941, 1948, 1960 and 1979-1980.
+- **Without a stop, one crash day ends the account at either size.** Each run continues until its data end, through
+  phase 2 and FUNDED.
+  - The fall of about 20% on 1987-10-19 ended 547 of the 732 HALF runs that had no stop, in whatever phase each was
+    then.
+  - On the S&P 500 the whole exposure is one index, so HALF holds $100,000 of it, and a 20% day is a $20,000 day.
+- **With the one-day stop, 10 ended in 1987 and 9 in 1988, and 548 runs were still alive at the end of 1989.** The
+  stop changed the pass rate little (87% against 86%). The median run hit it twice in its life. This is why the stop
+  was added, on 2026-11-07, before the record's first day. Its level was set from the daily limit's arithmetic, not
+  chosen from this replay, which only shows its effect.
+- **Other failures were spread out.** HALF's other failures came in 1929-1934, 1939-1942, 1948, 1960 and 1979-1980.
   FULL's came in most decades. In 2021-2026, FULL failed in December 2022 (4 runs) and on 2025-04-07 (3), each at
   the maximum loss. HALF never failed.
 - **A swap breaks it.** The same replay with an illustrative 6.5% yearly swap on the position, as a non-Islamic
@@ -50,7 +58,7 @@ verdict.
 
   | Data | Track | Phase 1 passed, swap-free | Phase 1 passed, with the swap |
   |---|---|---|---|
-  | S&P 500, 1929-1989 | HALF | 86% | 56% |
+  | S&P 500, 1929-1989 | HALF, with its stop | 87% | 56% |
   | S&P 500, 1929-1989 | FULL | 74% | 59% |
   | Four index CFDs, 2021-2026 | HALF | 47 of 69 starts, 40 reached FUNDED | 31, and none reached FUNDED |
 
@@ -62,7 +70,8 @@ verdict.
   some firms allow holding over the weekend only on a "swing" account, and some close an account with no trade for 30
   days. It also assumes the account is swap-free.
 - **Falls inside the day.** It reads closes only, so an intraday fall that recovers by the close is not seen. The
-  daily loss is measured close to close, not from midnight in Prague.
+  daily loss is measured close to close, not from midnight in Prague. The one-day stop is judged on closes too: a real
+  stop can be hit inside a day that closes above it, and a gap through it fills worse than the 2 points assumed.
 - **What a payout would be.** In the FUNDED phase, the firm's profit split is not computed.
 
 It is not a promise. A pass on paper would say the rule behaved as it did in history; the next crash can be the one
@@ -87,7 +96,8 @@ day, so that it needs no new decision. None of them is a promise.
     later cost the same rule about 0.2% a year.
 - **A phase's first days:** a minimal trade on each of its first four trading days, to meet the four-day minimum.
 - **Inactivity:** where the firm closes inactive accounts, a minimal trade each month.
-- **No stop beyond the firm's own limits, and nothing added after a loss.** No martingale, no doubling, no "winning it
-  back" (CLAUDE.md rule 2).
+- **The one-day stop:** for each index held, a stop order 6% below the previous day's close, moved each evening after
+  the close. After it is hit, the index is flat until the next month-end decision.
+- **Nothing added after a loss.** No martingale, no doubling, no "winning it back" (CLAUDE.md rule 2).
 - **The bot does not trade it.** The bot is DEMO-only by its own permanent rule (CLAUDE.md rule 1), and nothing here
   changes that. The rule needs one decision a month, which this report gives, so a person can follow it by hand.
