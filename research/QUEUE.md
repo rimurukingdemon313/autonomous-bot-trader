@@ -121,6 +121,20 @@ These were checked for fresh data and for power, and none can pass:
 | Yield-curve or margin-debt crash filters on top of TRND-1 | Any fresh sample holds six to eight recessions or leverage cycles: no power for an effect added to TRND-1's |
 | Currency carry | A swap-free account earns no carry by construction |
 
+**Checked on 2026-11-07, 00:30 UTC, and dropped before building.**
+
+| Idea | Why it was dropped |
+|---|---|
+| Intraday momentum on the GER 40 and UK 100 (their intraday bars are fresh: IX-2's six indices left them out) | IX-2 found the US version's gross edge smaller than a CFD's spread, and FT-1 found the same at 2025-2026 spreads. The international evidence is weaker than the US's, so it cannot reach a bar near 3 at the same costs |
+| A pre-announcement drift before ECB or Bank of England decisions | Brusa, Savor & Wilson (2020, "One Central Bank to Rule Them All") find the drift before FOMC announcements only, not before other central banks' |
+| The pre-holiday effect on the European indices | PHD-1 found none in the US (t 0.82). Eight or so events a year give no power at a CFD's costs |
+| Calendar-month seasonality (January, September) in the four indices | One event a year per index |
+
+**A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
+It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
+which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
+It waits for the owner's decision about TRND-1.
+
 **Live, on fresh forward data, judged at fixed dates:**
 
 - CONF-1 (do the H1 agreements the confidence floor refuses pay?), on 2026-11-20 and 2026-11-27. It costs
