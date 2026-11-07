@@ -1,0 +1,48 @@
+# FUNDED-P (docs/FUNDED_PAPER.md): TRND-1's rule on a $200,000 funded-account paper track, recomputed from 2026-11-09
+# after each weekday's closes on GitHub's runner, which can reach Yahoo. PAPER ONLY: no broker, no account, no order and
+# no key. The report and the state are published to the funded-paper-data branch; if the closes cannot be read, nothing
+# is published and the last report stays.
+name: Funded paper track (TRND-1, paper only)
+on:
+  schedule:
+    - cron: "20 22 * * 1-5"  # after the US close, so all four indices have a final close
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: funded-paper
+  cancel-in-progress: false
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Recompute the track (retries on transient errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/funded_paper.py run 2>&1 | tee funded.log && break
+            echo "attempt $i failed"; sleep $((i * 30))
+          done
+          test -f out/REPORT.md
+          cat out/REPORT.md
+      - name: Publish to funded-paper-data
+        run: |
+          git config user.name "funded-paper"; git config user.email "funded-paper@users.noreply.github.com"
+          if git fetch -q origin funded-paper-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan funded-paper-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          cp out/REPORT.md out/state.json pub/
+          cd pub
+          git add REPORT.md state.json
+          git commit -qm "funded paper $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/funded-paper-data && exit 0; sleep $((i * 20)); done
+          exit 1

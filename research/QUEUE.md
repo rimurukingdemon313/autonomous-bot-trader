@@ -145,8 +145,15 @@ It does not read the single-script programs. Regenerated now, its top line would
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
 It waits for the owner's decision about TRND-1.
 
+**The owner's answer (2026-11-07):** the $200K account is a funded (prop-firm) account. Everything is on paper
+first: "we want to make sure". TRND-1 is therefore followed forward on paper under a funded account's rules:
+FUNDED-P (`docs/FUNDED_PAPER.md`, `scripts/funded_paper.py`). It has two tracks, half and full size, and is
+recomputed from 2026-11-09 after each weekday's closes. The report is on the `funded-paper-data` branch. No
+broker, no bot change.
+
 **Live, on fresh forward data, judged at fixed dates:**
 
+- FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows.
 - CONF-1 (do the H1 agreements the confidence floor refuses pay?), on 2026-11-20 and 2026-11-27. It costs
   nothing.
 - TRND-F (registered 2026-11-06): TRND-1's rule, unchanged, on the four index CFDs over the months December 2026

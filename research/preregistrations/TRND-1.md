@@ -216,3 +216,23 @@ they change nothing.
 - **Next.** As preregistered, it is proposed to the owner as a paper strategy of its own (CLAUDE.md rule 14), and never
   with real money. Nothing is built until the owner says so. Sizing a position held for months without a stop is a
   design question for the owner first.
+
+## Against a funded account's rules (2026-11-07; descriptive, after the verdict, changing nothing)
+
+The owner's $200K account is a funded (prop-firm) account. The rule was replayed from the first trading day of every
+month against FTMO-style limits, with FUNDED-P's own engine (`scripts/trnd1_funded_sim.py`,
+`research/results/TRND-1-funded.json`; the rules are in `docs/FUNDED_PAPER.md`). The limits were +10% to pass, a $10,000
+day or $180,000 equity to fail, then +5%, then FUNDED. The account was swap-free.
+
+| Data | Size | Phase 1 passed | Failed | Reached FUNDED | Median trading days to pass |
+|---|---|---|---|---|---|
+| S&P 500, 1929-1989 | half | 86% | 13% | 78% | 438 |
+| S&P 500, 1929-1989 | full | 74% | 26% | 55% | 174 |
+| The four index CFDs, 2021-2026 | half | 47 of 69 starts (none failed) | 0 | 40 | 389 |
+| The four index CFDs, 2021-2026 | full | 55 of 69 | 2 | 48 | 176 |
+
+- **One crash day can end the account at either size.** 1987-10-19 ended 547 of the 732 half-size runs, in whatever
+  phase they were.
+- **A 6.5% yearly swap** (a non-Islamic account) cut the half-size pass rate on the S&P 500 from 86% to 56%.
+- **This is not a test.** It is the same data, and the past is not a forecast. The forward measure is FUNDED-P, a
+  paper track from 2026-11-09.
