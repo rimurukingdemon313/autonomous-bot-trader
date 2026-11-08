@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-08 12:00 UTC**, run 758, version `radar-1.0.0`. State from: cache. Quotes this hour: 2414.
+Updated **2026-11-08 13:00 UTC**, run 759, version `radar-1.0.0`. State from: cache. Quotes this hour: 2414.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-11-08 12:00 UTC**, run 758, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 31.67
+- days: 31.71
 - run_coverage: 0.9961
 - closed_positions: 180
 - open_positions: 1
-- utilisation: 0.2095
+- utilisation: 0.2094
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.1692
-- book_excess_pct: -2.2479
-- ann_excess_deployed_pct: -124.083
-- ann_excess_deployed_costs_x1.5_pct: -209.944
-- ann_excess_deployed_costs_x2_pct: -295.805
+- book_pnl_pct: -2.1849
+- book_excess_pct: -2.2637
+- ann_excess_deployed_pct: -124.872
+- ann_excess_deployed_costs_x1.5_pct: -210.679
+- ann_excess_deployed_costs_x2_pct: -296.486
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -2.4693
-- max_dd_pct: 2.1768
-- t_excess_daily: -4.056
+- book_excess_without_best_coin_pct: -2.4851
+- max_dd_pct: 2.1849
+- t_excess_daily: -4.091
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IDOL | mexc | gate | 2026-11-07 17:00 | 26.8% | 29.4 | 29.4 | 17.0 | **41.8** |
+| IDOL | mexc | gate | 2026-11-07 17:00 | 26.8% | 30.3 | -2.8 | 17.0 | **10.4** |
 
 ## Closed positions (180)
 
@@ -78,6 +78,6 @@ Updated **2026-11-08 12:00 UTC**, run 758, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| IDOL | mexc | gate | 62.9% | 82.8% |
+| IDOL | mexc | gate | 63.8% | 68.1% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
