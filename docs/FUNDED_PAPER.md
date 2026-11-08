@@ -99,6 +99,40 @@ traded often lost after its costs (`research/QUEUE.md`).
 The owner, 2026-11-07, asked for at least $3,000 a month. Raising one account's size cannot give that within the
 limits, so the target is met by the number of accounts, never by their size (below).
 
+## What a trader would have been paid (descriptive, not a test)
+
+`scripts/funded_lifecycle.py` (`research/results/FUNDED-lifecycle.json`) follows each account's whole life, from every
+start month on the four index CFDs, 1990-2026. These are already-used data, and the assumptions are declared in the
+script:
+- a $200,000 challenge costs $1,100, refunded with the first payout;
+- the two phases come first: +10%, then +5%;
+- each month's whole profit is paid out at an 80% split;
+- an account lost at the limits is replaced by a new challenge.
+
+Several accounts on the same rule win and fail together, so a plan of N accounts is N times one account.
+
+| Plan | Over | Median net to the trader | Mean | 10th to 90th percentile | Starts that lost money | Starts paid nothing | Accounts lost, each (mean) |
+|---|---|---|---|---|---|---|---|
+| 3 accounts at FULL | 1 year | $-3,300 | $7,231 | $-6,600 to $37,972 | 67% | 66% | 0.19 |
+| 3 accounts at FULL | 2 years | $30,384 | $39,331 | $-6,600 to $99,691 | 32% | 32% | 0.46 |
+| 3 accounts at FULL | 3 years | $57,911 | $74,459 | $-3,300 to $171,309 | 10% | 10% | 0.76 |
+| 6 accounts at HALF, with its stop | 1 year | $-6,600 | $-5,997 | $-6,600 to $-6,600 | 98% | 98% | 0.01 |
+| 6 accounts at HALF, with its stop | 2 years | $-6,600 | $3,579 | $-6,600 to $29,678 | 82% | 82% | 0.02 |
+| 6 accounts at HALF, with its stop | 3 years | $-6,600 | $22,940 | $-6,600 to $97,151 | 58% | 58% | 0.03 |
+| 1 account at FULL | 1 year | $-1,100 | $2,410 | $-2,200 to $12,657 | 67% | 66% | 0.19 |
+| 1 account at FULL | 2 years | $10,128 | $13,110 | $-2,200 to $33,230 | 32% | 32% | 0.46 |
+| 1 account at FULL | 3 years | $19,304 | $24,820 | $-1,100 to $57,103 | 10% | 10% | 0.76 |
+
+- **Most of the first year pays nothing.** The two phases come first: at FULL, two starts in three had no payout yet
+  after a year. Half of those paid within three years had their first payout by about 16 months.
+- **Over three years, three FULL accounts** gave a median of about $58,000 (about $1,600 a month across the three
+  years), and lost money in 10% of starts. Six FULL accounts gave a median of about $116,000 (about $3,200 a month).
+  That is $1.2M of funded capital, more than one firm usually allows.
+- **HALF is too slow for a funded account.** It rarely lost an account, but over three years it lost money in 58% of
+  starts, because its challenges took too long to pass.
+- **Keeping profit in the account as a cushion paid less.** With $10,000 kept back, three FULL accounts' three-year
+  median fell to about $37,000; with $20,000, to about $13,000. Paying out all of it each month did best.
+
 ## What it does not model
 
 - **The firm's own rules.** Weekend holding, news trading and inactivity can each forbid or end a months-long hold:
@@ -120,16 +154,19 @@ day, so that it needs no new decision. None of them is a promise.
 - **The account is chosen to fit the rule.** It must be swap-free (Islamic), and it must allow positions held for
   months, over weekends and through news; some firms call this a "swing" account. Index CFDs on the US 500,
   US Tech 100, GER 40 and UK 100 must be quoted. An account without these is not used for this rule.
-- **The size, for the owner's target of at least $3,000 a month:** three funded accounts at FULL size, $50,000 of each
-  index the rule holds in each account.
-  - **What history gave:** in 1990-2026 that averaged about $4,100 a month before the firm's share (about $3,300 after
-    an 80% split).
-  - **The median month:** about $2,200, with 43% of months losing.
-  - **Why FULL, not HALF:** in the replay FULL passed a challenge sooner (a median of 174 trading days against 464).
-  - **The other way:** six accounts at HALF, with the stop, gave about $3,900 a month and failed least, but take longer
-    to pass.
-  - **The accounts move together.** A crash day that ends one ends all three.
-  - **The firm's cap:** if one firm caps the total funded capital, the accounts can sit at two firms.
+- **The size, for the owner's target of at least $3,000 a month:** FULL size, $50,000 of each index the rule holds in
+  each account, and six funded accounts.
+  - **Six, not three.** An earlier note here said three FULL accounts would give about $3,300 a month after the split.
+    That was the accounts' raw average P&L. It left out the months spent in the two phases, the payouts that reset
+    each account, and the accounts lost and replaced.
+  - **What the whole life of an account gave:** with all of that counted (the section above), three FULL accounts
+    paid a median of about $1,600 a month across three years, and six about $3,200.
+  - **Why FULL, not HALF:** in the replay FULL passed a challenge sooner (a median of 174 trading days against 464),
+    and HALF lost money over three years in 58% of starts.
+  - **The accounts move together.** A crash day that ends one ends them all.
+  - **The firm's cap:** $1.2M of funded capital is more than one firm usually allows, so the accounts would sit at
+    more than one firm.
+  - **Payouts:** take the whole profit each month; keeping a cushion paid less.
 - **The month-end decision:** on the month's last trading day, a few minutes before each exchange's close.
   - **When:** the US 500 and US Tech 100 at about 15:55 New York, the GER 40 at about 17:25 Berlin, the UK 100 at about
     16:25 London.
