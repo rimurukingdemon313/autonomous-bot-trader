@@ -80,3 +80,24 @@ This is built because the owner asked for an active rule, and because at its pub
   index CFDs, sized by the risk engine and followed forward on paper; never real money. The owner's word of
   2026-11-08 covers this.
 - **Otherwise:** it is reported as it is, and nothing changes.
+
+## Result (2026-11-08): FAILED, on t alone
+
+Judged once on GitHub's runner (`research/knowledge/DAY-1.json`, `research/results/day1-judge.log`). The holdout
+stays unread.
+
+| | |
+|---|---|
+| 1990..2020 | +1.81% a year on the basket, t **2.48** against the bar of 3.3879 |
+| Development, 1990..2005 | +3.01% a year, t 3.02 |
+| Validation, 2006..2020 | +0.52% a year, t 0.49 |
+| Costs doubled | +1.06% a year |
+| Trades | 941: 69.6% won, +0.24% a trade net on average. 879 closed at the 5-day mean, 53 at the stop, 9 at the 10th close |
+| Losing years | 13 of 31; worst fall 13.5%; no year more than 19% of the total |
+
+**What it says:**
+
+- The published rule did what it is known for: about seven trades in ten won.
+- Its profit was in 1990-2005, and after 2006 it was nearly gone (t 0.49). That is the decay that follows
+  publication, which the same rule on more indices or other thresholds would not undo.
+- It is not run again on these years.
