@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 137 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 138 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -27,6 +27,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 |---|---|---|---|---|---|
 | COT-1 | FAILED | — | 11 | 0 | 3.414 |
 | CP-001 | FAILED | — | 4 | 0 | 3.180 |
+| DAY-1 | FAILED | — | 1 | 0 | 3.388 |
 | DIV-1 | FAILED | — | 2 | 0 | 3.000 |
 | DIV-2 | PASSED | — | 2 | 1 | 3.000 |
 | DP-001 | FAILED | 1734 | 0 | 0 | 3.078 |
@@ -119,6 +120,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.422 | | | | | | | | | |
 | D3-SQUEEZE+H1-TREND | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 627 | -0.095 | -1.79 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.194 | | | | | | | | | |
+| DAY-1 | — | — | `see research/preregistrations/DAY-1.md` | see research/preregistrations/DAY-1.md | — | — | — | — | — | 1 | **REJECTED** | t |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | DIV1-H1-TSMOM12 | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | -0.001 | -0.22 (3.00) | -0.008 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
 | DIV1-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | +0.001 | +0.15 (3.00) | -0.007 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
