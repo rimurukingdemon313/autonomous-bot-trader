@@ -47,7 +47,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 import scripts.trnd1 as T  # noqa: E402
 
-VERSION = "funded-paper-1.1.0"  # 1.1.0: HALF carries a one-day catastrophe stop at 6%
+VERSION = "funded-paper-1.1.1"  # 1.1.0: HALF carries a one-day catastrophe stop at 6%; 1.1.1: the month's positions
 START = date(2026, 11, 9)  # the first close of the record: the rule's positions are opened at it
 BALANCE = 200_000.0
 DAILY_LOSS = 10_000.0  # 5% of the start
@@ -191,7 +191,25 @@ def last_trading_day(month: date) -> str:
     return str(d)
 
 
-def report(tracks: dict[str, dict], now: datetime) -> str:
+def this_month(closes: dict[str, dict[date, float]], month: date) -> list[dict]:
+    """For each index: this month's decision, the month-end close it rests on and the ten-month mean, the latest
+    close, and at it the units of a HALF position ($25,000) and the next day's one-day stop (6% below it)."""
+    notional = TRACKS["HALF"]["expo"] * BALANCE / len(closes)
+    out = []
+    for s, c in closes.items():
+        ends = T.month_ends({d: x for d, x in c.items() if d < month})
+        latest = max(c) if c else None
+        row = {"index": s, "held": decisions(c).get((month.year, month.month)) if c else None,
+               "month_end": str(ends[-1][0]) if ends else None, "month_end_close": ends[-1][1] if ends else None,
+               "mean_of_ten": sum(x for _, x in ends[-T.MONTHS:]) / T.MONTHS if len(ends) >= T.MONTHS else None,
+               "latest": str(latest) if latest else None, "latest_close": c[latest] if latest else None}
+        row["units_half"] = round(notional / row["latest_close"], 2) if row["latest_close"] else None
+        row["stop_half"] = round(row["latest_close"] * (1 - TRACKS["HALF"]["stop"]), 2) if row["latest_close"] else None
+        out.append(row)
+    return out
+
+
+def report(tracks: dict[str, dict], now: datetime, closes: dict[str, dict[date, float]] | None = None) -> str:
     names = {"^GSPC": "US500", "^NDX": "NAS100", "^GDAXI": "GER40", "^FTSE": "UK100"}
     ar_status = {"PHASE 1": "المرحلة الأولى (الهدف +10%)", "PHASE 2": "المرحلة الثانية (الهدف +5%)",
                  "FUNDED": "ممول (بدون هدف)", "FAILED": "فشل"}
@@ -207,6 +225,11 @@ def report(tracks: dict[str, dict], now: datetime) -> str:
             continue
         lines.append(f"- مسار {'نص الحجم' if name == 'HALF' else 'الحجم الكامل'}: {ar_status[r['status']]}، "
                      f"الرصيد ${r['equity']:,.0f} (من ${r['base']:,.0f}: {pl:+,.0f})، ماسك: {held}.")
+    rows = this_month(closes, month) if closes else []
+    if rows:
+        inn = "، ".join(names[r["index"]] for r in rows if r["held"]) or "ولا مؤشر"
+        out = "، ".join(names[r["index"]] for r in rows if r["held"] is False) or "ولا مؤشر"
+        lines.append(f"- هالشهر القاعدة ماسكة: {inn}. وبرّه: {out}.")
     lines += [f"- القرار الجاي: آخر يوم تداول بالشهر ({last_trading_day(month)})، بعد الإغلاق.",
               "- حساب ورقي للقياس، مو فلوس حقيقية، والماضي مو وعد.", "",
               "## The tracks", "",
@@ -228,6 +251,18 @@ def report(tracks: dict[str, dict], now: datetime) -> str:
             lines.append(f"- decisions unknown (held flat): {', '.join(r['unknown_decisions'])}")
         lines += ["", "| Date | Phase | Equity | Day P&L |", "|---|---|---|---|"]
         lines += [f"| {h['date']} | {h['phase']} | ${h['equity']:,.2f} | {h['pl']:+,.2f} |" for h in r["history"][-15:]]
+    if rows:
+        lines += ["", f"## This month's decisions ({month:%B %Y})", "",
+                  "What the rule holds now, and at the latest close what a HALF position ($25,000) is and where its "
+                  "one-day stop sits for the next day.", "",
+                  "| Index | This month | Month-end close | Mean of ten month-ends | Latest close | HALF units | HALF stop |",
+                  "|---|---|---|---|---|---|---|"]
+        for r in rows:
+            held = {True: "**HOLD**", False: "flat", None: "unknown: flat"}[r["held"]]
+            fmt = lambda x: f"{x:,.2f}" if x is not None else "—"  # noqa: E731
+            lines.append(f"| {names[r['index']]} | {held} | {fmt(r['month_end_close'])} ({r['month_end']}) | "
+                         f"{fmt(r['mean_of_ten'])} | {fmt(r['latest_close'])} ({r['latest']}) | "
+                         f"{fmt(r['units_half'])} | {fmt(r['stop_half'])} |")
     lines += ["", "## The rules", "",
               "TRND-1's rule, unchanged, on the US 500, US Tech 100, GER 40 and UK 100: an index is held for a month if "
               "the last month-end close before it is above the mean of the ten month-end closes before it; never short. "
@@ -243,7 +278,7 @@ def cmd_run(now: datetime) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "state.json").write_text(json.dumps({"version": VERSION, "updated": now.isoformat(), "start": str(START),
                                                 "tracks": tracks}, indent=1, sort_keys=True, default=str) + "\n")
-    (OUT / "REPORT.md").write_text(report(tracks, now))
+    (OUT / "REPORT.md").write_text(report(tracks, now, closes))
     for name, r in tracks.items():
         print(name, r["status"], r["equity"], r["last_date"], r["held"])
 

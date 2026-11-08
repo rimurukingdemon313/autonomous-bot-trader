@@ -121,3 +121,19 @@ def test_after_a_stop_the_next_months_decision_reenters():
     assert r["stops"] == 1 and r["held"] == {"^GSPC": True}
     n = 0.5 * P.BALANCE
     assert r["history"][-1]["pl"] == pytest.approx(n * (96.0 / 95.0 - 1) - n * T.COST_SIDE, abs=0.01)  # back in at 95
+
+
+def test_the_months_decisions_show_the_rule_and_the_half_positions():
+    rising = {date(2025, m, 28): 50.0 + m for m in range(1, 13)} | {date(2026, m, 28): 70.0 + m for m in range(1, 11)}
+    falling = {d: 200.0 - p for d, p in rising.items()}
+    closes = {"^GSPC": rising | {date(2026, 11, 6): 100.0}, "^NDX": falling | {date(2026, 11, 6): 100.0},
+              "^GDAXI": rising | {date(2026, 11, 6): 50.0}, "^FTSE": {date(2026, 11, 6): 10.0}}
+    rows = {r["index"]: r for r in P.this_month(closes, date(2026, 11, 1))}
+    assert rows["^GSPC"]["held"] is True and rows["^NDX"]["held"] is False and rows["^FTSE"]["held"] is None
+    assert rows["^GSPC"]["month_end"] == "2026-10-28" and rows["^GSPC"]["month_end_close"] == 80.0
+    assert rows["^GSPC"]["mean_of_ten"] == pytest.approx(sum(70.0 + m for m in range(1, 11)) / 10)
+    assert rows["^GSPC"]["units_half"] == 250.0 and rows["^GSPC"]["stop_half"] == 94.0  # $25,000 at 100; 6% below
+    text = P.report({n: P.run(closes, t["expo"], stop=t["stop"]) for n, t in P.TRACKS.items()},
+                    datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc), closes)
+    assert "| US500 | **HOLD** |" in text and "| NAS100 | flat |" in text and "| UK100 | unknown: flat |" in text
+    assert "هالشهر القاعدة ماسكة: US500، GER40. وبرّه: NAS100." in text
