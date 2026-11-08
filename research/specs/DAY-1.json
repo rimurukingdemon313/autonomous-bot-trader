@@ -1,0 +1,69 @@
+{
+ "code_sha256": "952aecf70cc61d3caf7db8ed4e968d02fc98348a9f4f8ce164aa96f6f0a3442f",
+ "sha256": "60f0cb404472bda539469bd75e4e6cec3b32ab61f7795fbfae0c2bbebfaff21b",
+ "spec": {
+  "after": {
+   "PASSED and VALIDATED": "proposed as a paper desk of its own (rule 14) on the four index CFDs, sized by the risk engine, followed forward on paper; never real money",
+   "otherwise": "reported as it is; nothing changes"
+  },
+  "basket": "a quarter of the capital per index while it holds a trade; the basket's daily return is the mean of the four indices' daily strategy returns, an index without a bar that day counting 0",
+  "cost_each_fill": 0.0005,
+  "counted_universes": [
+   "multi-asset-etf",
+   "multi-asset-long",
+   "equity-index-b",
+   "equity-index-forward",
+   "equity-index-monthly",
+   "index-cfd-intraday",
+   "us-equity-etf",
+   "us-vol-etp",
+   "equity-index-daily"
+  ],
+  "data": "Yahoo daily open, high, low and close from 1988-06; each file's sha256 in the manifest",
+  "dividends": "not counted (price indices)",
+  "exit_mean_closes": 5,
+  "financing": "none (a swap-free account)",
+  "gates": {
+   "complete": "each index has bars from before 1989-06 through 2020-12",
+   "costs_x2": "mean daily net return > 0 with every fill's cost doubled",
+   "development": "mean daily net return > 0 in 1990..2005",
+   "t": "t of the basket's mean daily net return, 1990..2020, >= the threshold",
+   "top_year": "no calendar year supplies more than 50% of the total",
+   "validation": "mean daily net return > 0 in 2006..2020"
+  },
+  "holdout_rule": "the same basket over every trading day 2021-01-04..2026-09-30: mean daily net return > 0, and > 0 with the cost doubled; its t is reported, and the registry validates it only at t >= 2.5",
+  "indices": [
+   "^GSPC",
+   "^NDX",
+   "^GDAXI",
+   "^FTSE"
+  ],
+  "islamic": "long or flat only; no short sale, no interest-bearing instrument",
+  "max_days": 10,
+  "periods": {
+   "development": [
+    "1990-01-01",
+    "2006-01-01"
+   ],
+   "holdout": [
+    "2021-01-01",
+    "2026-10-01"
+   ],
+   "membership": "a day belongs to the period it is in",
+   "validation": [
+    "2006-01-01",
+    "2021-01-01"
+   ]
+  },
+  "program": "DAY-1",
+  "question": "in an index above its 200-day mean, does buying at the close when the 2-day RSI is below 10 and selling at the first close above the 5-day mean earn a positive net return at a swap-free account's costs?",
+  "rsi_buy_below": 10.0,
+  "rsi_closes": 2,
+  "rule": "for each index separately: flat, and the close is above the mean of the last 200 closes and the 2-day Wilder RSI is below 10 -> buy at that close. Holding: a day whose low reaches 6% below the entry close exits at that level, or at its open if it opened below it; otherwise exit at the first close above the mean of the last 5 closes, or at the 10th close after the entry. One position per index; a signal is acted on only at the close it appears",
+  "source": "Connors & Alvarez (2009), Short Term Trading Strategies That Work: the 2-period RSI with a 200-day filter and a 5-day-mean exit; the 6% stop is the bot's own one-day stop",
+  "stop": 0.06,
+  "tests": 1,
+  "threshold_t": 3.3879,
+  "trend_closes": 200
+ }
+}
