@@ -314,3 +314,14 @@ def test_a_conversion_rate_is_filed_under_its_own_london_day_never_the_day_befor
     feed = DailyFeed({}, {"EURUSD": R.parse_rates(res)})
     assert feed.quote("EURUSD", int(datetime(2026, 7, 15, 21, 0, tzinfo=timezone.utc).timestamp())) is None
     assert feed.quote("EURUSD", int(datetime(2026, 7, 16, 0, 0, tzinfo=timezone.utc).timestamp())).bid < 1.17
+
+
+def test_before_its_first_session_the_report_says_so_and_shows_the_rule(tmp_path):
+    import scripts.trend_desk as R
+    bars, rates = market(date(2026, 11, 6))
+    s = R.run(tmp_path, datetime(2026, 11, 8, 19, 0, tzinfo=timezone.utc), bars, rates)
+    text = (tmp_path / "REPORT.md").read_text()
+    assert s["processed_this_run"] == [] and s["gate"]["state"] == "NOT_STARTED" and s["positions"] == []
+    assert "not started: the first session is the close of 2026-11-09" in text and "بعده ما بدا" in text
+    assert "None" not in text.split("## The rule now")[0]
+    assert all(r["for"] == "2026-11" if "for" in r else r["month"] == "2026-11" for r in s["rule_now"].values())

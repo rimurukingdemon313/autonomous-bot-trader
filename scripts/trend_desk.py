@@ -210,7 +210,9 @@ def report(s: dict) -> str:
     failed = s.get("failed")
     lines = ["# TREND DESK · TRND-1 traded by the system itself · PAPER ONLY · NOT REAL MONEY", ""]
     status_ar = ("الحساب فشل (" + str((failed or {}).get("day")) + ") وتسكّرت كل صفقاته" if failed else
-                 "الحساب شغّال" if g.get("state") == "ACTIVE" else f"الحساب {g.get('state')}")
+                 "الحساب شغّال" if g.get("state") == "ACTIVE" else
+                 f"الحساب بعده ما بدا: أول جلسة عند إغلاق {s['start']}" if g.get("state") == "NOT_STARTED" else
+                 f"الحساب {g.get('state')}")
     lines += ["**بالعربي:** هذا حساب ورقي بـ$200,000 يتداول بيه النظام قاعدة TRND-1 وحده، من غير ما أحد يدخل صفقة "
               f"بإيده. الرصيد الحالي (مع الصفقات المفتوحة) {_money(a['equity'])}، يعني الربح أو الخسارة من البداية "
               f"{_money(a['pnl'])}. {status_ar}. "
@@ -220,9 +222,10 @@ def report(s: dict) -> str:
     lines += ["| | |", "|---|---|",
               f"| Account | {s['profile']}: $200,000 paper, from {s['start']} |",
               f"| Equity | {_money(a['equity'])} (P/L {_money(a['pnl'])}); balance {_money(a['balance'])} |",
-              f"| Today | reference {_money(a['today_reference'])} on {a['day']}; the day may lose $10,000 at most |",
-              f"| Risk | {g.get('risk_status')} ({g.get('state')})" + (f"; FAILED on {failed['day']}" if failed else "")
-              + " |",
+              (f"| Today | reference {_money(a['today_reference'])} on {a['day']}; the day may lose $10,000 at most |"
+               if a["day"] else f"| Today | not started: the first session is the close of {s['start']} |"),
+              f"| Risk | {g.get('risk_status') or '—'} ({g.get('state')})"
+              + (f"; FAILED on {failed['day']}" if failed else "") + " |",
               f"| Rule | {s['rule']}: {s['rule_status']} ({s['promotion']}) |",
               f"| Last session | {s['last_session'] or 'none yet'} |",
               f"| Updated | {s['updated']} |", ""]
