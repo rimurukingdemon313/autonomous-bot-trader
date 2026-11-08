@@ -1,11 +1,12 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-07 21:43 UTC · funded-paper-1.1.0 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-08 07:56 UTC · funded-paper-1.1.1 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
 - مسار نص الحجم: يبدي بإغلاق 2026-11-09.
 - مسار الحجم الكامل: يبدي بإغلاق 2026-11-09.
+- هالشهر القاعدة ماسكة: US500، NAS100، GER40، UK100. وبرّه: ولا مؤشر.
 - القرار الجاي: آخر يوم تداول بالشهر (2026-11-30)، بعد الإغلاق.
 - حساب ورقي للقياس، مو فلوس حقيقية، والماضي مو وعد.
 
@@ -29,6 +30,17 @@ Updated 2026-11-07 21:43 UTC · funded-paper-1.1.0 · started 2026-11-09 · publ
 
 | Date | Phase | Equity | Day P&L |
 |---|---|---|---|
+
+## This month's decisions (November 2026)
+
+What the rule holds now, and at the latest close what a HALF position ($25,000) is and where its one-day stop sits for the next day.
+
+| Index | This month | Month-end close | Mean of ten month-ends | Latest close | HALF units | HALF stop |
+|---|---|---|---|---|---|---|
+| US500 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,376.86 (2026-11-06) | 3.39 | 6,934.25 |
+| NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 26,989.99 (2026-11-06) | 0.93 | 25,370.59 |
+| GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 0.97 | 24,271.14 |
+| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,673.90 (2026-11-06) | 2.34 | 10,033.47 |
 
 ## The rules
 
