@@ -64,6 +64,30 @@ verdict.
 
   The live tracks are swap-free.
 
+## Month by month on a $200,000 funded account, 1990-2026 (descriptive, not a test)
+
+`scripts/trnd1_funded_monthly.py` (`research/results/TRND-1-funded-monthly.json`) runs the same rule, costs and stop
+from 1990-01 to 2026-10. The account is treated as already funded: no phases and no target. RC-EQ judged 1990-2020
+with the same rule, and TRND-1-H judged 2021-2026, so these are already-used data. The figures are in dollars,
+before any profit split.
+
+| | HALF, with its stop | FULL |
+|---|---|---|
+| Mean month | $650 | $1,364 |
+| Median month | $374 | $747 |
+| Months positive | 57% | 57% |
+| Best month | +$12,518 | +$25,036 |
+| Worst month | -$15,501 | -$31,280 |
+| Mean year | $7,763 | $16,290 |
+| Worst year | -$18,660 (1990) | -$37,321 (1990) |
+| Best year | +$31,240 (1999) | +$62,481 (1999) |
+| Trades | 254 in 37 years | 244 |
+| Accounts the limits would have ended | 1 (1990-08-21) | 3 (1990-08-03, 1990-08-21, 2000-04-14) |
+| Mean month by decade | $955, $502, $422, $754 | $1,986, $1,053, $943, $1,523 |
+
+These are the rule's real figures, and they are modest. Many trades were not found to pay: every program here that
+traded often lost after its costs (`research/QUEUE.md`).
+
 ## What it does not model
 
 - **The firm's own rules.** Weekend holding, news trading and inactivity can each forbid or end a months-long hold:
