@@ -1,6 +1,6 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-08 07:56 UTC · funded-paper-1.1.1 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-08 08:05 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
@@ -33,14 +33,14 @@ Updated 2026-11-08 07:56 UTC · funded-paper-1.1.1 · started 2026-11-09 · publ
 
 ## This month's decisions (November 2026)
 
-What the rule holds now, and at the latest close what a HALF position ($25,000) is and where its one-day stop sits for the next day.
+What the rule holds now, and at the latest close what a HALF position ($25,000) is and where its one-day stop sits for the next day. GER 40 and UK 100 are priced in euros and pounds: their units use the latest EUR/USD and GBP/USD rates (shown); the contract size of a lot is the broker's.
 
 | Index | This month | Month-end close | Mean of ten month-ends | Latest close | HALF units | HALF stop |
 |---|---|---|---|---|---|---|
 | US500 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,376.86 (2026-11-06) | 3.39 | 6,934.25 |
 | NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 26,989.99 (2026-11-06) | 0.93 | 25,370.59 |
-| GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 0.97 | 24,271.14 |
-| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,673.90 (2026-11-06) | 2.34 | 10,033.47 |
+| GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 0.86 at 1.1228 | 24,271.14 |
+| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,673.90 (2026-11-06) | 1.74 at 1.3456 | 10,033.47 |
 
 ## The rules
 
