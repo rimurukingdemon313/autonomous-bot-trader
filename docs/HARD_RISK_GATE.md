@@ -133,11 +133,12 @@ that position and that stop, it expires, and the paper broker refuses a move wit
 
 - **Toward the price** (or unchanged): the position can only lose less. The move is approved in any state of the run:
   a lock, a kill switch or a spent day included. The stop must still be on the loss side of a fresh price.
-- **Away from the price:** this is new risk, checked as a new trade is.
-  - The loss from the price to the new stop, with costs, must fit the per-trade risk.
-  - The open risk with that loss must fit its limit.
+- **Away from the price:** this is new risk, held to the account's limits (hard-gate-1.4.0).
+  - The open risk with that position's new loss to its stop must fit its limit.
   - If every stop were hit, equity must stay above the daily and total floors.
   - The move is refused in a locked or killed run, or on a locked day; the old, closer stop stays.
+  - It is not held to the per-trade risk, which sizes a new position. A position that has risen is worth more than it
+    was sized at, and holding its stop to that amount made every stop trail the price.
 
 The trend desk (`docs/TREND_DESK.md`) moves each held index's stop to 6% below every close this way.
 

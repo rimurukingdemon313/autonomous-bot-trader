@@ -145,7 +145,7 @@ mechanism, fresh data and power at a swap-free CFD's costs:
 
 | Idea | Why it was dropped |
 |---|---|
-| The Halloween effect ("sell in May"): the four index CFDs held only from November to April | The effect has held out of sample: about 10 points a year more in November-April than in May-October, pooled over 37 markets, 1998-2012 (Andrade, Chhaochharia & Fuerst 2013). The anomaly is the gap between the halves, and a yearly gap with a spread of about 16 points gives about t 3.0 over 2003-2025 even at that full pooled size, against a bar of about 3.39. On 1929-1989 at half that size it is about t 2.3. What a winter-only hold earns beyond the gap is the equity premium on a calendar, which TRND-1 already holds with a validated rule |
+| The Halloween effect ("sell in May"): the four index CFDs held only from November to April | The effect has held out of sample: about 10 points a year more in November-April than in May-October, pooled over 37 markets, 1998-2012 (Andrade, Chhaochharia & Fuerst 2013). The anomaly is the gap between the halves, and a yearly gap with a spread of about 16 points gives about t 3.0 over 2003-2025 even at that full pooled size, against a bar of about 3.39: about one chance in three of passing if the effect is still at full size, much less if it has decayed as published effects usually do. On 1929-1989 at half that size it is about t 2.3. What a winter-only hold earns beyond the gap is the equity premium on a calendar, which TRND-1 already holds with a validated rule |
 | TRND-1's rule on the Dow Jones, 1896-1928, before TRND-1's own years | Fresh, but 396 months at TRND-1's own strength give about t 2.8 against a bar of about 3.39. It would repeat a validated rule, not add information |
 | Holding the indices only while the VIX futures curve is in contango (a stress filter) | A filter on the market's own premium: bounded by the power ceiling (about t 2.5-2.9), and VRP-1 already read this curve from 2004 |
 
@@ -170,7 +170,9 @@ broker, no bot change.
   stop. Every order and stop move goes through the risk engine, the hard gate and the paper broker
   (`docs/TREND_DESK.md`; trend-desk-1.0.0). It runs after each weekday's closes, and its report is on
   `trend-desk-data`. It is a paper record, read as it grows; TRND-F judges the rule itself. Promoted for PAPER in
-  `models/artifacts/promoted_rules.json`.
+  `models/artifacts/promoted_rules.json`. Its own code replayed on 2004-2026 (descriptive, on data already judged):
+  +3.4% a year on average, 6 losing years in 22, no account failed. The replay found three faults before the first
+  session, all fixed (trend-desk-1.1.0, hard-gate-1.4.0; `docs/TREND_DESK.md`).
 
 - FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows. Its HALF
   track carries a one-day stop at 6% (funded-paper-1.1.0, added before the first day). Without it, 1987-10-19

@@ -59,8 +59,8 @@ None of these was tested by TRND-1 itself.
 |---|---|
 | When it switches | At the close of the month's last weekday. If that day has no close (an exchange holiday: Xetra on 31 December, Good Friday, a UK bank holiday), it switches at the next close, one trading day late. RC-EQ put a full day's delay at about 0.2% a year, and here it happens a few times a year at most |
 | The start | At its first close, each index takes the current month's decision (all four HOLD in November 2026) |
-| The size | The risk engine's, never the desk's: at most $1,500 lost at the stop, all costs included (0.75% of the starting balance). With a 6% stop that is about $25,000 of each index, a quarter of half the account: FUNDED-P's HALF size. It never grows after a win, and the engine's own rule halves it after runs of losses (rule 2: risk only ever decreases) |
-| The one-day stop | FUNDED-P's HALF stop: 6% below each close, moved after every close through the gate. A move toward the price is always allowed. A move away from it (after a down day) must fit the $1,500, so after a large rise the stop can sit closer than 6%. After it is hit, the index is flat until the next month-end decision |
+| The size | The risk engine's, never the desk's: at most $1,500 lost at the stop, all costs included (0.75% of the starting balance). With a 6% stop that is about $25,000 of each index, a quarter of half the account: FUNDED-P's HALF size. It never grows after a win. It does not shrink after a run of losing trades either (trend-desk-1.1.0): the rule was tested at a fixed size, and its small losses in choppy months are part of it |
+| The one-day stop | FUNDED-P's HALF stop: 6% below each close, moved after every close through the gate. A move toward the price is always allowed. A move away from it (after a down day) must keep all the positions' losses to their stops within $8,000 together, and the worst case above the daily and total floors (hard-gate-1.4.0). After a long rise, when the positions have grown, that holds the stops closer than 6%. After it is hit, the index is flat until the next month-end decision |
 | A day's range | The stop is hit by the day's low, not only by the close. A gap through it fills at the open |
 | Costs | The bid/ask spread (US 500 0.5 points, US Tech 100 1.5, GER 40 1.5, UK 100 1.0: declared typical CFD spreads), 0.1 point of slippage per fill, and $7 per lot (one unit of the index) round trip. Swap-free, as the rule was judged and as the account must be. No dividends |
 | Conversion | GER 40 is valued in euros and UK 100 in pounds, at the previous day's EUR/USD and GBP/USD close |
@@ -75,7 +75,7 @@ None of these was tested by TRND-1 itself.
 | Daily loss | $10,000 from the day's reference (00:00 Prague), on equity. Each session's intraday low is shown to the gate before its close, so a fall inside the day counts even when the close recovers |
 | Maximum loss | $20,000: equity at $180,000 |
 | A breach | Fails the account, as a firm's rules do: the run locks, every position is closed at that close, and nothing more is opened. Only an explicit evaluation reset starts a new one |
-| The risk engine's own limits | 0.75% per trade, but only for a VALIDATED rule (anything else stays at 0.25%); 4% open; 5% a day; no new entry while equity is 10% or more below its peak; four positions, one per index; at most 1x exposure |
+| The risk engine's own limits | 0.75% per trade, but only for a VALIDATED rule (anything else stays at 0.25%); 4% open; 5% a day; no new entry at 10% or more below the starting balance (the firm's own reference: measured from the peak, a flat account below it could never trade again); four positions, one per index; at most 1x exposure |
 
 The FX desk's timing rules are not the trend desk's: the weekend, quiet hours, the overlap and news windows. A rule
 that holds for months is held over weekends and through releases, by design. It is judged on that.
@@ -112,6 +112,62 @@ The desk trades only on the paper broker. To trade a funded account by itself, t
 None of this changes what TRND-1 is: a rule with roughly the market's return, about half its worst fall, and a few
 trades a year.
 
+## The desk's own code, replayed on 2004-2026 (descriptive, not a test)
+
+`scripts/trend_desk_replay.py` ran the desk itself on Yahoo's daily bars for the four indices, 2004-01-02 to
+2026-11-06, on GitHub's runner (`research/results/TREND-DESK-replay.json`). Everything went through the same path as
+the live desk: the risk engine, the gate, the paper broker, the stops on the day's low and each session's intraday low.
+These data were already judged (RC-EQ 1990-2020, TRND-1-H 2021-2026). It changes no verdict, and the past is not a
+forecast.
+
+| | |
+|---|---|
+| A year on $200,000 | mean +3.4%, median +3.3% (22 full years); 6 losing years; worst -6.8% (2022), best +13.5% (2013) |
+| The whole period | +$147,080 on the starting balance (fixed size, nothing compounded), no account failed |
+| Lowest equity | $194,040 (2004-07-26); the $180,000 floor was never near |
+| Worst fall from a peak | $28,038 (2016), after the account had grown |
+| Trades | 88 entries; 18 stopped by the one-day stop, the rest closed by the rule |
+| Refusals | 3 entries (the other positions had grown, and the $8,000 open risk was full: 2007, 2014, 2025); 383 stop moves away from the price, 355 for the open risk and 28 for the daily floor, all after long rises |
+
+Against FUNDED-P's HALF track over the same years (closes only, booked at -8% on a stop day) it made a little less
+(+3.4% a year against +3.6%). The difference is the real execution: a stop hit by a day's low that closed higher
+(2015, 2016, 2025).
+
+| Year | Desk | FUNDED-P HALF | Stops | Entries |
+|---|---|---|---|---|
+| 2004 | +1.8% | +2.5% | 0 | 9 |
+| 2005 | +4.2% | +4.3% | 0 | 2 |
+| 2006 | +8.2% | +6.0% | 0 | 1 |
+| 2007 | +7.5% | +5.9% | 1 | 2 |
+| 2008 | -5.0% | -5.0% | 1 | 1 |
+| 2009 | +10.3% | +10.5% | 0 | 4 |
+| 2010 | +2.0% | +2.8% | 2 | 6 |
+| 2011 | -5.9% | -5.0% | 3 | 1 |
+| 2012 | +3.2% | +3.2% | 0 | 6 |
+| 2013 | +13.5% | +11.6% | 0 | 1 |
+| 2014 | +3.2% | +2.2% | 1 | 3 |
+| 2015 | -4.4% | -0.9% | 2 | 4 |
+| 2016 | -0.1% | +2.0% | 2 | 8 |
+| 2017 | +8.8% | +7.6% | 0 | 1 |
+| 2018 | -3.8% | -2.0% | 1 | 5 |
+| 2019 | +3.5% | +3.6% | 0 | 8 |
+| 2020 | +3.7% | +3.5% | 2 | 6 |
+| 2021 | +10.7% | +9.3% | 0 | 0 |
+| 2022 | -6.8% | -5.4% | 0 | 6 |
+| 2023 | +7.2% | +6.8% | 0 | 6 |
+| 2024 | +10.2% | +8.7% | 0 | 0 |
+| 2025 | +2.4% | +7.0% | 2 | 5 |
+| 2026 (to 6 Nov) | -0.8% | +0.9% | 1 | 3 |
+
+**What the replay found before the first session**, all fixed:
+
+- **hard-gate-1.4.0.** A stop moved back down after a down day was held to the per-trade $1,500. That sizes a new
+  position, and a position that has risen is worth more than it was sized at. So the one-day stop had become a stop
+  trailing the highest close, which nobody had analysed: 389 refused moves in a three-year smoke test.
+- **trend-desk-1.1.0.** The drawdown limit is now measured from the starting balance. Measured from the peak, a flat
+  account below it could never trade again.
+- **trend-desk-1.1.0.** The size no longer halves after losing runs.
+
 ## Tests
 
 `tests/unit/test_trend_desk.py` builds each market so the right answer is known:
@@ -133,5 +189,5 @@ trades a year.
 The gate's stop permits are in `tests/unit/test_hard_gate.py`, and the VALIDATED risk cap in `tests/unit/test_risk.py`.
 `scripts/mutation_audit.py` removes each of these guards in turn and requires a test to fail.
 
-Versions: `trend-desk-1.0.0`, `risk-1.16.0`, `hard-gate-1.3.0`, `hard-profile-1.2.0`, `paper-1.5.0`, `exec-1.9.0`,
+Versions: `trend-desk-1.1.0`, `risk-1.16.0`, `hard-gate-1.4.0`, `hard-profile-1.2.0`, `paper-1.5.0`, `exec-1.9.0`,
 `edge-status-1.4.0`. Every event the desk records carries `aitrader.version.stamp()`.
