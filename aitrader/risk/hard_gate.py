@@ -53,7 +53,13 @@ from .profile import HardRiskProfile, loss_per_lot, pip_of
 #:        single-use stop permit. A move toward the price only lowers risk and is approved in any state; a move away
 #:        from it is new risk, checked as a new trade's is and refused in a locked or killed run. An instrument code
 #:        may have 5 characters (US500, GER40, UK100). New positions are otherwise authorised exactly as before.
-GATE_VERSION = "hard-gate-1.3.0"
+#: 1.4.0 (found by replaying the trend desk, before its first session): a stop moved away from the price is no longer
+#:        held to the per-trade risk, which sizes a NEW position. A position that has risen is worth more than it was
+#:        sized at, so 6% of it is more than $1,500, and every move back down after a down day was refused: the one-day
+#:        stop became a trailing stop that nobody had analysed, exiting on any 6% pullback. A move away from the price
+#:        is still new risk: the open risk with it must fit the limit, and if every stop were hit equity must stay above
+#:        the daily and total floors; refused in a locked or killed run. New positions are authorised as before.
+GATE_VERSION = "hard-gate-1.4.0"
 SYMBOL_RE = re.compile(r"^[A-Z0-9]{5,12}$")  # 5 since 1.3.0: the index CFDs US500, GER40, UK100
 RESET_CONFIRMATION = "RESET-EVALUATION"
 CLEAR_KILL_CONFIRMATION = "CLEAR-KILL-SWITCH"
@@ -635,9 +641,10 @@ class HardRiskGate:
         - Toward the price (or unchanged): the position can only lose less. Approved in any state of the run, a lock,
           a kill switch or a spent day included, as long as the stop is valid against a fresh price: a control that
           can only reduce risk is never locked.
-        - Away from the price: new risk. The loss from the price to the new stop, with costs, must fit the per-trade
-          risk; the open risk with this position's new loss must fit its limit; if every stop were hit, equity must
-          stay above the daily and the total floors. Refused in a locked or killed run, or on a locked day.
+        - Away from the price: new risk. The open risk with this position's new loss to its stop must fit its limit,
+          and if every stop were hit, equity must stay above the daily and the total floors. Refused in a locked or
+          killed run, or on a locked day. (The per-trade risk sizes a new position; a position that has risen is worth
+          more than it was sized at, and holding its stop to that amount would make every stop a trailing stop.)
 
         Never raises for a bad request: it refuses it, and the old stop stays."""
         with self._lock:
@@ -712,9 +719,6 @@ class HardRiskGate:
                                                 "come closer")
         if (st.get("day_lock") or {}).get("day") == calc["day_id"]:
             raise _Reject("DAILY_LOCK", "the daily loss limit was reached today; a stop may only come closer")
-        if rem_new > p.risk_per_trade + 1e-9:
-            raise _Reject("PER_TRADE_RISK", f"loss to the new stop incl. costs {rem_new:.2f} > per-trade risk "
-                                            f"{p.risk_per_trade:.2f}")
         open_after = calc["open_risk"] - max(e["max_loss"], rem_old) + max(e["max_loss"], rem_new)
         calc["open_risk_after"] = open_after
         if open_after > p.max_open_risk + 1e-9:

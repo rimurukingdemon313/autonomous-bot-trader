@@ -41,7 +41,12 @@ from ..risk.engine import AccountState, Quote, RiskEngine, RiskLimits
 from ..risk.hard_gate import HardRiskGate
 from ..risk.profile import TRND1_PAPER_200K, HardRiskProfile
 
-TREND_DESK_VERSION = "trend-desk-1.0.0"
+#: 1.1.0 (self-review before the first session, 2026-11-08): the drawdown limit is measured from the starting balance,
+#:        as the firm's maximum loss is. Measured from the equity peak, a flat account 10% below its peak could never
+#:        trade again: flat, its equity cannot move. The size no longer halves after a run of losing trades: a run of
+#:        small losses in choppy months is part of TRND-1 as it was tested and replayed, at a fixed size. The daily,
+#:        weekly and total limits, the gate and the stop are unchanged.
+TREND_DESK_VERSION = "trend-desk-1.1.0"
 RULE_ID = "TRND-1"
 INDICES = ("US500", "NAS100", "GER40", "UK100")
 MONTHS = 10
@@ -51,10 +56,12 @@ PROMOTED_RULES_PATH = Path(__file__).resolve().parents[2] / "models" / "artifact
 #: The desk's own limits for the risk engine. Its funded-account limits are the hard profile's (TRND1-PAPER-200K):
 #: $1,500 per position at its stop, $8,000 open, $10,000 a day, $20,000 in all. The engine's own: 0.75% per trade (a
 #: VALIDATED rule only; anything else stays at 0.25%), 4% open, 5% a day, no weekly limit tighter than the account's
-#: maximum loss, a 10% fall from the equity peak halts it, four positions, one per index, at most 1x exposure.
+#: maximum loss, no new position at 10% below the starting balance (the reference the desk passes, 1.1.0), four
+#: positions, one per index, at most 1x exposure, and a fixed size: no halving after losing runs (1.1.0).
 DESK_LIMITS = RiskLimits(risk_per_trade_pct=0.75, daily_loss_limit_pct=5.0, weekly_loss_limit_pct=10.0,
                          max_open_risk_pct=4.0, max_drawdown_pct=10.0, max_open_positions=4,
-                         max_positions_per_currency=4, max_leverage=1.0, max_quote_age_s=30, hard=TRND1_PAPER_200K)
+                         max_positions_per_currency=4, max_leverage=1.0, max_quote_age_s=30, loss_streak_step=0,
+                         hard=TRND1_PAPER_200K)
 STATE_KEY = "trend_desk"
 #: a conversion rate from a day's close is used from the next 00:00 UTC on, never on the day itself
 FX_SPREAD = 0.0001
@@ -338,8 +345,11 @@ class TrendDesk:
         day = (self.gate.status().get("day") or {})
         ks = self.db.get_kv("kill_switch", None)
         kill = None if not isinstance(ks, dict) or "active" not in ks else bool(ks["active"])
+        # The drawdown reference is the starting balance, as the firm's maximum loss is (1.1.0): from the equity peak,
+        # a flat account below it could never trade again, since a flat account's equity cannot move.
         return AccountState(equity=equity, balance=balance, day_start_equity=day.get("reference"),
-                            peak_equity=st.get("peak"), start_balance=self.gate.profile.starting_balance,
+                            peak_equity=self.gate.profile.starting_balance,
+                            start_balance=self.gate.profile.starting_balance,
                             open_positions=positions if positions is not None else [],
                             week_start_equity=(st.get("week") or {}).get("equity"),
                             closed_r=list(st.get("closed_r") or [])[-30:],

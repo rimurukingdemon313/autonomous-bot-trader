@@ -1142,14 +1142,16 @@ def test_a_stop_moved_toward_the_price_is_approved_even_in_a_locked_or_killed_ru
     assert e.broker.positions()[0].stop == p.stop + 0.0004  # the closer stop stands
 
 
-def test_a_stop_moved_away_beyond_the_per_trade_risk_is_refused_and_the_old_stop_stays():
+def test_a_stop_moved_away_beyond_the_open_risk_limit_is_refused_and_the_old_stop_stays():
     e = env()
     p = _open(e, qty=5.0, stop=ASK - 0.0008)  # 5 lots, 8 pips: about $400 at the stop
-    res = e.gate.authorize_stop(p.id, BID - 0.0020, e.broker)  # 20 pips: about $1,000 > $500
-    assert not res.approved and res.code == "PER_TRADE_RISK"
+    res = e.gate.authorize_stop(p.id, BID - 0.0040, e.broker)  # 40 pips: $2,000, $2,060 with costs > $2,000 open
+    assert not res.approved and res.code == "OPEN_RISK_LIMIT"
     assert e.broker.positions()[0].stop == p.stop
-    ok = e.gate.authorize_stop(p.id, BID - 0.00085, e.broker)  # $425 to it, $485 with costs: inside the budget
-    assert ok.approved and not ok.permit.tighter
+    # 20 pips is more than the $500 a new trade may risk, but an open position's stop is held to the account's
+    # limits, not to the size it was opened at: otherwise every stop would trail the price (hard-gate-1.4.0)
+    ok = e.gate.authorize_stop(p.id, BID - 0.0020, e.broker)
+    assert ok.approved and not ok.permit.tighter and ok.calc["remaining_loss_after"] > 500
 
 
 def test_a_stop_permit_is_single_use_and_bound_to_its_position_and_stop():

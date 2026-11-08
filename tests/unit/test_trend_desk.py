@@ -325,3 +325,40 @@ def test_before_its_first_session_the_report_says_so_and_shows_the_rule(tmp_path
     assert "not started: the first session is the close of 2026-11-09" in text and "بعده ما بدا" in text
     assert "None" not in text.split("## The rule now")[0]
     assert all(r["for"] == "2026-11" if "for" in r else r["month"] == "2026-11" for r in s["rule_now"].values())
+
+
+def test_a_flat_account_below_its_peak_still_trades_and_its_size_never_halves_after_losses():
+    from aitrader.risk.engine import Quote, RiskEngine, streak_multiplier
+    assert TD.DESK_LIMITS.loss_streak_step == 0
+    assert streak_multiplier([-1.0] * 6, TD.DESK_LIMITS.loss_streak_step, TD.DESK_LIMITS.loss_streak_floor) == 1.0
+    bars, rates = market(date(2026, 11, 9))
+    desk, first = desk_for(bars, rates)
+    replay(desk, bars, first, date(2026, 11, 9))
+    st = desk.state()
+    st["peak"], st["closed_r"] = 260_000.0, [-1.0] * 6  # as if equity had once been $260,000, then six losses
+    acct = desk._account_state(st)
+    assert acct.peak_equity == 200_000.0  # the firm's reference: the starting balance, never the peak
+    # flat at $215,000: 17% under that peak, far above the $180,000 floor
+    flat = replace(acct, equity=215_000.0, balance=215_000.0, open_positions=[], closed_r=[-1.0] * 6)
+    engine, now = RiskEngine(TD.DESK_LIMITS), desk.clock()
+    drawdown = [c for c in engine.account_gates(flat, "US500", now) if c.name == "drawdown"]
+    assert drawdown and drawdown[0].passed
+    frozen = [c for c in engine.account_gates(replace(flat, peak_equity=260_000.0), "US500", now) if c.name == "drawdown"]
+    assert not frozen[0].passed  # a peak reference would have frozen it: flat, its equity can never rise again
+    bid = desk.broker.quote("US500").bid
+    d = TD.RuleDecision("t", "BUY", "US500", now, round(bid * 0.94, 2), edge_status="VALIDATED")
+    v = engine.evaluate(d, flat, desk.broker.spec("US500"), Quote("US500", bid, bid + 0.5, now), now)
+    assert v.approved and v.risk_amount > 1_400  # the full $1,500 after six losses, not a quarter of it
+
+
+def test_after_a_rise_a_down_day_still_moves_the_stop_down_to_6_percent_below_that_close():
+    # the market has risen since the entry, so each position is worth more than it was sized at; then a 2% fall
+    shocks = {"US500": {date(2026, 11, 17): (1.0, 1.0, 0.975, 0.98)}}
+    bars, rates = market(date(2026, 11, 17), shocks=shocks)
+    desk, first = desk_for(bars, rates)
+    ev = replay(desk, bars, first, date(2026, 11, 17))
+    move = kinds(ev, "DESK_STOP", symbol="US500", day="2026-11-17")
+    assert move and move[0]["status"] == "MOVED" and move[0]["to"] < move[0]["from"]
+    p = next(p for p in desk.broker.positions() if p.symbol == "US500")
+    assert p.stop == round(bars["US500"][-1].close * 0.94, 2)  # a one-day stop, not one trailing the highest close
+    assert not [e for e in kinds(ev, "DESK_STOP") if e["status"] != "MOVED"]

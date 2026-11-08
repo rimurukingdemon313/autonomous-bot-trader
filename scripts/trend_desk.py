@@ -49,7 +49,7 @@ def _chart(sym: str, first: date, now: datetime) -> dict:
         return json.loads(r.read())["chart"]["result"][0]
 
 
-def parse_bars(symbol: str, res: dict, now: datetime) -> tuple[list[DailyBar], list[str]]:
+def parse_bars(symbol: str, res: dict, now: datetime, since: date = FETCH_FROM) -> tuple[list[DailyBar], list[str]]:
     """The final daily bars of one index, in order, and the problems found. The first malformed bar ends the series:
     nothing at or after it is used."""
     tz = ZoneInfo(res["meta"]["exchangeTimezoneName"])
@@ -57,7 +57,7 @@ def parse_bars(symbol: str, res: dict, now: datetime) -> tuple[list[DailyBar], l
     bars, problems, seen = [], [], set()
     for i, ts in enumerate(res.get("timestamp") or []):
         day = datetime.fromtimestamp(ts, timezone.utc).astimezone(tz).date()
-        if day < FETCH_FROM or day in seen:
+        if day < since or day in seen:
             continue
         if now.timestamp() < close_time(symbol, day) + FINAL_AFTER_S:
             continue  # not final yet

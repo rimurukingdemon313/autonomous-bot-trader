@@ -1,0 +1,39 @@
+# Descriptive replay of the trend desk's own code (scripts/trend_desk_replay.py) on the four indices' real daily bars,
+# 2004-2026, on GitHub's runner, which can reach Yahoo. On data already judged; not a test; it changes no verdict and
+# trades nothing. The results are committed back to this run branch and printed to the log.
+name: Trend desk replay (descriptive, 2004-2026)
+on:
+  push:
+    branches: [trend-desk-replay]
+permissions:
+  contents: write
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Fetch the bars (retries on transient errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/trend_desk_replay.py fetch 2>&1 | tee replay-fetch.log && break
+            echo "fetch attempt $i failed"; sleep $((i * 30))
+          done
+          ls -la data/trend_replay
+      - name: Replay the desk
+        run: |
+          set -o pipefail
+          python scripts/trend_desk_replay.py run 2>&1 | grep -v '"stage":"RISK_GATE"' | tee research/results/trend-desk-replay.log
+      - name: Commit the results to this branch
+        if: always()
+        run: |
+          git config user.name "trend-replay"; git config user.email "trend-replay@users.noreply.github.com"
+          git add -f research/results/TREND-DESK-replay.json research/results/trend-desk-replay.log || true
+          git commit -qm "Trend desk replay: results (descriptive, 2004-2026)" || { echo "nothing to commit"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/trend-desk-replay && exit 0; sleep $((i * 15)); done
+          exit 1
