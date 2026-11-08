@@ -97,6 +97,13 @@ def main() -> int:
         report["runs"][name] = summary(*daily_pl(data, expo, stop))
         r = report["runs"][name]
         print(name, {k: r[k] for k in r if k not in ("by_month", "accounts_ended")}, "ended:", r["accounts_ended"])
+    # the size one account would need for a higher monthly figure, and how often the limits would have ended it
+    report["sizes"] = {}
+    for expo in (1.5, 2.2):
+        r = summary(*daily_pl(data, expo, None))
+        report["sizes"][f"{expo}x"] = {k: r[k] for k in ("mean_month", "median_month", "worst_month")}
+        report["sizes"][f"{expo}x"]["accounts_ended"] = len(r["accounts_ended"])
+        print(f"{expo}x", report["sizes"][f"{expo}x"])
     OUT.write_text(json.dumps(report, indent=1, sort_keys=True) + "\n")
     return 0
 

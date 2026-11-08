@@ -88,6 +88,17 @@ before any profit split.
 These are the rule's real figures, and they are modest. Many trades were not found to pay: every program here that
 traded often lost after its costs (`research/QUEUE.md`).
 
+**A larger monthly figure from one account means a larger size, and the limits end it.** These sizes have no stop:
+
+| Size of one $200,000 account | Mean month | Median month | Worst month | Accounts the limits would have ended, 1990-2026 |
+|---|---|---|---|---|
+| FULL (1x) | $1,364 | $747 | -$31,280 | 3 |
+| 1.5x | $2,045 | $1,121 | -$46,921 | 13 |
+| 2.2x (the size for a $3,000 mean) | $3,000 | $1,644 | -$68,817 | 69, about two a year |
+
+The owner, 2026-11-07, asked for at least $3,000 a month. Raising one account's size cannot give that within the
+limits, so the target is met by the number of accounts, never by their size (below).
+
 ## What it does not model
 
 - **The firm's own rules.** Weekend holding, news trading and inactivity can each forbid or end a months-long hold:
@@ -109,8 +120,16 @@ day, so that it needs no new decision. None of them is a promise.
 - **The account is chosen to fit the rule.** It must be swap-free (Islamic), and it must allow positions held for
   months, over weekends and through news; some firms call this a "swing" account. Index CFDs on the US 500,
   US Tech 100, GER 40 and UK 100 must be quoted. An account without these is not used for this rule.
-- **The size is HALF:** $25,000 of each index the rule holds, $100,000 at most in all. In the replay HALF failed least,
-  and it never failed in 2021-2026. FULL stays on paper only, as the comparison.
+- **The size, for the owner's target of at least $3,000 a month:** three funded accounts at FULL size, $50,000 of each
+  index the rule holds in each account.
+  - **What history gave:** in 1990-2026 that averaged about $4,100 a month before the firm's share (about $3,300 after
+    an 80% split).
+  - **The median month:** about $2,200, with 43% of months losing.
+  - **Why FULL, not HALF:** in the replay FULL passed a challenge sooner (a median of 174 trading days against 464).
+  - **The other way:** six accounts at HALF, with the stop, gave about $3,900 a month and failed least, but take longer
+    to pass.
+  - **The accounts move together.** A crash day that ends one ends all three.
+  - **The firm's cap:** if one firm caps the total funded capital, the accounts can sit at two firms.
 - **The month-end decision:** on the month's last trading day, a few minutes before each exchange's close.
   - **When:** the US 500 and US Tech 100 at about 15:55 New York, the GER 40 at about 17:25 Berlin, the UK 100 at about
     16:25 London.
