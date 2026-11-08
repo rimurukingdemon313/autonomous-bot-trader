@@ -47,7 +47,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 import scripts.trnd1 as T  # noqa: E402
 
-VERSION = "funded-paper-1.1.1"  # 1.1.0: HALF carries a one-day catastrophe stop at 6%; 1.1.1: the month's positions
+VERSION = "funded-paper-1.1.2"  # 1.1.0: HALF's one-day stop at 6%; 1.1.1: the month's positions; 1.1.2: in USD
 START = date(2026, 11, 9)  # the first close of the record: the rule's positions are opened at it
 BALANCE = 200_000.0
 DAILY_LOSS = 10_000.0  # 5% of the start
@@ -65,6 +65,8 @@ FETCH_FROM = date(2025, 9, 1)  # ten month-ends before the first decision, and m
 CLOSE = {"^GSPC": ("America/New_York", time(16, 0)), "^NDX": ("America/New_York", time(16, 0)),
          "^GDAXI": ("Europe/Berlin", time(17, 30)), "^FTSE": ("Europe/London", time(16, 30))}
 OUT = ROOT / "out"
+#: the dollar value of one unit of each index's currency, for sizing a position in dollars (display only)
+FX = {"^GDAXI": "EURUSD=X", "^FTSE": "GBPUSD=X"}
 
 
 def decisions(closes: dict[date, float]) -> dict[tuple[int, int], bool | None]:
@@ -191,9 +193,11 @@ def last_trading_day(month: date) -> str:
     return str(d)
 
 
-def this_month(closes: dict[str, dict[date, float]], month: date) -> list[dict]:
+def this_month(closes: dict[str, dict[date, float]], month: date, fx: dict[str, float | None] | None = None
+               ) -> list[dict]:
     """For each index: this month's decision, the month-end close it rests on and the ten-month mean, the latest
-    close, and at it the units of a HALF position ($25,000) and the next day's one-day stop (6% below it)."""
+    close, and at it the units of a HALF position ($25,000) and the next day's one-day stop (6% below it). An index
+    priced in euros or pounds is sized at the latest rate in `fx`; without one its units are unknown, not guessed."""
     notional = TRACKS["HALF"]["expo"] * BALANCE / len(closes)
     out = []
     for s, c in closes.items():
@@ -203,13 +207,16 @@ def this_month(closes: dict[str, dict[date, float]], month: date) -> list[dict]:
                "month_end": str(ends[-1][0]) if ends else None, "month_end_close": ends[-1][1] if ends else None,
                "mean_of_ten": sum(x for _, x in ends[-T.MONTHS:]) / T.MONTHS if len(ends) >= T.MONTHS else None,
                "latest": str(latest) if latest else None, "latest_close": c[latest] if latest else None}
-        row["units_half"] = round(notional / row["latest_close"], 2) if row["latest_close"] else None
+        usd = 1.0 if s not in FX else (fx or {}).get(s)
+        row["usd_per_currency_unit"] = usd
+        row["units_half"] = round(notional / (row["latest_close"] * usd), 2) if row["latest_close"] and usd else None
         row["stop_half"] = round(row["latest_close"] * (1 - TRACKS["HALF"]["stop"]), 2) if row["latest_close"] else None
         out.append(row)
     return out
 
 
-def report(tracks: dict[str, dict], now: datetime, closes: dict[str, dict[date, float]] | None = None) -> str:
+def report(tracks: dict[str, dict], now: datetime, closes: dict[str, dict[date, float]] | None = None,
+           fx: dict[str, float | None] | None = None) -> str:
     names = {"^GSPC": "US500", "^NDX": "NAS100", "^GDAXI": "GER40", "^FTSE": "UK100"}
     ar_status = {"PHASE 1": "المرحلة الأولى (الهدف +10%)", "PHASE 2": "المرحلة الثانية (الهدف +5%)",
                  "FUNDED": "ممول (بدون هدف)", "FAILED": "فشل"}
@@ -225,7 +232,7 @@ def report(tracks: dict[str, dict], now: datetime, closes: dict[str, dict[date, 
             continue
         lines.append(f"- مسار {'نص الحجم' if name == 'HALF' else 'الحجم الكامل'}: {ar_status[r['status']]}، "
                      f"الرصيد ${r['equity']:,.0f} (من ${r['base']:,.0f}: {pl:+,.0f})، ماسك: {held}.")
-    rows = this_month(closes, month) if closes else []
+    rows = this_month(closes, month, fx) if closes else []
     if rows:
         inn = "، ".join(names[r["index"]] for r in rows if r["held"]) or "ولا مؤشر"
         out = "، ".join(names[r["index"]] for r in rows if r["held"] is False) or "ولا مؤشر"
@@ -254,15 +261,17 @@ def report(tracks: dict[str, dict], now: datetime, closes: dict[str, dict[date, 
     if rows:
         lines += ["", f"## This month's decisions ({month:%B %Y})", "",
                   "What the rule holds now, and at the latest close what a HALF position ($25,000) is and where its "
-                  "one-day stop sits for the next day.", "",
+                  "one-day stop sits for the next day. GER 40 and UK 100 are priced in euros and pounds: their units "
+                  "use the latest EUR/USD and GBP/USD rates (shown); the contract size of a lot is the broker's.", "",
                   "| Index | This month | Month-end close | Mean of ten month-ends | Latest close | HALF units | HALF stop |",
                   "|---|---|---|---|---|---|---|"]
         for r in rows:
             held = {True: "**HOLD**", False: "flat", None: "unknown: flat"}[r["held"]]
             fmt = lambda x: f"{x:,.2f}" if x is not None else "—"  # noqa: E731
+            rate = f" at {r['usd_per_currency_unit']:.4f}" if r["index"] in FX and r["usd_per_currency_unit"] else ""
             lines.append(f"| {names[r['index']]} | {held} | {fmt(r['month_end_close'])} ({r['month_end']}) | "
                          f"{fmt(r['mean_of_ten'])} | {fmt(r['latest_close'])} ({r['latest']}) | "
-                         f"{fmt(r['units_half'])} | {fmt(r['stop_half'])} |")
+                         f"{fmt(r['units_half'])}{rate} | {fmt(r['stop_half'])} |")
     lines += ["", "## The rules", "",
               "TRND-1's rule, unchanged, on the US 500, US Tech 100, GER 40 and UK 100: an index is held for a month if "
               "the last month-end close before it is above the mean of the ten month-end closes before it; never short. "
@@ -272,13 +281,26 @@ def report(tracks: dict[str, dict], now: datetime, closes: dict[str, dict[date, 
     return "\n".join(lines) + "\n"
 
 
+def fetch_fx(now: datetime) -> dict[str, float | None]:
+    """The latest EUR/USD and GBP/USD, for sizing only; a rate that cannot be read is None."""
+    out: dict[str, float | None] = {}
+    for sym, pair in FX.items():
+        try:
+            rows = T._yahoo(pair, now)
+            out[sym] = rows[-1][1] if rows else None
+        except Exception:  # noqa: BLE001 - shown as unknown, never guessed
+            out[sym] = None
+    return out
+
+
 def cmd_run(now: datetime) -> None:
     closes = fetch(now)
+    fx = fetch_fx(now)
     tracks = {name: run(closes, t["expo"], stop=t["stop"]) for name, t in TRACKS.items()}
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "state.json").write_text(json.dumps({"version": VERSION, "updated": now.isoformat(), "start": str(START),
                                                 "tracks": tracks}, indent=1, sort_keys=True, default=str) + "\n")
-    (OUT / "REPORT.md").write_text(report(tracks, now, closes))
+    (OUT / "REPORT.md").write_text(report(tracks, now, closes, fx))
     for name, r in tracks.items():
         print(name, r["status"], r["equity"], r["last_date"], r["held"])
 

@@ -128,12 +128,14 @@ def test_the_months_decisions_show_the_rule_and_the_half_positions():
     falling = {d: 200.0 - p for d, p in rising.items()}
     closes = {"^GSPC": rising | {date(2026, 11, 6): 100.0}, "^NDX": falling | {date(2026, 11, 6): 100.0},
               "^GDAXI": rising | {date(2026, 11, 6): 50.0}, "^FTSE": {date(2026, 11, 6): 10.0}}
-    rows = {r["index"]: r for r in P.this_month(closes, date(2026, 11, 1))}
+    rows = {r["index"]: r for r in P.this_month(closes, date(2026, 11, 1), {"^GDAXI": 1.25, "^FTSE": None})}
     assert rows["^GSPC"]["held"] is True and rows["^NDX"]["held"] is False and rows["^FTSE"]["held"] is None
     assert rows["^GSPC"]["month_end"] == "2026-10-28" and rows["^GSPC"]["month_end_close"] == 80.0
     assert rows["^GSPC"]["mean_of_ten"] == pytest.approx(sum(70.0 + m for m in range(1, 11)) / 10)
     assert rows["^GSPC"]["units_half"] == 250.0 and rows["^GSPC"]["stop_half"] == 94.0  # $25,000 at 100; 6% below
+    assert rows["^GDAXI"]["units_half"] == 400.0  # euros: $25,000 is 20,000 euros at 1.25, 400 units at 50
+    assert rows["^FTSE"]["units_half"] is None  # no GBP/USD rate: unknown, not a guess
     text = P.report({n: P.run(closes, t["expo"], stop=t["stop"]) for n, t in P.TRACKS.items()},
-                    datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc), closes)
+                    datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc), closes, {"^GDAXI": 1.25, "^FTSE": None})
     assert "| US500 | **HOLD** |" in text and "| NAS100 | flat |" in text and "| UK100 | unknown: flat |" in text
     assert "هالشهر القاعدة ماسكة: US500، GER40. وبرّه: NAS100." in text
