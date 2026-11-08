@@ -130,6 +130,19 @@ Several accounts on the same rule win and fail together, so a plan of N accounts
   That is $1.2M of funded capital, more than one firm usually allows.
 - **HALF is too slow for a funded account.** It rarely lost an account, but over three years it lost money in 58% of
   starts, because its challenges took too long to pass.
+- **The first four or five months, at FULL:**
+
+  | | After 4 months | After 5 months |
+  |---|---|---|
+  | Still in phase 1 | 81% | 72% |
+  | Phase 1 passed | 15% | 23% |
+  | FUNDED reached | 4% | 7% |
+  | Any payout | 1% | 2% |
+  | Account lost | 5% | 6% |
+
+  On 2021-2026 alone, after five months, 83% were still in phase 1 and none was FUNDED. A trial of four or five
+  months therefore cannot show this rule's payouts. It can only show the account moving toward its target. These
+  figures are in `first_months_at_FULL` of the same results file.
 - **Keeping profit in the account as a cushion paid less.** With $10,000 kept back, three FULL accounts' three-year
   median fell to about $37,000; with $20,000, to about $13,000. Paying out all of it each month did best.
 

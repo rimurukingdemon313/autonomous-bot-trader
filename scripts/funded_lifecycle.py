@@ -87,6 +87,33 @@ def plan_summary(days: list[tuple[date, float]], accounts: int, n_days: int) -> 
             "mean_fees": round(accounts * statistics.mean(x["fees"] for x in lives))}
 
 
+def first_months(days: list[tuple[date, float]], since: date, n_days: int) -> dict:
+    """Where one account stands after its first n_days trading days, from every start month on or after `since`:
+    still in phase 1, phase 1 passed, FUNDED reached, any payout, or lost."""
+    starts = [i for i, (d, _) in enumerate(days) if d >= since and (i == 0 or days[i - 1][0].month != d.month)
+              and i + n_days <= len(days)]
+    tally = {"phase1_passed": 0, "funded": 0, "paid": 0, "lost": 0, "still_in_phase1": 0}
+    for i0 in starts:
+        phase, equity, phase_days, paid = 1, 0.0, 0, False
+        for k, (d, pl) in enumerate(days[i0:i0 + n_days]):
+            equity += pl
+            phase_days += 1
+            if pl <= -P.DAILY_LOSS or equity <= -P.MAX_LOSS:
+                tally["lost"] += 1
+                phase = 0
+                break
+            if phase in P.TARGETS and phase_days >= P.MIN_TRADING_DAYS and equity >= P.TARGETS[phase]:
+                tally["phase1_passed" if phase == 1 else "funded"] += 1
+                phase, equity, phase_days = phase + 1, 0.0, 0
+                continue
+            if phase == 3 and k + 1 < n_days and days[i0 + k + 1][0].month != d.month and equity > 0:
+                paid, equity = True, 0.0
+        tally["paid"] += paid
+        tally["still_in_phase1"] += phase == 1
+    n = len(starts)
+    return {"starts": n, **{k: round(v / n, 3) for k, v in tally.items()}}
+
+
 def main() -> int:
     T.DATA = Path(sys.argv[1])
     data = T.load(T.HOLDOUT_INDICES, date(1984, 1, 1), date(2026, 11, 1))
@@ -98,6 +125,11 @@ def main() -> int:
         report["plans"][plan] = {h: plan_summary(series[track], n, d) for h, d in HORIZONS.items()}
         for h, r in report["plans"][plan].items():
             print(plan, h, json.dumps(r))
+    report["first_months_at_FULL"] = {
+        f"{label}, {m} months": first_months(series["FULL"], since, 21 * m)
+        for label, since in (("1990-2026", date(1990, 1, 1)), ("2021-2026", date(2021, 1, 1))) for m in (4, 5)}
+    for k, v in report["first_months_at_FULL"].items():
+        print("first months:", k, json.dumps(v))
     OUT.write_text(json.dumps(report, indent=1, sort_keys=True) + "\n")
     return 0
 
