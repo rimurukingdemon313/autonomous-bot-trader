@@ -192,5 +192,8 @@ day, so that it needs no new decision. None of them is a promise.
 - **The one-day stop:** for each index held, a stop order 6% below the previous day's close, moved each evening after
   the close. After it is hit, the index is flat until the next month-end decision.
 - **Nothing added after a loss.** No martingale, no doubling, no "winning it back" (CLAUDE.md rule 2).
-- **The bot does not trade it.** The bot is DEMO-only by its own permanent rule (CLAUDE.md rule 1), and nothing here
-  changes that. The rule needs one decision a month, which this report gives, so a person can follow it by hand.
+- **The system trades it itself, on paper (from 2026-11-09; the owner, 2026-11-08: "the system trades by itself").**
+  The trend desk (`docs/TREND_DESK.md`) runs this HALF track's rule, size and stop through the bot's own execution
+  path: the risk engine, the hard gate and the paper broker. It runs on its own $200,000 paper account, with no
+  person placing a trade. A funded account would need a broker connection, which this build does not have. Under the
+  permanent DEMO rule (CLAUDE.md rule 1), the account is used only if the broker itself reports it as demo.

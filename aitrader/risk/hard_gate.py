@@ -49,8 +49,12 @@ from .profile import HardRiskProfile, loss_per_lot, pip_of
 #:        recorded as an FTMO-rule violation, without the kill switch; status reports the risk state.
 #: 1.2.0: `open_risk_room` (read-only): the open-risk limit left, valued as authorize() values it, so a caller can
 #:        skip asking for a trade the gate would refuse for open risk; authorize() is unchanged and still decides.
-GATE_VERSION = "hard-gate-1.2.0"
-SYMBOL_RE = re.compile(r"^[A-Z0-9]{6,12}$")
+#: 1.3.0 (the trend desk): `authorize_stop` / `redeem_stop` / `confirm_stop`: moving an open position's stop needs a
+#:        single-use stop permit. A move toward the price only lowers risk and is approved in any state; a move away
+#:        from it is new risk, checked as a new trade's is and refused in a locked or killed run. An instrument code
+#:        may have 5 characters (US500, GER40, UK100). New positions are otherwise authorised exactly as before.
+GATE_VERSION = "hard-gate-1.3.0"
+SYMBOL_RE = re.compile(r"^[A-Z0-9]{5,12}$")  # 5 since 1.3.0: the index CFDs US500, GER40, UK100
 RESET_CONFIRMATION = "RESET-EVALUATION"
 CLEAR_KILL_CONFIRMATION = "CLEAR-KILL-SWITCH"
 _STATE_KEY = "state"
@@ -96,13 +100,26 @@ class Permit:
     expires: int
 
 
+@dataclass(frozen=True)
+class StopPermit:
+    """Authorises one stop move: this position, this stop, once, before it expires."""
+
+    id: str
+    position_id: str
+    client_id: str
+    stop: float
+    tighter: bool  # toward the price: risk only falls
+    issued: int
+    expires: int
+
+
 @dataclass
 class GateResult:
     approved: bool
     code: str  # APPROVED or the first rejection code
     reasons: list[str] = field(default_factory=list)  # "CODE: detail", every failed check
     calc: dict = field(default_factory=dict)
-    permit: Permit | None = None
+    permit: Permit | StopPermit | None = None
     line: str = ""
 
     @property
@@ -131,6 +148,7 @@ class HardRiskGate:
         self.clock = clock
         self._lock = threading.RLock()
         self._permits: dict[str, tuple[Permit, bool]] = {}  # id -> (permit, used)
+        self._stop_permits: dict[str, tuple[StopPermit, bool]] = {}
         ok, msg = db.verify_chain("risk_gate_log")
         self._chain_fault = None if ok else msg
 
@@ -608,6 +626,164 @@ class HardRiskGate:
                 return "INVALID_EXECUTION_PERMIT: no reservation for this client id"
             self._permits[permit.id] = (permit, True)
             return None
+
+    # ── moving an open position's stop ──────────────────────────────────
+
+    def authorize_stop(self, position_id: str, stop, broker) -> GateResult:
+        """TRADE (with a single-use stop permit) or NO TRADE for moving the stop of a position this gate authorised.
+
+        - Toward the price (or unchanged): the position can only lose less. Approved in any state of the run, a lock,
+          a kill switch or a spent day included, as long as the stop is valid against a fresh price: a control that
+          can only reduce risk is never locked.
+        - Away from the price: new risk. The loss from the price to the new stop, with costs, must fit the per-trade
+          risk; the open risk with this position's new loss must fit its limit; if every stop were hit, equity must
+          stay above the daily and the total floors. Refused in a locked or killed run, or on a locked day.
+
+        Never raises for a bad request: it refuses it, and the old stop stays."""
+        with self._lock:
+            now = self.clock()
+            calc: dict = {"t": now, "position_id": position_id, "new_stop": stop, "profile": self._profile.name}
+            st, e = None, None
+            try:
+                st = self._load()
+                if st is None:
+                    raise _Reject("UNKNOWN_POSITION", "no evaluation run has started: the gate holds no position")
+                calc["run_id"] = st["run_id"]
+                cid, e, tighter = self._stop_move(st, position_id, stop, broker, now, calc)
+            except _Reject as rej:
+                return self._refuse_stop(st, e, position_id, stop, rej, calc, now)
+            except Exception as exc:  # noqa: BLE001 - anything unexpected is NO TRADE, and the reason is kept
+                return self._refuse_stop(st, e, position_id, stop, _Reject("RISK_DATA_UNVERIFIED",
+                                                                         f"{type(exc).__name__}: {exc}", kill=True),
+                                         calc, now)
+            permit = StopPermit(uuid.uuid4().hex, position_id, cid, float(stop), tighter, now,
+                                now + self._profile.permit_ttl_s)
+            self._save(st)
+            self._stop_permits[permit.id] = (permit, False)
+            res = GateResult(True, "APPROVED", [], calc, None)
+            res.permit = permit
+            res.line = (f"RISK_GATE_STOP_APPROVED position={position_id} stop={_fmt(calc.get('old_stop'))}->{stop} "
+                        f"{'toward' if tighter else 'away from'} the price, remaining_loss="
+                        f"{calc['remaining_loss_after']:.2f}")
+            self._log("STOP_MOVE", {**calc, "approved": True, "line": res.line}, st["run_id"], e["decision_id"], True)
+            log_event("RISK_GATE", res.line, severity="info", position_id=position_id, code="APPROVED")
+            return res
+
+    def _stop_move(self, st: dict, position_id: str, stop, broker, now: int, calc: dict) -> tuple[str, dict, bool]:
+        p = self._profile
+        self._account(st, broker, now, calc)  # the account as authorize() reads it; a conflict trips the kill switch
+        self._day(st, now, calc)
+        held = [(c, e) for c, e in st["ledger"].items() if e.get("position_id") == position_id and e["status"] == "OPEN"]
+        bp = next((b for b in broker.positions() if b.id == position_id), None)
+        if len(held) != 1 or bp is None:
+            raise _Reject("UNKNOWN_POSITION", f"position {position_id} is not an open position this gate authorised")
+        cid, e = held[0]
+        new, old = _num(stop), _num(bp.stop)
+        q = self._quote(broker, bp.symbol, now, calc)
+        exit_px = q["bid"] if bp.side > 0 else q["ask"]
+        if new is None or new <= 0 or (exit_px - new) * bp.side <= 0:
+            raise _Reject("INVALID_STOP_LOSS", f"stop {stop!r} is not on the loss side of the price {exit_px}")
+        spec = broker.spec(bp.symbol)
+        cs, vpu = (_num(spec.contract_size), _num(spec.value_per_price_unit)) if spec is not None else (None, None)
+        if not cs or not vpu or cs <= 0 or vpu <= 0:
+            raise _Reject("RISK_DATA_UNVERIFIED", f"{bp.symbol} cannot be valued (no instrument specification)",
+                          kill=True)
+        units = cs * vpu * bp.qty
+
+        def remaining(level: float) -> float:  # as _account() values an open position's loss to its stop
+            return (max(0.0, (exit_px - level) * bp.side) * units + p.slippage_pips * pip_of(bp.symbol) * units
+                    + p.commission_per_lot_rt * bp.qty + max(0.0, e["swap_per_night"]) * p.swap_nights_allowance * units)
+
+        rem_old = remaining(old) if old is not None else math.inf
+        rem_new = remaining(new)
+        tighter = old is not None and (new - old) * bp.side >= 0
+        calc.update(symbol=bp.symbol, side=bp.side, qty=bp.qty, old_stop=old, exit_price=exit_px, tighter=tighter,
+                    remaining_loss_before=rem_old, remaining_loss_after=rem_new)
+        if tighter:
+            return cid, e, True
+        # ── away from the price: new risk, checked as a new trade's ──
+        if st["lock"] is not None:
+            raise _Reject("RISK_LOCKED", f"evaluation run locked: {st['lock']['code']}; a stop may only come closer")
+        if st["kill"] is not None:
+            raise _Reject("KILL_SWITCH_ACTIVE", f"gate kill switch: {st['kill']['code']}; a stop may only come closer")
+        ks = self.db.get_kv("kill_switch", None)
+        if not isinstance(ks, dict) or ks.get("active") is not False:
+            raise _Reject("KILL_SWITCH_ACTIVE", f"system kill switch active or unreadable ({ks!r}); a stop may only "
+                                                "come closer")
+        if (st.get("day_lock") or {}).get("day") == calc["day_id"]:
+            raise _Reject("DAILY_LOCK", "the daily loss limit was reached today; a stop may only come closer")
+        if rem_new > p.risk_per_trade + 1e-9:
+            raise _Reject("PER_TRADE_RISK", f"loss to the new stop incl. costs {rem_new:.2f} > per-trade risk "
+                                            f"{p.risk_per_trade:.2f}")
+        open_after = calc["open_risk"] - max(e["max_loss"], rem_old) + max(e["max_loss"], rem_new)
+        calc["open_risk_after"] = open_after
+        if open_after > p.max_open_risk + 1e-9:
+            raise _Reject("OPEN_RISK_LIMIT", f"open risk with the new stop {open_after:.2f} > limit {p.max_open_risk:.2f}")
+        worst = calc["equity_conservative"] - (calc["open_remaining_loss"] - rem_old + rem_new)
+        calc["worst_case_equity"] = worst
+        if worst <= calc["daily_floor"]:
+            raise _Reject("DAILY_LOSS_LIMIT", f"if every stop is hit: {worst:.2f} <= daily floor {calc['daily_floor']:.2f}")
+        if worst <= p.total_loss_floor:
+            raise _Reject("MAX_TOTAL_LOSS", f"if every stop is hit: {worst:.2f} <= floor {p.total_loss_floor:.2f}")
+        return cid, e, False
+
+    def _refuse_stop(self, st, e, position_id, stop, rej: _Reject, calc: dict, now: int) -> GateResult:
+        res = GateResult(False, rej.code, [f"{rej.code}: {rej.detail}"], calc)
+        res.line = f"RISK_GATE_STOP_REJECTED position={position_id} stop={stop} reason={rej.code} detail={rej.detail!r}"
+        run_id = st["run_id"] if st else None
+        if st is not None:  # a trusted state: keep what this call learned (the day's reference, closures)
+            try:
+                if rej.kill and st["kill"] is None:  # unverifiable data: the same consequence as for a new trade
+                    st["kill"] = {"code": rej.code, "detail": rej.detail, "t": now}
+                    self._log("KILL_SWITCH", st["kill"], run_id)
+                self._save(st)
+            except Exception as exc:  # noqa: BLE001 - the refusal stands regardless
+                res.reasons.append(f"STATE_WRITE_FAILED: {exc}")
+        if rej.kill:
+            self._trip_system_kill_switch(rej)
+        self._log("STOP_MOVE", {**calc, "approved": False, "code": rej.code, "detail": rej.detail, "line": res.line},
+                  run_id, (e or {}).get("decision_id"), False)
+        log_event("RISK_GATE", res.line, severity="warning", position_id=position_id, code=rej.code)
+        return res
+
+    def redeem_stop(self, permit, *, position_id: str, client_id: str, stop: float) -> str | None:
+        """The paper broker's check for a stop move: None if the permit authorises exactly this move (it is then
+        spent), else why not. A move away from the price is refused if the run locked after the permit was issued."""
+        with self._lock:
+            if not isinstance(permit, StopPermit):
+                return "NO_STOP_PERMIT: a stop move needs a permit issued by the hard risk gate"
+            held = self._stop_permits.get(permit.id)
+            if held is None or held[0] != permit:
+                return "INVALID_STOP_PERMIT: not issued by this gate"
+            if held[1]:
+                return "INVALID_STOP_PERMIT: already used"
+            if self.clock() > permit.expires:
+                return "INVALID_STOP_PERMIT: expired"
+            if (permit.position_id, permit.client_id, permit.stop) != (position_id, client_id, stop):
+                return "INVALID_STOP_PERMIT: the move differs from what the gate approved"
+            if not permit.tighter:
+                try:
+                    st = self._load()
+                except _Reject as rej:
+                    return f"{rej.code}: {rej.detail}"
+                if st is None or st["lock"] is not None or st["kill"] is not None:
+                    return "RISK_LOCKED: the gate locked or killed after the permit was issued"
+                if (st.get("day_lock") or {}).get("day") == self.day_id(self.clock()):
+                    return "DAILY_LOCK: the daily loss limit was reached after the permit was issued"
+            self._stop_permits[permit.id] = (permit, True)
+            return None
+
+    def confirm_stop(self, client_id: str, stop: float) -> None:
+        """The broker moved it: the ledger records the stop now held."""
+        with self._lock:
+            st = self._load_quiet()
+            e = st["ledger"].get(client_id) if st else None
+            if e is None:
+                return
+            e["stop"] = stop
+            self._save(st)
+            self._log("STOP_MOVED", {"client_id": client_id, "position_id": e.get("position_id"), "stop": stop},
+                      st["run_id"], e["decision_id"])
 
     def _load_quiet(self) -> dict | None:
         """For bookkeeping after the broker answered: an untrusted state is left alone (the next authorisation

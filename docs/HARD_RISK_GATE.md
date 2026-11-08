@@ -126,6 +126,21 @@ The orchestrator calls `observe()` every cycle, so the reference is taken prompt
 locks the run even when nothing is proposed. Losses between the last observation and the reset are counted on
 the new day, which is the conservative side. Every rejection logs these numbers.
 
+### Moving a stop (hard-gate-1.3.0)
+
+An open position's stop moves only with the gate's single-use **stop permit** (`authorize_stop`). It is bound to
+that position and that stop, it expires, and the paper broker refuses a move without one (`modify_stop`):
+
+- **Toward the price** (or unchanged): the position can only lose less. The move is approved in any state of the run:
+  a lock, a kill switch or a spent day included. The stop must still be on the loss side of a fresh price.
+- **Away from the price:** this is new risk, checked as a new trade is.
+  - The loss from the price to the new stop, with costs, must fit the per-trade risk.
+  - The open risk with that loss must fit its limit.
+  - If every stop were hit, equity must stay above the daily and total floors.
+  - The move is refused in a locked or killed run, or on a locked day; the old, closer stop stays.
+
+The trend desk (`docs/TREND_DESK.md`) moves each held index's stop to 6% below every close this way.
+
 ## 4. Lock and kill switch
 
 | | Trips on | Cleared by |

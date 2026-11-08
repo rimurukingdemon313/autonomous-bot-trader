@@ -22,6 +22,7 @@ from .learning.review import REVIEW_VERSION
 from .llm.provider import PROMPT_VERSION
 from .memory.patterns import MEMORY_VERSION
 from .orchestrator.core import ORCHESTRATOR_VERSION
+from .position.trend_desk import TREND_DESK_VERSION
 from .regime.model import REGIME_VERSION
 from .research.labels import LABEL_VERSION
 from .risk.engine import RISK_VERSION
@@ -41,4 +42,4 @@ def stamp() -> dict[str, str]:
             "learning": LEARNING_VERSION, "review": REVIEW_VERSION, "llm_trader": LLM_TRADER_VERSION,
             "experimental_ai": EXPERIMENTAL_AI_VERSION, "edge_status": EDGE_STATUS_VERSION,
             "forward": FORWARD_VERSION, "forward_metrics": METRICS_VERSION, "taxonomy": TAXONOMY_VERSION,
-            "dual_ai": DUAL_AI_VERSION}
+            "dual_ai": DUAL_AI_VERSION, "trend_desk": TREND_DESK_VERSION}

@@ -25,19 +25,31 @@ from __future__ import annotations
 #: a model's included, may EXECUTE: on the paper broker only, still through the risk engine and the hard gate.
 #: 1.3.0: the DUAL_AI signal class (DECISION_MODE=dual_ai); routes unchanged: a model's trade executes in
 #: PAPER_FORWARD only.
-EDGE_STATUS_VERSION = "edge-status-1.3.0"
+#: 1.4.0: the TREND signal class (the trend desk, aitrader/position/trend_desk.py): a rule's decision is VALIDATED
+#: only if a person promoted that rule (models/artifacts/promoted_rules.json) with status VALIDATED and health
+#: HEALTHY; otherwise PROMISING or EXPERIMENTAL, as for an edge. Routes unchanged.
+EDGE_STATUS_VERSION = "edge-status-1.4.0"
 #: Modes whose orders are simulated in-process. PAPER_FORWARD is a paper mode; there is no live mode here.
 PAPER_MODES = ("PAPER", "PAPER_FORWARD")
 EDGE_STATUSES = ("VALIDATED", "PROMISING", "EXPERIMENTAL", "NONE")
 
 SIGNAL_CLASS = {"evidence": "EVIDENCE", "llm_trader": "LLM_TRADER", "trading_room": "TRADING_ROOM",
-                "edges": "EDGE", "experimental_ai": "EXPERIMENTAL_AI", "dual_ai": "DUAL_AI"}
+                "edges": "EDGE", "experimental_ai": "EXPERIMENTAL_AI", "dual_ai": "DUAL_AI", "trend_desk": "TREND"}
 
 
 def classify(decision, decision_mode: str, promoted: list | None = None) -> str:
     """The decision's edge status. Unknown or missing evidence is EXPERIMENTAL, never VALIDATED."""
     if decision.decision not in ("BUY", "SELL"):
         return "NONE"
+    if decision_mode == "trend_desk":  # a promoted RULE (models/artifacts/promoted_rules.json), never an edge
+        rule_id = next((s.get("rule_id") for s in decision.supporting_evidence or [] if isinstance(s, dict)
+                        and s.get("rule_id")), None)
+        rule = next((r for r in promoted or [] if getattr(r, "rule_id", None) == rule_id), None) if rule_id else None
+        if rule is None:
+            return "EXPERIMENTAL"
+        if rule.status == "VALIDATED" and rule.health == "HEALTHY":
+            return "VALIDATED"
+        return "PROMISING" if rule.status in ("VALIDATED", "PROMISING") else "EXPERIMENTAL"
     if decision_mode != "edges":
         return "EXPERIMENTAL"  # no model or analogue path has validated forward evidence
     edge_id = next((s.get("edge_id") for s in decision.supporting_evidence or [] if isinstance(s, dict)

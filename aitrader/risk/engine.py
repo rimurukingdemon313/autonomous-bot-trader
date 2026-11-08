@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, timezone
 from math import floor
 from zoneinfo import ZoneInfo
 
+from ..data.instruments import INDEX_POINT, is_index
 from .profile import HardRiskProfile, loss_per_lot
 
 #: 1.1.0: the cost ceiling counts the WHOLE round trip (spread + commission + slippage on both fills)
@@ -88,7 +89,13 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   only levels traded since dual-ai 1.10.0, from 2026-10-19, and counted once per pair while one would still be
 #:   open: the 34 refused for structure alone did +0.03 R (41% won), the 53 taken -0.05 R. It is reversed.
 #:   `require_clear_structure` and its check stay, for a profile that asks for them.
-RISK_VERSION = "risk-1.15.0"
+#: 1.16.0 (the owner, 2026-11-08: "the system trades by itself"; the trend desk, docs/TREND_DESK.md): a decision whose
+#:   edge status is VALIDATED (a rule that passed its preregistered test and its holdout, promoted by a person) may be
+#:   sized up to VALIDATED_MAX_RISK_PCT (1%) of equity, within its limits' own per-trade risk and the hard profile's
+#:   fixed amount; every other decision stays at UNVALIDATED_MAX_RISK_PCT (0.25%), whatever its limits say. Equity-
+#:   index CFDs: a 1-point pip, and an index is its own exposure (it shares no currency with a pair or another index).
+#:   Every FX and metal decision is sized and checked exactly as before.
+RISK_VERSION = "risk-1.16.0"
 #: a quote stamped this far after the moment of opening is not a quote of now (the hard gate's own tolerance)
 QUOTE_FUTURE_S = 5
 NEW_YORK = ZoneInfo("America/New_York")
@@ -113,6 +120,9 @@ HARD_MAX_RISK_PCT = 1.0
 #: While no edge is VALIDATED (research_status.json: none is), no configuration can take per-trade risk
 #: above this. Raising it requires a validated edge and a reviewed code change, never an environment variable.
 UNVALIDATED_MAX_RISK_PCT = 0.25
+#: The most a VALIDATED decision may risk (1.16.0): the hard ceiling. Only a decision whose edge status is VALIDATED
+#: reaches it, and only up to its own limits' risk_per_trade_pct; the service's FX desk clamps that to 0.25% anyway.
+VALIDATED_MAX_RISK_PCT = HARD_MAX_RISK_PCT
 
 
 @dataclass(frozen=True)
@@ -205,8 +215,9 @@ class RiskLimits:
             raise ValueError("closed_utc_windows must be a tuple of (start, end) or (weekday, start, end): minutes after "
                              f"00:00 UTC, 0 <= start < end <= 1440, weekday 0..6 (got {self.closed_utc_windows!r})")
 
-    def effective_risk_pct(self) -> float:
-        pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT)
+    def effective_risk_pct(self, validated: bool = False) -> float:
+        cap = VALIDATED_MAX_RISK_PCT if validated is True else UNVALIDATED_MAX_RISK_PCT
+        pct = min(self.risk_per_trade_pct, HARD_MAX_RISK_PCT, cap)
         if self.funded and self.funded.max_risk_per_trade_pct is not None:
             pct = min(pct, self.funded.max_risk_per_trade_pct)
         return max(0.0, pct)
@@ -280,7 +291,15 @@ class RiskVerdict:
 
 
 def pip_size(symbol: str) -> float:
+    if is_index(symbol):
+        return INDEX_POINT
     return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
+
+
+def exposures(symbol: str) -> tuple[str, ...]:
+    """What a position in `symbol` is exposed to, for the per-currency limit: a pair's two currencies; an index CFD
+    is its own exposure, shared with nothing else."""
+    return (symbol,) if is_index(symbol) else (symbol[:3], symbol[3:])
 
 
 def streak_multiplier(closed_r: list[float], step: int, floor_: float) -> float:
@@ -374,8 +393,8 @@ class RiskEngine:
                Check("same_symbol", all(p["symbol"] != instrument for p in opens),
                      "a position in this instrument is already open" if any(p["symbol"] == instrument for p in opens)
                      else "none open")]
-        ccy = {instrument[:3], instrument[3:]}
-        per_ccy = max((sum(1 for p in opens if c in (p["symbol"][:3], p["symbol"][3:])) for c in ccy), default=0)
+        ccy = set(exposures(instrument))
+        per_ccy = max((sum(1 for p in opens if c in exposures(p["symbol"])) for c in ccy), default=0)
         out.append(Check("currency_exposure", per_ccy < L.max_positions_per_currency,
                          f"{per_ccy} open positions share a currency, max {L.max_positions_per_currency}"))
         return out
@@ -561,7 +580,8 @@ class RiskEngine:
         stop, target = decision.stop_loss, decision.take_profit
         spread = quote.ask - quote.bid
         v.entry_ref, v.stop, v.target = entry, stop, target
-        time_exit = getattr(decision, "exit_kind", "STOP_TARGET") == "TIME"
+        # a time exit, or a rule's own exit (RULE: its next decision or its stop closes it), needs no target
+        time_exit = getattr(decision, "exit_kind", "STOP_TARGET") in ("TIME", "RULE")
 
         # ── the trade itself ────────────────────────────────────────────
         # Every trade needs a protective stop: it is what bounds the loss and what the size is computed
@@ -609,8 +629,12 @@ class RiskEngine:
             return v
 
         # ── size: equity x risk%, never the AI's opinion ────────────────
+        # VALIDATED is read from the decision, where only the deterministic classifier sets it (edge_status.classify);
+        # anything else, a missing status included, is unvalidated.
+        validated = getattr(decision, "edge_status", None) == "VALIDATED"
+        ceiling_pct = min(HARD_MAX_RISK_PCT, VALIDATED_MAX_RISK_PCT if validated else UNVALIDATED_MAX_RISK_PCT)
         mult = streak_multiplier(account.closed_r, L.loss_streak_step, L.loss_streak_floor)
-        risk_pct = L.effective_risk_pct() * mult
+        risk_pct = L.effective_risk_pct(validated) * mult
         risk_amount = eq * risk_pct / 100.0
         per_lot = stop_dist * spec.value_per_price_unit * spec.contract_size
         if L.hard is not None:
@@ -630,8 +654,9 @@ class RiskEngine:
         notional = lots * spec.contract_size * entry * spec.value_per_price_unit
         exposure = sum(p.get("notional", 0.0) for p in account.open_positions) + notional
         ok &= check("leverage", exposure / eq <= L.max_leverage, f"{exposure / eq:.2f}x vs max {L.max_leverage}x")
-        ok &= check("risk_ceiling", actual <= eq * min(HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT) / 100 + 1e-9,
-                    f"risk {actual:.2f} vs ceiling {eq * min(HARD_MAX_RISK_PCT, UNVALIDATED_MAX_RISK_PCT) / 100:.2f}")
+        ok &= check("risk_ceiling", actual <= eq * ceiling_pct / 100 + 1e-9,
+                    f"risk {actual:.2f} vs ceiling {eq * ceiling_pct / 100:.2f} "
+                    f"({'VALIDATED' if validated else 'unvalidated'}: {ceiling_pct}%)")
         open_risk = sum(float(p.get("risk_amount") or 0.0) for p in account.open_positions)
         unknown = [p.get("symbol") for p in account.open_positions if p.get("risk_amount") is None]
         ok &= check("open_risk", not unknown and open_risk + actual <= eq * L.max_open_risk_pct / 100 + 1e-9,

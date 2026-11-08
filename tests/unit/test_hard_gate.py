@@ -1120,3 +1120,81 @@ def test_the_service_waits_for_quotes_only_on_a_live_feed(tmp_path, monkeypatch)
     monkeypatch.setattr(LiveLikeFeed, "LIVE", True, raising=False)  # the same service on a feed that is live
     rt, _, _ = pf_runtime(tmp_path / "live", monkeypatch)
     assert rt.execution.quote_wait is True
+
+
+# ── hard-gate-1.3.0: moving a stop needs the gate's stop permit ──────────────────────────────────────────────────
+
+
+def _open(e, did="s1", qty=5.0, stop=ASK - 0.0008):
+    assert execute(e, did, qty=qty, stop=stop).status == "FILLED"
+    return e.broker.positions()[0]
+
+
+def test_a_stop_moved_toward_the_price_is_approved_even_in_a_locked_or_killed_run():
+    e = env()
+    p = _open(e)
+    e.db.set_kv("kill_switch", {"active": True})
+    res = e.gate.authorize_stop(p.id, p.stop + 0.0004, e.broker)
+    assert res.approved and res.permit.tighter
+    assert e.broker.modify_stop(p.id, p.stop + 0.0004, permit=res.permit) == p.stop + 0.0004
+    away = e.gate.authorize_stop(p.id, p.stop - 0.0004, e.broker)
+    assert not away.approved and away.code == "KILL_SWITCH_ACTIVE"
+    assert e.broker.positions()[0].stop == p.stop + 0.0004  # the closer stop stands
+
+
+def test_a_stop_moved_away_beyond_the_per_trade_risk_is_refused_and_the_old_stop_stays():
+    e = env()
+    p = _open(e, qty=5.0, stop=ASK - 0.0008)  # 5 lots, 8 pips: about $400 at the stop
+    res = e.gate.authorize_stop(p.id, BID - 0.0020, e.broker)  # 20 pips: about $1,000 > $500
+    assert not res.approved and res.code == "PER_TRADE_RISK"
+    assert e.broker.positions()[0].stop == p.stop
+    ok = e.gate.authorize_stop(p.id, BID - 0.00085, e.broker)  # $425 to it, $485 with costs: inside the budget
+    assert ok.approved and not ok.permit.tighter
+
+
+def test_a_stop_permit_is_single_use_and_bound_to_its_position_and_stop():
+    e = env()
+    p = _open(e)
+    res = e.gate.authorize_stop(p.id, p.stop + 0.0002, e.broker)
+    with pytest.raises(BrokerRejected, match="NO_STOP_PERMIT"):
+        e.broker.modify_stop(p.id, p.stop + 0.0002)
+    with pytest.raises(BrokerRejected, match="differs"):
+        e.broker.modify_stop(p.id, p.stop + 0.0003, permit=res.permit)
+    e.broker.modify_stop(p.id, p.stop + 0.0002, permit=res.permit)
+    with pytest.raises(BrokerRejected, match="already used"):
+        e.broker.modify_stop(p.id, p.stop + 0.0002, permit=res.permit)
+    assert not e.gate.authorize_stop("P999", p.stop, e.broker).approved  # a position the gate never authorised
+
+
+def test_the_execution_engine_moves_a_stop_once_and_journals_it():
+    e = env()
+    p = _open(e)
+    out = e.ex.modify_stop(p.id, p.stop + 0.0003, "test")
+    assert out["status"] == "MOVED" and e.broker.positions()[0].stop == pytest.approx(p.stop + 0.0003)
+    row = e.db.one("SELECT stop FROM positions WHERE id=?", (p.id,))
+    assert row["stop"] == pytest.approx(p.stop + 0.0003)
+    assert e.db.query("SELECT 1 AS x FROM events WHERE type='STOP_MOVED'")
+    refused = e.ex.modify_stop(p.id, ASK + 0.0010, "above the price")
+    assert refused["status"] == "REFUSED" and e.broker.positions()[0].stop == pytest.approx(p.stop + 0.0003)
+
+
+def test_an_index_cfd_is_one_unit_a_lot_and_its_pnl_is_converted_at_the_rate():
+    e = env()
+    e.feed.q["GER40"] = [24_999.25, 25_000.75, None]
+    e.feed.q["EURUSD"] = [1.24995, 1.25005, None]
+    spec = e.broker.spec("GER40")
+    assert spec.contract_size == 1.0 and spec.value_per_price_unit == pytest.approx(1.25)
+    fill = open_direct_index(e, "GER40", 0.5, 24_500.0)  # 500 points at 0.5 lot: about $313 at the stop
+    e.feed.q["GER40"] = [25_099.25, 25_100.75, None]
+    pnl = e.broker.unrealised_by_position()[fill.position_id]
+    assert pnl == pytest.approx((25_099.25 - fill.price) * 0.5 * 1.25)
+    assert fill.price == pytest.approx(25_000.75 + 0.1)  # the ask, slipped by 0.1 point
+
+
+def open_direct_index(e, symbol, qty, stop):
+    q = e.broker.quote(symbol)
+    res = e.gate.authorize(TradeProposal(f"x-{symbol}", f"ai-x-{symbol}", symbol, 1, qty, q.ask, stop, None), e.broker)
+    assert res.approved, res.reasons
+    fill = e.broker.place_market(symbol, 1, qty, stop, None, f"ai-x-{symbol}", permit=res.permit)
+    e.gate.confirm(f"ai-x-{symbol}", fill.position_id)
+    return fill

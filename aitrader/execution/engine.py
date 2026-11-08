@@ -60,11 +60,14 @@ from ..risk.hard_gate import HardRiskGate, TradeProposal
 #:        trades as MARKET_DATA_STALE): a quote older than the gate's limit is waited for, bounded (up to 6 x 15 s),
 #:        before the final checks and the gate, on a LIVE feed only (a replay or a backtest has no next price to
 #:        wait for). A read retried; nothing has been sent; the gate still decides.
-EXECUTION_VERSION = "exec-1.8.0"
+#: 1.9.0 (the trend desk, docs/TREND_DESK.md): a position may have no target (a rule or its stop closes it); a rule's
+#:        own exit is recorded as RULE; `modify_stop` moves a stop with the hard gate's stop permit, once, never resent.
+#:        TREND is a deterministic signal class. Every other order is checked and sent exactly as before.
+EXECUTION_VERSION = "exec-1.9.0"
 #: a public feed stamps its price itself and can lag the gate's limit by a minute or two
 QUOTE_WAIT_S, QUOTE_WAIT_TRIES = 15, 6
 #: Signal classes a language model originates. They are SHADOW by route; refused here as a second check.
-DETERMINISTIC_SIGNAL_CLASSES = frozenset({"EVIDENCE", "EDGE"})
+DETERMINISTIC_SIGNAL_CLASSES = frozenset({"EVIDENCE", "EDGE", "TREND"})
 MODEL_SIGNAL_CLASSES = frozenset(SIGNAL_CLASS.values()) - DETERMINISTIC_SIGNAL_CLASSES
 UNKNOWN_RECHECKS = 5
 
@@ -169,7 +172,7 @@ class ExecutionEngine:
         live = q.ask if side > 0 else q.bid
         if (live - verdict.stop) * side <= 0:
             return f"price {live} already beyond the stop {verdict.stop}"
-        if (verdict.target - live) * side <= 0:
+        if verdict.target is not None and (verdict.target - live) * side <= 0:
             return f"price {live} already beyond the target {verdict.target}"
         ref = verdict.entry_ref
         if ref is not None and abs(ref - verdict.stop) > 0:
@@ -369,6 +372,35 @@ class ExecutionEngine:
             out.append((row, ct))
         return out
 
+    def modify_stop(self, position_id: str, stop: float, reason: str) -> dict:
+        """Move an open position's stop: the hard gate's stop permit, then the broker. A write: never retried, never
+        resent. {"status": MOVED | REFUSED | UNKNOWN, "detail", "stop"}. Refused or unknown, the broker's own stop
+        stands, and the gate values the position at whatever stop the broker reports."""
+        row = self.db.one("SELECT * FROM positions WHERE id=? AND status='OPEN'", (position_id,))
+        if row is None:
+            return {"status": "REFUSED", "detail": f"no open position {position_id} in the journal", "stop": None}
+        with self.gate.transaction():
+            res = self.gate.authorize_stop(position_id, stop, self.broker)
+            if not res.approved:
+                self.db.event("STOP_REFUSED", {"position": position_id, "stop": stop, "reason": reason,
+                                               "gate": res.code, "line": res.line}, ref=position_id)
+                return {"status": "REFUSED", "detail": res.line, "stop": row["stop"]}
+            try:
+                held = self.broker.modify_stop(position_id, stop, permit=res.permit)
+            except BrokerRejected as exc:
+                self.db.event("STOP_REFUSED", {"position": position_id, "stop": stop, "reason": reason,
+                                               "broker": str(exc)}, ref=position_id)
+                return {"status": "REFUSED", "detail": f"broker: {exc}", "stop": row["stop"]}
+            except BrokerError as exc:  # the outcome is unknown: asked, never resent
+                self.db.event("STOP_UNKNOWN", {"position": position_id, "stop": stop, "error": str(exc)}, ref=position_id)
+                return {"status": "UNKNOWN", "detail": str(exc), "stop": None}
+            self.gate.confirm_stop(res.permit.client_id, held)
+        with self.db.tx() as c:
+            c.execute("UPDATE positions SET stop=?, updated=? WHERE id=?", (held, time.time(), position_id))
+            self.db.event("STOP_MOVED", {"position": position_id, "from": row["stop"], "to": held, "reason": reason},
+                          ref=position_id, conn=c)
+        return {"status": "MOVED", "detail": res.line, "stop": held}
+
     def close_position(self, position_id: str, reason: str) -> ClosedTrade | None:
         """Time exit or operator close. A close is a write: never retried."""
         row = self.db.one("SELECT * FROM positions WHERE id=? AND status='OPEN'", (position_id,))
@@ -378,7 +410,7 @@ class ExecutionEngine:
             # The model's own exit and a holding-time exit are recorded as such; an operator close
             # keeps the broker's own label.
             ct = self.broker.close(position_id, client_id_for(row["decision_id"]) + "-close",
-                                   **({"reason": reason} if reason in ("MODEL_EXIT", "TIME") else {}))
+                                   **({"reason": reason} if reason in ("MODEL_EXIT", "TIME", "RULE", "FAILED") else {}))
         except BrokerRejected:
             return None
         except BrokerError as exc:

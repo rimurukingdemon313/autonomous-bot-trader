@@ -26,9 +26,13 @@ import math
 from dataclasses import asdict, dataclass, fields, replace
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from ..data.instruments import INDEX_POINT, is_index
+
 #: 1.1.0: `daily_breach` (LOCK_RUN, FTMO's rule: a daily breach ends the run; LOCK_DAY: no new trade until the
 #:        next reset, the breach recorded as a violation) and the PAPER-FORWARD-200K profile.
-PROFILE_VERSION = "hard-profile-1.1.0"
+#: 1.2.0: the TRND1-PAPER-200K profile (the trend desk's own account, docs/TREND_DESK.md), and an index CFD's pip is
+#:        one index point. The existing profiles, their fields and their hashes are unchanged.
+PROFILE_VERSION = "hard-profile-1.2.0"
 DAILY_BREACH = ("LOCK_RUN", "LOCK_DAY")
 
 
@@ -156,10 +160,20 @@ FTMO_200K = HardRiskProfile()
 #: The PAPER_FORWARD account: the same limits; a daily breach stops new trades for the day and is recorded as a
 #: violation, so the forward measurement continues. The maximum loss still ends the run.
 PAPER_FORWARD_200K = replace(FTMO_200K, name="PAPER-FORWARD-200K", daily_breach="LOCK_DAY")
-PROFILES = {FTMO_200K.name: FTMO_200K, PAPER_FORWARD_200K.name: PAPER_FORWARD_200K}
+#: The trend desk's account (aitrader/position/trend_desk.py): the same FTMO-style limits, sized for a rule that holds
+#: up to four index CFDs for months. Each position may lose at most $1,500 all-in at its stop (0.75% of the starting
+#: balance: a 6% one-day stop on about $25,000, a quarter of half the account), and all of them together $8,000, inside
+#: the $10,000 daily limit. A daily breach ends the run, as the firm's rule does. Margin at 1:20, the usual index-CFD
+#: leverage. A validated rule only: unvalidated decisions stay capped at 0.25% by the risk engine whatever this says.
+TRND1_PAPER_200K = replace(FTMO_200K, name="TRND1-PAPER-200K", risk_per_trade=1_500.0, max_open_risk=8_000.0,
+                           max_open_positions=4, leverage=20.0)
+PROFILES = {FTMO_200K.name: FTMO_200K, PAPER_FORWARD_200K.name: PAPER_FORWARD_200K,
+            TRND1_PAPER_200K.name: TRND1_PAPER_200K}
 
 
 def pip_of(symbol: str) -> float:
+    if is_index(symbol):
+        return INDEX_POINT
     return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
 
 
@@ -177,4 +191,5 @@ def loss_per_lot(profile: HardRiskProfile, *, stop_distance: float, pip: float, 
     return parts
 
 
-__all__ = ["DAILY_BREACH", "FTMO_200K", "PAPER_FORWARD_200K", "PROFILES", "PROFILE_VERSION", "HardRiskProfile", "ProfileError", "loss_per_lot", "pip_of"]
+__all__ = ["DAILY_BREACH", "FTMO_200K", "PAPER_FORWARD_200K", "PROFILES", "PROFILE_VERSION", "TRND1_PAPER_200K",
+           "HardRiskProfile", "ProfileError", "loss_per_lot", "pip_of"]

@@ -50,6 +50,42 @@ UNIVERSE["XAGUSD"] = Instrument("XAGUSD", "metal", 0.001, (8.0, 60.0), "USD")
 UNIVERSE_KEY = "fx-majors"
 
 
+@dataclass(frozen=True, slots=True)
+class IndexCFD:
+    """An equity-index CFD the trend desk trades (aitrader/position/trend_desk.py). It is kept apart from UNIVERSE on
+    purpose: the research registry's "fx-majors" universe and its contamination record are not touched by it.
+
+    One lot is one unit of the index: a 1-point move is worth one unit of the quote currency per lot. The spread is
+    a declared typical CFD spread in index points, not a measured one."""
+
+    symbol: str
+    source: str  # the cash index the price comes from (Yahoo symbol)
+    quote: str  # the currency the index is priced in
+    spread: float  # points
+    exchange_tz: str
+    open_local: tuple[int, int]  # the exchange's opening time, local (hour, minute)
+    close_local: tuple[int, int]  # its closing time
+
+
+INDEX_CFDS: dict[str, IndexCFD] = {
+    "US500": IndexCFD("US500", "^GSPC", "USD", 0.5, "America/New_York", (9, 30), (16, 0)),
+    "NAS100": IndexCFD("NAS100", "^NDX", "USD", 1.5, "America/New_York", (9, 30), (16, 0)),
+    "GER40": IndexCFD("GER40", "^GDAXI", "EUR", 1.5, "Europe/Berlin", (9, 0), (17, 30)),
+    "UK100": IndexCFD("UK100", "^FTSE", "GBP", 1.0, "Europe/London", (8, 0), (16, 30)),
+}
+#: an index CFD's pip, for spreads, slippage and commission allowances: one index point
+INDEX_POINT = 1.0
+
+
+def is_index(symbol: str) -> bool:
+    return symbol in INDEX_CFDS
+
+
+def quote_currency(symbol: str) -> str:
+    """The currency an instrument's price is quoted in: an index CFD's own, a pair's second leg."""
+    return INDEX_CFDS[symbol].quote if symbol in INDEX_CFDS else symbol[3:]
+
+
 def get(symbol: str) -> Instrument:
     try:
         return UNIVERSE[symbol.upper()]

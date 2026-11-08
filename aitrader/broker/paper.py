@@ -26,6 +26,7 @@ import threading
 import time
 from typing import Callable
 
+from ..data.instruments import INDEX_POINT, is_index, quote_currency
 from ..memory.db import Database
 from ..risk.engine import InstrumentSpec, Quote
 from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, ClosedTrade, Fill
@@ -39,7 +40,11 @@ from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, 
 #:        paid at entry) next to the net P/L; prices, fills and P/L themselves are unchanged.
 #: 1.4.0: a declared operator adjustment of the balance (`adjust`), once per id, kept in the account state and
 #:        journaled atomically (PAPER_ADJUSTMENT); fills, closes and their P/L are unchanged.
-PAPER_VERSION = "paper-1.4.0"
+#: 1.5.0 (the trend desk, aitrader/position/trend_desk.py): equity-index CFDs (data.instruments.INDEX_CFDS): one
+#:        unit of the index per lot, a 1-point pip, P/L in the index's own currency converted at the live rate; a
+#:        position may have no target (it is closed by its rule or its stop); `modify_stop` moves a stop with the
+#:        hard gate's single-use stop permit. FX and metal fills, stops, targets and P/L are unchanged.
+PAPER_VERSION = "paper-1.5.0"
 ROLLOVER_HOUR_UTC = 21
 
 
@@ -60,10 +65,14 @@ def rollovers(t0: int, t1: int) -> int:
 
 
 def contract_size(symbol: str) -> float:
+    if is_index(symbol):
+        return 1.0  # one unit of the index per lot
     return 100.0 if symbol.startswith("XAU") else 100_000.0
 
 
 def pip_of(symbol: str) -> float:
+    if is_index(symbol):
+        return INDEX_POINT
     return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
 
 
@@ -154,7 +163,7 @@ class PaperBroker:
         return None
 
     def spec(self, symbol: str) -> InstrumentSpec | None:
-        rate = self._rate(symbol[3:])
+        rate = self._rate(quote_currency(symbol))
         if rate is None or self.feed.quote(symbol, self.clock()) is None:
             return None
         return InstrumentSpec(symbol, contract_size(symbol), 0.01, 0.01, 50.0, rate)
@@ -163,7 +172,7 @@ class PaperBroker:
 
     def _unrealised(self, p: dict) -> float:
         q = self.feed.quote(p["symbol"], self.clock())
-        rate = self._rate(p["symbol"][3:])
+        rate = self._rate(quote_currency(p["symbol"]))
         if q is None or rate is None:
             raise BrokerError(f"no quote or rate to value the open {p['symbol']} position")
         exit_px = q.bid if p["side"] > 0 else q.ask
@@ -233,7 +242,7 @@ class PaperBroker:
                 raise BrokerRejected("quantity must be positive")
             slip = self.slippage_pips * pip_of(symbol)
             fill = (q.ask + slip) if side > 0 else (q.bid - slip)
-            if (fill - stop) * side <= 0 or (target - fill) * side <= 0:
+            if (fill - stop) * side <= 0 or (target is not None and (target - fill) * side <= 0):
                 raise BrokerRejected(f"stop {stop} / target {target} invalid for fill {fill}")
             self.state["seq"] += 1
             pid = f"P{self.state['seq']}"
@@ -247,9 +256,36 @@ class PaperBroker:
             self._save()
             return Fill(f"O{self.state['seq']}", pid, fill, now)
 
+    def modify_stop(self, position_id: str, stop: float, permit=None) -> float:
+        """Move an open position's stop, with the hard gate's single-use stop permit for exactly this position and
+        this stop (HardRiskGate.authorize_stop). Without one it changes nothing. Returns the stop now held."""
+        if self._gate is None:
+            raise BrokerRejected("NO_RISK_GATE: this paper broker has no hard risk gate attached; it moves no stop")
+        with self._lock:
+            p = self.state["positions"].get(position_id)
+            if p is None:
+                raise BrokerRejected(f"no open position {position_id}")
+            client_id = p["client_id"]
+        problem = self._gate.redeem_stop(permit, position_id=position_id, client_id=client_id, stop=stop)
+        if problem:
+            raise BrokerRejected(problem)
+        with self._lock:
+            p = self.state["positions"].get(position_id)
+            if p is None:
+                raise BrokerRejected(f"no open position {position_id}")
+            q = self.feed.quote(p["symbol"], self.clock())
+            if q is None:
+                raise BrokerRejected(f"no price for {p['symbol']}")
+            exit_px = q.bid if p["side"] > 0 else q.ask
+            if not (isinstance(stop, (int, float)) and math.isfinite(stop) and stop > 0) or (exit_px - stop) * p["side"] <= 0:
+                raise BrokerRejected(f"stop {stop} is not on the loss side of the price {exit_px}")
+            p["stop"] = float(stop)
+            self._save()
+            return p["stop"]
+
     def _close(self, pid: str, exit_px: float, when: int, reason: str, exit_slip: float = 0.0) -> ClosedTrade:
         p = self.state["positions"].pop(pid)
-        rate = self._rate(p["symbol"][3:])
+        rate = self._rate(quote_currency(p["symbol"]))
         cs = contract_size(p["symbol"])
         nights = rollovers(int(p["opened"]), int(when))
         gross = (exit_px - p["entry"]) * p["side"] * p["qty"] * cs
@@ -299,14 +335,14 @@ class PaperBroker:
                     p["best"], p["worst"] = max(p["best"], hi), min(p["worst"], lo)
                     if lo <= p["stop"]:
                         closed.append(self._close(pid, min(op, p["stop"]) - slip, bar["close_time"], "STOP", slip))
-                    elif hi >= p["target"]:
+                    elif p["target"] is not None and hi >= p["target"]:
                         closed.append(self._close(pid, p["target"], bar["close_time"], "TARGET"))
                 else:
                     lo, hi, op = bar["ask_low"], bar["ask_high"], bar["ask_open"]
                     p["best"], p["worst"] = min(p["best"], lo), max(p["worst"], hi)
                     if hi >= p["stop"]:
                         closed.append(self._close(pid, max(op, p["stop"]) + slip, bar["close_time"], "STOP", slip))
-                    elif lo <= p["target"]:
+                    elif p["target"] is not None and lo <= p["target"]:
                         closed.append(self._close(pid, p["target"], bar["close_time"], "TARGET"))
             if not closed and self.state["positions"]:
                 self._save()

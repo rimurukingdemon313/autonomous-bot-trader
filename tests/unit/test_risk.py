@@ -252,3 +252,55 @@ def test_a_time_exit_trade_needs_no_target_but_always_a_protective_stop():
     assert not RiskEngine().evaluate(no_stop, account(), SPEC, Q, NOW).approved
     plain = decision(target=None)  # a stop-and-target trade without a target is still refused
     assert not RiskEngine().evaluate(plain, account(), SPEC, Q, NOW).approved
+
+
+# ── risk-1.16.0: a VALIDATED rule may risk more, nothing else may; index CFDs ─────────────────────────────────────
+
+
+def test_only_a_validated_decision_may_risk_above_a_quarter_percent_and_never_above_its_limits_or_1_percent():
+    from aitrader.risk.engine import UNVALIDATED_MAX_RISK_PCT, VALIDATED_MAX_RISK_PCT
+    e = RiskEngine(RiskLimits(risk_per_trade_pct=0.75))
+    acct = account(equity=200_000.0, balance=200_000.0, day_start_equity=200_000.0, peak_equity=200_000.0,
+                   start_balance=200_000.0, week_start_equity=200_000.0)
+    sized = {}
+    for status in ("VALIDATED", "PROMISING", "EXPERIMENTAL", None):
+        d = decision()
+        if status is not None:
+            d.edge_status = status
+        v = e.evaluate(d, acct, SPEC, Q, NOW)
+        assert v.approved, v.reasons
+        sized[status] = v.risk_pct
+    assert sized["VALIDATED"] == pytest.approx(0.75, abs=0.02)  # its own limit: 0.75%
+    assert all(sized[s] <= UNVALIDATED_MAX_RISK_PCT + 1e-9 for s in ("PROMISING", "EXPERIMENTAL", None))
+    assert VALIDATED_MAX_RISK_PCT == HARD_MAX_RISK_PCT == 1.0
+    d = decision()
+    d.edge_status = "VALIDATED"
+    assert RiskEngine(RiskLimits(risk_per_trade_pct=5.0)).evaluate(d, acct, SPEC, Q, NOW).risk_pct <= 1.0 + 1e-9
+
+
+def test_the_fx_service_stays_at_a_quarter_percent_even_for_a_decision_labelled_validated():
+    from aitrader.service.config import ServiceConfig
+    for env in ({}, {"MODE": "PAPER_FORWARD"}, {"RISK_PER_TRADE_PCT": "1.0"}):
+        limits = ServiceConfig.from_env(env).risk
+        d = decision()
+        d.edge_status = "VALIDATED"
+        v = RiskEngine(limits).evaluate(d, account(), SPEC, Q, NOW)
+        assert v.risk_pct <= 0.25 + 1e-9
+
+
+def test_an_index_cfd_is_its_own_exposure_with_a_one_point_pip():
+    from aitrader.risk.engine import exposures, pip_size
+    assert exposures("US500") == ("US500",) and exposures("GER40") == ("GER40",)
+    assert exposures("EURUSD") == ("EUR", "USD") and pip_size("NAS100") == 1.0 and pip_size("EURUSD") == 0.0001
+    e = RiskEngine(RiskLimits(max_positions_per_currency=1))
+    opens = [{"symbol": s, "side": 1, "qty": 1.0, "notional": 10_000.0, "risk_amount": 10.0} for s in ("US500", "UK100")]
+    v = e.evaluate(decision(), account(open_positions=opens), SPEC, Q, NOW)
+    assert v.approved, v.reasons  # US500 and UK100 share nothing with EURUSD, nor with each other
+
+
+def test_a_rule_exit_needs_no_target_but_always_a_stop():
+    d = decision(target=None)
+    d.exit_kind = "RULE"
+    assert RiskEngine().evaluate(d, account(), SPEC, Q, NOW).approved
+    d.stop_loss = None
+    assert not RiskEngine().evaluate(d, account(), SPEC, Q, NOW).approved

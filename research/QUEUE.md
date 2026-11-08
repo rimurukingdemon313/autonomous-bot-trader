@@ -153,6 +153,13 @@ broker, no bot change.
 
 **Live, on fresh forward data, judged at fixed dates:**
 
+- THE TREND DESK (from 2026-11-09; the owner, 2026-11-08: "النظام يتداول من وحده انتهى"). The system trades
+  TRND-1 by itself on its own $200,000 paper account (`TRND1-PAPER-200K`), with FUNDED-P's HALF size and one-day
+  stop. Every order and stop move goes through the risk engine, the hard gate and the paper broker
+  (`docs/TREND_DESK.md`; trend-desk-1.0.0). It runs after each weekday's closes, and its report is on
+  `trend-desk-data`. It is a paper record, read as it grows; TRND-F judges the rule itself. Promoted for PAPER in
+  `models/artifacts/promoted_rules.json`.
+
 - FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows. Its HALF
   track carries a one-day stop at 6% (funded-paper-1.1.0, added before the first day). Without it, 1987-10-19
   alone ended 547 of 732 replayed runs.

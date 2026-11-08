@@ -1,0 +1,54 @@
+# The trend desk (docs/TREND_DESK.md): TRND-1 traded by the system itself on its own $200,000 paper account, through
+# the risk engine, the hard risk gate and the paper broker, after each weekday's closes on GitHub's runner, which can
+# reach Yahoo. PAPER ONLY: no broker, no account, no key, no real money. The account (desk.db) and its report are
+# carried on the trend-desk-data branch: what the desk did is never recomputed. If the bars cannot be read, nothing is
+# published and the last report stays.
+name: Trend desk (TRND-1 traded by the system, paper only)
+on:
+  schedule:
+    - cron: "40 22 * * 1-5"  # after the US close: all four indices have a final bar
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: trend-desk
+  cancel-in-progress: false
+jobs:
+  desk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the account from trend-desk-data
+        run: |
+          git config user.name "trend-desk"; git config user.email "trend-desk@users.noreply.github.com"
+          if git fetch -q origin trend-desk-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan trend-desk-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          mkdir -p state
+          if [ -f pub/desk.db.gz ]; then gunzip -c pub/desk.db.gz > state/desk.db; fi
+      - name: Run the desk (a failed fetch is retried; a session is never applied twice)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/trend_desk.py --state state 2>&1 | tee desk.log && break
+            echo "attempt $i failed"; sleep $((i * 30))
+          done
+          test -f state/REPORT.md
+          cat state/REPORT.md
+      - name: Publish to trend-desk-data
+        run: |
+          gzip -nc state/desk.db > pub/desk.db.gz
+          cp state/REPORT.md state/state.json pub/
+          cd pub
+          git add desk.db.gz REPORT.md state.json
+          git commit -qm "trend desk $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/trend-desk-data && exit 0; sleep $((i * 20)); done
+          exit 1
