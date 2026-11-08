@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import statistics
 import sys
 from datetime import date, datetime, timedelta, timezone
@@ -72,6 +73,7 @@ def replay(bars, rates) -> dict:
     first = min(close_time(s, START) for s in INDICES) - 1
     desk = new_desk(feed, first, rules, note)
     accounts = [{"start": str(START), "end": None, "why": None, "pnl": None}]
+    refused_entries, stop_codes = [], {}
     years: dict[str, dict] = {}
     equity, prev, peak, worst_dd = [], None, 200_000.0, 0.0
 
@@ -89,6 +91,10 @@ def replay(bars, rates) -> dict:
             k = e["kind"]
             if k == "DESK_DECISION" and e.get("action") == "BUY":
                 y["entries" if e.get("result") == "FILLED" else "entries_refused"] += 1
+                if e.get("result") != "FILLED":
+                    refused_entries.append({"day": e.get("day"), "symbol": e.get("symbol"), "result": e.get("result"),
+                                            "detail": str(e.get("detail") or "")[:300],
+                                            "risk": (e.get("risk") or {}).get("reasons")})
             if k == "DESK_DECISION" and e.get("late"):
                 y["late_switches"] += 1
             if k == "DESK_TRADE_CLOSED":
@@ -96,6 +102,10 @@ def replay(bars, rates) -> dict:
                 y["fees"] += sum(e.get(x) or 0.0 for x in ("commission", "slippage_cost", "spread_cost"))
             if k == "DESK_STOP":
                 y["stop_moves" if e.get("status") == "MOVED" else "stop_moves_refused"] += 1
+                if e.get("status") != "MOVED":
+                    m = re.search(r"reason=(\w+)", str(e.get("detail") or ""))
+                    code = m.group(1) if m else str(e.get("status"))
+                    stop_codes[code] = stop_codes.get(code, 0) + 1
         eq = desk.broker.account().equity
         if prev is not None:
             y["pnl"] += eq - prev
@@ -112,7 +122,8 @@ def replay(bars, rates) -> dict:
             desk = new_desk(feed, t, rules, note)  # a new challenge from the next session
             prev, peak = 200_000.0, 200_000.0
     accounts[-1].update(end=str(UNTIL), why="the data end", pnl=round(prev - 200_000.0, 2))
-    return {"years": years, "accounts": accounts, "equity": equity, "worst_fall_from_peak": round(worst_dd, 2)}
+    return {"years": years, "accounts": accounts, "equity": equity, "worst_fall_from_peak": round(worst_dd, 2),
+            "refused_entries": refused_entries, "stop_refusals_by_code": stop_codes}
 
 
 def funded_half_by_year() -> dict[str, float]:
@@ -148,7 +159,8 @@ def cmd_run(now: datetime) -> None:
                         "pct": round(v["pnl"] / 2_000, 2),
                         "funded_p_half_pct": round(half.get(y, 0.0) / 2_000, 2) if y in half else None}
                     for y, v in sorted(r["years"].items())},
-        "accounts": r["accounts"], "equity_daily": r["equity"]}
+        "accounts": r["accounts"], "refused_entries": r["refused_entries"],
+        "stop_refusals_by_code": r["stop_refusals_by_code"], "equity_daily": r["equity"]}
     OUT.write_text(json.dumps(report, indent=1, sort_keys=True) + "\n")
     print(json.dumps(report["summary"], indent=1))
     for y, v in report["by_year"].items():
@@ -156,6 +168,9 @@ def cmd_run(now: datetime) -> None:
               "refused", v["entries_refused"], v["stop_moves_refused"])
     for a in r["accounts"]:
         print("account", a)
+    print("stop refusals by code:", r["stop_refusals_by_code"])
+    for x in r["refused_entries"]:
+        print("refused entry:", x)
 
 
 def main() -> int:
