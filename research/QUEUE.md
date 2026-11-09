@@ -196,6 +196,14 @@ cycle.
 - **Paired BTC and ETH sessions** (a 2025 study, hourly 2016-2025, holdout 2021-2025). This is the hour-of-day family
   dropped above, and only the months after its holdout would be fresh.
 
+**Checked on 2026-11-09, 06:30 UTC, and dropped before building.**
+
+| Idea | Why it was dropped |
+|---|---|
+| Price pressure around the crypto perpetuals' funding times (00:00, 08:00 and 16:00 UTC) | No study measures returns around them. Without one it is the hour-of-day family dropped above, and its gross edge would face the same 0.02-0.06% round trip |
+| The European closing-auction reversal. Auctions are 40-55% of the day's volume on the FTSE, DAX and CAC, and about 14% of a stock's auction return reverses overnight | Measured on single stocks, not the index. An index CFD is quoted off the futures after the cash close, so it never carries the cash index's auction distortion |
+| The end-of-day reversal across US stocks (Soebhag, Baltussen & Da; second at the 2025 Quantpedia Awards): intraday losers rebound in the last 30 minutes | 3.78-6.86 bp a day gross for the long-short quintiles, 1993-2019. Two single-stock CFD legs at 3-5 bp each leave between −6.2 and +0.9 bp a day. At the index level the same window shows momentum instead, which IX-2 and FT-1 found too small for a CFD's spread |
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
