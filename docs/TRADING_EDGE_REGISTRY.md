@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 140 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 141 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -33,6 +33,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | DP-001 | FAILED | 1734 | 0 | 0 | 3.078 |
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
 | EMC-1 | FAILED | — | 1 | 0 | 3.000 |
+| ENG-1 | FAILED | — | 1 | 0 | 3.000 |
 | FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
 | FND-1A | FAILED | — | 1 | 0 | 3.134 |
 | FOMC-1A | FAILED | — | 1 | 0 | 3.163 |
@@ -134,6 +135,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R; holdout 70 months, net t -0.636 | | | | | | | | | |
 | EMC-1 | — | — | `see research/preregistrations/EMC-1.md` | see research/preregistrations/EMC-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_out, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| ENG-1 | — | MN | `see research/preregistrations/ENG-1.md` | see research/preregistrations/ENG-1.md | 400 | +0.002 | +2.09 (3.00) | +0.002 | — | 1 | **REJECTED** | t, top_year, bootstrap |
+| ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R | | | | | | | | | |
 | FLOW1-H1-GOTOBI-PRE | BUY | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | -1.328 | -1.68 (3.43) | -3.370 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, specificity |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | FLOW1-H2-GOTOBI-POST | SELL | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | +0.646 | +0.60 (3.43) | -1.163 | — | 1 | **REJECTED** | t, costs_x2, specificity |

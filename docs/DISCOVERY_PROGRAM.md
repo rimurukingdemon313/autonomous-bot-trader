@@ -385,15 +385,24 @@ LEARN: lessons into the ideas context; the closed families list; the research re
 |---|---|---|---|
 | 1. The ledger, the two reports and the engine | `scripts/desk_ledger.py`, `scripts/research_report.py`, `scripts/research_engine.py`, `scripts/research_cycle.py`, `.github/workflows/research-cycle.yml` | `test_desk_ledger.py`, `test_research_report.py`, `test_research_engine.py`, and their guards in `scripts/mutation_audit.py` | Built; pushed and deployed with the verification recorded in `docs/AUTONOMOUS_RESEARCH_SYSTEM.md` |
 | 2. This program | `docs/DISCOVERY_PROGRAM.md` | — | Written |
-| 3. ENG-1 probe: dates, gaps and roll calendars of the EIA contracts, no returns | `scripts/eng_probe.py`, `.github/workflows/eng-probe.yml`, `research/results/ENG-probe.json` | `tests/unit/test_eng_probe.py` | Started |
-| 4. ENG-1: spec, preregistration, build, judge | `scripts/eng1.py`, `research/preregistrations/ENG-1.md`, `.github/workflows/eng1-run.yml` | `tests/unit/test_eng1.py`: built backwardated and contango curves with a known answer; a look-ahead trap; roll stitching | After the probe |
-| 5. LIQ-1 probe: open interest's first date and gaps per coin | `scripts/liq_probe.py`, `.github/workflows/liq-probe.yml` | `tests/unit/test_liq_probe.py` | After ENG-1's preregistration |
+| 3. ENG-1 probe: dates, gaps and roll calendars of the EIA contracts, no returns | `scripts/eng_probe.py`, `.github/workflows/eng-probe.yml`, `research/results/ENG-probe.json` | `tests/unit/test_eng_probe.py` | Done 2026-11-09 |
+| 4. ENG-1: spec, preregistration, build, judge | `scripts/eng1.py`, `research/preregistrations/ENG-1.md`, `.github/workflows/eng1-run.yml` | `tests/unit/test_eng1.py`: built backwardated and contango curves with a known answer; a look-ahead trap; roll stitching | **FAILED** 2026-11-09: t 2.09 against 3.0 (see below) |
+| 5. LIQ-1 probe: open interest's first date and gaps per coin | `scripts/liq_probe.py`, `.github/workflows/liq-probe.yml` | `tests/unit/test_liq_probe.py` | Done 2026-11-09: BTC from 2020-09, ETH from 2021-12, complete |
 | 6. LIQ-1 stage 1 (development), then stage 2 (preregistered judge) | `scripts/liq1.py`, `research/preregistrations/LIQ-1.md`, `.github/workflows/liq1-run.yml` | `tests/unit/test_liq1.py`: built cascades with a known reversal; random entries match | — |
 | 7. INV-1 power check from the paper's figures | `research/QUEUE.md` | — | — |
 | 8. A shared harness for the gates every program repeats | `scripts/harness.py` | `tests/unit/test_harness.py`, and each program's tests unchanged | Once ENG-1 and LIQ-1 share them |
 
 Every step is one commit with its tests and the full suite run, and the mutation audit when a guard changes. Every
 result is reported as it is, failures first.
+
+### Results so far
+
+- **ENG-1 FAILED** (2026-11-09).
+  - +2.48% a year net over 1985-2018, t 2.09 against 3.0.
+  - The curve's slope carried real information: it beat 99.7% of shuffled timings.
+  - But the premium was small, halved after 2002, and gone a month late.
+  - The family is closed on these data (`research/preregistrations/ENG-1.md`, Result).
+- **Next: LIQ-1**, stage 1 on development data.
 
 ## Sources
 

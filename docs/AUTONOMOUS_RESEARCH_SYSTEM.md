@@ -83,8 +83,8 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 
 | # | Requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule and on demand | See "Deployment and operational status" |
-| 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | `tests/unit/test_research_engine.py`; the first cycle's `ideas.jsonl` |
+| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule and on demand | On demand: run 42670397919, success. On schedule: first due 2026-11-10 04:47 UTC, **not yet observed** |
+| 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | Tested (`test_research_engine.py`). In production **not yet**: the first run's model was rate-limited; fixed in 1.0.1 |
 | 3 | Permanent experiment history | `research/registry.jsonl` (append-only, enforced), knowledge files whose hashes every cycle re-checks, `ideas.jsonl` and `cycles.jsonl` (append-only), the desk's hash-chained events | `test_research_report.py`, `test_desk_ledger.py` |
 | 4 | Automated statistical validation | The integrity checks and the power gate run every cycle. The preregistered gates and Bonferroni bars of each program judge it | `test_research_engine.py`, `test_research_report.py`, each program's tests |
 | 5 | Automatic report generation | The research report every cycle, the trading report every weekday session | `test_the_cycle_writes_its_report_with_the_engine_kept_apart`, `test_desk_ledger.py` |
@@ -92,14 +92,39 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 | 7 | Recovery from simulated failures | Simulated: a provider down, a crash inside the step, a crash after the write, a model out of schema, a critic out of schema, a ledger failure | `test_after_a_failure_the_next_run_retries_and_completes` and the failure tests beside it; `test_a_ledger_failure_never_stops_the_desk_and_is_said` |
 | 8 | No duplicate experiment execution | Fingerprints; the cycle-id guard; registry ids never reused; desk sessions applied once and recorded once | `test_a_rerun_the_same_day_asks_no_model_and_records_nothing_twice`, `test_the_same_idea_another_day_is_never_recorded_again_however_it_is_worded`, `test_each_session_is_recorded_once_and_a_rerun_records_nothing_more` |
 | 9 | No real-money trading | The engine imports no broker, execution, position, risk or service module, and calls no order, register or verdict method. The desk is paper only, behind the demo guard, the risk engine and the hard gate | `test_the_engine_cannot_trade_register_or_judge`; the desk's existing tests |
-| 10 | A verified deployment and operational status | See below | See below |
+| 10 | A verified deployment and operational status | GitHub Actions runs and data branches | Partly: the deployment and the first run are confirmed; the scheduled runs and a production ideas step are not yet |
 
 `scripts/mutation_audit.py` removes each of the engine's and the ledger's guards in turn and requires a test to fail
 (`docs/MUTATION_AUDIT.md`).
 
-## Deployment and operational status
+## Deployment and operational status (confirmed on GitHub, 2026-11-09)
 
-Not yet verified. This section is filled in only with what has been confirmed on GitHub.
+**Deployed.** The research cycle, the engine and the trend desk's ledger reached `main` at commits `b7144b2`,
+`80614fa` and `44d3cd6`.
+
+**Confirmed: the research cycle's first run** (run 42670397919, dispatched 18:02 UTC, success).
+
+| Step | What happened |
+|---|---|
+| Integrity | OK |
+| Report | Published; the `research-data` branch was created (commit `b78d778`) |
+| Schedule | Re-enabled by the run itself |
+| Ideas | **FAILED, and recorded as such.** The free model the client chose was rate-limited upstream (HTTP 429). The client spent its whole 10-minute deadline waiting on it and never reached another model. Nothing was invented. The run exited 0, so the step is retried |
+
+**Fixed after that run** (research-engine-1.0.1):
+- each model call is bounded to 150 seconds;
+- a model that fails in any way is passed over for the next, up to three;
+- every attempt is recorded in `cycles.jsonl`.
+
+**Confirmed: the probes and ENG-1's judge on GitHub's runner.**
+- The ENG-1 and LIQ-1 probes: runs 42666526034 and 42666716125, success.
+- ENG-1's judge: run 42670396500, success. It recorded a FAILED verdict (`research/preregistrations/ENG-1.md`).
+
+**Not yet observed** (each is checked at the next check-in and reported):
+- The first **scheduled** research cycle: 2026-11-10 04:47 UTC.
+- A successful **ideas** step in production.
+- The trend desk's first session with the ledger: 2026-11-09 22:40 UTC, then `TRADING_REPORT.md`, `ledger.csv` and
+  `equity.csv` on `trend-desk-data`.
 
 ## What is missing, and why
 

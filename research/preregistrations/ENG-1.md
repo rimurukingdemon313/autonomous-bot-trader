@@ -108,3 +108,36 @@ At the sourced Sharpe ratio of 0.41-0.55 over the 34 judged years, expected t is
 - **A PASS** opens the holdout once.
 - **A PASS in the holdout too** makes ENG-1 a candidate for the owner. It would trade only on the owner's word, as a
   paper desk through the risk engine, the hard gate and the paper broker, after the broker's roll terms are checked.
+
+## Result (judged 2026-11-09 on GitHub's runner, run 42670396500): FAILED
+
+**FAILED on 3 of 10 gates: t, top year and bootstrap.** EIA served all twelve series (`research/results/eng1-fetch.log`).
+Full figures: `research/knowledge/ENG-1.json`. The data are on branch `eng1-run`, with every file's sha256.
+
+| | |
+|---|---|
+| Net | +0.206% a month, **+2.48% a year**, 400 months (1985-02..2018-12) |
+| t | **2.09** against 3.0 |
+| Sharpe ratio | 0.36 |
+| Volatility, worst fall | 6.8% a year; worst fall 26.4% |
+| Gross, costs | +0.219% a month gross; costs 0.013% a month (0.004% trades, 0.008% rolls). At twice the costs: t 1.96 |
+| Development, validation | 1985-2001: +3.55% a year (t 1.76). 2002-2018: +1.44% a year (t 1.13) |
+| One month late | +0.80% a year (t 0.66) |
+| Always long, same weights | +1.05% a year (t 0.56), worst fall 55.7%. The signal's margin over it: +1.4% a year (t 1.08) |
+| Shuffled long months, 2,000 books | 95th percentile +0.134% a month. **Only 0.3% of the shuffled books did as well** |
+| Leave one out | All positive. WTI carried most: without it, +0.09% a month |
+| Bootstrap 95% | −0.006% to +0.434% a month: it touches zero |
+| Top year | 1996 gave 26.5% of the total, against the 25% gate |
+| By energy | WTI +0.17% a month, heating oil +0.09%; natural gas and RBOB about nothing |
+
+**What it means.**
+
+- **The curve's slope does carry information.** Timing energy by it beat 99.7% of random timings with the same
+  exposure, and it beat holding always.
+- **The premium is too small to be an edge.** +2.5% a year at 6.8% volatility. Half as large after 2002. Gone within
+  a month. Its confidence interval reaches zero.
+- At the $200,000 account, that would be about $400 a month at this volatility. The $4,000 target would need about ten
+  times the risk.
+
+**The rules.** The holdout (2019-01..2024-03) stays unread. The family is closed on these data, and no variant
+(contract 1 against 2, other weights, other energies) is run on them.
