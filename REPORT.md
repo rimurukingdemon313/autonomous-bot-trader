@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-09 09:00 UTC**, run 775, version `radar-1.0.0`. State from: cache. Quotes this hour: 2415.
+Updated **2026-11-09 10:00 UTC**, run 776, version `radar-1.0.0`. State from: cache. Quotes this hour: 2415.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-11-09 09:00 UTC**, run 775, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 32.54
-- run_coverage: 0.991
+- days: 32.58
+- run_coverage: 0.9911
 - closed_positions: 183
 - open_positions: 2
 - utilisation: 0.2103
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.1611
-- book_excess_pct: -2.25
-- ann_excess_deployed_pct: -120.772
-- ann_excess_deployed_costs_x1.5_pct: -206.078
-- ann_excess_deployed_costs_x2_pct: -291.383
+- book_pnl_pct: -2.1537
+- book_excess_pct: -2.2428
+- ann_excess_deployed_pct: -120.236
+- ann_excess_deployed_costs_x1.5_pct: -205.437
+- ann_excess_deployed_costs_x2_pct: -290.638
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -2.4714
+- book_excess_without_best_coin_pct: -2.4642
 - max_dd_pct: 2.1914
-- t_excess_daily: -4.005
+- t_excess_daily: -3.984
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| JCT | mexc | gate | 2026-11-09 02:00 | 93.2% | 17.7 | 53.4 | 17.0 | **54.1** |
-| PEPE | mexc | hyperliquid | 2026-11-09 06:00 | 25.0% | 0.7 | -8.0 | 16.5 | **-23.9** |
+| JCT | mexc | gate | 2026-11-09 02:00 | 93.2% | 20.7 | 65.3 | 17.0 | **69.0** |
+| PEPE | mexc | hyperliquid | 2026-11-09 06:00 | 25.0% | 0.7 | -8.2 | 16.5 | **-24.1** |
 
 ## Closed positions (183)
 
@@ -79,6 +79,6 @@ Updated **2026-11-09 09:00 UTC**, run 775, version `radar-1.0.0`. State from: ca
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| JCT | mexc | gate | 112.8% | 259.7% |
+| JCT | mexc | gate | 115.9% | 258.4% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
