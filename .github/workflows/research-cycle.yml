@@ -1,0 +1,69 @@
+# The autonomous research cycle (docs/AUTONOMOUS_RESEARCH_SYSTEM.md): once a day on GitHub's runner, with no person
+# in the loop. RESEARCH ONLY: no broker, no account, no order, no trading rule touched. Each cycle:
+# - checks the permanent research record;
+# - asks a proposer model for new hypotheses and a critic on another model to reject what does not hold;
+# - drops by arithmetic what cannot reach its market's bar;
+# - writes the research report.
+# It registers, tests and approves nothing. The ideas ledger, the cycle log and the report are carried on the
+# research-data branch. A tampered record or a stalled engine fails the run, so the failure is seen.
+name: Research cycle (autonomous, research only)
+on:
+  schedule:
+    - cron: "47 4 * * *"  # daily, away from the trend desk's evening run
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write  # to keep this schedule enabled through GitHub's 60-day inactivity rule
+concurrency:
+  group: research-cycle
+  cancel-in-progress: false
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the engine's state from research-data
+        run: |
+          git config user.name "research-cycle"; git config user.email "research-cycle@users.noreply.github.com"
+          if git fetch -q origin research-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan research-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          mkdir -p state
+          for f in ideas.jsonl cycles.jsonl; do if [ -f "pub/$f" ]; then cp "pub/$f" state/; fi; done
+      - name: Run one cycle
+        id: cycle
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_DAILY_CALL_BUDGET: "20"  # a cycle needs two answers; this bounds every retry and fallback
+        run: |
+          set +e
+          python scripts/research_cycle.py --state state 2>&1 | tee cycle.log
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+      - name: Publish to research-data, whatever the cycle's result
+        if: always()
+        run: |
+          for f in ideas.jsonl cycles.jsonl RESEARCH_REPORT.md RESEARCH_REPORT.json; do
+            if [ -f "state/$f" ]; then cp "state/$f" pub/; fi
+          done
+          cd pub
+          git add -A .
+          git commit -qm "research cycle $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/research-data && exit 0; sleep $((i * 20)); done
+          exit 1
+      - name: Keep the daily schedule enabled through the 60-day look
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/research-cycle.yml/enable" || true
+      - name: Fail visibly on a tampered record or a stalled engine
+        run: |
+          code="${{ steps.cycle.outputs.code }}"
+          if [ "$code" != "0" ]; then echo "the cycle exited $code (1: integrity, 2: stalled): see RESEARCH_REPORT.md on research-data"; exit 1; fi
