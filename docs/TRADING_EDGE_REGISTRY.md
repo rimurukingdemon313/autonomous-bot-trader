@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 139 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 140 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -37,6 +37,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | FND-1A | FAILED | — | 1 | 0 | 3.134 |
 | FOMC-1A | FAILED | — | 1 | 0 | 3.163 |
 | FXS-1 | FAILED | — | 1 | 0 | 3.616 |
+| FXT-1 | FAILED | — | 1 | 0 | 3.629 |
 | GSR-1 | FAILED | — | 1 | 0 | 3.000 |
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
 | ID-2 | FAILED | — | 30 | 0 | 3.552 |
@@ -147,6 +148,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | FXS-1 | — | — | `see research/preregistrations/FXS-1.md` | see research/preregistrations/FXS-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x1.5, pairs, top_year, bootstrap, profit_factor, delay |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| FXT-1 | — | MN | `see research/preregistrations/FXT-1.md` | see research/preregistrations/FXT-1.md | 180 | +0.005 | +2.71 (3.63) | +0.005 | — | 1 | **REJECTED** | t |
+| ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R | | | | | | | | | |
 | GSR-1 | — | — | `see research/preregistrations/GSR-1.md` | see research/preregistrations/GSR-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x2, both_sides, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | LVOL-1 | — | — | `see research/preregistrations/LVOL-1.md` | see research/preregistrations/LVOL-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, top_year |

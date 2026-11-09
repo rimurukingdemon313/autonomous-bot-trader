@@ -86,3 +86,32 @@ opened once as FXT-1-H.
 - **FAILED:** recorded as it is.
 - **PASSED:** the holdout above, once.
 - **Never:** nothing reaches production, live execution or the risk settings within this mission.
+
+## Result (2026-11-09): FAILED, on t alone
+
+Judged once (`research/knowledge/FXT-1.json`, `research/results/fxt1-judge.log`). The holdout stays sealed.
+
+| | |
+|---|---|
+| 1975-1989, swap-free | **+5.79% a year net** (+5.91% gross), volatility 8.3%, Sharpe 0.70, Sortino 1.31, worst fall 15.9%; monthly t **2.71** against 3.6294 |
+| Development, 1975-1982 | +4.26% a year, t 1.36 |
+| Validation, 1983-1989 | +7.53% a year, t 2.65, Sharpe 1.00 |
+| Costs x1.5 / x2 | +5.73% / +5.66% a year: the monthly turnover costs about 0.1% a year |
+| One month late | +4.12% a year, t 2.03 |
+| Equal notional (no volatility sizing) | +3.70% a year, Sharpe 0.54: the size rule raised the Sharpe ratio from 0.54 to 0.70, not tested for significance |
+| Random signs, same sizes | −0.05% a month; Welch t 2.71 against them |
+| Bootstrap 95% | +0.15% to +0.88% a month |
+| Years | 11 of 15 positive; the best (1977, +23.4%) is 27% of the total; worst −7.5% (1981) |
+| By currency | GBP t 3.22, JPY t 2.00, CHF t 1.02, CAD t 0.79, NZD t 0.46 (45 months), AUD −0.01 (60 months) |
+| Activity | about 5.4 position flips a year, gross exposure 1.5x |
+
+**What it says:**
+
+- **The strongest FX result in this registry.** Currency trends paid in 1975-1989 in every way the gates check: both
+  halves, double costs, a month's delay, random signs, no single year. Only significance at this bar failed.
+- **It cannot be confirmed.** At t 2.71 it falls short of the bar set by 176 FX tests, and short of the floor of 3.0.
+  Its Sharpe ratio of 0.70 is the size the literature reports, and 15 years cannot confirm that size at this bar.
+- **The seal stays closed.** By the registered rule, the 2017+ holdout opens only for a passer. The archive's trend
+  rules had already failed on 2017-2022 (archive-trend-3).
+- **One defect in the artifact.** The gate `top_year` is stored as the string "True" (a numpy boolean serialized by
+  `default=str`). It passed, and the verdict, computed from the booleans themselves, is unaffected.

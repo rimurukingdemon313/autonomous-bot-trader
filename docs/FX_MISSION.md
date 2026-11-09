@@ -91,6 +91,8 @@ power check at this project's bar (t ≥ 3.63 on 2009-2016).
    but a round trip cost 1.66 bp: −0.90 bp net, daily t −2.47 against 3.6158. EURUSD in European hours netted
    +1.3 bp, a post-hoc lead. The Tokyo window was never traded, because the mirror has no 00:00 UTC bars for
    USDJPY (`research/preregistrations/FXS-1.md`).
-4. **FXT-1**: currency trend on H.10, 1975-1989. Preregister, freeze, test on built data, judge once.
-5. The sealed holdout, only for a passer, once, under its registered rule.
+4. ~~**FXT-1**~~ (done 2026-11-09): **FAILED, on t alone**. +5.79% a year net, Sharpe 0.70, t 2.71 against
+   3.6294. Every other gate passed: both halves, costs x2, a month late, random signs, the bootstrap
+   (`research/preregistrations/FXT-1.md`).
+5. ~~The sealed holdout~~: not opened. No candidate passed its judge, so the seal stays closed.
 6. `docs/FX_MISSION_REPORT.md`, with every deliverable.
