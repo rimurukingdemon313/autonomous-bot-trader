@@ -172,6 +172,19 @@ The paper traces the effect to liquidity provision. That suggests the predictabl
 liquidity in that half-hour, while a CFD trader is the one paying the spread. CRY-1 is checked again only if the
 paper's own tables show an R² above 3%.
 
+**Checked on 2026-11-09, 03:30 UTC (a web search for rules that trade every day), and dropped before building.**
+
+| Idea | Why it was dropped |
+|---|---|
+| Bitcoin's evening hours: long BTC from 21:00 to 23:00 UTC every day (Quantpedia, hourly Gemini data 2015-10..2022-02: 33% a year gross at 20.9% volatility) | No stated mechanism, and the two hours were picked as the best of 24 on the data that reports them. A study of seven exchanges found no persistent hourly pattern, and Quantpedia's own extension notes a rough 2022-2023. On the years after the finding, even its full published size gives at most about t 2.4 at a 0.02% round trip, and under 1 at half size, against 3.1628 |
+| An intraday breakout of the "noise area" on GER 40 and UK 100, whose intraday bars are fresh (Zarattini, Aziz & Barbon 2024: a Sharpe ratio of 1.33 net on SPY, 2007-2024, in sample, long and short) | A CFD's spread would take about 0.35 of that Sharpe ratio at about 200 trades a year. To reach a bar of about 3.4 over 2012-2026, the rule would have to keep about 82% of its in-sample strength in other markets, after publication. At half strength it gives about t 1.1-1.8. A 2026 falsification study found that none of 14 such intraday momentum rules on Nasdaq futures survived walk-forward validation after costs, and an open implementation of this one found it much weaker than the paper |
+| Gold's overnight drift: long from the US close to the next open (Blose & Gondhalekar: COMEX overnight returns positive and day returns negative, 1985-2012) | Reported to have weakened substantially since. Gold's intraday prices from 2017 on are in the sealed global holdout, and the years before are the FX desk's most-tested ones |
+| Daily technical rules (moving-average and breakout) on the index CFDs | Rink (2023) tested them on the leading indices of 41 markets: strong in sample, insignificant or significantly negative out of sample against holding, and sensitive to moderate costs |
+
+No rule found so far trades every day and can reach its bar at a CFD's costs. It is the pattern in "What the record
+says about costs" above: the more often a rule trades, the smaller each trade's edge, and a spread paid on every
+trade takes it.
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
