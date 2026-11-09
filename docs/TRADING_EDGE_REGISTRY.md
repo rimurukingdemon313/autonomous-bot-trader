@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 138 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 139 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -36,6 +36,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
 | FND-1A | FAILED | — | 1 | 0 | 3.134 |
 | FOMC-1A | FAILED | — | 1 | 0 | 3.163 |
+| FXS-1 | FAILED | — | 1 | 0 | 3.616 |
 | GSR-1 | FAILED | — | 1 | 0 | 3.000 |
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
 | ID-2 | FAILED | — | 30 | 0 | 3.552 |
@@ -143,6 +144,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | FND-1A | — | — | `see research/preregistrations/FND-1A.md` | see research/preregistrations/FND-1A.md | — | — | — | — | — | 1 | **REJECTED** | t, timing |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | FOMC-1A | — | — | `see research/preregistrations/FOMC-1A.md` | see research/preregistrations/FOMC-1A.md | — | — | — | — | — | 1 | **REJECTED** | t, top_year, timing |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| FXS-1 | — | — | `see research/preregistrations/FXS-1.md` | see research/preregistrations/FXS-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x1.5, pairs, top_year, bootstrap, profit_factor, delay |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | GSR-1 | — | — | `see research/preregistrations/GSR-1.md` | see research/preregistrations/GSR-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x2, both_sides, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |

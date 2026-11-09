@@ -105,3 +105,38 @@ procedure, opened once as FXS-1-H.
 - **PASSED:** the holdout above, once.
 - **Never:** whatever the result, nothing reaches production, live execution or the risk settings within this
   mission. A validated rule would be a paper candidate under CLAUDE.md rule 14, never real money.
+
+## Result (2026-11-09): FAILED
+
+Judged once (`research/knowledge/FXS-1.json`, `research/results/fxs1-judge.log`). The holdout stays sealed.
+
+| | |
+|---|---|
+| Trades | 14,542 over 2009-2016, about 1,800 a year, held 4.4 hours each |
+| Per trade | +0.757 bp gross, 1.657 bp cost, **−0.899 bp net**; 46.6% won; profit factor 0.91 |
+| The book | daily net t **−2.47** against 3.6158; Sharpe −0.86, Sortino −1.18 |
+| At 10% volatility | −8.6% a year, worst fall 96% of equity (not compounded) |
+| Development / validation | −1.32 / −0.19 bp a trade net (daily t −2.76 / −0.34) |
+| Costs x1.5 / x2 | −1.73 / −2.56 bp a trade (daily t −4.7 / −7.0) |
+| One bar late | −1.22 bp a trade |
+| Against random sides | the random sides lost −1.63 bp a trade; the rule beat them by a Welch t of 2.39 (the one gate passed) |
+| Years | 2 of 8 positive (2009, 2015) |
+| Bootstrap 95% | −11.1 to −1.5 bp a day |
+
+**The Tokyo window was never traded.** The mirror has no 00:00-00:59 UTC bars for USDJPY
+(`docs/DATA_QUALITY_REPORT.md`). Every TOKYO window opens at 00:00 UTC, so under the preregistered 10-minute rule all
+of them were skipped (2,154 windows skipped in all). The verdict covers the European and US windows only.
+
+**What it says** (`research/results/fxs1-breakdown.txt`: by pair and window, computed after the verdict on the same
+trades):
+
+- **The pattern exists.** Before costs the hypothesis was right on average: +0.76 bp a trade, t 2.88. That is why it
+  beat random sides.
+- **It is about half a round trip.** The cost was 1.15-2.43 bp a trade, the same lesson as ID-2.
+- **By leg:**
+  - **Clearest in EURUSD in European hours:** +2.47 bp gross (t 3.41) against 1.15 bp of cost. It was the only leg
+    clearly net positive (+1.3 bp).
+  - **GBPUSD in US hours:** +1.51 bp gross (t 3.33), the size of its cost.
+  - **USDJPY in US hours moved against the hypothesis:** −1.24 bp gross, t −2.43.
+- **The EURUSD leg is a lead, not a result.** It was picked out after the fact, the best of seven legs, and its net
+  t is about 1.8. It could be judged only by a new preregistered test on years nobody has read here, never on these.
