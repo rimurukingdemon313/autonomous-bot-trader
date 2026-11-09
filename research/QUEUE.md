@@ -221,6 +221,14 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | Holding the US 500 in the week of monthly options expiration (Stivers & Sun: large caps +0.45% a week in expiration weeks against +0.12% otherwise, 1996-2008; the S&P 500 only from 1983) | On the years after their sample (2009-2026, 216 expiration weeks), even the full +0.33% gap gives about t 1.9 against a bar near 3.4. Holding only those weeks, mostly the market's own drift, reaches about t 3.0 at full size. Practitioner backtests report it has weakened since. Twelve weeks a year is not frequent trading either |
 | The week after expiration (a partial reversal), triple-witching weeks, the Santa Claus rally, the first trading days of a year | A short sale or a handful of events a year: weaker still in power. The holiday eves were PHD-1 (t 0.82) |
 
+**Checked on 2026-11-09, 11:30 UTC (work published from mid-2026), and dropped before building.**
+
+| Idea | Why it was dropped |
+|---|---|
+| The noise-area intraday breakout adapted to Nasdaq-100 futures (2026) | The family dropped this morning. The adaptation's own threshold was chosen on its development data |
+| Calendar seasonality in commodity futures by regression and singular spectrum analysis (arXiv 2609.12227, September 2026) | By its own account the effect's strength and value differ across markets and specifications. No out-of-sample figures could be read here. A CFD account quotes only a few commodities, and one seasonal signal a month per commodity has little power |
+| AI-assisted replications of nine published equity anomalies (a July 2026 roundup) | None survived out of sample, and the one apparent survivor was a construction error, as this registry keeps finding |
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
