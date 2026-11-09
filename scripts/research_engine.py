@@ -49,7 +49,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
 
-ENGINE_VERSION = "research-engine-1.0.1"  # 1.0.1: a failing model is passed over, not waited out
+ENGINE_VERSION = "research-engine-1.0.2"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
 #: research/holdout.json, byte for byte. Any change to the seal fails every cycle until a person re-pins it here.
 SEAL_SHA256 = "3d2464db54bc2a147ae46f7b868a7c521c037288a4244f05faeac3c0870f0c89"
 HORIZONS = ("scalping", "intraday", "swing", "position")
@@ -394,8 +394,10 @@ def openrouter_ask(env: dict | None = None) -> Ask | None:
     client = OpenRouterClient(cfg)
 
     def ask(role: str, messages: list[dict], validate, avoid: tuple) -> Answer:
-        res = client.chat_json(role, messages, validate, dedupe_key=f"research:{role}", max_tokens=6000,
-                               avoid=tuple(a for a in avoid if a), deadline_s=150.0)  # then the next model
+        # 20,000 tokens: free reasoning models spent 6,000 thinking and never wrote the JSON (the second production
+        # cycle, 2026-11-09), as Trader 1 did before dual-ai 1.19.0; 240 s: such models took 90-170 s
+        res = client.chat_json(role, messages, validate, dedupe_key=f"research:{role}", max_tokens=20000,
+                               avoid=tuple(a for a in avoid if a), deadline_s=240.0)  # then the next model
         return res.ok, res.status, res.data, res.model, res.error
     return ask
 
