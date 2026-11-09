@@ -97,3 +97,13 @@ power check at this project's bar (t ≥ 3.63 on 2009-2016).
    (`research/preregistrations/FXT-1.md`).
 5. ~~The sealed holdout~~: not opened. No candidate passed its judge, so the seal stays closed.
 6. ~~`docs/FX_MISSION_REPORT.md`~~ (done 2026-11-09): **NO VALIDATED FOREX EDGE FOUND**.
+
+## The $4,000-a-month question (2026-11-09)
+
+The owner's updated mission set the target: $4,000 a month net on $200,000 (2% a month). `docs/FX_TARGET_REPORT.md`
+scales the judged books to fixed risk levels (`scripts/fx_target.py`, `research/results/FX-TARGET.json`).
+
+**Not credible.** The best candidate, FXT-1, would have averaged about $580 a month at a capital-preserving 5%
+volatility. On the target it needs 6.3x leverage: a 66% drawdown on its own history and a 38% chance of ruin in five
+years, and close to certain ruin if its edge halved. Next, as paper evidence only: FXT-F forward, and the broker's
+measured costs.
