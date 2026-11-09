@@ -1,0 +1,78 @@
+{
+ "code_sha256": "663880df6355406274124ce475814d42335534d83fbb56adf8c9cf93daf09a4b",
+ "sha256": "1d02f6017da3c6761b065d20d0eb5b5b2c383647df7a1026b29070ba36874f96",
+ "spec": {
+  "bootstrap": {
+   "block_months": 12,
+   "n": 10000,
+   "seed": 7
+  },
+  "cost_bp_each_way": 2.0,
+  "cost_grid": [
+   1.0,
+   1.5,
+   2.0
+  ],
+  "currencies": [
+   "GBP",
+   "JPY",
+   "CHF",
+   "CAD",
+   "AUD",
+   "NZD"
+  ],
+  "financing": "none in the judge (swap-free account)",
+  "float_from": {
+   "AUD": "1983-12-12",
+   "CAD": "1970-06-01",
+   "CHF": "1973-01-23",
+   "GBP": "1972-06-23",
+   "JPY": "1973-02-14",
+   "NZD": "1985-03-04"
+  },
+  "gates": {
+   "beats_random": "Welch t of the monthly net against random-sign books of the same sizes >= 2.0",
+   "bootstrap": "the 95% interval of the mean monthly net from 12-month block bootstrap is above 0",
+   "costs_x2": "mean monthly net > 0 at costs x2 (x1.5 reported)",
+   "currencies": "at least 60% of the currencies traded are net positive",
+   "development": "mean monthly net > 0 over 1975-1982",
+   "one_month_late": "mean monthly net > 0 with every signal one month old",
+   "t": "monthly net t over 1975-1989 >= the registry threshold over every earlier FX test (never below 3.0)",
+   "top_year": "no calendar year above 50% of the total net",
+   "validation": "mean monthly net > 0 over 1983-1989"
+  },
+  "holdout_rule": "only if every gate passes: 2017-01 -> 2026-09 (the H.10 2026-09-29 vintage, with EUR added as the seventh currency), opened once as FXT-1-H. Gates: mean monthly net > 0 in a swap-free account, and > 0 at costs x2. A standard account's swaps (BIS policy rates plus a 1.5% a year markup) are reported. The edge registry calls it VALIDATED only at a holdout t of 2.5 or more",
+  "lookback_months": 12,
+  "max_leverage": 3.0,
+  "periods": {
+   "development": [
+    "1975-01-01",
+    "1983-01-01"
+   ],
+   "holdout": [
+    "2017-01-01",
+    "2026-10-01"
+   ],
+   "judged": [
+    "1975-01-01",
+    "1990-01-01"
+   ],
+   "validation": [
+    "1983-01-01",
+    "1990-01-01"
+   ]
+  },
+  "program": "FXT-1",
+  "question": "did the major currencies' own 12-month trends, traded monthly at equal risk, earn a positive net return in 1975-1989, years no test here has read?",
+  "random_seeds": [
+   11,
+   12,
+   13
+  ],
+  "target_vol": 0.1,
+  "threshold_t": 3.6294,
+  "universe": "fx-majors",
+  "version": "fxt-1.0.0",
+  "vol_days": 60
+ }
+}
