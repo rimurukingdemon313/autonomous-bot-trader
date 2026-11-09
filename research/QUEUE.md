@@ -185,6 +185,17 @@ No rule found so far trades every day and can reach its bar at a CFD's costs. It
 says about costs" above: the more often a rule trades, the smaller each trade's edge, and a spread paid on every
 trade takes it.
 
+**Checked on 2026-11-09, 05:50 UTC (a search for newer out-of-sample work), and nothing new to build.** The owner,
+the same morning: "don't go quiet until we find the solution". The check-ins now run every hour and report every
+cycle.
+
+- **Crypto.** Recent out-of-sample work finds statistical predictability, but no trading profit after costs. That
+  covers daily forecasts over 2021-2024 (Arain & Snudden 2025), machine-learning signals with fees (a 2025 preprint)
+  and portfolio tests (Chen 2025). In the last, only volatility timing kept economic value. That is VOLM-1's family,
+  which had no power on the S&P 500 (t 1.27), and crypto has fewer years.
+- **Paired BTC and ETH sessions** (a 2025 study, hourly 2016-2025, holdout 2021-2025). This is the hour-of-day family
+  dropped above, and only the months after its holdout would be fresh.
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
