@@ -105,5 +105,5 @@ scales the judged books to fixed risk levels (`scripts/fx_target.py`, `research/
 
 **Not credible.** The best candidate, FXT-1, would have averaged about $580 a month at a capital-preserving 5%
 volatility. On the target it needs 6.3x leverage: a 66% drawdown on its own history and a 38% chance of ruin in five
-years, and close to certain ruin if its edge halved. Next, as paper evidence only: FXT-F forward, and the broker's
-measured costs.
+years, and close to certain ruin if its edge halved. FXT-F is not run: the open-ended 2017 seal would be spent
+on it (`docs/FX_TARGET_REPORT.md`, correction). The next FX evidence is the broker's measured costs.

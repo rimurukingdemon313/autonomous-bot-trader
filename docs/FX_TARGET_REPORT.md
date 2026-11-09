@@ -170,3 +170,39 @@ real money.
 conservative risk, with a wide range around it. Reaching $4,000 a month would take either a genuinely stronger edge,
 which nothing here has found, or more capital at the same modest risk. On FXT-1's historical figure, that would be
 roughly $1.4 million at the conservative level, still unvalidated.
+
+## Correction to section 8 (2026-11-09, before anything was registered): FXT-F is not run
+
+**FXT-F cannot be preregistered under the project's own rules.**
+
+- **The seal.** It covers fx-majors from 2017-01-01 with no end (`research/holdout.json`). The registry treats any
+  later trial that touches it as its one final test, and that test opens only for a candidate that passed. FXT-1
+  failed its judge.
+- **The warm-up reads sealed history.** FXT-1's rule needs 12 months of rates and 60 days of volatility before its
+  first decision. A December 2026 start would read 2025-2026 rates, which are sealed history.
+- **The clean form is too slow.** A forward-only universe reading nothing before registration (TOM-F's convention)
+  would first trade in about 2028 and be judged in about 2031, at an expected t near 1.2. That is not a useful
+  paper plan.
+
+**What remains of the plan:**
+
+- **Measured costs.** Recording the account's real spreads and commissions is measurement, not a test, and needs no
+  seal. A cost-measured successor to ID-2 could then be judged on ID-2's own validation years (2014-2016, never
+  computed for it). It would open the seal only if it passed, as ID-1's procedure registers.
+- **No FX strategy is fit for paper trading now.** The system's paper strategy remains TRND-1 on the four index CFDs
+  (`docs/TREND_DESK.md`).
+
+**The FX data budget is spent.** Under these rules:
+
+- the pre-2017 years carry 176 tests (bar 3.63);
+- every month from 2017 on, past or future, is reserved for a single final test of a passer.
+
+Changing the seal, for example ending it at a date so that later months can carry forward tests, would be a change to
+the research rules. It is left as it is.
+
+**One dependency, checked in the code.**
+
+- **Nothing can record real costs yet.** Measured costs need a connection to the account's broker. None exists:
+  `aitrader/broker/` holds only the paper broker, and no spread recorder remains in the code.
+- **Until then, no FX step can add evidence** under these rules.
+- **Research continues** on the other instruments a funded account quotes (`research/QUEUE.md`).
