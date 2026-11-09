@@ -204,6 +204,16 @@ cycle.
 | The European closing-auction reversal. Auctions are 40-55% of the day's volume on the FTSE, DAX and CAC, and about 14% of a stock's auction return reverses overnight | Measured on single stocks, not the index. An index CFD is quoted off the futures after the cash close, so it never carries the cash index's auction distortion |
 | The end-of-day reversal across US stocks (Soebhag, Baltussen & Da; second at the 2025 Quantpedia Awards): intraday losers rebound in the last 30 minutes | 3.78-6.86 bp a day gross for the long-short quintiles, 1993-2019. Two single-stock CFD legs at 3-5 bp each leave between −6.2 and +0.9 bp a day. At the index level the same window shows momentum instead, which IX-2 and FT-1 found too small for a CFD's spread |
 
+**Checked on 2026-11-09, 09:30 UTC (a search for 2025-2026 work on index futures, gold and crypto), and dropped.**
+The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET_REPORT.md`).
+
+| Idea | Why it was dropped |
+|---|---|
+| A trend-momentum regime signal in gold futures, walk-forward 2015-2025 ("Forecast-to-Fill", arXiv 2511.08571, 2025) | Its own figures cannot coexist: a Sharpe ratio of 2.88 and 43% a year, with a worst fall of 0.52% in ten years. That points to an error or a leak. It assumes 0.7 bp of cost and is not peer-reviewed. Gold's slow trend rules were checked before (about t 2.7 at full strength) |
+| Intraday lead-lag across liquid ETFs from lagged cross-sectional returns (a 2025 *Management Science* paper) | Profitable at an institutional ETF's costs on minute bars of many ETFs, which this project does not have. The index-CFD intraday record (IX-2, FT-1) shows edges of this kind below a CFD's round trip |
+| Exchange flows of USDT and BTC as intraday signals (arXiv 2411.06327) | No result net of fees. The flow data is sold by private providers, so it cannot be reproduced here |
+| Spot-BTC ETF flows as a daily signal (since 2024) | The flows follow price and are predicted by volume (NYDIG: R² above 70%). The one backtest that beat holding starts in 2024 and charges no fees |
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
