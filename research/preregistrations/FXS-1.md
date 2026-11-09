@@ -140,3 +140,18 @@ trades):
   - **USDJPY in US hours moved against the hypothesis:** −1.24 bp gross, t −2.43.
 - **The EURUSD leg is a lead, not a result.** It was picked out after the fact, the best of seven legs, and its net
   t is about 1.8. It could be judged only by a new preregistered test on years nobody has read here, never on these.
+
+## Correction (2026-11-09, after the verdict)
+
+**"Not a repeat" above missed one exploratory look.** EX-1 (2026-10-05, development data 2007-2012, M15) screened 21
+session and order-flow families, and counted every look as a test. One of them was an Asian-session USD drift, the
+same idea as this program's TOKYO window. It found gross intraday predictability of 2.2 bp or less, against 2.6-3.1 bp
+of cost, in every family (`docs/EDGE_SEARCH_REPORT.md`).
+
+The correction changes nothing in the verdict:
+
+- **The TOKYO window was never traded here** (the missing 00:00 UTC bars).
+- **The European and US windows were new.**
+- **The threshold already counted EX-1's 21 looks.**
+
+EX-1 and FXS-1 agree: the information is there before costs, and it is smaller than a retail round trip.

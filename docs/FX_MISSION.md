@@ -50,6 +50,7 @@ implied volatilities, consensus forecasts for economic releases, a broker's hist
 | Daily price rules, cross-asset lead-lag (gold for AUD, VIX for the crosses), macro (CPI) | R2A-D, R3, R4, CP-001, SL-001, XS-001 | D1 | t between −2.9 and +1.0. No information |
 | Positioning: CFTC COT, eleven variants | COT-1 | D1-W1 | t between −2.1 and +0.4 |
 | Flows: the Gotobi days, the London 4 pm fix, month-end hedging | FLOW-1, MEH-1 | M15 | Negative or nil: the fix rule lost (t −11.6), month-end hedging +1.2 bp net (t 1.04) |
+| Exploratory session and order-flow screens: Asian-session USD drift, illiquid-hours reversal, session momentum, activity-conditioned continuation, momentum into the futures settlement | EX-1 (21 looks), EX-2 (4) | M15 | Gross intraday predictability of 2.2 bp or less against 2.6-3.1 bp of cost in every family |
 | Cross-sectional currency factors, weekly: carry, momentum, reversal, value, volatility-scaled | RV-1 | W1 | Carry ranked currencies in 2000-2007 (IC t 3.09), but earned nothing from 2008: the interest income equalled the spot loss. Momentum, volatility-scaled: t 2.1. The rest near 0 |
 | Composite of rate, momentum and positioning | RC-FX | D1 | t 1.72 over 1990-2016 |
 | Trend following: Donchian, TSMOM, SMA | archive-trend-3 | D1 and longer | Failed on 2017-2022 |
@@ -75,7 +76,7 @@ power check at this project's bar (t ≥ 3.63 on 2009-2016).
 | 4 | Volatility risk premia | NOT TESTABLE | FX options cannot be traded from a spot or CFD account, and no implied-volatility history is here. As a timing filter it was tested (R4-XA-VIX, RV-1 H5) |
 | 5 | Macro divergence and repricing | REJECTED in part, rest not testable | R4-MACRO-CPI failed. Point-in-time macro vintages (revisions) are not reachable from here |
 | 6 | Order flow and liquidity | NOT TESTABLE beyond ID-2 | No order flow or traded volume exists, only tick counts, which ID-2 used |
-| 7 | Session transitions | REJECTED as price patterns, **one structural form open** | Session-open and true-open rules failed (ID-1 B6, QT-1 T2/T3, FLOW-1). The order-flow time-of-day effect was never tested: a currency weakens during its own country's working hours and firms in foreign hours (Ranaldo 2009; Breedon & Ranaldo 2013, who tie it to order flow). → **FXS-1** |
+| 7 | Session transitions | REJECTED as price patterns, **one structural form open** | Session-open and true-open rules failed (ID-1 B6, QT-1 T2/T3, FLOW-1). EX-1's exploratory screen (2007-2012) looked at an Asian-session USD drift among 21 session families: gross ≤ 2.2 bp against 2.6-3.1 bp of cost. The European and US home-currency windows were never tested: a currency weakens during its own country's working hours and firms in foreign hours (Ranaldo 2009; Breedon & Ranaldo 2013, who tie it to order flow). → **FXS-1** |
 | 8 | Lead-lag with related markets | REJECTED | C1-USD-LAG (M5), R4-XA-GOLD and R4-XA-VIX (D1), and ID-2's cross-market inputs. For oil and the commodity currencies, the published lead runs the other way: currencies predict commodity prices (Chen, Rogoff & Rossi 2010) |
 | 9 | Event-driven | NOT TESTABLE as surprises | No history of consensus forecasts. FOMC and CPI days were tested on other markets |
 | 10 | Regime-dependent | Partly tested | Volatility-scaled carry and momentum (RV-1 H5/H6), ID-2's regime inputs. A new regime split of the same data would mostly be curve-fitting |
@@ -95,4 +96,4 @@ power check at this project's bar (t ≥ 3.63 on 2009-2016).
    3.6294. Every other gate passed: both halves, costs x2, a month late, random signs, the bootstrap
    (`research/preregistrations/FXT-1.md`).
 5. ~~The sealed holdout~~: not opened. No candidate passed its judge, so the seal stays closed.
-6. `docs/FX_MISSION_REPORT.md`, with every deliverable.
+6. ~~`docs/FX_MISSION_REPORT.md`~~ (done 2026-11-09): **NO VALIDATED FOREX EDGE FOUND**.
