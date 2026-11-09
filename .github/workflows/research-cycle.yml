@@ -10,6 +10,9 @@ name: Research cycle (autonomous, research only)
 on:
   schedule:
     - cron: "47 4 * * *"  # daily, away from the trend desk's evening run
+    # A backup, since GitHub's cron is best-effort. A second run the same day re-checks the record and retries only an
+    # ideas step that failed; the day's cap of three ideas holds across both.
+    - cron: "17 16 * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,7 +23,7 @@ concurrency:
 jobs:
   cycle:
     runs-on: ubuntu-latest
-    timeout-minutes: 45  # three models for each of two roles, at 240 s a call at most
+    timeout-minutes: 55  # five models for each of two roles, at 240 s a call at most: 40 minutes
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

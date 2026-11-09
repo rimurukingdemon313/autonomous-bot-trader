@@ -188,6 +188,35 @@ def test_before_the_first_session_the_trading_report_invents_nothing(tmp_path):
     assert rows(tmp_path) == [] and (tmp_path / "equity.csv").read_text().count("\n") == 1
 
 
+def test_a_session_held_back_by_a_missing_price_is_said_in_the_trading_report_and_never_filled_in(tmp_path):
+    """2026-11-09, run 42721181436: Yahoo served GER40's bar for the first session with no close. The desk applied
+    nothing, as it should; the trading report must say why, not only that no session has run."""
+    from zoneinfo import ZoneInfo
+    bars, rates = market(date(2026, 11, 9))
+    tz = ZoneInfo("Europe/Berlin")
+    ger = bars["GER40"]
+    res = {"meta": {"exchangeTimezoneName": "Europe/Berlin"},
+           "timestamp": [int(datetime(b.day.year, b.day.month, b.day.day, 9, 0, tzinfo=tz).timestamp()) for b in ger],
+           "indicators": {"quote": [{"open": [b.open for b in ger], "high": [b.high for b in ger],
+                                     "low": [b.low for b in ger], "close": [b.close for b in ger[:-1]] + [None]}]}}
+    now = at(date(2026, 11, 9), 23, 32)
+    bars["GER40"], problems = R.parse_bars("GER40", res, now)
+    assert bars["GER40"][-1].day == date(2026, 11, 6) and len(problems) == 1
+    s = R.run(tmp_path, now, bars, rates, problems)
+    assert s["processed_this_run"] == [] and s["last_session"] is None  # held back: nothing applied, nothing skipped
+    text = (tmp_path / "TRADING_REPORT.md").read_text()
+    assert "**Problems this run.**" in text and "GER40 2026-11-09: a price is missing" in text
+    assert "nothing from 2026-11-09 on is used" in text and "مشكلة، مكتوبة تحت" in text
+    assert "no session yet" in text and rows(tmp_path) == []  # no session invented in its place
+    full, _ = market(date(2026, 11, 9))
+    s = R.run(tmp_path, at(date(2026, 11, 10), 11, 26), full, rates)  # the next run reads the bar complete
+    assert [x.split(" UTC")[0] for x in s["processed_this_run"]] == ["2026-11-09 16:30", "2026-11-09 21:00"]
+    assert len(s["positions"]) == 4  # the held-back session is applied in order, as it would have been on time
+    text = (tmp_path / "TRADING_REPORT.md").read_text()
+    assert "**Problems this run.**" not in text and "بهالتشغيل" not in text
+    assert [r["day"] for r in csv.DictReader(open(tmp_path / "equity.csv"))][0] == "2026-11-09"
+
+
 def test_a_ledger_failure_never_stops_the_desk_and_is_said(tmp_path, monkeypatch):
     bars, rates = market(date(2026, 11, 10))
 

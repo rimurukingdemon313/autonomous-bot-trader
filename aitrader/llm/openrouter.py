@@ -119,7 +119,18 @@ from .provider import extract_json
 #:         (25 asked and busy, 12 resting), each keeping the seat until it had failed three times and lost its rank. A
 #:         holder busy once still keeps its seat: a busy minute is not a new trader. When the rest ends it is ranked as
 #:         before, and its first usable reply clears its streak.
-OPENROUTER_VERSION = "openrouter-1.14.0"
+#: 1.15.0 (research cycle, 2026-11-09: three production cycles, no answer): the research engine's proposer and critic
+#:         (RESEARCH_ROLES) are ranked as the judge is, the strongest FREE text models first. They had the verifier's
+#:         ranking, which leaves out the two strongest by design, and the three models it offered timed out, were
+#:         rate-limited or were cut at max_tokens in every cycle. They are never paid: neither is in PAID_ROLES, and
+#:         the client refuses to load if one ever is. Every trading seat is ranked as before.
+OPENROUTER_VERSION = "openrouter-1.15.0"
+#: the research engine's roles (scripts/research_engine.py): the proposer and the critic. FREE only, always.
+RESEARCH_ROLES = ("researcher", "critic")
+if set(RESEARCH_ROLES) & set(PAID_ROLES):
+    raise RuntimeError(f"a research role may never be paid: {sorted(set(RESEARCH_ROLES) & set(PAID_ROLES))}")
+#: which ranking each role reads; any other role reads the verifier's
+RANKING = {"vision": "vision", "judge": "judge", "researcher": "judge", "critic": "judge"}
 #: a seat's holder that answers so is gone, not busy: excluded, or resting for hours (1.13.0)
 SEAT_GONE = ("MODEL_RESTRICTED", "UNAVAILABLE")
 SEAT_HANDOVERS = 2
@@ -389,7 +400,7 @@ class OpenRouterClient:
             if (pm is not None and self.trial.active(self.clock()) and self._catalog_model(pm.id) is not None
                     and self._usage_read_day != _day(self.clock()) and self.clock() - self._key_checked_at >= 60):
                 self.check_key(force=True)  # a new UTC day: its spend is read before anything paid is asked
-            ranked = [r["id"] for r in getattr(sel, {"vision": "vision", "judge": "judge"}.get(role, "verifier"))]
+            ranked = [r["id"] for r in getattr(sel, RANKING.get(role, "verifier"))]
             if role in PAID_ONLY_ROLES:  # the senior: its paid model or nobody, never a FREE one (1.12.0)
                 ranked = []
             pin = {"vision": self.config.vision_pin, "judge": self.config.judge_pin}.get(role, "")
@@ -852,4 +863,5 @@ def _retry_after(headers: dict) -> float | None:
     return None
 
 
-__all__ = ["OPENROUTER_VERSION", "CallResult", "OpenRouterClient", "OpenRouterConfig", "Transport", "lab_of"]
+__all__ = ["OPENROUTER_VERSION", "RANKING", "RESEARCH_ROLES", "CallResult", "OpenRouterClient", "OpenRouterConfig",
+           "Transport", "lab_of"]

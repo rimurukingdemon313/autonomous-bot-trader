@@ -26,7 +26,7 @@ import json
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-LEDGER_VERSION = "desk-ledger-1.0.0"
+LEDGER_VERSION = "desk-ledger-1.0.1"
 TARGET_MONTH_USD = 4_000.0
 STRATEGY = "TRND-1"
 START_DAY = "2026-11-09"
@@ -258,23 +258,30 @@ def _num(x, nd=2) -> str:
     return "—" if x is None else f"{x:,.{nd}f}"
 
 
-def _ar(perf: dict) -> str:
+def _ar(perf: dict, problems: list[str]) -> str:
     d = perf["daily"][-1] if perf["daily"] else None
     day = (f"آخر يوم ({d['period']}) طلع {_usd(d['net'])}." if d else "بعد ما صارت ولا جلسة.")
+    why = (f" بهالتشغيل صارت {len(problems)} مشكلة، مكتوبة تحت. الجلسة اللي بياناتها ناقصة ما تنطبق، وتنتظر لحد ما "
+           "توصل كاملة." if problems else "")
     return ("**بالعربي:** هذا تقرير التداول الورقي وحده: فلوس مو حقيقية، ومو باكتيست، وما بيه ولا رقم من البحث. "
-            f"الرصيد هسه {_amt(perf['equity'])}، يعني من البداية {_usd(perf['net_since_start'])}. {day} "
+            f"الرصيد هسه {_amt(perf['equity'])}، يعني من البداية {_usd(perf['net_since_start'])}. {day}{why} "
             f"الصفقات المسكّرة: {perf['closed_trades']} (ربحت {perf['won']}، خسرت {perf['lost']}). "
             f"أكبر نزول من القمة: {_amt(perf['max_drawdown_usd'])}. الـ$4,000 بالشهر هدف مو إلزام: "
             "النظام ما يزيد المخاطرة ولا يفتح صفقة حتى يوصله.")
 
 
-def report(perf: dict, led: dict, limits: dict, now: datetime) -> str:
+def report(perf: dict, led: dict, limits: dict, now: datetime, problems: list[str] | None = None) -> str:
+    problems = list(problems or [])
     L = ["# Trend desk: paper-trading performance", "",
          "**PAPER TRADING · NOT REAL MONEY · NOT A BACKTEST.** TRND-1 traded by the system itself, forward from "
          f"{START_DAY}, with simulated fills on each index's real daily close. Backtest and validated out-of-sample "
-         "results are listed at the end and are never added to these figures.", "", _ar(perf), "",
+         "results are listed at the end and are never added to these figures.", "", _ar(perf, problems), "",
          f"Updated {now:%Y-%m-%d %H:%M} UTC · sessions run: {perf['sessions_run']} · recorded: {perf['sessions']} · "
          f"last: {perf['last_session'] or 'none yet'} · {LEDGER_VERSION}", ""]
+    if problems:
+        L += ["**Problems this run.** A session whose data is incomplete is not applied, and nothing is filled in for "
+              "it: it waits, with every session after it, for the first run that reads it complete, and is then "
+              "applied in order.", ""] + [f"- {p}" for p in problems] + [""]
     if perf["sessions_missing"]:
         L += [f"**Sessions with no equity record:** {', '.join(perf['sessions_missing'])}. They are in the desk's own "
               "record (trades, decisions); only their closing equity is missing from the daily figures.", ""]
@@ -375,7 +382,7 @@ def limits_of(desk) -> dict:
             "NO TRADE": "an index whose rule says flat is not held; nothing is traded to meet a target"}
 
 
-def write(state_dir: Path, db, desk, now: datetime) -> dict:
+def write(state_dir: Path, db, desk, now: datetime, problems: list[str] | None = None) -> dict:
     led = ledger(db, desk)
     perf = performance(led, desk.gate.profile.starting_balance)
     with open(state_dir / "ledger.csv", "w", newline="") as f:
@@ -389,7 +396,7 @@ def write(state_dir: Path, db, desk, now: datetime) -> dict:
         for s in led["snaps"]:
             w.writerow([_iso(s["t"]), s["day"], " ".join(s["symbols"]), s["equity"], s["balance"], s["open_pnl"],
                         s["gross_exposure_usd"], s["leverage"]])
-    (state_dir / "TRADING_REPORT.md").write_text(report(perf, led, limits_of(desk), now))
+    (state_dir / "TRADING_REPORT.md").write_text(report(perf, led, limits_of(desk), now, problems))
     return perf
 
 

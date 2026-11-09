@@ -181,6 +181,38 @@ def test_a_rate_limited_model_is_passed_over_not_waited_out_and_every_attempt_is
     assert no_model.run().ideas.startswith("FAILED") and len(no_model.attempts) == 1  # nothing else would answer
 
 
+def test_the_third_production_cycle_replayed_three_failing_models_are_passed_over_and_the_tries_are_bounded(tmp_path):
+    """2026-11-09 18:51 UTC: the three models offered timed out, were cut at max_tokens and were rate-limited, and the
+    step failed. Now a fourth and a fifth are asked; past the fifth the step fails, recorded, and the next run retries."""
+    p, r = three()
+    failing = [("recursive/flint-v1.0:free", "TIMEOUT"),
+               ("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+                "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)"),
+               ("xingchen-agi/xing4.0-29b-a4b:free", "RATE_LIMITED")]
+
+    def ask_with(n_failing):
+        bad = failing + [(f"lab-{k}/also-busy:free", "RATE_LIMITED") for k in range(n_failing - len(failing))]
+        calls = []
+
+        def ask(role, messages, validate, avoid):
+            calls.append(role)
+            if role == "researcher":
+                for m, status in bad:
+                    if m not in avoid:
+                        return False, status, None, m, "as in production"
+                return True, "OK", p, "lab-z/strong:free", None
+            return True, "OK", r, "lab-y/critic:free", None
+        return ask, calls
+
+    ask, calls = ask_with(3)
+    res = E.Engine(ROOT, tmp_path / "a", ask, DAY1).run()
+    assert res.ideas == "OK" and calls == ["researcher"] * 4 + ["critic"]
+    ask, calls = ask_with(E.MODEL_TRIES)
+    res = E.Engine(ROOT, tmp_path / "b", ask, DAY1).run()
+    assert res.ideas.startswith("FAILED") and calls == ["researcher"] * E.MODEL_TRIES  # bounded: the job's time holds
+    assert ideas(tmp_path / "b") == [] and len(cycles(tmp_path / "b")[-1]["detail"]["attempts"]) == E.MODEL_TRIES
+
+
 def test_after_a_failure_the_next_run_retries_and_completes(tmp_path):
     assert E.Engine(ROOT, tmp_path, scripted(None, None), DAY1).run().ideas.startswith("FAILED")
     res = E.Engine(ROOT, tmp_path, scripted(*three()), DAY1 + timedelta(hours=1)).run()

@@ -142,7 +142,7 @@ def run(state_dir: Path, now: datetime, bars: dict[str, list[DailyBar]], rates: 
     (state_dir / "state.json").write_text(json.dumps(state, indent=1, sort_keys=True, default=str) + "\n")
     (state_dir / "REPORT.md").write_text(report(state))
     try:
-        desk_ledger.write(state_dir, db, desk, now)
+        desk_ledger.write(state_dir, db, desk, now, problems)
     except Exception as e:  # the desk's state and REPORT.md are already written: the report says what failed
         desk_ledger.write_failure(state_dir, e, now)
     return state

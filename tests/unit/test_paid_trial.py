@@ -12,7 +12,7 @@ import pytest
 from aitrader.llm.openrouter import KEY_CHECK_S, OpenRouterClient, OpenRouterConfig
 from aitrader.agents.dual_ai import MAX_TOKENS
 from aitrader.llm.paid_trial import (
-    OWNER_CAP_USD, PAID_TRIAL, PROMPT_TOKENS_RESERVE, SENIOR_2026_11, SENIOR_2026_11B, TRIAL_2026_10_26, PaidModel,
+    OWNER_CAP_USD, PAID_ROLES, PAID_TRIAL, PROMPT_TOKENS_RESERVE, SENIOR_2026_11, SENIOR_2026_11B, TRIAL_2026_10_26, PaidModel,
     PaidTrial, call_reserve,
 )
 
@@ -336,6 +336,22 @@ def test_the_declared_senior_is_the_strongest_listed_within_what_the_owner_allow
     assert t.starts == "2026-11-02T15:00:00Z" and t.daily_usd * 5 <= t.total_usd + 1e-9
     m = t.models["senior"]  # a review at the declared prices never trips its own per-call cap
     assert PROMPT_TOKENS_RESERVE * m.max_in_per_m / 1e6 + MAX_TOKENS["senior"] * m.max_out_per_m / 1e6 <= t.max_call_usd
+
+
+def test_the_research_roles_get_the_strongest_free_models_and_never_a_paid_one_even_when_the_judge_is_funded():
+    """openrouter 1.15.0: the research engine's proposer and critic read the judge's ranking, FREE models only. A trial
+    that funds the judge's seat changes nothing for them."""
+    from aitrader.llm.openrouter import RESEARCH_ROLES
+    fake = Fake()
+    c, _ = client(fake)
+    free_judge = [m for m in c.models_for("judge", 1000) if m != PJ]
+    assert c.models_for("judge", 1000)[0] == PJ  # the trial is open: the judge's seat is paid first
+    for role in RESEARCH_ROLES:
+        assert c.models_for(role, 1000) == free_judge and PJ not in c.models_for(role, 1000)
+        res = ask(c, role, f"r-{role}")
+        assert res.ok and res.model == free_judge[0] and res.cost == 0
+    assert PJ not in fake.calls[-2:] and c.models_for("verifier", 1000) != free_judge  # the debate ranks as before
+    assert not set(RESEARCH_ROLES) & set(PAID_ROLES)
 
 
 def test_the_seniors_seat_is_paid_only_its_paid_model_or_nobody_never_a_free_one():

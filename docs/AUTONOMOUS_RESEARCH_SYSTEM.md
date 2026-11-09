@@ -18,8 +18,8 @@ check-ins of this Claude Code session. Nothing new is hosted.
 
 | Part | Runs | Where it runs | What it does | Where its output goes |
 |---|---|---|---|---|
-| Research cycle | Daily at 04:47 UTC, or on demand | GitHub Actions: `research-cycle.yml` → `scripts/research_cycle.py` → `scripts/research_engine.py` | Integrity of the research record, then new hypotheses (a proposer model, a critic model, a power gate), then the research report | `research-data` branch: `RESEARCH_REPORT.md`, `RESEARCH_REPORT.json`, `ideas.jsonl`, `cycles.jsonl` |
-| Trend desk | Weekdays at 22:40 UTC | GitHub Actions: `trend-desk.yml` → `scripts/trend_desk.py` → `scripts/desk_ledger.py` | TRND-1 traded by the system on its $200,000 paper account, then the permanent ledger and the trading report | `trend-desk-data` branch: `TRADING_REPORT.md`, `ledger.csv`, `equity.csv`, `REPORT.md`, `desk.db.gz` |
+| Research cycle | Daily at 04:47 UTC, a backup at 16:17, or on demand | GitHub Actions: `research-cycle.yml` → `scripts/research_cycle.py` → `scripts/research_engine.py` | Integrity of the research record, then new hypotheses (a proposer model, a critic model, a power gate), then the research report | `research-data` branch: `RESEARCH_REPORT.md`, `RESEARCH_REPORT.json`, `ideas.jsonl`, `cycles.jsonl` |
+| Trend desk | Weekdays at 22:40 UTC, backups at 01:13 and 06:43 | GitHub Actions: `trend-desk.yml` → `scripts/trend_desk.py` → `scripts/desk_ledger.py` | TRND-1 traded by the system on its $200,000 paper account, then the permanent ledger and the trading report | `trend-desk-data` branch: `TRADING_REPORT.md`, `ledger.csv`, `equity.csv`, `REPORT.md`, `desk.db.gz` |
 | Research loop | 11:26 and 23:26 UTC | Claude Code scheduled task "Never-stop research queue" (this session) | Builds the engine's queued ideas: checks each claim at its source, preregisters it, collects the data and judges it once; then reports to the owner | `main`: preregistrations, `research/registry.jsonl`, `research/knowledge/`, `research/QUEUE.md`, `docs/RESEARCH_REPORT.md` |
 | Existing tracks | Unchanged | `funded-paper.yml`, `paper-forward.yml`, `radar.yml` | As before | Their own branches |
 
@@ -83,8 +83,8 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 
 | # | Requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule and on demand | On demand: run 42670397919, success. On schedule: first due 2026-11-10 04:47 UTC, **not yet observed** |
-| 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | Tested (`test_research_engine.py`). In production **not yet**: the first run's model was rate-limited; fixed in 1.0.1 |
+| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule with a backup, and on demand | On demand: three runs on 2026-11-09, each a success. On schedule: first due 2026-11-10 04:47 UTC, **not yet observed** |
+| 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | Tested (`test_research_engine.py`). In production **not yet**: three cycles, no answer (below); changed in 1.1.0 |
 | 3 | Permanent experiment history | `research/registry.jsonl` (append-only, enforced), knowledge files whose hashes every cycle re-checks, `ideas.jsonl` and `cycles.jsonl` (append-only), the desk's hash-chained events | `test_research_report.py`, `test_desk_ledger.py` |
 | 4 | Automated statistical validation | The integrity checks and the power gate run every cycle. The preregistered gates and Bonferroni bars of each program judge it | `test_research_engine.py`, `test_research_report.py`, each program's tests |
 | 5 | Automatic report generation | The research report every cycle, the trading report every weekday session | `test_the_cycle_writes_its_report_with_the_engine_kept_apart`, `test_desk_ledger.py` |
@@ -102,29 +102,54 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 **Deployed.** The research cycle, the engine and the trend desk's ledger reached `main` at commits `b7144b2`,
 `80614fa` and `44d3cd6`.
 
-**Confirmed: the research cycle's first run** (run 42670397919, dispatched 18:02 UTC, success).
+**The research cycle ran three times on demand.** Every run succeeded as a job.
 
-| Step | What happened |
-|---|---|
-| Integrity | OK |
-| Report | Published; the `research-data` branch was created (commit `b78d778`) |
-| Schedule | Re-enabled by the run itself |
-| Ideas | **FAILED, and recorded as such.** The free model the client chose was rate-limited upstream (HTTP 429). The client spent its whole 10-minute deadline waiting on it and never reached another model. Nothing was invented. The run exited 0, so the step is retried |
+| | Run 1 (18:02 UTC) | Run 2 (18:32) | Run 3 (18:51) |
+|---|---|---|---|
+| Engine | 1.0.0 | 1.0.1 | 1.0.2 |
+| Integrity | OK | OK | OK |
+| Report published to `research-data` | yes (`b78d778`, the branch created) | yes (`cab5b58`) | yes (`557f034c`) |
+| Ideas step | **FAILED** | **FAILED** | **FAILED** |
+| Why | The client spent its whole 10-minute deadline waiting on one rate-limited model | Three models: one timed out; two reasoning models were cut at the 6,000-token limit while still thinking | Three models: one timed out, one was cut at 20,000 tokens while thinking, one was rate-limited |
 
-**Fixed after that run** (research-engine-1.0.1):
-- each model call is bounded to 150 seconds;
-- a model that fails in any way is passed over for the next, up to three;
-- every attempt is recorded in `cycles.jsonl`.
+Each failure was recorded in `cycles.jsonl`, with every model tried. Nothing was invented, and the step is retried by
+the next run. The fixes, one at a time:
+
+- **1.0.1:** a call is bounded, and a failing model is passed over for the next.
+- **1.0.2:** 20,000 tokens and 240 seconds a call.
+- **1.1.0, after run 3** (with openrouter 1.15.0):
+  - Both roles now read the judge's ranking, which puts the strongest FREE text models first. They had the verifier's
+    ranking, which leaves out the two strongest by design. It offered the same three small models in runs 2 and 3:
+    `xingchen-agi/xing4.0-29b-a4b`, `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning` and `recursive/flint-v1.0`.
+  - Up to five models are asked a role, and the job may run 55 minutes.
+  - Both roles stay FREE only. Neither is a paid seat, and the client refuses to start if one ever is. A test checks
+    that a trial paying for the judge changes nothing for them.
+
+Whether 1.1.0 gets an answer in production is **not yet observed**.
 
 **Confirmed: the probes and ENG-1's judge on GitHub's runner.**
 - The ENG-1 and LIQ-1 probes: runs 42666526034 and 42666716125, success.
 - ENG-1's judge: run 42670396500, success. It recorded a FAILED verdict (`research/preregistrations/ENG-1.md`).
 
+**The trend desk's first evening: no session applied yet.**
+- GitHub's schedule did not start the 22:40 UTC run (nor the funded-paper track's 22:20). Both were started by hand at
+  23:31 UTC: runs 42721181436 and 42721196248, success.
+- Yahoo served GER40's bar for 2026-11-09 without a close. So the desk applied no session. It never fills a price in:
+  the session waits for the first run that reads it complete.
+- `TRADING_REPORT.md`, `ledger.csv` and `equity.csv` are on `trend-desk-data` (commit `2bbd4a1`). The account is at
+  $200,000 with no trade. Since desk-ledger 1.0.1, the report also says why.
+
+**GitHub's schedule is best-effort.** This repository's schedules have fired hours late or not at all.
+- The trend desk now has backup times at 01:13 and 06:43 UTC, and the funded-paper track at 01:23 and 06:53. Each run
+  applies only what is new.
+- The research cycle has a backup at 16:17 UTC. It retries only an ideas step that failed that day, and the day's
+  cap of three ideas holds across both runs.
+- The research loop's check-ins (11:26 and 23:26 UTC) verify each of these and start a missed run by hand.
+
 **Not yet observed** (each is checked at the next check-in and reported):
-- The first **scheduled** research cycle: 2026-11-10 04:47 UTC.
-- A successful **ideas** step in production.
-- The trend desk's first session with the ledger: 2026-11-09 22:40 UTC, then `TRADING_REPORT.md`, `ledger.csv` and
-  `equity.csv` on `trend-desk-data`.
+- the first **scheduled** research cycle (2026-11-10 04:47 UTC) and the first **scheduled** trend-desk run;
+- a successful **ideas** step in production;
+- the trend desk's first applied session.
 
 ## What is missing, and why
 

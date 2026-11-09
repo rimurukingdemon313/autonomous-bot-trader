@@ -1,7 +1,7 @@
 # The trend desk: TRND-1 traded by the system itself
 
 **PAPER ONLY · NOT REAL MONEY.** A $200,000 paper account (`TRND1-PAPER-200K`), separate from every other account
-here. It started at the close of 2026-11-09. After each weekday's closes, on GitHub's runner, the system:
+here. Its first session is the close of 2026-11-09. After each weekday's closes, on GitHub's runner, the system:
 
 - reads the day's final bars;
 - decides what TRND-1 says;
@@ -11,6 +11,12 @@ here. It started at the close of 2026-11-09. After each weekday's closes, on Git
 
 No person enters a trade. The report and the account are on the `trend-desk-data` branch: `REPORT.md` (with an Arabic
 summary), `state.json` and `desk.db.gz`, with the paper-trading ledger and its report beside them (below).
+
+**The first evening (2026-11-09).** GitHub's schedule did not start the 22:40 UTC run; it was started by hand at 23:31
+(run 42721181436). Yahoo then served GER40's bar for 2026-11-09 without a close. So the desk applied no session: a
+session with incomplete data is never filled in, and it waits, with every session after it, for the first run that
+reads it complete. Both reports say so. The workflow now has two backup times, 01:13 and 06:43 UTC. A run that finds
+nothing new changes nothing.
 
 ## The permanent ledger and the paper-trading report (2026-11-09)
 
@@ -48,6 +54,9 @@ dropped or reset. A figure the record does not hold is shown as unknown.
 If recording a session's equity fails, the desk still trades. The gap is named in `REPORT.md`'s problems and in
 `TRADING_REPORT.md`. If the ledger itself fails, the desk's state and `REPORT.md` are still written,
 `TRADING_REPORT.md` says what failed, and no CSV is left looking current.
+
+Every problem of the run, such as a bar with a missing price, is listed at the top of `TRADING_REPORT.md` too, in
+English and in the Arabic line (desk-ledger 1.0.1). Before that, the report said only that no session had run.
 
 ## Why it exists
 
@@ -233,6 +242,8 @@ Against FUNDED-P's HALF track over the same years (closes only, booked at -8% on
 - an intraday fall that recovers by the close still counts in the drawdown;
 - no research or backtest figure appears among the paper figures;
 - before the first session nothing is invented;
+- a session held back by a missing price is said in the report, never filled in, and applied in order once its bar is
+  complete;
 - a failed ledger never stops the desk.
 
 The gate's stop permits are in `tests/unit/test_hard_gate.py`, and the VALIDATED risk cap in `tests/unit/test_risk.py`.

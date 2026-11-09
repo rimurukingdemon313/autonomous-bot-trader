@@ -49,7 +49,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
 
-ENGINE_VERSION = "research-engine-1.0.2"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
+ENGINE_VERSION = "research-engine-1.1.0"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
+#: 1.1.0: the strongest FREE models (openrouter 1.15.0 ranks both roles as the judge), and up to five of them a role.
+#: In the first three production cycles the three models offered all failed: timed out, rate-limited, or cut at
+#: max_tokens while thinking.
+MODEL_TRIES = 5
 #: research/holdout.json, byte for byte. Any change to the seal fails every cycle until a person re-pins it here.
 SEAL_SHA256 = "3d2464db54bc2a147ae46f7b868a7c521c037288a4244f05faeac3c0870f0c89"
 HORIZONS = ("scalping", "intraday", "swing", "position")
@@ -294,7 +298,7 @@ class Engine:
         return any(c["cycle"] == self.cycle and c["step"] == "ideas" and c["status"] == "OK"
                    for c in read_jsonl(self.cycles_path))
 
-    def _ask(self, role: str, msgs: list[dict], validate, avoid: tuple, tries: int = 3) -> Answer:
+    def _ask(self, role: str, msgs: list[dict], validate, avoid: tuple, tries: int = MODEL_TRIES) -> Answer:
         """A model's answer, from up to `tries` models. A model that fails is never asked again in the step: one
         rate-limited, timed out, unavailable or out of schema (never repaired) is passed over and the next is asked;
         each call is a read with no side effects, so this is safe. A failure that names no model (no key, no free model,

@@ -6,6 +6,10 @@ name: Funded paper track (TRND-1, paper only)
 on:
   schedule:
     - cron: "20 22 * * 1-5"  # after the US close, so all four indices have a final close
+    # Backups. GitHub's cron is best-effort: on 2026-11-09, the track's first weekday, the 22:20 run never fired.
+    # The track is recomputed from the start on final closes only, so a later run gives the same answer.
+    - cron: "23 1 * * 2-6"
+    - cron: "53 6 * * 2-6"
   workflow_dispatch:
 permissions:
   contents: write
