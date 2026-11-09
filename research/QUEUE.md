@@ -214,6 +214,13 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | Exchange flows of USDT and BTC as intraday signals (arXiv 2411.06327) | No result net of fees. The flow data is sold by private providers, so it cannot be reproduced here |
 | Spot-BTC ETF flows as a daily signal (since 2024) | The flows follow price and are predicted by volume (NYDIG: R² above 70%). The one backtest that beat holding starts in 2024 and charges no fees |
 
+**Checked on 2026-11-09, 10:30 UTC, and dropped before building: the options-expiration calendar.**
+
+| Idea | Why it was dropped |
+|---|---|
+| Holding the US 500 in the week of monthly options expiration (Stivers & Sun: large caps +0.45% a week in expiration weeks against +0.12% otherwise, 1996-2008; the S&P 500 only from 1983) | On the years after their sample (2009-2026, 216 expiration weeks), even the full +0.33% gap gives about t 1.9 against a bar near 3.4. Holding only those weeks, mostly the market's own drift, reaches about t 3.0 at full size. Practitioner backtests report it has weakened since. Twelve weeks a year is not frequent trading either |
+| The week after expiration (a partial reversal), triple-witching weeks, the Santa Claus rally, the first trading days of a year | A short sale or a handful of events a year: weaker still in power. The holiday eves were PHD-1 (t 0.82) |
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
