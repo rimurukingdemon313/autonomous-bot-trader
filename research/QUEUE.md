@@ -235,6 +235,17 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 |---|---|
 | Retail-broker client positioning as a contrarian signal (the share of a broker's clients long the US 500 or gold, read against them) | No study has tested it: only the broker's own marketing and user-made scripts, with no performance record. No history of the data is public here. A forward record would mean scraping a broker's site daily. COT-1's institutional positioning had no information either |
 
+**Checked on 2026-11-09, 13:30 UTC, and dropped before building (power and earlier verdicts, no new data needed).**
+
+| Idea | Why it was dropped |
+|---|---|
+| The US 500 inside and outside companies' share-buyback blackout windows (the weeks before earnings, when buybacks stop) | Four windows a year: about 60 in 15 years. Even a large gap between them cannot reach a bar near 3.4 |
+| Flows from volatility-targeting funds: holding or avoiding the indices after volatility spikes, when such funds cut exposure | It is the return-to-volatility relation VOLM-1 already measured (alpha t 1.27 over 1995-2021). The same data cannot carry it again |
+
+**The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
+searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
+follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
