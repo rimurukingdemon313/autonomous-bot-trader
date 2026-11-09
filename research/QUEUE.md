@@ -229,6 +229,12 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | Calendar seasonality in commodity futures by regression and singular spectrum analysis (arXiv 2609.12227, September 2026) | By its own account the effect's strength and value differ across markets and specifications. No out-of-sample figures could be read here. A CFD account quotes only a few commodities, and one seasonal signal a month per commodity has little power |
 | AI-assisted replications of nine published equity anomalies (a July 2026 roundup) | None survived out of sample, and the one apparent survivor was a construction error, as this registry keeps finding |
 
+**Checked on 2026-11-09, 12:30 UTC, and dropped before building.**
+
+| Idea | Why it was dropped |
+|---|---|
+| Retail-broker client positioning as a contrarian signal (the share of a broker's clients long the US 500 or gold, read against them) | No study has tested it: only the broker's own marketing and user-made scripts, with no performance record. No history of the data is public here. A forward record would mean scraping a broker's site daily. COT-1's institutional positioning had no information either |
+
 **A known gap, left as it is.** `research_status.json` feeds the dashboard's research line, and it dates from 2026-10-08.
 It does not read the single-script programs. Regenerated now, its top line would still be "NO EDGE — DO NOT TRADE",
 which stays true for trading, because nothing is promoted. But it would list TRND-1 as FAILED, for lack of a reader.
