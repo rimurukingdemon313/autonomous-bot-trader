@@ -1,8 +1,9 @@
 # The trend desk (docs/TREND_DESK.md): TRND-1 traded by the system itself on its own $200,000 paper account, through
 # the risk engine, the hard risk gate and the paper broker, after each weekday's closes on GitHub's runner, which can
-# reach Yahoo. PAPER ONLY: no broker, no account, no key, no real money. The account (desk.db) and its report are
-# carried on the trend-desk-data branch: what the desk did is never recomputed. If the bars cannot be read, nothing is
-# published and the last report stays.
+# reach Yahoo. PAPER ONLY: no broker, no account, no key, no real money. The account (desk.db), its report, and the
+# permanent trade ledger with the paper-trading report (TRADING_REPORT.md, ledger.csv, equity.csv) are carried on the
+# trend-desk-data branch: what the desk did is never recomputed. If the bars cannot be read, nothing is published and
+# the last report stays.
 name: Trend desk (TRND-1 traded by the system, paper only)
 on:
   schedule:
@@ -47,8 +48,13 @@ jobs:
         run: |
           gzip -nc state/desk.db > pub/desk.db.gz
           cp state/REPORT.md state/state.json pub/
+          # the permanent ledger and the trading report (scripts/desk_ledger.py): rebuilt in full from desk.db each run;
+          # a file the run could not write is removed rather than left looking current
+          for f in TRADING_REPORT.md ledger.csv equity.csv; do
+            if [ -f "state/$f" ]; then cp "state/$f" pub/; else rm -f "pub/$f"; fi
+          done
           cd pub
-          git add desk.db.gz REPORT.md state.json
+          git add -A .
           git commit -qm "trend desk $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
           for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/trend-desk-data && exit 0; sleep $((i * 20)); done
           exit 1

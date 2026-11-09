@@ -10,7 +10,44 @@ here. It started at the close of 2026-11-09. After each weekday's closes, on Git
 - fills it on the paper broker.
 
 No person enters a trade. The report and the account are on the `trend-desk-data` branch: `REPORT.md` (with an Arabic
-summary), `state.json` and `desk.db.gz`.
+summary), `state.json` and `desk.db.gz`, with the paper-trading ledger and its report beside them (below).
+
+## The permanent ledger and the paper-trading report (2026-11-09)
+
+The owner, 2026-11-09, asked for the trading report to be kept apart from research, with daily figures kept apart from
+cumulative ones, and for a ledger that is never reset. `scripts/desk_ledger.py` writes three files to
+`trend-desk-data` after every run. It only reads the desk's record and never trades, sizes or closes anything:
+
+- **`TRADING_REPORT.md`** has these sections:
+  - the last 30 days, each day's net on its own;
+  - the cumulative figures: equity, realized and unrealized P&L, closed trades won and lost, costs by kind, open
+    exposure and leverage, the maximum drawdown with every session's intraday lows included;
+  - the monthly dashboard: starting and ending equity, net, return, maximum drawdown, trades won and lost, and
+    progress toward $4,000;
+  - every losing day, week and month;
+  - every trade;
+  - the risk limits in force, read from the profile;
+  - the backtest and the validated out-of-sample result, named as such in their own section and never added to the
+    paper figures.
+- **`ledger.csv`** has one row per trade, closed or open: the entry and exit times, instrument, side, prices, lots,
+  notional and leverage at entry, the risk the engine approved, the gross P&L, the spread, commission, slippage and
+  financing, the net, the exit reason, and the TRND-1 signal that opened it. Each closed row checks that the gross
+  less its costs equals the net, as the paper broker booked it.
+- **`equity.csv`** has the account after every session: equity, balance, open P&L, gross exposure, leverage.
+
+The record behind it:
+
+- **The account after each session.** The runner writes it right after the desk acts (event `DESK_EQUITY`, once per
+  session, never again).
+- **The trades.** They come from the desk's own `DESK_TRADE_CLOSED` events, with the broker's gross and swap.
+- **The signals.** They come from the `DESK_DECISION` that opened each trade.
+
+The events are append-only and hash-chained, and the whole ledger is rebuilt from them on every run, so nothing can be
+dropped or reset. A figure the record does not hold is shown as unknown.
+
+If recording a session's equity fails, the desk still trades. The gap is named in `REPORT.md`'s problems and in
+`TRADING_REPORT.md`. If the ledger itself fails, the desk's state and `REPORT.md` are still written,
+`TRADING_REPORT.md` says what failed, and no CSV is left looking current.
 
 ## Why it exists
 
@@ -185,6 +222,18 @@ Against FUNDED-P's HALF track over the same years (closes only, booked at -8% on
 - a breach fails the account and closes what is left;
 - the promotion file is strict;
 - the runner waits for a late bar instead of skipping it.
+
+`tests/unit/test_desk_ledger.py` checks the ledger through the same runner:
+
+- each session is recorded once, and a re-run records nothing more;
+- a trade stopped through a gap is booked with its signal, size and costs, and the costs add up to its net;
+- the account's change equals the realized P&L plus the open P&L;
+- the entry day shows its entry costs as a loss;
+- each day's net is its own, and the months chain;
+- an intraday fall that recovers by the close still counts in the drawdown;
+- no research or backtest figure appears among the paper figures;
+- before the first session nothing is invented;
+- a failed ledger never stops the desk.
 
 The gate's stop permits are in `tests/unit/test_hard_gate.py`, and the VALIDATED risk cap in `tests/unit/test_risk.py`.
 `scripts/mutation_audit.py` removes each of these guards in turn and requires a test to fail.

@@ -33,6 +33,7 @@ from aitrader.position.trend_desk import (INDICES, RULE_ID, STATE_KEY, STOP_REL,
                                           DailyBar, DailyFeed, DeskClock, TrendDesk, close_time, decision_for,
                                           is_last_weekday, load_promoted_rules, next_month, sessions)
 from aitrader.version import stamp  # noqa: E402
+from scripts import desk_ledger  # noqa: E402  - the ledger and the trading report: it reads, never trades
 
 START = date(2026, 11, 9)
 FETCH_FROM = date(2025, 9, 1)
@@ -110,8 +111,12 @@ def ready_until(bars: dict[str, list[DailyBar]]) -> int | None:
 
 def run(state_dir: Path, now: datetime, bars: dict[str, list[DailyBar]], rates: dict[str, dict[date, float]],
         problems: list[str] | None = None, rules_path: Path | None = None) -> dict:
-    """Replay every new session since the desk's last one, then write the report. Returns the state written."""
+    """Replay every new session since the desk's last one, then write the reports. Returns the state written.
+
+    After each session its account is recorded for the ledger (DESK_EQUITY). The ledger and TRADING_REPORT.md only
+    read the record: if either fails, the desk's own state and REPORT.md are still written, and the failure is said."""
     state_dir.mkdir(parents=True, exist_ok=True)
+    problems = list(problems or [])
     db = Database(state_dir / "desk.db")
     rules, note = load_promoted_rules(rules_path) if rules_path else load_promoted_rules()
     feed = DailyFeed(bars, rates)
@@ -128,10 +133,18 @@ def run(state_dir: Path, now: datetime, bars: dict[str, list[DailyBar]], rates: 
         for t, day, symbols in sessions(bars, after=max(last or first, first), until=until):
             desk.session(day, {s: by_day[s][day] for s in symbols})
             done.append(f"{day} {datetime.fromtimestamp(t, timezone.utc):%H:%M} UTC {','.join(symbols)}")
-    state = snapshot(desk, now, bars, problems or [], done)
+            try:
+                desk_ledger.record_session(db, desk, t, day, symbols)
+            except Exception as e:  # a record for the report never stops the desk; the ledger lists the gap
+                problems.append(f"the {day} session's equity was not recorded for the ledger: {type(e).__name__}: {e}")
+    state = snapshot(desk, now, bars, problems, done)
     db.query("PRAGMA wal_checkpoint(TRUNCATE)")  # everything in desk.db itself: it is the file carried to the next run
     (state_dir / "state.json").write_text(json.dumps(state, indent=1, sort_keys=True, default=str) + "\n")
     (state_dir / "REPORT.md").write_text(report(state))
+    try:
+        desk_ledger.write(state_dir, db, desk, now)
+    except Exception as e:  # the desk's state and REPORT.md are already written: the report says what failed
+        desk_ledger.write_failure(state_dir, e, now)
     return state
 
 
