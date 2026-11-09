@@ -1,0 +1,113 @@
+{
+ "code_sha256": "3c2ad2321658917fb975713232b4b3d4608207f67f1a8179e2b352b38942bded",
+ "sha256": "f5b338b51ee5fc1ea00bd90af57c42284ff3ce92460b51252b0953a31de81bea",
+ "spec": {
+  "bootstrap": {
+   "block": "calendar month",
+   "n": 10000,
+   "seed": 7
+  },
+  "commission_pips_rt": 0.7,
+  "cost_grid": [
+   1.0,
+   1.5,
+   2.0
+  ],
+  "financing": "none: no position crosses 17:00 New York",
+  "gates": {
+   "beats_random": "Welch t of net per trade against the same trades with random sides >= 2.0",
+   "bootstrap": "the 95% month-block bootstrap interval of the mean daily net is above 0",
+   "costs_x1.5": "mean daily net > 0 with spread, commission and slippage x1.5",
+   "delay": "mean daily net > 0 with every entry and exit one bar (5 minutes) late",
+   "development": "mean daily net > 0 over 2009-2013",
+   "pairs": "at least 3 of the 4 pairs net > 0",
+   "profit_factor": "trade-level profit factor >= 1.10",
+   "t": "daily net t over 2009-2016 >= the registry threshold (never below 3.0)",
+   "top_year": "no calendar year above 50% of the total net",
+   "validation": "mean daily net > 0 over 2014-2016"
+  },
+  "holdout_rule": "only if every gate passes: fx-majors 2017-01-01 -> 2022-07-09, M5 built then through ID-1's holdout procedure, opened once as FXS-1-H. Gates: daily net t >= 1.645 (one-sided 5%), mean > 0, costs x1.5 mean > 0. The edge registry calls it VALIDATED only at a holdout t of 2.5 or more",
+  "max_late_s": 600,
+  "pairs": [
+   "EURUSD",
+   "GBPUSD",
+   "USDCHF",
+   "USDJPY"
+  ],
+  "periods": {
+   "development": [
+    "2009-01-01",
+    "2014-01-01"
+   ],
+   "holdout": [
+    "2017-01-01",
+    "2022-07-09"
+   ],
+   "judged": [
+    "2009-01-01",
+    "2017-01-01"
+   ],
+   "validation": [
+    "2014-01-01",
+    "2017-01-01"
+   ]
+  },
+  "program": "FXS-1",
+  "question": "does each pair move as the time-of-day hypothesis says inside its window, enough to pay the bid/ask, commission and slippage of a market order in and out?",
+  "random_seeds": [
+   11,
+   12,
+   13
+  ],
+  "slippage_pips": 0.1,
+  "threshold_t": 3.6158,
+  "universe": "fx-majors",
+  "version": "fxs-1.0.0",
+  "windows": {
+   "EUROPE": {
+    "closes": [
+     "America/New_York",
+     8
+    ],
+    "opens": [
+     "Europe/London",
+     8
+    ],
+    "trades": {
+     "EURUSD": -1,
+     "GBPUSD": -1,
+     "USDCHF": 1
+    }
+   },
+   "TOKYO": {
+    "closes": [
+     "Europe/London",
+     8
+    ],
+    "opens": [
+     "Asia/Tokyo",
+     9
+    ],
+    "trades": {
+     "USDJPY": 1
+    }
+   },
+   "US": {
+    "closes": [
+     "America/New_York",
+     16
+    ],
+    "opens": [
+     "Europe/London",
+     17
+    ],
+    "trades": {
+     "EURUSD": 1,
+     "GBPUSD": 1,
+     "USDCHF": -1,
+     "USDJPY": -1
+    }
+   }
+  }
+ }
+}
