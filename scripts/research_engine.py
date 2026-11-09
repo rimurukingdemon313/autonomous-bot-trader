@@ -49,7 +49,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
 
-ENGINE_VERSION = "research-engine-1.0.0"
+ENGINE_VERSION = "research-engine-1.0.1"  # 1.0.1: a failing model is passed over, not waited out
 #: research/holdout.json, byte for byte. Any change to the seal fails every cycle until a person re-pins it here.
 SEAL_SHA256 = "3d2464db54bc2a147ae46f7b868a7c521c037288a4244f05faeac3c0870f0c89"
 HORIZONS = ("scalping", "intraday", "swing", "position")
@@ -232,6 +232,7 @@ class CycleResult:
 class Engine:
     def __init__(self, root: Path, state: Path, ask: Ask | None, now: datetime) -> None:
         self.root, self.state, self.ask, self.now = Path(root), Path(state), ask, now
+        self.attempts: list[dict] = []  # every model asked in this cycle, and how it answered
         self.state.mkdir(parents=True, exist_ok=True)
         self.cycle = now.astimezone(timezone.utc).strftime("%Y-%m-%d")
 
@@ -294,15 +295,17 @@ class Engine:
                    for c in read_jsonl(self.cycles_path))
 
     def _ask(self, role: str, msgs: list[dict], validate, avoid: tuple, tries: int = 3) -> Answer:
-        """A model's answer, with up to `tries` models: one that answers out of schema is not repaired or asked
-        again, the next one is asked instead (a read with no side effects, so safe to retry). A provider that cannot
-        answer at all is not asked again now: its client has already fallen back across its models."""
+        """A model's answer, from up to `tries` models. A model that fails is never asked again in the step: one
+        rate-limited, timed out, unavailable or out of schema (never repaired) is passed over and the next is asked;
+        each call is a read with no side effects, so this is safe. A failure that names no model (no key, no free model,
+        the budget or the day's quota spent) stops the step: no other model would answer. Every attempt is recorded."""
         failed: list[str] = []
         ans: Answer = (False, "NOT_ASKED", None, None, None)
         for _ in range(tries):
             ans = self.ask(role, msgs, validate, tuple(avoid) + tuple(failed))
             ok, status, _, model, _ = ans
-            if ok or model is None or not status.startswith("INVALID"):
+            self.attempts.append({"role": role, "model": model, "status": status})
+            if ok or model is None:
                 return ans
             failed.append(model)
         return ans
@@ -374,8 +377,8 @@ class Engine:
         stalled = self.stalled(status)
         if status != "SKIPPED":
             self._log("ideas", "OK" if status == "OK" else "FAILED",
-                      {"why": status, "ideas": [r["fingerprint"] for r in rows]} if status != "OK" else
-                      {"ideas": [r["fingerprint"] for r in rows]})
+                      {"why": status, "ideas": [r["fingerprint"] for r in rows], "attempts": self.attempts}
+                      if status != "OK" else {"ideas": [r["fingerprint"] for r in rows], "attempts": self.attempts})
         if stalled:
             self._log("stall", "FAILED", f"no successful IDEAS step for over {STALL_HOURS} hours")
         code = 1 if problems else 2 if stalled else 0
@@ -392,7 +395,7 @@ def openrouter_ask(env: dict | None = None) -> Ask | None:
 
     def ask(role: str, messages: list[dict], validate, avoid: tuple) -> Answer:
         res = client.chat_json(role, messages, validate, dedupe_key=f"research:{role}", max_tokens=6000,
-                               avoid=tuple(a for a in avoid if a), deadline_s=600.0)
+                               avoid=tuple(a for a in avoid if a), deadline_s=150.0)  # then the next model
         return res.ok, res.status, res.data, res.model, res.error
     return ask
 

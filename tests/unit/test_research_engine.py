@@ -161,6 +161,26 @@ def test_a_model_answering_out_of_schema_is_not_repaired_the_next_model_is_asked
     assert {i["proposer"] for i in ideas(tmp_path)} == {"lab-c/good"}
 
 
+def test_a_rate_limited_model_is_passed_over_not_waited_out_and_every_attempt_is_recorded(tmp_path):
+    p, r = three()
+    calls = []
+
+    def ask(role, messages, validate, avoid):
+        calls.append((role, avoid))
+        if role == "researcher" and "lab-a/busy" not in avoid:
+            return False, "RATE_LIMITED", None, "lab-a/busy", "HTTP 429: temporarily rate-limited upstream"
+        if role == "researcher" and "lab-d/slow" not in avoid:
+            return False, "TIMEOUT", None, "lab-d/slow", "no answer in time"
+        return (True, "OK", p, "lab-c/good", None) if role == "researcher" else (True, "OK", r, "lab-b/critic", None)
+    res = E.Engine(ROOT, tmp_path, ask, DAY1).run()
+    assert res.ideas == "OK" and len(ideas(tmp_path)) == 3
+    assert calls[:3] == [("researcher", ()), ("researcher", ("lab-a/busy",)), ("researcher", ("lab-a/busy", "lab-d/slow"))]
+    done = [c for c in cycles(tmp_path) if c["step"] == "ideas"][-1]
+    assert [a["status"] for a in done["detail"]["attempts"]] == ["RATE_LIMITED", "TIMEOUT", "OK", "OK"]
+    no_model = E.Engine(ROOT, tmp_path / "x", scripted(None, None), DAY1)
+    assert no_model.run().ideas.startswith("FAILED") and len(no_model.attempts) == 1  # nothing else would answer
+
+
 def test_after_a_failure_the_next_run_retries_and_completes(tmp_path):
     assert E.Engine(ROOT, tmp_path, scripted(None, None), DAY1).run().ideas.startswith("FAILED")
     res = E.Engine(ROOT, tmp_path, scripted(*three()), DAY1 + timedelta(hours=1)).run()
