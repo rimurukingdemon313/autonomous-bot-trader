@@ -10,7 +10,7 @@
 | Risk | — (NOT_STARTED) |
 | Rule | TRND-1: VALIDATED/HEALTHY (1 promoted rule(s)) |
 | Last session | none yet |
-| Updated | 2026-11-08T19:58:44.529122+00:00 |
+| Updated | 2026-11-09T23:32:01.383961+00:00 |
 
 ## Positions
 
@@ -22,10 +22,10 @@
 
 | Index | For | Decision | Month-end close | Ten-month mean | Latest close | Its stop if held |
 |---|---|---|---|---|---|---|
-| US500 | 2026-11 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,376.86 (2026-11-06) | 6,934.25 |
-| NAS100 | 2026-11 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 26,989.99 (2026-11-06) | 25,370.59 |
+| US500 | 2026-11 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,549.94 (2026-11-09) | 7,096.94 |
+| NAS100 | 2026-11 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 27,907.62 (2026-11-09) | 26,233.17 |
 | GER40 | 2026-11 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 24,271.14 |
-| UK100 | 2026-11 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,673.90 (2026-11-06) | 10,033.47 |
+| UK100 | 2026-11 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,782.87 (2026-11-09) | 10,135.90 |
 
 ## Closed trades
 
@@ -35,6 +35,10 @@
 
 Stops moved: 0. Refused or unknown: 0.
 
+## Data problems
+
+- GER40 2026-11-09: a price is missing, not finite or not positive ((25815.30078125, 26276.08984375, 25793.060546875, nan)): nothing from 2026-11-09 on is used
+
 ## How it trades
 
 - TRND-1: an index is held for a month if its month-end close is above the mean of its ten month-end closes; otherwise nothing is held. Long or flat, never short.
@@ -43,4 +47,4 @@ Stops moved: 0. Refused or unknown: 0.
 - The stop is 6% below each close and moves after every close. After it is hit, the index stays flat until the next month-end decision.
 - Limits: $10,000 in a day (each session's intraday low included), $20,000 in all. A breach fails the account and closes every position, as a firm would.
 
-Versions: agents agents-1.2.0, data data-1.0.0, decision decision-1.2.0, dual_ai dual-ai-1.21.0, edge_status edge-status-1.4.0, execution exec-1.9.0, experimental_ai experimental-ai-1.0.0, features feat-1.0.0, forward forward-1.3.0, forward_metrics forward-metrics-1.0.0, labels label-1.0.0, learning learning-1.2.0, llm_trader llm-trader-1.12.0, memory patterns-1.1.0, orchestrator orchestrator-1.27.0, prompt prompt-1.0.0, regime regime-1.0.0, review review-1.0.0, risk risk-1.16.0, risk_gate hard-gate-1.3.0, risk_profile hard-profile-1.2.0, taxonomy taxonomy-1.1.0, trend_desk trend-desk-1.0.0
+Versions: agents agents-1.2.0, data data-1.0.0, decision decision-1.2.0, dual_ai dual-ai-1.21.0, edge_status edge-status-1.4.0, execution exec-1.9.0, experimental_ai experimental-ai-1.0.0, features feat-1.0.0, forward forward-1.3.0, forward_metrics forward-metrics-1.0.0, labels label-1.0.0, learning learning-1.2.0, llm_trader llm-trader-1.12.0, memory patterns-1.1.0, orchestrator orchestrator-1.27.0, prompt prompt-1.0.0, regime regime-1.0.0, review review-1.0.0, risk risk-1.16.0, risk_gate hard-gate-1.4.0, risk_profile hard-profile-1.2.0, taxonomy taxonomy-1.1.0, trend_desk trend-desk-1.1.0
