@@ -1,11 +1,11 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-08 08:05 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-09 23:32 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
-- مسار نص الحجم: يبدي بإغلاق 2026-11-09.
-- مسار الحجم الكامل: يبدي بإغلاق 2026-11-09.
+- مسار نص الحجم: المرحلة الأولى (الهدف +10%)، الرصيد $199,958 (من $200,000: -42)، ماسك: US500، NAS100، UK100.
+- مسار الحجم الكامل: المرحلة الأولى (الهدف +10%)، الرصيد $199,920 (من $200,000: -80)، ماسك: US500، NAS100، UK100.
 - هالشهر القاعدة ماسكة: US500، NAS100، GER40، UK100. وبرّه: ولا مؤشر.
 - القرار الجاي: آخر يوم تداول بالشهر (2026-11-30)، بعد الإغلاق.
 - حساب ورقي للقياس، مو فلوس حقيقية، والماضي مو وعد.
@@ -14,8 +14,8 @@ Updated 2026-11-08 08:05 UTC · funded-paper-1.1.2 · started 2026-11-09 · publ
 
 | Track | Status | Equity | Phase P&L | Target | Trading days | Held | Last close |
 |---|---|---|---|---|---|---|---|
-| HALF | not started: the record starts at the close of 2026-11-09 | | | | | | |
-| FULL | not started: the record starts at the close of 2026-11-09 | | | | | | |
+| HALF (50% of the balance when all four are held, stop 6% a day) | **PHASE 1** | $199,957.50 | -42.50 | $220,000 | 1 | US500, NAS100, UK100 | 2026-11-09 |
+| FULL (100% of the balance when all four are held, no stop) | **PHASE 1** | $199,920.00 | -80.00 | $220,000 | 1 | US500, NAS100, UK100 | 2026-11-09 |
 
 ### HALF: events
 
@@ -23,6 +23,7 @@ Updated 2026-11-08 08:05 UTC · funded-paper-1.1.2 · started 2026-11-09 · publ
 
 | Date | Phase | Equity | Day P&L |
 |---|---|---|---|
+| 2026-11-09 | 1 | $199,957.50 | -42.50 |
 
 ### FULL: events
 
@@ -30,6 +31,7 @@ Updated 2026-11-08 08:05 UTC · funded-paper-1.1.2 · started 2026-11-09 · publ
 
 | Date | Phase | Equity | Day P&L |
 |---|---|---|---|
+| 2026-11-09 | 1 | $199,920.00 | -80.00 |
 
 ## This month's decisions (November 2026)
 
@@ -37,10 +39,10 @@ What the rule holds now, and at the latest close what a HALF position ($25,000) 
 
 | Index | This month | Month-end close | Mean of ten month-ends | Latest close | HALF units | HALF stop |
 |---|---|---|---|---|---|---|
-| US500 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,376.86 (2026-11-06) | 3.39 | 6,934.25 |
-| NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 26,989.99 (2026-11-06) | 0.93 | 25,370.59 |
-| GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 0.86 at 1.1228 | 24,271.14 |
-| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,673.90 (2026-11-06) | 1.74 at 1.3456 | 10,033.47 |
+| US500 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,549.94 (2026-11-09) | 3.31 | 7,096.94 |
+| NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 27,907.62 (2026-11-09) | 0.90 | 26,233.17 |
+| GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 0.86 at 1.1227 | 24,271.14 |
+| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,782.87 (2026-11-09) | 1.72 at 1.3444 | 10,135.90 |
 
 ## The rules
 
