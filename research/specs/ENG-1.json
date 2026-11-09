@@ -1,0 +1,94 @@
+{
+ "code_sha256": "92520ce39f76de80ac7af3a97c75a5dd6579aa21bf0bf0237b2d316591269595",
+ "sha256": "e9fa99258143ec25d4e7056cd1482d304886701c55a4bee9c3ac9b2a679a329a",
+ "spec": {
+  "bootstrap": {
+   "block_months": 12,
+   "n": 5000,
+   "seed": 43
+  },
+  "cost_bp_one_way": {
+   "HEATING_OIL": 7.0,
+   "NATGAS": 11.0,
+   "RBOB": 7.0,
+   "WTI": 3.5
+  },
+  "cost_grid": [
+   1.0,
+   1.5,
+   2.0
+  ],
+  "financing": "none (a swap-free CFD account)",
+  "gates": {
+   "beats_always_long": "the mean monthly difference to holding every energy always, same weights, is > 0",
+   "beats_random": "the mean exceeds the 95th percentile of 2,000 books with each energy's long months shuffled",
+   "bootstrap": "the 12-month block bootstrap's 95% interval of the mean is above 0",
+   "costs_x2": "mean net > 0 at twice the costs",
+   "development": "mean net > 0 over 1985-02..2001-12",
+   "leave_one_out": "mean net > 0 with any one energy left out",
+   "one_month_late": "mean net > 0 with the signal a month old",
+   "t": "monthly net t over 1985-02..2018-12 >= the threshold (every earlier test on these data; never below 3.0)",
+   "top_year": "no year gives more than 25% of the total net",
+   "validation": "mean net > 0 over 2002-01..2018-12"
+  },
+  "holdout_rule": "registered and read only if every gate passes: 2019-01..2024-03, the same book; it passes if its mean net is > 0 and > 0 at twice the costs, with every energy present",
+  "periods": {
+   "development": [
+    "1985-02-01",
+    "2002-01-01"
+   ],
+   "holdout": [
+    "2019-01-01",
+    "2024-04-01"
+   ],
+   "judged": [
+    "1985-02-01",
+    "2019-01-01"
+   ],
+   "validation": [
+    "2002-01-01",
+    "2019-01-01"
+   ]
+  },
+  "permutations": {
+   "n": 2000,
+   "seed": 41
+  },
+  "program": "ENG-1",
+  "question": "does holding an energy future only while contract 2 is above contract 3 earn a positive net return, and more than holding it always, at a swap-free CFD's costs?",
+  "roll": "one way more each month a position is held",
+  "series": {
+   "HEATING_OIL": [
+    "EER_EPD2F_PE1_Y35NY_DPG",
+    "EER_EPD2F_PE2_Y35NY_DPG",
+    "EER_EPD2F_PE3_Y35NY_DPG"
+   ],
+   "NATGAS": [
+    "RNGC1",
+    "RNGC2",
+    "RNGC3"
+   ],
+   "RBOB": [
+    "EER_EPMRR_PE1_Y35NY_DPG",
+    "EER_EPMRR_PE2_Y35NY_DPG",
+    "EER_EPMRR_PE3_Y35NY_DPG"
+   ],
+   "WTI": [
+    "RCLC1",
+    "RCLC2",
+    "RCLC3"
+   ]
+  },
+  "signal": "12 * ln(C2/C3) > 0 at month m-1's last priced day; long contract 2 to month m's last priced day; flat otherwise",
+  "threshold_t": 3.0,
+  "universe": "energy-futures-eia",
+  "version": "eng-1.0.0",
+  "weights": {
+   "divided_by": "the number of energies with data",
+   "max_weight": 2.0,
+   "min_vol_months": 6,
+   "target_vol": 0.1,
+   "vol_months": 12
+  }
+ }
+}

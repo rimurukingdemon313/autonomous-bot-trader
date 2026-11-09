@@ -1,0 +1,67 @@
+# One-time execution of ENG-1 (research/preregistrations/ENG-1.md) on GitHub's runner, which can reach EIA:
+# - fetch the NYMEX contracts 1-3 of WTI, heating oil, RBOB and natural gas;
+# - judge 1985-02..2018-12;
+# - open the 2019-01..2024-03 holdout only if the judge PASSED.
+# The result and the registry line are printed to the log too, so a refused push cannot lose them. Research only:
+# nothing here touches the paper desks.
+name: ENG-1 judge (once)
+on:
+  push:
+    branches: [eng1-run]
+permissions:
+  contents: write
+jobs:
+  eng1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt && pip install "xlrd==2.0.1"
+      - name: Refuse to run twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") in ("ENG-1", "ENG-1-H"):
+                  sys.exit(f"ENG-1 already has a verdict ({r['status']})")
+          PY
+      - name: Fetch the EIA series (retries on transient errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/eng1.py fetch 2>&1 | tee -a eng1-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a eng1-fetch.log
+            sleep $((i * 30))
+          done
+          test -f data/eng/manifest.json
+          cat data/eng/manifest.json
+      - name: Judge 1985-02..2018-12
+        run: |
+          set -o pipefail
+          python scripts/eng1.py judge 2>&1 | tee eng1-judge.log
+          echo "== research/knowledge/ENG-1.json"; cat research/knowledge/ENG-1.json
+          echo "== the registry's last line"; tail -1 research/registry.jsonl
+      - name: Open the holdout once, only if the judge PASSED
+        run: |
+          set -o pipefail
+          if grep -q '"verdict": "PASSED"' research/knowledge/ENG-1.json; then
+            python scripts/eng1.py holdout 2>&1 | tee eng1-holdout.log
+            echo "== research/knowledge/ENG-1-H.json"; cat research/knowledge/ENG-1-H.json
+            echo "== the registry's last line"; tail -1 research/registry.jsonl
+          else
+            echo "ENG-1 did not pass: the holdout stays unread" | tee eng1-holdout.log
+          fi
+      - name: Commit the artifacts, the data and the logs
+        if: always()
+        run: |
+          git config user.name "eng1-runner"; git config user.email "eng1-runner@users.noreply.github.com"
+          mkdir -p research/results
+          cp eng1-*.log research/results/ 2>/dev/null || true
+          git add -f research/knowledge/ENG-1*.json research/registry.jsonl research/results/eng1-*.log data/eng || true
+          git commit -qm "ENG-1: verdict, artifacts, data and logs" || { echo "nothing to commit"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/eng1-run && exit 0; sleep $((i * 15)); done
+          exit 1
