@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-10 15:00 UTC**, run 805, version `radar-1.0.0`. State from: cache. Quotes this hour: 2424.
+Updated **2026-11-10 16:00 UTC**, run 806, version `radar-1.0.0`. State from: cache. Quotes this hour: 2424.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,34 +17,34 @@ Updated **2026-11-10 15:00 UTC**, run 805, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 33.79
+- days: 33.83
 - run_coverage: 0.9914
-- closed_positions: 186
-- open_positions: 3
+- closed_positions: 187
+- open_positions: 2
 - utilisation: 0.2119
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.1228
-- book_excess_pct: -2.2251
-- ann_excess_deployed_pct: -114.186
-- ann_excess_deployed_costs_x1.5_pct: -197.552
-- ann_excess_deployed_costs_x2_pct: -280.918
+- book_pnl_pct: -2.1151
+- book_excess_pct: -2.2077
+- ann_excess_deployed_pct: -113.098
+- ann_excess_deployed_costs_x1.5_pct: -196.318
+- ann_excess_deployed_costs_x2_pct: -279.538
 - best_coin: IOST
-- book_excess_without_best_coin_pct: -2.4465
+- book_excess_without_best_coin_pct: -2.4291
 - max_dd_pct: 2.1914
-- t_excess_daily: -3.88
+- t_excess_daily: -3.859
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc | gate | 2026-11-09 21:00 | 35.8% | 8.0 | 1.0 | 17.0 | **-8.0** |
-| INIT | gate | hyperliquid | 2026-11-10 07:00 | 225.9% | 149.2 | -38.8 | 19.5 | **90.9** |
-| JCT | mexc | gate | 2026-11-10 15:00 | 173.6% | 0.0 | 0.0 | 17.0 | **-17.0** |
+| PIEVERSE | mexc | gate | 2026-11-09 21:00 | 35.8% | 8.5 | -20.8 | 17.0 | **-29.2** |
+| JCT | mexc | gate | 2026-11-10 15:00 | 173.6% | 0.3 | -19.2 | 17.0 | **-35.9** |
 
-## Closed positions (186)
+## Closed positions (187)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| INIT | gate | hyperliquid | 0.4 | spread_reversed | 146.4 |
 | JCT | mexc | gate | 0.3 | spread_reversed | -11.4 |
 | PEPE | mexc | hyperliquid | 1.0 | spread_decayed | -30.0 |
 | JCT | mexc | gate | 1.2 | rebalance | 82.3 |
@@ -74,14 +74,12 @@ Updated **2026-11-10 15:00 UTC**, run 805, version `radar-1.0.0`. State from: ca
 | CLANKER | mexc | gate | 0.2 | rebalance | -34.6 |
 | AKE | mexc | gate | 0.0 | spread_decayed | -92.7 |
 | AKE | mexc | gate | 0.0 | spread_decayed | -20.0 |
-| AKE | mexc | gate | 0.0 | spread_decayed | -46.2 |
 
 ## Top opportunities this hour (passing the entry rule)
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| INIT | gate | hyperliquid | 432.6% | 2190.0% |
-| JCT | mexc | gate | 173.6% | 35.9% |
-| PIEVERSE | mexc | gate | 42.7% | 36.1% |
+| JCT | mexc | gate | 173.2% | 23.9% |
+| PIEVERSE | mexc | gate | 43.2% | 55.2% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
