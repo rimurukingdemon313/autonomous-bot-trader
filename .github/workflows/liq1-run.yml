@@ -1,0 +1,60 @@
+# One-time execution of LIQ-1 stage 1 (research/preregistrations/LIQ-1.md) on GitHub's runner, which can reach
+# data.binance.vision:
+# - fetch the development data only: open interest and 1h klines of BTCUSDT from 2020-09 and ETHUSDT from 2021-12,
+#   to 2023-12, every file checked against its published CHECKSUM;
+# - run stage 1 once.
+# Nothing from 2024 on is fetched: that is stage 2's, preregistered only after a stage-1 PASS. The result and the
+# registry line are printed to the log too, so a refused push cannot lose them. Research only: nothing here touches
+# the paper desks.
+name: LIQ-1 stage 1 (once)
+on:
+  push:
+    branches: [liq1-run]
+permissions:
+  contents: write
+jobs:
+  liq1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Refuse to run twice
+        run: |
+          python - <<'PY'
+          import json, sys
+          for line in open("research/registry.jsonl"):
+              r = json.loads(line)
+              if r.get("kind") == "verdict" and r.get("trial") == "LIQ-1":
+                  sys.exit(f"LIQ-1 already has a verdict ({r['status']})")
+          PY
+      - name: Fetch the development data (retries on transient errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/liq1.py fetch 2>&1 | tee -a liq1-fetch.log && break
+            echo "fetch attempt $i failed" | tee -a liq1-fetch.log
+            sleep $((i * 60))
+          done
+          test -f data/liq1/manifest.json
+          python -c "import json; m = json.load(open('data/liq1/manifest.json')); print({s: {k: v for k, v in x.items() if k != 'files_sha256'} for s, x in m['symbols'].items()})"
+      - name: Stage 1, once
+        run: |
+          set -o pipefail
+          python scripts/liq1.py develop 2>&1 | tee liq1-develop.log
+          echo "== research/knowledge/LIQ-1.json (without its trades)"
+          python -c "import json; d = json.load(open('research/knowledge/LIQ-1.json')); d.pop('trades', None); d.pop('data', None); print(json.dumps(d, indent=1, sort_keys=True))"
+          echo "== the registry's last line"; tail -1 research/registry.jsonl
+      - name: Commit the artifacts, the data and the logs
+        if: always()
+        run: |
+          git config user.name "liq1-runner"; git config user.email "liq1-runner@users.noreply.github.com"
+          mkdir -p research/results
+          cp liq1-*.log research/results/ 2>/dev/null || true
+          git add -f research/knowledge/LIQ-1.json research/registry.jsonl research/results/liq1-*.log data/liq1 || true
+          git commit -qm "LIQ-1 stage 1: verdict, artifacts, data and logs" || { echo "nothing to commit"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/liq1-run && exit 0; sleep $((i * 15)); done
+          exit 1

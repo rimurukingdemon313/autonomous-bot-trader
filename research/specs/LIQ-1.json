@@ -1,0 +1,67 @@
+{
+ "code_sha256": "ab3771962dfcbd8952d131e9add50e6a1fbedd7835c3feff49f9ddb0293c55b0",
+ "sha256": "dc081492f097b0eaa20a067f9d00773d14324ed4aa64f49b32b9a927df4749b3",
+ "spec": {
+  "bootstrap": {
+   "n": 5000,
+   "seed": 53,
+   "unit": "ISO week"
+  },
+  "cost_grid": [
+   1.0,
+   1.5,
+   2.0
+  ],
+  "cost_per_side": 0.0015,
+  "data": "Binance USDT-M futures (data.binance.vision): daily metrics files (5-minute open-interest snapshots; the one on each hour is used) and monthly 1h klines, each file checked against its published CHECKSUM; nothing at or after the development end is fetched or read",
+  "development_end": "2024-01-01",
+  "event": {
+   "oi_change": "log(OI at hour i's end / OI at its start)",
+   "return": "hour i's log(close/open)",
+   "rule": "both below their own 1.0th percentile over the 2160 hours before hour i (at least 1800 finite values each)"
+  },
+  "financing": "none (swap-free); 20% a year reported only",
+  "gates": {
+   "beats_random": "the mean net return a trade above the 95th percentile of 2000 matched random books: the same coin, calendar month and hour of the day for each trade, the same hold and cost",
+   "costs_x2": "the mean net return a trade > 0 with the cost doubled",
+   "each_coin": "the mean net return a trade > 0 for BTCUSDT alone and for ETHUSDT alone",
+   "mean": "the mean net return a trade > 0, both coins together",
+   "one_hour_late": "the mean net return a trade > 0 with every entry one hour later",
+   "projected_t": "the week-clustered t, scaled to stage 2's coin-years, >= 2.0",
+   "trades": "at least 30 trades, both coins together"
+  },
+  "oi_first": {
+   "BTCUSDT": "2020-09-01",
+   "ETHUSDT": "2021-12-01"
+  },
+  "program": "LIQ-1",
+  "question": "after an hour in which a perpetual's open interest and its price both fall below their own trailing 90-day 1st percentile, does a long position held 24 hours earn a positive net return, and more than matched random entries?",
+  "random": {
+   "books": 2000,
+   "match": "coin, calendar month, hour of the day",
+   "seed": 47
+  },
+  "role": "select",
+  "stage": 1,
+  "stage2_period": [
+   "2024-01-01",
+   "2026-11-01"
+  ],
+  "stage2_rule": "preregistered only after a stage-1 PASS, with the rule unchanged: 2024-01..2026-10 (entries whose exit is before 2026-11-01); it passes if the week-clustered t of the mean net return a trade >= its threshold (every earlier test on these data; never below 3.0), and the mean is > 0 for each coin, at costs x2 and one hour late, and above the 95th percentile of the matched random books",
+  "stage2_threshold_t_if_registered_now": 3.0,
+  "symbols": [
+   "BTCUSDT",
+   "ETHUSDT"
+  ],
+  "t": "week-clustered (CR1): trades of one ISO week on either coin are one cluster",
+  "trade": {
+   "entry": "the open of hour i + 1 + 1",
+   "hold_hours": 24,
+   "missing_price": "the trade is not taken and is counted; nothing is filled",
+   "positions": "one at a time per coin; an event while one is open is passed over",
+   "side": "long only"
+  },
+  "universe": "crypto-binance-usdtm",
+  "version": "liq-1.0.0"
+ }
+}
