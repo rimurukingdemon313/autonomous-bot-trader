@@ -4,7 +4,7 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 3 انحكمت (0 نجحت)، و10 فحص قبل البناء رفض 27 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 81 فرضية مسجلة، 59 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-09 18:51 UTC from the committed record · research-report-1.0.0
+Generated 2026-11-09 23:52 UTC from the committed record · research-report-1.0.0
 
 ## Today (2026-11-09, UTC)
 
@@ -48,7 +48,7 @@ Generated 2026-11-09 18:51 UTC from the committed record · research-report-1.0.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-09 18:51 UTC, FAILED (the proposer gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok))
+- Last cycle: 2026-11-09 23:52 UTC, FAILED (the proposer gave no usable answer (NO_FREE_MODEL: no FREE researcher model other than dots-studio/dots-3-note-preview:free, nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free, recursive/flint-v1.0:free, xingchen-agi/xing4.0-29b-a4b:free))
 - Last successful idea step: none yet
 - Integrity of the record at the last cycle: OK
 - All time: 0 ideas: none
