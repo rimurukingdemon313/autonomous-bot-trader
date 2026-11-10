@@ -83,8 +83,8 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 
 | # | Requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule with a backup, and on demand | On demand: four runs on 2026-11-09, each a success. On schedule: first due 2026-11-10 04:47 UTC, **not yet observed** |
-| 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | Tested (`test_research_engine.py`). In production **not yet**: four cycles, no usable answer from the free models (below) |
+| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule with a backup, and on demand | On demand: five runs, each a success. On schedule: first due 2026-11-10 04:47 UTC, **not yet observed** |
+| 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | Tested (`test_research_engine.py`). In production: **first observed 2026-11-10 00:13 UTC** (run 42726657914), after four failed cycles (below) |
 | 3 | Permanent experiment history | `research/registry.jsonl` (append-only, enforced), knowledge files whose hashes every cycle re-checks, `ideas.jsonl` and `cycles.jsonl` (append-only), the desk's hash-chained events | `test_research_report.py`, `test_desk_ledger.py` |
 | 4 | Automated statistical validation | The integrity checks and the power gate run every cycle. The preregistered gates and Bonferroni bars of each program judge it | `test_research_engine.py`, `test_research_report.py`, each program's tests |
 | 5 | Automatic report generation | The research report every cycle, the trading report every weekday session | `test_the_cycle_writes_its_report_with_the_engine_kept_apart`, `test_desk_ledger.py` |
@@ -102,15 +102,15 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 **Deployed.** The research cycle, the engine and the trend desk's ledger reached `main` at commits `b7144b2`,
 `80614fa` and `44d3cd6`.
 
-**The research cycle ran four times on demand.** Every run succeeded as a job.
+**The research cycle ran five times on demand.** Every run succeeded as a job.
 
-| | Run 1 (18:02 UTC) | Run 2 (18:32) | Run 3 (18:51) | Run 4 (23:52) |
-|---|---|---|---|---|
-| Engine | 1.0.0 | 1.0.1 | 1.0.2 | 1.1.0 |
-| Integrity | OK | OK | OK | OK |
-| Report published to `research-data` | yes (`b78d778`, the branch created) | yes (`cab5b58`) | yes (`557f034c`) | yes (`921138c`) |
-| Ideas step | **FAILED** | **FAILED** | **FAILED** | **FAILED** |
-| Why | The client spent its whole 10-minute deadline waiting on one rate-limited model | Three models: one timed out; two reasoning models were cut at the 6,000-token limit while still thinking | Three models: one timed out, one was cut at 20,000 tokens while thinking, one was rate-limited | Four models, then none left (below) |
+| | Run 1 (11-09 18:02 UTC) | Run 2 (18:32) | Run 3 (18:51) | Run 4 (23:52) | Run 5 (11-10 00:13) |
+|---|---|---|---|---|---|
+| Engine | 1.0.0 | 1.0.1 | 1.0.2 | 1.1.0 | 1.1.1 |
+| Integrity | OK | OK | OK | OK | OK |
+| Report published to `research-data` | yes (`b78d778`, the branch created) | yes (`cab5b58`) | yes (`557f034c`) | yes (`921138c`) | yes (`9cd3aef`) |
+| Ideas step | **FAILED** | **FAILED** | **FAILED** | **FAILED** | **OK** |
+| Why | The client spent its whole 10-minute deadline waiting on one rate-limited model | Three models: one timed out; two reasoning models were cut at the 6,000-token limit while still thinking | Three models: one timed out, one was cut at 20,000 tokens while thinking, one was rate-limited | Four models, then none left (below) | The first model answered in schema, and so did the critic (below) |
 
 Each failure was recorded in `cycles.jsonl`, with every model tried. Nothing was invented, and the step is retried by
 the next run. The fixes, one at a time:
@@ -143,7 +143,23 @@ usable answer. Ranking so few models differently cannot make them answer.
 - A paid model for these two roles would cost little: about 8,000 tokens in and 4,000 out a day. It needs the owner's
   explicit approval, and none is used.
 
-Whether 1.1.1 gets an answer in production is **not yet observed**.
+**Run 5, with 1.1.1 (run 42726657914, 2026-11-10 00:13 UTC): the first ideas step to succeed in production.** It
+took three minutes.
+
+| | |
+|---|---|
+| Proposer | `nvidia/nemotron-3.5-super-vl`: three hypotheses, each claiming a net Sharpe ratio of 0.5 |
+| Critic | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning` |
+| EM currency intervention follow-through | rejected by the critic |
+| Same-day reversal after the EIA crude inventory report | rejected by the critic |
+| Central-bank gold buying | passed by the critic, then **dropped by the power gate**: expected t 1.0 against a bar of 2.24 over its 4 fresh years |
+
+Nothing was queued for building. Two weaknesses show already:
+- Both rejections say short selling breaks the swap-free condition, which it does not: the conditions forbid
+  financing and interest-bearing instruments, not short positions. A wrong rejection only loses an idea; it can never
+  add one.
+- The two models are different, as the engine requires, but both are NVIDIA's. Models from one lab share training and
+  biases.
 
 **Confirmed: the probes and ENG-1's judge on GitHub's runner.**
 - The ENG-1 and LIQ-1 probes: runs 42666526034 and 42666716125, success.
@@ -166,7 +182,6 @@ Whether 1.1.1 gets an answer in production is **not yet observed**.
 
 **Not yet observed** (each is checked at the next check-in and reported):
 - the first **scheduled** research cycle (2026-11-10 04:47 UTC) and the first **scheduled** trend-desk run;
-- a successful **ideas** step in production;
 - the trend desk's first applied session.
 
 ## What is missing, and why
