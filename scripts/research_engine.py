@@ -49,11 +49,16 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
 
-ENGINE_VERSION = "research-engine-1.1.0"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
+ENGINE_VERSION = "research-engine-1.1.1"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
 #: 1.1.0: the strongest FREE models (openrouter 1.15.0 ranks both roles as the judge), and up to five of them a role.
 #: In the first three production cycles the three models offered all failed: timed out, rate-limited, or cut at
 #: max_tokens while thinking.
+#: 1.1.1 (the fourth cycle, 2026-11-09 23:52): the proposer's prompt states each number's type and range, from the
+#: same constants the validator enforces. One model answered with a claimed Sharpe ratio outside a range the prompt
+#: never stated; it was refused, as before. The validator is unchanged and nothing is repaired.
 MODEL_TRIES = 5
+#: (low, high]: the numbers a proposal must carry, as the validator enforces them and as the prompt states them
+NUMBERS = {"claimed_sharpe_annual": (0.0, 10.0), "years_of_fresh_data": (0.5, 100.0)}
 #: research/holdout.json, byte for byte. Any change to the seal fails every cycle until a person re-pins it here.
 SEAL_SHA256 = "3d2464db54bc2a147ae46f7b868a7c521c037288a4244f05faeac3c0870f0c89"
 HORIZONS = ("scalping", "intraday", "swing", "position")
@@ -139,7 +144,7 @@ def validate_proposal(data: dict, universes: set[str]) -> str | None:
             return f"hypothesis {i}: horizon must be one of {HORIZONS}"
         if h["universe"] not in universes and not re.fullmatch(r"new:[a-z0-9-]{3,40}", h["universe"]):
             return f"hypothesis {i}: universe {h['universe']!r} is neither a listed market nor new:<name>"
-        for k, lo, hi in (("claimed_sharpe_annual", 0.0, 10.0), ("years_of_fresh_data", 0.5, 100.0)):
+        for k, (lo, hi) in NUMBERS.items():
             v = h.get(k)
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not lo < v <= hi:
                 return f"hypothesis {i}: {k} must be a number in ({lo}, {hi}]"
@@ -190,7 +195,12 @@ Answer with JSON only: {"hypotheses": [{"title", "mechanism", "universe", "horiz
 - universe: one of the listed markets, or "new:<short-name>" for data no test here has used;
 - horizon: one of scalping, intraday, swing, position;
 - rule: exact entry, exit and sizing-free position rule, with no look-ahead;
-- evidence: the source (authors, year, venue) and what it measured, or "none: a new idea".
+- evidence: the source (authors, year, venue) and what it measured, or "none: a new idea";
+""" + "".join(f"- {k}: a JSON number above {lo:g} and at most {hi:g}, never text;\n" for k, (lo, hi) in NUMBERS.items()) + """\
+- with no source, claimed_sharpe_annual is the net Sharpe ratio you expect; an idea you expect to earn nothing is not
+  worth proposing;
+- every other field: text.
+An answer that breaks any of these is discarded whole, never corrected.
 """
 
 SYSTEM_CRITIC = """You are the independent critic of a quantitative research lab. You can only REJECT; you cannot

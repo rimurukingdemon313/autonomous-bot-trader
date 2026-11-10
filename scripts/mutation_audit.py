@@ -1256,6 +1256,8 @@ MUTANTS = [
     ("engine-tries-bounded", "the research engine asks at most MODEL_TRIES models a role, so the job's time holds",
      "scripts/research_engine.py", "        for _ in range(tries):\n", "        for _ in range(tries * 10):\n",
      ["tests/unit/test_research_engine.py"]),
+    ("engine-prompt-states-ranges", "the proposer is told each number's range as the validator enforces it",
+     "scripts/research_engine.py", '"".join(f"- {k}: a JSON number above {lo:g} and at most {hi:g}, never text;\\n" for k, (lo, hi) in NUMBERS.items())', '""', ["tests/unit/test_research_engine.py"]),
     ("engine-cycle-once", "the research engine's ideas step runs once a cycle, even after a crash mid-way",
      "scripts/research_engine.py", 'if any(i["cycle"] == self.cycle for i in read_jsonl(self.ideas_path)):',
      "if False:", ["tests/unit/test_research_engine.py"]),

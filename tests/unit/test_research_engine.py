@@ -213,6 +213,17 @@ def test_the_third_production_cycle_replayed_three_failing_models_are_passed_ove
     assert ideas(tmp_path / "b") == [] and len(cycles(tmp_path / "b")[-1]["detail"]["attempts"]) == E.MODEL_TRIES
 
 
+def test_the_proposer_is_told_each_numbers_range_exactly_as_the_validator_enforces_it():
+    """1.1.1: in the fourth cycle a model answered with a claimed Sharpe ratio outside a range its prompt never stated.
+    The prompt now states every range from the validator's own constants. The validator still repairs nothing."""
+    for k, (lo, hi) in E.NUMBERS.items():
+        assert f"- {k}: a JSON number above {lo:g} and at most {hi:g}, never text;" in E.SYSTEM_PROPOSER
+        for bad in (lo, lo - 1, hi + 0.01, str(hi), None, True, float("nan")):
+            why = E.validate_proposal({"hypotheses": [hyp("x") | {k: bad}]}, set())
+            assert why is not None and k in why
+        assert E.validate_proposal({"hypotheses": [hyp("x") | {k: hi}]}, set()) is None
+
+
 def test_after_a_failure_the_next_run_retries_and_completes(tmp_path):
     assert E.Engine(ROOT, tmp_path, scripted(None, None), DAY1).run().ideas.startswith("FAILED")
     res = E.Engine(ROOT, tmp_path, scripted(*three()), DAY1 + timedelta(hours=1)).run()
