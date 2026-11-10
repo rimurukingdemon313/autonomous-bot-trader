@@ -2540,6 +2540,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "AUDUSD",
+   "decision": "NO_TRADE",
+   "t": 1794273328,
+   "reason": "blocked before consulting the model: STALE_DATA: quote is 238s old",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDJPY",
+   "decision": "NO_TRADE",
+   "t": 1794273325,
+   "reason": "blocked before consulting the model: STALE_DATA: quote is 202s old",
+   "data_flags": []
+  },
+  {
    "symbol": "GBPUSD",
    "decision": "NO_TRADE",
    "t": 1794272494,
@@ -2692,23 +2706,9 @@
    "t": 1794263421,
    "reason": "risk engine: quiet_hours (17:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
    "data_flags": []
-  },
-  {
-   "symbol": "GBPUSD",
-   "decision": "NO_TRADE",
-   "t": 1794262522,
-   "reason": "risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
-  },
-  {
-   "symbol": "EURUSD",
-   "decision": "NO_TRADE",
-   "t": 1794262519,
-   "reason": "risk engine: quiet_hours (17:15 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-   "data_flags": []
   }
  ],
- "decisions_total": 5556,
+ "decisions_total": 5558,
  "shift": {
   "started": "2026-11-09 23:19 UTC",
   "decision_mode": "dual_ai",
@@ -2910,13 +2910,7 @@
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
     },
     "version": "free-models-1.4.0",
-    "cooldown": {
-     "google/gemma-4-26b-a4b-it:free": {
-      "until": 1794272794,
-      "why": "rate_limited",
-      "in_a_row": 1
-     }
-    },
+    "cooldown": {},
     "excluded": {
      "thinkingmachines/inkling-2-small:free": "HTTP 403: thinkingmachines/inkling-2-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrout"
     },
@@ -2996,83 +2990,23 @@
    }
   },
   "last_analysis": {
-   "decision_id": "25ce71a4a3c9e649c1b88e2d",
-   "symbol": "GBPUSD",
-   "t": 1794272494,
+   "decision_id": "610c50212873da6c263c91ad",
+   "symbol": "AUDUSD",
+   "t": 1794273328,
    "decision": "NO_TRADE",
-   "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 130 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
+   "reason": "blocked before consulting the model: STALE_DATA: quote is 238s old",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 130 s more; no other model stands in for it): nobody stands in for it, and there is no decision on one trader alone",
-    "rule": "TRADER2_UNAVAILABLE"
+    "reason": "blocked before consulting the model: STALE_DATA: quote is 238s old",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "nvidia/nemotron-3.5-super-vl:free",
-    "trader2": "google/gemma-4-26b-a4b-it:free"
-   },
-   "trader1": {
-    "confidence": 48,
-    "direction": "SELL",
-    "entry": 1.34384,
-    "invalidation": 1.3456,
-    "liquidity": "Open bearish FVG 1.34495-1.34548 above caps upside; untested demand OB 1.34194-1.34264 below; EQL at 1.33435 and 1.33058",
-    "market_structure": "H1 UP (HH+HL) with fresh bullish BOS at 1.34268 but price rejected at 1.34447 HH; H4 DOWN (LH+LL) with bearish CHoCH at 1.33969 and BOS at 1.33797",
-    "momentum": "M5 weak at range position 0.26; H1 bullish displacement 4 bars ago but price drifting down from the 1.34447 high",
-    "reason": "H4 downtrend and price at prior-day high resistance favor the short side despite H1's recent bullish BOS; desk memory flags GBPUSD H1 BUYs as strongly losing with no offsetting SELL condition. A break above 1.34560 (above the open bearish FVG and recent highs) invalidates the sell; target 1.34100 below the demand OB targets H4 downside resumption. Confidence is low because H1 structure and displacement are bullish and low volatility may prevent the target within 48 hours.",
-    "reversal_probability": 55,
-    "risk_reward": 1.61,
-    "stop_loss": 1.3456,
-    "take_profit": 1.341,
-    "trend": "H1 UP, H4 DOWN, regime RANGING/LOW_VOL"
-   },
+   "models": {},
+   "trader1": null,
    "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1794272494,
-    "bytes": 29935,
-    "execution_timeframe": "H1",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1794272400,
-    "last_bar_open": 1794268800,
-    "sha256": "3ea073bfdbbb8af9b6708d14dfdce805879cf4f1d8d3276bbaee99b8b92d80ff",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0,
-     "error": null,
-     "latency_ms": 167772.1,
-     "model": "nvidia/nemotron-3.5-super-vl:free",
-     "ok": true,
-     "provider_id": "gen-1794272496-rwVoJatH3qkIHGsp7LCz",
-     "request_id": "af4f916ed08743dda288d3bd4dd07958",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 30835,
-     "tried": []
-    },
-    {
-     "attempts": 0,
-     "cached": false,
-     "cost": null,
-     "error": "the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 130 s more; no other model stands in for it",
-     "latency_ms": 0.0,
-     "model": "google/gemma-4-26b-a4b-it:free",
-     "ok": false,
-     "provider_id": null,
-     "request_id": null,
-     "role": "judge",
-     "status": "SEAT_RESTING",
-     "tokens": null,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.21.0",
    "time_machine": null,
    "senior": null,
@@ -3080,6 +3014,54 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "610c50212873da6c263c91ad",
+    "symbol": "AUDUSD",
+    "t": 1794273328,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: STALE_DATA: quote is 238s old",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: STALE_DATA: quote is 238s old",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.21.0",
+    "time_machine": null,
+    "senior": null,
+    "senior_shadow": null,
+    "risk": null
+   },
+   {
+    "decision_id": "c7d04473e5075dc87a7faf02",
+    "symbol": "USDJPY",
+    "t": 1794273325,
+    "decision": "NO_TRADE",
+    "reason": "blocked before consulting the model: STALE_DATA: quote is 202s old",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "blocked before consulting the model: STALE_DATA: quote is 202s old",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.21.0",
+    "time_machine": null,
+    "senior": null,
+    "senior_shadow": null,
+    "risk": null
+   },
    {
     "decision_id": "25ce71a4a3c9e649c1b88e2d",
     "symbol": "GBPUSD",
@@ -3430,54 +3412,6 @@
     "consensus": {
      "outcome": "NO_TRADE",
      "reason": "risk engine: quiet_hours (19:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.21.0",
-    "time_machine": null,
-    "senior": null,
-    "senior_shadow": null,
-    "risk": null
-   },
-   {
-    "decision_id": "591960223a6c2a55a7c4758f",
-    "symbol": "AUDUSD",
-    "t": 1794267924,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-     "rule": "NOT_ASKED"
-    },
-    "models": {},
-    "trader1": null,
-    "trader2": null,
-    "verifier": null,
-    "chart": null,
-    "calls": [],
-    "trader1_input": null,
-    "version": "dual-ai-1.21.0",
-    "time_machine": null,
-    "senior": null,
-    "senior_shadow": null,
-    "risk": null
-   },
-   {
-    "decision_id": "bdd543fefaa5678f7e8eead4",
-    "symbol": "USDJPY",
-    "t": 1794267921,
-    "decision": "NO_TRADE",
-    "reason": "risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted",
      "rule": "NOT_ASKED"
     },
     "models": {},
@@ -4183,7 +4117,7 @@
     "DISAGREE": 225,
     "LOW_CONFIDENCE": 450,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 2986,
+    "NOT_ASKED": 2988,
     "SENIOR_VETO": 5,
     "TRADER1_UNAVAILABLE": 41,
     "TRADER2_UNAVAILABLE": 149
@@ -4197,7 +4131,7 @@
    },
    "agreement_rate": 0.416,
    "decisions_with_both_traders": 1164,
-   "unavailable": 4063
+   "unavailable": 4065
   },
   "recent_trades": [
    {
@@ -4923,8 +4857,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1794272415,
+  "last_cycle": 1794273319,
   "last_cycle_error": null,
-  "cycles": 7
+  "cycles": 8
  }
 }
