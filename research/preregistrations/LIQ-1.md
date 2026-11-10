@@ -144,3 +144,36 @@ answer: too few events, or too small an effect, to be worth a test.
 - **A PASS** lets stage 2 be preregistered, with the rule unchanged and its threshold recorded then.
 - **A stage-2 PASS** makes LIQ-1 a candidate for the owner. It would trade only on the owner's word, on paper, through
   the risk engine, the hard gate and the paper broker, after the broker's crypto CFD terms are checked.
+
+## Result (stage 1, run once on GitHub's runner, 2026-11-10, run 42733242162): FAILED
+
+**FAILED on 6 of 7 gates.** Only the trade count held. Full figures: `research/knowledge/LIQ-1.json`, with every
+trade. The data are on branch `liq1-run`, with every file's sha256 checked against Binance's CHECKSUM:
+- BTCUSDT 1,257 files, ETHUSDT 786;
+- no price missing at an entry or exit;
+- 25 rows unreadable in all, their hours left missing.
+
+| | |
+|---|---|
+| Trades | 83: BTCUSDT 50, ETHUSDT 33, in 49 weeks. From 92 event hours, before the one-position rule |
+| Mean net a trade | **−0.63%** (median −0.40%); week-clustered t **−1.06** |
+| Standard deviation, hit rate | 4.8% a trade; 40% won |
+| Best and worst trade | +16.7% and −18.8% |
+| By coin | BTCUSDT +0.05% (t 0.07); ETHUSDT −1.66% (t −2.11) |
+| By year | 2021 +2.29% (12 trades); 2022 −2.95% (26); 2023 −0.06% (45) |
+| Costs ×1.5, ×2 | −0.78%, −0.93% |
+| One hour late | −0.82% |
+| Matched random books | mean −0.37%, 95th percentile +0.29%. **74% of the 2,000 random books did as well or better** |
+| Week bootstrap 95% | −1.75% to +0.56% a trade |
+| Projected stage-2 t | **−1.14**, against 2.0 |
+| Exposure, frequency | about 4% of hours in a position; 16.9 trades a coin-year |
+| Financing (reported only) | 5.5 bp a trade, not charged on a swap-free account |
+
+**What it means.**
+- **Buying the most extreme forced-deleveraging hours did not pay in 2020-2023.**
+- **The cascades continued.** 2022's crashes (LUNA, the lenders, FTX) did most of the damage.
+- **The entries carried no information.** They did no better than random entries at the same hours of the same months.
+- **Costs are not the reason.** Before any cost, the mean was still negative.
+
+**The rules.** The family is closed on these data. Stage 2 is not registered, and its data (2024-01..2026-10) stay
+unfetched. No variant is run on these data: another percentile, another hold, a short side, or one coin alone.
