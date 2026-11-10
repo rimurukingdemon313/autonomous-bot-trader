@@ -10,7 +10,7 @@
 | Risk | — (NOT_STARTED) |
 | Rule | TRND-1: VALIDATED/HEALTHY (1 promoted rule(s)) |
 | Last session | none yet |
-| Updated | 2026-11-09T23:32:01.383961+00:00 |
+| Updated | 2026-11-10T01:19:06.003282+00:00 |
 
 ## Positions
 
@@ -25,7 +25,7 @@
 | US500 | 2026-11 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,549.94 (2026-11-09) | 7,096.94 |
 | NAS100 | 2026-11 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 27,907.62 (2026-11-09) | 26,233.17 |
 | GER40 | 2026-11 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 25,820.36 (2026-11-06) | 24,271.14 |
-| UK100 | 2026-11 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,782.87 (2026-11-09) | 10,135.90 |
+| UK100 | 2026-11 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,673.90 (2026-11-06) | 10,033.47 |
 
 ## Closed trades
 
@@ -38,6 +38,7 @@ Stops moved: 0. Refused or unknown: 0.
 ## Data problems
 
 - GER40 2026-11-09: a price is missing, not finite or not positive ((25815.30078125, 26276.08984375, 25793.060546875, nan)): nothing from 2026-11-09 on is used
+- UK100 2026-11-09: a price is missing, not finite or not positive ((10673.3603515625, 10785.240234375, 10654.3203125, nan)): nothing from 2026-11-09 on is used
 
 ## How it trades
 
