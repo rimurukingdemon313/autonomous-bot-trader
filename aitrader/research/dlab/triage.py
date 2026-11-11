@@ -78,6 +78,11 @@ def evaluate(e: Emit, p: Panel, fit: np.ndarray, check: np.ndarray) -> dict:
     g = stats(r["gross"], check, p.ppy)
     late = stats(pnl(e.spec, p, delay=1)["net"], check, p.ppy)
     x2 = stats(pnl(e.spec, p, k=2.0)["net"], check, p.ppy)
+    held_rows = c.get("in_position") or 0
+    if e.spec["kind"] == "book":  # a book's entries and holding time are its parts', taken together
+        each = [pnl(x, p) for x in e.spec["parts"]]
+        parts = [stats(x["net"], check, p.ppy, x["pos"]) for x in each]
+        c["entries"], held_rows = sum(x["entries"] for x in parts), sum(x["in_position"] for x in parts)
 
     def rnd(v, n=6):
         return None if v is None else round(float(v), n)
@@ -89,6 +94,7 @@ def evaluate(e: Emit, p: Panel, fit: np.ndarray, check: np.ndarray) -> dict:
             "check": {"n": c["n"], "t": rnd(c["t"], 3), "mean": rnd(c["mean"], 8), "sharpe": rnd(c["sharpe"], 3),
                       "gross_mean": rnd(g["mean"], 8), "exposure": rnd(c.get("exposure"), 4),
                       "in_position": c.get("in_position"), "entries": c.get("entries"),
+                      "mean_hold": round(held_rows / max(c.get("entries") or 1, 1), 2),
                       "half_means": [rnd(h1["mean"], 8), rnd(h2["mean"], 8)],
                       "one_row_late_mean": rnd(late["mean"], 8), "costs_x2_mean": rnd(x2["mean"], 8)}}
 

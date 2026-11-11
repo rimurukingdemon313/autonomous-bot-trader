@@ -46,9 +46,12 @@ OUT = R / "knowledge"
 LEDGER = R / "dlab" / "candidates.jsonl"
 CODE = ("scripts/dlab.py", "aitrader/research/dlab/__init__.py", "aitrader/research/dlab/panel.py",
         "aitrader/research/dlab/signals.py", "aitrader/research/dlab/methods.py", "aitrader/research/dlab/triage.py",
-        "aitrader/research/dlab/datasets.py", "scripts/eng1.py")
-DATASETS = {"energy": ("energy-futures-eia", D.energy, 5), "crypto": ("crypto-binance-usdtm", D.crypto_hourly, 24)}
-MAX_RULES, MAX_SCANNED = 400, 20000  # what a scan may emit and may look at: its charge against its discovery window
+        "aitrader/research/dlab/datasets.py", "aitrader/research/dlab/feeds.py", "scripts/eng1.py")
+#: dataset -> (universe, loader, Newey-West lags)
+DATASETS = {"energy": ("energy-futures-eia", D.energy, 5), "crypto": ("crypto-binance-usdtm", D.crypto_hourly, 24),
+            "crypto-daily": ("crypto-perp-daily", D.crypto_daily, 5), "etf-daily": ("us-etf-broad-daily", D.etf_daily, 5)}
+#: what a scan may emit and may look at: its charge against its discovery window (DLAB-ENG-1, under 1.0.0: 400, 20000)
+MAX_RULES, MAX_SCANNED = 600, 100000
 RANDOM_N, RANDOM_SEED, BOOT_N, BOOT_SEED, BOOT_BLOCK = 1000, 61, 2000, 67, 20
 TOP_YEAR = 0.35
 SLOW_ROWS = 3.0  # a rule's mean rows in position per entry, on the check rows, from which the delay is a gate
@@ -96,11 +99,16 @@ def _day(x) -> date:
     return x.date() if isinstance(x, datetime) else x
 
 
+def tests_counted(reg: Registry, universe: str, window: tuple) -> int:
+    """Every test the registry holds on a window of this market: the universe's own, and those of the universes that
+    read the same market's returns under another name (datasets.RELATED)."""
+    return sum(reg.tests_on(u, _day(window[0]), _day(window[1])) for u in (universe, *D.RELATED.get(universe, ())))
+
+
 def bar_for(reg: Registry, universe: str, window: tuple, new_tests: int) -> float:
     """The bar a batch of `new_tests` rules must clear on the validation window: Bonferroni over every test already
     counted on that window and the batch, never below 3.0."""
-    n = reg.tests_on(universe, _day(window[0]), _day(window[1])) + new_tests
-    return max(3.0, bonferroni_t(n))
+    return max(3.0, bonferroni_t(tests_counted(reg, universe, window) + new_tests))
 
 
 # ── a discovery scan ───────────────────────────────────────────────────────
@@ -111,7 +119,8 @@ def scan_spec(dataset: str, run: str, seed: int, tops: dict | None = None) -> di
     return {"program": run, "version": DLAB_VERSION, "kind": "discovery scan", "role": "select", "dataset": dataset,
             "universe": universe, "seed": seed, "windows": {k: [str(v[0]), str(v[1])] for k, v in w.items()},
             "rules_each_method_may_emit": dict(sorted((tops or {}).items())) or "24 each (no record to learn from yet)",
-            "methods": ["leadlag", "info", "ordinal", "regimes", "anomaly", "evolve", "combine"],
+            "methods": ["leadlag", "info", "ordinal", "regimes", "anomaly", "evolve", "breadth", "combine"],
+            "related_universes": list(D.RELATED.get(universe, ())),
             "families": list(M.FAMILIES), "classes": list(T.CLASSES),
             "limits": {"rules_emitted": MAX_RULES, "statistics_scanned": MAX_SCANNED},
             "triage": {"same_behaviour_correlation": T.SAME, "least_chance_to_pass": T.P_MIN, "haircut": T.HAIRCUT,
@@ -150,8 +159,8 @@ def cmd_scan_register(a, now: datetime) -> None:
     s = f["spec"]
     w = D.WINDOWS[s["universe"]]
     reg.register(Trial(id=a.run, registered=now, title=f"{a.run}: a discovery scan of {s['universe']} (select)",
-                       hypothesis="Which causal rules, found by seven independent methods on the fit rows, are positive "
-                                  "on the check rows, distinct, and worth a registered validation?",
+                       hypothesis="Which causal rules, found by the lab's independent methods on the fit rows, are "
+                                  "positive on the check rows, distinct, and worth a registered validation?",
                        uses=(Use(s["universe"], _day(w["fit"][0]), _day(w["check"][1]), "select"),),
                        tests=MAX_RULES, configurations=MAX_SCANNED, preregistration=doc,
                        design={"spec_sha256": f["sha256"], "code_sha256": f["code_sha256"]}))
@@ -217,23 +226,31 @@ def cmd_scan_run(a, now: datetime) -> None:
 
 # ── the validation of a batch ──────────────────────────────────────────────
 
-def _shifted_mean(spec: dict, p, vmask: np.ndarray, offset: int, k: float = 1.0) -> float:
-    """The mean net return on the validation rows of the rule's own positions moved `offset` rows in time."""
-    means = []
+def _shifted_means(spec: dict, p, vmask: np.ndarray, offsets, k: float = 1.0) -> np.ndarray:
+    """For each offset: the mean net return on the validation rows of the rule's own positions moved that many rows in
+    time (each part on its own priced rows, the parts averaged)."""
+    legs = []
     for part in parts_of(spec):
         j = p.col(part["target"])
         fwd = p.fwd()[:, j]
         rows = np.nonzero(vmask & np.isfinite(fwd))[0]
-        pos = np.roll(np.nan_to_num(pnl(part, p)["pos"][rows]), offset)
-        turn = np.abs(pos - np.concatenate([[0.0], pos[:-1]]))
-        net = pos * fwd[rows] - k * (p.cost[part["target"]] * turn + p.hold_cost[rows, j] * np.abs(pos))
-        means.append(float(net.mean()) if len(net) else 0.0)
-    return float(np.mean(means))
+        legs.append((np.nan_to_num(pnl(part, p)["pos"][rows]), fwd[rows], p.cost[part["target"]], p.hold_cost[rows, j]))
+    out = []
+    for o in offsets:
+        means = []
+        for pos0, f, c, h in legs:
+            pos = np.roll(pos0, int(o))
+            turn = np.abs(pos - np.concatenate([[0.0], pos[:-1]]))
+            net = pos * f - k * (c * turn + h * np.abs(pos))
+            means.append(float(net.mean()) if len(net) else 0.0)
+        out.append(float(np.mean(means)))
+    return np.asarray(out)
 
 
 def mean_hold(rec: dict) -> float:
     """A rule's mean rows in position per entry on the check rows: known before its validation."""
-    return round((rec["check"]["in_position"] or 0) / max(rec["check"]["entries"] or 1, 1), 2)
+    c = rec["check"]
+    return c["mean_hold"] if "mean_hold" in c else round((c["in_position"] or 0) / max(c["entries"] or 1, 1), 2)
 
 
 def judge_rule(spec: dict, p, vmask: np.ndarray, bar: float, lags: int, delay_gate: bool = True) -> dict:
@@ -251,8 +268,8 @@ def judge_rule(spec: dict, p, vmask: np.ndarray, bar: float, lags: int, delay_ga
     halves = [stats(net, vmask & (idx < half), p.ppy)["mean"], stats(net, vmask & (idx >= half), p.ppy)["mean"]]
     rng = np.random.default_rng(RANDOM_SEED)
     n = len(rows)
-    rnd = np.array([_shifted_mean(spec, p, vmask, int(o)) for o in rng.integers(20, max(n - 20, 21), size=RANDOM_N)])
-    actual = _shifted_mean(spec, p, vmask, 0)
+    rnd = _shifted_means(spec, p, vmask, rng.integers(20, max(n - 20, 21), size=RANDOM_N))
+    actual = float(_shifted_means(spec, p, vmask, [0])[0])
     by_year: dict = {}
     for i in rows:
         y = str(p.times[i])[:4]
@@ -385,10 +402,13 @@ def prereg_scan_doc(run: str, f: dict, day: str) -> str:
         f"- Code sha256: `{f['code_sha256']}` (the lab: `scripts/dlab.py`, `aitrader/research/dlab/`)",
         "- Protocol: `docs/DISCOVERY_LAB.md`", "",
         "## What a scan does", "",
-        "It asks significance of nothing. Seven independent methods read the fit rows and emit their strongest rules: "
+        "It asks significance of nothing. Independent methods read the fit rows and emit their strongest rules: "
         "lead-lag with a causal screen, information theory, ordinal patterns, regimes by clustering, anomalies, an "
-        "evolutionary search, and combinations across families. Each rule is then evaluated once on the check rows, "
-        "which no method read, and classed with its reason. Every rule is kept in `research/dlab/candidates.jsonl`.", "",
+        "evolutionary search, combinations across families and, on a broad panel, rules traded on every instrument "
+        "at once (cross-sectional books and pooled rules). Each rule is then evaluated once on the check rows, which "
+        "no method read, and classed with its reason. Every rule is kept in `research/dlab/candidates.jsonl`.", "",
+        f"Instruments and data: dataset `{s['dataset']}` (`aitrader/research/dlab/datasets.py`). The validation "
+        "window's bar also counts the earlier tests on: " + (", ".join(s.get("related_universes") or []) or "no other universe") + ".", "",
         "## The rows", "", "| Rows | From | To (exclusive) | Use |", "|---|---|---|---|",
         f"| Fit | {w['fit'][0]} | {w['fit'][1]} | the methods read these and nothing later |",
         f"| Check | {w['check'][0]} | {w['check'][1]} | each emitted rule is evaluated here once |",
@@ -501,7 +521,7 @@ def auto_validate(run: str, now: datetime) -> dict | None:
         f = _frozen(pid)
         w = D.WINDOWS[s["universe"]]["validation"]
         (ROOT / "research" / "preregistrations" / f"{pid}.md").write_text(
-            prereg_batch_doc(run, f, f"{now:%Y-%m-%d}", reg.tests_on(s["universe"], _day(w[0]), _day(w[1]))))
+            prereg_batch_doc(run, f, f"{now:%Y-%m-%d}", tests_counted(reg, s["universe"], w)))
         cmd_preregister(argparse.Namespace(run=run), now)
         reg = _registry()
     if reg.verdict_of(pid) is None:
@@ -583,7 +603,8 @@ def main() -> int:
 
 
 __all__ = ["auto_scan", "auto_validate", "bar_for", "batch_spec", "code_hash", "judge_rule", "mean_hold",
-           "operating_characteristic", "prereg_batch_doc", "prereg_scan_doc", "same_rules", "scan", "scan_spec"]
+           "operating_characteristic", "prereg_batch_doc", "prereg_scan_doc", "same_rules", "scan", "scan_spec",
+           "tests_counted"]
 
 if __name__ == "__main__":
     raise SystemExit(main())

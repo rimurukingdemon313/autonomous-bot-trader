@@ -5,4 +5,7 @@ frozen, causal rule with a class and a reason, kept for ever in an append-only l
 test on a window discovery never read, at the registry's bar. Research only: nothing here trades.
 """
 
-DLAB_VERSION = "dlab-1.0.0"
+#: 1.1.0: broad panels. Rules traded on every instrument at once (cross-sectional books, pooled sign rules, a pooled
+#: evolutionary search); per-instrument methods read each instrument against the market; a rule's entries count
+#: positions opened or reversed.
+DLAB_VERSION = "dlab-1.1.0"

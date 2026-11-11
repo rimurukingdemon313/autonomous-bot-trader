@@ -21,7 +21,8 @@ import math
 import numpy as np
 
 METHOD_OF = {"cross-asset lead-lag": "leadlag", "own-lag": "leadlag", "information (non-linear)": "info",
-             "ordinal pattern": "ordinal", "regime": "regimes", "anomaly": "anomaly", "evolved rule": "evolve"}
+             "ordinal pattern": "ordinal", "regime": "regimes", "anomaly": "anomaly", "evolved rule": "evolve",
+             "cross-sectional": "breadth", "pooled time-series": "breadth", "combination": "combine"}
 BASE, FLOOR, CEILING = 24, 8, 48
 POSITIVE = ("INSUFFICIENT_POWER", "PROMISING_UNCONFIRMED")
 

@@ -5,6 +5,10 @@
   identifies contracts (scripts/eng1.py). State series: each curve's two slopes, and each product's price against
   WTI's.
 - `crypto_hourly`: BTCUSDT and ETHUSDT perpetual hours with open interest (LIQ-1's development data, on liq1-run).
+- `crypto_daily`: every USDT-M perpetual Binance listed by September 2020, by day, with its funding (feeds.py). A
+  broad panel: about fifty instruments.
+- `etf_daily`: thirty-one US-listed funds that traded before 2007, across asset classes, with the VIX as a shared
+  state series (feeds.py). A broad panel.
 - `synthetic`: built markets with or without a planted structure, for the tests and the operating characteristic.
 
 A loader takes `last` and returns nothing at or after it: discovery cannot read its validation window, because the
@@ -20,7 +24,9 @@ from pathlib import Path
 
 import numpy as np
 
-from .panel import Panel
+from .feeds import ETFS, PERPS
+from .panel import Panel, broad, roll_mean_std
+from .signals import xs_book
 
 ROOT = Path(__file__).resolve().parents[3]
 #: discovery (fit, then check) and validation windows, [start, end). The validation window is read once, by a
@@ -32,6 +38,19 @@ WINDOWS = {
                              "check": (datetime(2022, 7, 1, tzinfo=timezone.utc), datetime(2024, 1, 1, tzinfo=timezone.utc)),
                              "validation": (datetime(2024, 1, 1, tzinfo=timezone.utc),
                                             datetime(2026, 11, 1, tzinfo=timezone.utc))},
+    # No test in the registry touches 2025-01..2026-10 on Binance's perpetuals or spot coins. XTS-1, FND-1 and XSM-1
+    # reserved 2024-07..2026-09 as their holdouts and failed before opening them: those rows are unread.
+    "crypto-perp-daily": {"fit": (date(2020, 9, 1), date(2023, 7, 1)), "check": (date(2023, 7, 1), date(2025, 1, 1)),
+                          "validation": (date(2025, 1, 1), date(2026, 11, 1))},
+    "us-etf-broad-daily": {"fit": (date(2007, 1, 1), date(2015, 1, 1)), "check": (date(2015, 1, 1), date(2020, 1, 1)),
+                           "validation": (date(2020, 1, 1), date(2026, 11, 1))},
+}
+#: Universes whose earlier tests read the same market's returns: a validation window's bar counts their tests too.
+RELATED = {
+    "crypto-perp-daily": ("crypto-binance-usdtm", "crypto-binance-usdtm-all", "crypto-binance-spot",
+                          "crypto-xvenue-hl-binance", "crypto-perp-live-xvenue"),
+    "us-etf-broad-daily": ("multi-asset-etf", "us-equity-etf", "equity-index-daily", "equity-index-monthly",
+                           "us-vol-etp"),
 }
 
 
@@ -111,6 +130,72 @@ def crypto_hourly(last: datetime, data: Path | None = None, cost: float = 0.0015
     return Panel("crypto-binance-usdtm", times, syms, ret, aux, {s: cost for s in syms}, 24.0 * 365.0)
 
 
+def _returns(px: np.ndarray) -> np.ndarray:
+    """Each priced row's return from the previous priced row; NaN at unpriced rows and at the first priced one."""
+    out = np.full(len(px), np.nan)
+    ok = np.nonzero(np.isfinite(px))[0]
+    out[ok[1:]] = px[ok[1:]] / px[ok[:-1]] - 1.0
+    return out
+
+
+def crypto_daily(last: date, data: Path | None = None, first: date = date(2020, 1, 1)) -> Panel:
+    """Binance's USDT-M perpetuals by UTC day, with nothing on or after `last`. A long's return over a day is the
+    close-to-close move less the funding it paid at that day's settlements; a short's is the negative. A day whose
+    funding is not on file has no return: nothing is assumed to be zero. State series, each known at the day's close:
+    the day's funding, and its mean over the last seven days.
+
+    One-way costs follow CR-3's: 7 basis points for BTC and ETH (5 taker, 2 spread and slippage), 13 for the rest."""
+    data = Path(data) if data else ROOT / "data" / "crypto_daily"
+    close = json.loads((data / "close.json").read_text())
+    fund = json.loads((data / "funding.json").read_text())
+    cut = last.isoformat()
+    names = tuple(s for s in PERPS if any(d < cut for d in close.get(s, {})))
+    if not names:
+        raise SystemExit(f"{data}: no instrument has a close before {last}")
+    end = min(last, date.fromisoformat(max(d for s in names for d in close[s] if d < cut)) + timedelta(days=1))
+    days = [first + timedelta(days=i) for i in range((end - first).days)]
+    row = {d.isoformat(): i for i, d in enumerate(days)}
+    ret, aux = np.full((len(days), len(names)), np.nan), {}
+    for j, s in enumerate(names):
+        px, fd = np.full(len(days), np.nan), np.full(len(days), np.nan)
+        for d, v in close[s].items():
+            if d in row and v > 0:
+                px[row[d]] = v
+        for d, v in fund.get(s, {}).items():
+            if d in row:
+                fd[row[d]] = v
+        ret[:, j] = _returns(px) - fd  # NaN where the day's funding is unknown
+        aux[f"{s}.fund"], aux[f"{s}.fund7"] = fd, roll_mean_std(fd, 7, 4)[0]
+    return Panel("crypto-perp-daily", days, names, ret, aux,
+                 {s: 0.0007 if s in ("BTCUSDT", "ETHUSDT") else 0.0013 for s in names}, 365.0)
+
+
+def etf_daily(last: date, data: Path | None = None, first: date = date(2005, 1, 1), cost: float = 0.0003) -> Panel:
+    """US-listed funds by day, total returns from adjusted closes, on SPY's calendar, with nothing on or after `last`.
+    The shared state series is the VIX's log close."""
+    data = Path(data) if data else ROOT / "data" / "etf_daily"
+    close = json.loads((data / "close.json").read_text())
+    lo, hi = first.isoformat(), last.isoformat()
+    if "SPY" not in close:
+        raise SystemExit(f"{data}: SPY, the panel's calendar, is missing")
+    grid = sorted(d for d in close["SPY"] if lo <= d < hi)
+    row = {d: i for i, d in enumerate(grid)}
+    names = tuple(s for s in ETFS if any(d in row for d in close.get(s, {})))
+    ret = np.full((len(grid), len(names)), np.nan)
+    for j, s in enumerate(names):
+        px = np.full(len(grid), np.nan)
+        for d, v in close[s].items():
+            if d in row and v > 0:
+                px[row[d]] = v
+        ret[:, j] = _returns(px)
+    vix = np.full(len(grid), np.nan)
+    for d, v in close.get("^VIX", {}).items():
+        if d in row and v > 0:
+            vix[row[d]] = math.log(v)
+    return Panel("us-etf-broad-daily", [date.fromisoformat(d) for d in grid], names, ret, {"VIX": vix},
+                 {s: cost for s in names}, 252.0)
+
+
 def synthetic(rows: int = 4000, assets: int = 3, seed: int = 0, plant: dict | None = None, cost: float = 0.0002,
               start: date = date(2000, 1, 3)) -> Panel:
     """A built market: a common factor, each instrument's own noise, volatility that clusters, and one state series
@@ -120,6 +205,8 @@ def synthetic(rows: int = 4000, assets: int = 3, seed: int = 0, plant: dict | No
         {"ushape": a}        a large move of A0 in EITHER direction lifts A1's next return: no linear correlation
         {"regime": drift}    a persistent hidden state, visible in the series "state", adds +/- drift to A1 each row
         {"shock": a}         after a row in which every instrument moves hard, A1 reverses its own move
+        {"xs": ic}           EVERY instrument's next return leans against its own last move relative to the market's:
+                             a cross-sectional reversal, with a correlation of about `ic` in each instrument
     """
     rng = np.random.default_rng(seed)
     plant = plant or {}
@@ -152,6 +239,9 @@ def synthetic(rows: int = 4000, assets: int = 3, seed: int = 0, plant: dict | No
         big = (np.abs(r / (sig * vol[:, None])) > 1.5).all(axis=1)
         add[1:] -= plant["shock"] * np.where(big[:-1], r[:-1, 1], 0.0)
     r[:, 1] += add
+    if "xs" in plant:
+        rel = (r - r.mean(axis=1, keepdims=True)) / (sig * vol[:, None])
+        r[1:] -= plant["xs"] * sig * vol[1:, None] * rel[:-1]
     days, d = [], start
     while len(days) < rows:
         if d.weekday() < 5:
@@ -181,6 +271,38 @@ def closed(p: Panel) -> list[tuple[str, dict]]:
             out.append((f"trend following (hold {a} while its {label} return is positive: DIV-2, XTS-1)",
                         {"kind": "level", "target": a, "feat": {"f": "ret", "a": a, "k": k}, "op": ">", "x": 0.0,
                          "side": 1}))
+        if broad(p):
+            out.append((f"volatility-managed exposure (hold {a} while its volatility is in the lower half of its "
+                        "trailing year: VOLM-1)",
+                        {"kind": "tree", "target": a, "side": 1, "hold": 1,
+                         "node": {"feat": {"f": "vol", "a": a, "k": 20}, "w": 250, "op": "<", "q": 0.5}}))
+            if f"{a}.fund" in p.aux:
+                out += [(f"single-coin momentum (hold {a} while its {k}-day return is positive: XTS-1)",
+                         {"kind": "level", "target": a, "feat": {"f": "ret", "a": a, "k": k}, "op": ">", "x": 0.0,
+                          "side": 1}) for k in (7, 14, 28)]
+    if broad(p):
+        n, year = len(p.assets), int(round(p.ppy))
+
+        def xs(feat: dict, side: int, hold: int) -> dict:
+            return xs_book(p, {"feat": feat, "q": 0.2, "hold": hold, "min": max(6, n // 4), "side": side})
+
+        def held_while_up(k: int) -> dict:
+            return {"kind": "book", "parts": [{"kind": "level", "target": a, "feat": {"f": "ret", "a": a, "k": k},
+                                               "op": ">", "x": 0.0, "side": 1} for a in p.assets]}
+        for k, label in ((year, "12-month"), (year // 2, "6-month")):
+            out.append((f"trend following across the panel (each instrument held while its {label} return is positive: "
+                        "DIV-2, TRND-1)", held_while_up(k)))
+            out.append((f"cross-sectional momentum (the {label} winners against the losers: SEC-1)",
+                        xs({"f": "ret", "k": k}, 1, 21)))
+        if any(f"{a}.fund" in p.aux for a in p.assets):
+            for k in (7, 14, 21, 28):
+                out.append((f"single-coin momentum across the panel (each coin held while its {k}-day return is "
+                            "positive: XTS-1)", held_while_up(k)))
+                out.append((f"cross-coin momentum (the {k}-day winners against the losers: XSM-1)",
+                            xs({"f": "ret", "k": k}, 1, 7)))
+            for s_, hold in (("fund7", 7), ("fund", 1)):
+                out.append(("funding carry across coins (short the highest funding against the lowest: CR-3, FND-1)",
+                            xs({"f": "aux", "s": s_}, -1, hold)))
     return out
 
 
@@ -188,6 +310,10 @@ HINTS = {
     "energy-futures-eia": "Brent, gasoil and the complete heating-oil and RBOB curves (from 2007), then the metals' and "
                           "grains' curves, are independent instruments for the same mechanism",
     "crypto-binance-usdtm": "the next eight most liquid USDT-M perpetuals, and the hours from 2024-01 (unfetched)",
+    "crypto-perp-daily": "the perpetuals Binance listed after 2020-09 (some three hundred), and the hours inside each day",
+    "us-etf-broad-daily": "the futures behind these funds (commodities, rates, equity indices) and other exchanges' "
+                          "country funds",
 }
 
-__all__ = ["ENERGY", "HINTS", "WINDOWS", "closed", "crypto_hourly", "energy", "synthetic"]
+__all__ = ["ENERGY", "HINTS", "RELATED", "WINDOWS", "closed", "crypto_daily", "crypto_hourly", "energy", "etf_daily",
+           "synthetic"]

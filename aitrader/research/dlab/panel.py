@@ -160,6 +160,8 @@ def feat(p: Panel, f: dict) -> np.ndarray:
     - spread(a, b, k): ret(a, k) - ret(b, k);
     - mkt(k): the mean of ret(., k) over the instruments priced at t;
     - disp(k): their standard deviation (at least two priced);
+    - rel(a, k): ret(a, k) - mkt(k): the instrument's move against the market's;
+    - xavg(of): the instruments' average of a per-instrument feature (a quarter of them, at least, must have it);
     - aux(name[, d]): a state series, or its change over d rows.
     """
     k_ = "f:" + key(f)
@@ -185,6 +187,14 @@ def feat(p: Panel, f: dict) -> np.ndarray:
             warnings.simplefilter("ignore", RuntimeWarning)  # a row with no instrument priced: NaN, set below
             out = np.nanmean(m, axis=1) if kind == "mkt" else np.nanstd(m, axis=1)
         out = np.where(n >= (1 if kind == "mkt" else 2), out, np.nan)
+    elif kind == "rel":
+        out = feat(p, {"f": "ret", "a": f["a"], "k": f["k"]}) - feat(p, {"f": "mkt", "k": f["k"]})
+    elif kind == "xavg":
+        m = np.column_stack([feat(p, tfeat(f["of"], a)) for a in p.assets])
+        n = np.isfinite(m).sum(axis=1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            out = np.where(n >= max(2, len(p.assets) // 4), np.nanmean(m, axis=1), np.nan)
     elif kind == "aux":
         out = np.asarray(p.aux[f["name"]], dtype=float)
         if f.get("d"):
@@ -193,6 +203,28 @@ def feat(p: Panel, f: dict) -> np.ndarray:
         raise ValueError(f"unknown feature {kind!r}")
     p.cache[k_] = out
     return out
+
+
+def tfeat(tpl: dict, a: str) -> dict:
+    """A per-instrument feature template made concrete for instrument `a`: {"f": "ret", "k": 5} becomes its 5-row
+    return, and {"f": "aux", "s": "fund"} its own state series "a.fund"."""
+    if tpl["f"] == "aux":
+        return {"f": "aux", "name": f"{a}.{tpl['s']}", **({"d": tpl["d"]} if tpl.get("d") else {})}
+    return {**tpl, "a": a}
+
+
+def suffixes(p: Panel) -> list[str]:
+    """The state series every instrument has its own copy of ("fund" for BTCUSDT.fund, ETHUSDT.fund, ...)."""
+    own = [n.split(".", 1) for n in p.aux if "." in n and n.split(".", 1)[0] in p.assets]
+    return sorted({s for _, s in own})
+
+
+def shared_aux(p: Panel) -> list[str]:
+    """The state series that belong to no one instrument (the VIX)."""
+    return sorted(n for n in p.aux if not ("." in n and n.split(".", 1)[0] in p.assets))
+
+
+BROAD = 6  # a panel with more instruments than this is read one instrument at a time, against the market
 
 
 def rank(p: Panel, f: dict, w: int) -> np.ndarray:
@@ -209,10 +241,35 @@ def zscore(p: Panel, f: dict, w: int) -> np.ndarray:
     return p.cache[k_]
 
 
-def library(p: Panel, short: tuple = (1, 5, 20), vol: tuple = (5, 60)) -> list[dict]:
+def broad(p: Panel) -> bool:
+    return len(p.assets) > BROAD
+
+
+def library(p: Panel, short: tuple = (1, 5, 20), vol: tuple = (5, 60), target: str | None = None) -> list[dict]:
     """The features every method may read: each instrument's returns over a few horizons, its volatility ratio and the
     size of its last move; every state series and its change; the market's mean move and its dispersion. No calendar
-    feature: the calendar families are closed (docs/DISCOVERY_PROGRAM.md)."""
+    feature: the calendar families are closed (docs/DISCOVERY_PROGRAM.md).
+
+    On a broad panel every pair of instruments would be thousands of features, so a rule on `target` reads the target's
+    own features (its move against the market's among them), its own state series, the shared ones, and the market's:
+    its mean move, its dispersion, and the instruments' average of each per-instrument series. With no target, only
+    the shared and market features. (Which instrument leads which is the lead-lag method's question, asked of every
+    pair.)"""
+    if broad(p):
+        out = []
+        if target is not None:
+            out += [{"f": "ret", "a": target, "k": k} for k in short]
+            out += [{"f": "volr", "a": target, "k": vol[0], "k2": vol[1]}, {"f": "absret", "a": target}]
+            out += [{"f": "rel", "a": target, "k": k} for k in short[1:]]
+            for s_ in suffixes(p):
+                if target == "*" or f"{target}.{s_}" in p.aux:  # "*": a template, each instrument's own
+                    out += [{"f": "aux", "name": f"{target}.{s_}"}, {"f": "aux", "name": f"{target}.{s_}", "d": short[1]}]
+        for name in shared_aux(p):
+            out += [{"f": "aux", "name": name}, {"f": "aux", "name": name, "d": short[1]}]
+        out += [{"f": "mkt", "k": k} for k in short] + [{"f": "disp", "k": short[-1]},
+                                                        {"f": "xavg", "of": {"f": "volr", "k": vol[0], "k2": vol[1]}}]
+        out += [{"f": "xavg", "of": {"f": "aux", "s": s_}} for s_ in suffixes(p)]
+        return out
     out = []
     for a in p.assets:
         out += [{"f": "ret", "a": a, "k": k} for k in short]
@@ -226,5 +283,5 @@ def library(p: Panel, short: tuple = (1, 5, 20), vol: tuple = (5, 60)) -> list[d
     return out
 
 
-__all__ = ["Panel", "feat", "key", "library", "log_ret", "rank", "roll_mean_std", "roll_rank", "roll_sum", "roll_z",
-           "zscore"]
+__all__ = ["BROAD", "Panel", "broad", "feat", "key", "library", "log_ret", "rank", "roll_mean_std", "roll_rank",
+           "roll_sum", "roll_z", "shared_aux", "suffixes", "tfeat", "zscore"]

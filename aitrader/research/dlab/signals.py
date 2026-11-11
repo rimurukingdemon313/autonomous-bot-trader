@@ -12,6 +12,8 @@ A spec carries everything needed to recompute the rule on data it has never seen
     const     always one side (the instrument's own return: the baseline, never a discovery)
     combo     several rules on one instrument: all agree (and), or the majority (vote)
     book      several rules, equal capital each: the pooled test of one mechanism across instruments
+    xsleg     one instrument's weight in a cross-sectional book (the top of a ranking held against its bottom); a
+              cross-sectional rule is the book of every instrument's leg
 
 A position decided at row t's close earns the instrument's return to its next priced row, less costs: the one-way
 cost on every change of position, and the holding cost of that interval (a roll). A row where the instrument has no
@@ -27,7 +29,7 @@ import math
 
 import numpy as np
 
-from .panel import Panel, feat, key, log_ret, rank, roll_mean_std, zscore
+from .panel import Panel, feat, key, log_ret, rank, roll_mean_std, tfeat, zscore
 
 KINDS: dict = {}
 
@@ -137,7 +139,9 @@ def shock(p: Panel, vol_k: int) -> np.ndarray:
 
 
 def shock_d2(p: Panel, s: dict) -> np.ndarray:
-    x = shock(p, s["vol_k"])
+    """The squared Mahalanobis distance of each row's shock from the frozen mean. The shock is every instrument's
+    vol-scaled move, or, where the rule names `feats` (a broad panel), those features' trailing z-scores."""
+    x = (np.column_stack([zscore(p, f, s["w"]) for f in s["feats"]]) if "feats" in s else shock(p, s["vol_k"]))
     ok = np.isfinite(x).all(axis=1)
     d = np.where(ok[:, None], x, 0.0) - np.asarray(s["mu"], dtype=float)
     return np.where(ok, np.einsum("ti,ij,tj->t", d, np.asarray(s["prec"], dtype=float), d), np.nan)
@@ -169,13 +173,51 @@ def _combo(p, s):
     return np.sign(parts.sum(axis=1))
 
 
+def xs_weights(p: Panel, x: dict) -> np.ndarray:
+    """[T, N]: a cross-sectional book's weights after each row's close. Among the instruments priced at the row that
+    have the feature, the top `q` share by the feature hold +0.5 between them and the bottom `q` share -0.5 (times
+    `side`): one unit of capital, no net exposure. Ties go by the panel's instrument order. With `hold` h the book is
+    the mean of the last h rows' books. A row with fewer than `min` such instruments opens nothing."""
+    k_ = "xs:" + key(x)
+    if k_ not in p.cache:
+        f = np.column_stack([feat(p, tfeat(x["feat"], a)) for a in p.assets])
+        ok = np.isfinite(f) & np.isfinite(p.ret)
+        n = ok.sum(axis=1)
+        order = np.argsort(np.where(ok, f, np.inf), axis=1, kind="stable")
+        rk = np.empty_like(order)
+        np.put_along_axis(rk, order, np.arange(f.shape[1])[None, :].repeat(len(f), axis=0), axis=1)
+        k = np.floor(x["q"] * n).astype(int)
+        live = ((n >= x["min"]) & (k >= 1))[:, None]
+        top, bottom = ok & live & (rk >= (n - k)[:, None]), ok & live & (rk < k[:, None])
+        w = x["side"] * (top.astype(float) - bottom.astype(float)) * 0.5 / np.maximum(k, 1)[:, None]
+        h = x.get("hold", 1)
+        if h > 1:
+            c = np.cumsum(w, axis=0)
+            c[h:] = c[h:] - c[:-h]
+            w = c / h
+        p.cache[k_] = w
+    return p.cache[k_]
+
+
+def xs_book(p: Panel, x: dict) -> dict:
+    """The cross-sectional rule `x` as a book: one leg for each instrument, scaled so that the book's return is the
+    sum of weight times return."""
+    n = len(p.assets)
+    return {"kind": "book", "parts": [{"kind": "xsleg", "target": a, "of": n, "xs": x} for a in p.assets]}
+
+
+def _xsleg(p, s):
+    return s["of"] * xs_weights(p, s["xs"])[:, p.col(s["target"])]
+
+
 KINDS.update({"tree": _tree, "sign": _sign, "table": _table, "ordinal": _ordinal, "regime": _regime,
               "anomaly": _anomaly, "level": _level, "const": lambda p, s: np.full(p.T, float(s["side"])),
-              "combo": _combo})
+              "combo": _combo, "xsleg": _xsleg})
 
 
 def positions(spec: dict, p: Panel) -> np.ndarray:
-    """The rule's position after each row's close, in {-1, 0, +1}; 0 where it cannot be known."""
+    """The rule's position after each row's close: in {-1, 0, +1} (a leg of a cross-sectional book holds a weight);
+    0 where it cannot be known."""
     k_ = "pos:" + key(spec)
     if k_ not in p.cache:
         p.cache[k_] = np.asarray(KINDS[spec["kind"]](p, spec), dtype=float)
@@ -226,8 +268,9 @@ def stats(x: np.ndarray, mask: np.ndarray, ppy: float, pos: np.ndarray | None = 
     if pos is not None:
         q = _b(pos[mask & np.isfinite(x)])
         out["exposure"] = float(np.mean(np.abs(q))) if n else 0.0
+        sg = np.sign(q)
         out["in_position"] = int((q != 0).sum())
-        out["entries"] = int(((q != 0) & (np.concatenate([[0.0], q[:-1]]) != q)).sum())
+        out["entries"] = int(((sg != 0) & (np.concatenate([[0.0], sg[:-1]]) != sg)).sum())  # opened, or reversed
     return out
 
 
@@ -238,7 +281,9 @@ def causal(spec: dict, p: Panel, points: int = 5, seed: int = 0) -> bool:
     rng = np.random.default_rng(seed)
     cuts = sorted(set(rng.integers(p.T // 2, p.T - 1, size=points).tolist()) | {p.T - 1})
     for t in cuts:
-        cut = p.head(t + 1)
+        if f"cut:{t}" not in p.cache:  # the cut panels are shared by every rule checked on this panel
+            p.cache[f"cut:{t}"] = p.head(t + 1)
+        cut = p.cache[f"cut:{t}"]
         for x, f in zip(parts_of(spec), full):
             if positions(x, cut)[t] != f[t]:
                 return False
@@ -262,7 +307,7 @@ def nw_t(x: np.ndarray, lags: int) -> float | None:
 def describe(spec: dict) -> str:
     """One line a person can read."""
     def f_(f):
-        return f["f"] + "(" + ",".join(str(v) for k_, v in f.items() if k_ != "f") + ")"
+        return f["f"] + "(" + ",".join(f_(v) if isinstance(v, dict) else str(v) for k_, v in f.items() if k_ != "f") + ")"
 
     def n_(n):
         if "and" in n or "or" in n:
@@ -271,6 +316,12 @@ def describe(spec: dict) -> str:
         return f"rank{n['w']}[{f_(n['feat'])}] {n['op']} {n['q']}"
     side = {1: "long", -1: "short"}
     k = spec["kind"]
+    if k == "book" and spec["parts"][0]["kind"] == "xsleg":
+        x = spec["parts"][0]["xs"]
+        top, bottom = ("long", "short") if x["side"] > 0 else ("short", "long")
+        return (f"across {len(spec['parts'])} instruments: {top} the top {x['q']:.0%} and {bottom} the bottom "
+                f"{x['q']:.0%} by {f_(x['feat'])}, equal weights, no net exposure; each row's book is held "
+                f"{x.get('hold', 1)} rows")
     if k == "book":
         return "book of " + str(len(spec["parts"])) + ": " + "; ".join(describe(x) for x in spec["parts"])[:400]
     t = spec["target"]
@@ -286,7 +337,8 @@ def describe(spec: dict) -> str:
     if k == "regime":
         return f"{t}: by {len(spec['centroids'])} regimes of {len(spec['feats'])} state features, map {spec['map']}"
     if k == "anomaly":
-        return (f"{t}: {spec['mode']} for {spec.get('hold', 1)} rows after a multivariate shock beyond "
+        of = " of " + ", ".join(f_(f) for f in spec["feats"]) if "feats" in spec else ""
+        return (f"{t}: {spec['mode']} for {spec.get('hold', 1)} rows after a multivariate shock{of} beyond "
                 f"{spec['thr']:.1f}")
     if k == "level":
         return f"{side[spec['side']]} {t} while {f_(spec['feat'])} {spec['op']} {spec['x']}"
@@ -302,4 +354,5 @@ def dumps(spec: dict) -> str:
 
 
 __all__ = ["KINDS", "causal", "cond", "describe", "dumps", "held", "leaves", "node", "nw_t", "ordinal_code",
-           "parts_of", "pnl", "positions", "regime_state", "shock", "shock_d2", "spec_id", "stats", "targets"]
+           "parts_of", "pnl", "positions", "regime_state", "shock", "shock_d2", "spec_id", "stats", "targets",
+           "xs_book", "xs_weights"]
