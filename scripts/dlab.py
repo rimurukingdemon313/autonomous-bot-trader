@@ -54,7 +54,7 @@ DATASETS = {"energy": ("energy-futures-eia", D.energy, 5), "crypto": ("crypto-bi
 MAX_RULES, MAX_SCANNED = 600, 100000
 RANDOM_N, RANDOM_SEED, BOOT_N, BOOT_SEED, BOOT_BLOCK = 1000, 61, 2000, 67, 20
 TOP_YEAR = 0.35
-TOP_YEAR_ROWS = 1.5  # in a short window: a year may give this many times its own share of the validation rows
+TOP_YEAR_SE = 2.0  # in a short window: a year may give its share of the rows plus this many standard errors of it
 SLOW_ROWS = 3.0  # a rule's mean rows in position per entry, on the check rows, from which the delay is a gate
 GATES = {
     "t": "the Newey-West t of the rule's net return over the validation rows >= the threshold",
@@ -65,9 +65,9 @@ GATES = {
     "halves": "its mean net return > 0 in each half of the validation rows",
     "beats_random": f"its mean net return above the 95th percentile of {RANDOM_N} books that hold its own positions "
                     "shifted in time (the same exposure and turnover, no timing)",
-    "top_year": f"no calendar year gives more than {TOP_YEAR:.0%} of its total net return; or, where the window is so "
-                f"short that a year holds more of its rows than that allows, more than {TOP_YEAR_ROWS} times the "
-                "year's own share of the rows",
+    "top_year": f"no calendar year gives more than {TOP_YEAR:.0%} of its total net return; or, where a year holds so "
+                "many of the window's rows that this cannot be asked, more than the year's share of the rows plus two "
+                "standard errors of that share for a rule at t 3.0",
 }
 
 
@@ -108,6 +108,24 @@ def tests_counted(reg: Registry, universe: str, window: tuple) -> int:
     return sum(reg.tests_on(u, _day(window[0]), _day(window[1])) for u in (universe, *D.RELATED.get(universe, ())))
 
 
+def year_cap(share_of_rows: float) -> float:
+    """The most of a rule's total net return one calendar year may give. A year that holds a share s of the rows of a
+    rule whose total stands at t 3.0 gives s of the total, give or take sqrt(s (1 - s)) / 3: two of those above s is
+    allowed, and never less than 35%. Over a twelve-year window that is 35%; in a window of two or three years a year
+    holds a third or more of the rows, and a flat 35% would fail a steady rule for the window's shortness."""
+    s_ = min(max(share_of_rows, 0.0), 1.0)
+    return max(TOP_YEAR, s_ + TOP_YEAR_SE * float(np.sqrt(s_ * (1.0 - s_))) / 3.0)
+
+
+def free_places(reg: Registry, universe: str, window: tuple) -> int:
+    """How many rules a batch may hold while the validation bar stays at its floor of 3.0: a place among those costs
+    the bar nothing, so a positive rule may take one without being promising."""
+    n, k = tests_counted(reg, universe, window), 0
+    while k < T.MAX_BATCH and bonferroni_t(n + k + 1) <= 3.0:
+        k += 1
+    return k
+
+
 def bar_for(reg: Registry, universe: str, window: tuple, new_tests: int) -> float:
     """The bar a batch of `new_tests` rules must clear on the validation window: Bonferroni over every test already
     counted on that window and the batch, never below 3.0."""
@@ -126,7 +144,8 @@ def scan_spec(dataset: str, run: str, seed: int, tops: dict | None = None) -> di
             "related_universes": list(D.RELATED.get(universe, ())),
             "families": list(M.FAMILIES), "classes": list(T.CLASSES),
             "limits": {"rules_emitted": MAX_RULES, "statistics_scanned": MAX_SCANNED},
-            "triage": {"same_behaviour_correlation": T.SAME, "least_chance_to_pass": T.P_MIN, "haircut": T.HAIRCUT,
+            "triage": {"same_behaviour_correlation": T.SAME, "least_chance_to_pass": T.P_MIN,
+                       "least_chance_for_a_place_that_costs_the_bar_nothing": T.P_FREE, "haircut": T.HAIRCUT,
                        "batch": T.MAX_BATCH, "per_family": T.PER_FAMILY, "per_instrument": T.PER_TARGET},
             "firewall": "the panel is loaded with nothing at or after the check rows' end: the validation rows are "
                         "not in memory during discovery",
@@ -205,7 +224,8 @@ def scan(dataset: str, seed: int, reg: Registry | None = None, panel=None, tops:
     bar = bar_for(reg, universe, w["validation"], T.MAX_BATCH) if reg is not None else 3.0
     res = T.triage(emitted, p, fit, check, n_val=p.ppy * years, bar=bar, closed=D.closed(p), hint=D.HINTS.get(universe, ""),
                    known=known_rules(universe) if reg is not None else None,
-                   prior_looks=earlier_looks(universe) if reg is not None else 0)
+                   prior_looks=earlier_looks(universe) if reg is not None else 0,
+                   free_places=free_places(reg, universe, w["validation"]) if reg is not None else 0)
     return {"universe": universe, "rows": {"panel": p.T, "fit": int(fit.sum()), "check": int(check.sum()),
                                            "validation_expected": int(p.ppy * years)},
             "first_row": str(p.times[0]), "last_row": str(p.times[-1]), "instruments": list(p.assets),
@@ -287,10 +307,7 @@ def judge_rule(spec: dict, p, vmask: np.ndarray, bar: float, lags: int, delay_ga
         by_year[y], n_year[y] = by_year.get(y, 0.0) + float(r["net"][i]), n_year.get(y, 0) + 1
     total = float(sum(by_year.values()))
     top = max(by_year.values()) / total if total > 0 else None
-    # a year may give 35% of the total; in a window of two or three years it holds more of the rows than that, and
-    # may give one and a half times its own share of them
-    spread = total > 0 and all(v / total <= max(TOP_YEAR, TOP_YEAR_ROWS * n_year[y] / len(rows))
-                               for y, v in by_year.items())
+    spread = total > 0 and all(v / total <= year_cap(n_year[y] / len(rows)) for y, v in by_year.items())
     cum = np.cumsum(v)
     fall = float((np.maximum.accumulate(cum) - cum).max()) if len(cum) else 0.0
     brng = np.random.default_rng(BOOT_SEED)
@@ -435,9 +452,11 @@ def prereg_scan_doc(run: str, f: dict, day: str) -> str:
         "longer judge anything at an ordinary bar: they are a discovery set.",
         "- The validation rows are charged only for the rules later judged on them.", "",
         "## What follows", "",
-        f"- At most {s['triage']['batch']} rules classed PROMISING_UNCONFIRMED (at most {s['triage']['per_family']} a family "
-        f"and {s['triage']['per_instrument']} an instrument) go to `{run}-V`: frozen, and judged once on the validation "
-        "rows at max(3.0, Bonferroni over every test on those rows).",
+        f"- At most {s['triage']['batch']} rules (at most {s['triage']['per_family']} a family and "
+        f"{s['triage']['per_instrument']} an instrument) go to `{run}-V`: frozen, and judged once on the validation "
+        "rows at max(3.0, Bonferroni over every test on those rows). They are the rules classed "
+        "PROMISING_UNCONFIRMED and, while the bar with them added is still 3.0, the next strongest rules that are "
+        "positive in both halves of the check rows: a place that costs the bar nothing is not withheld.",
         "- The scan's verdict is PASSED if it proposes such a batch and FAILED if it does not. Neither is a result about "
         "any rule: no rule is validated or disproved by a scan.", ""])
 
@@ -616,7 +635,8 @@ def operating_characteristic_broad(seeds: int = 6, assets: int = 24, only: tuple
             check = np.zeros(head.T, dtype=bool)
             check[fit_n:] = True
             emitted, _ = M.discover(M.Context(head, fit, seed=7))
-            res = T.triage(emitted, head, fit, check, n_val=val_n, bar=3.0, closed=D.closed(head))
+            res = T.triage(emitted, head, fit, check, n_val=val_n, bar=3.0, closed=D.closed(head),
+                           free_places=T.MAX_BATCH)
             rules += len(res["records"])
             by_id = {r["id"]: r for r in res["records"]}
             vmask = np.zeros(p.T, dtype=bool)
@@ -627,19 +647,20 @@ def operating_characteristic_broad(seeds: int = 6, assets: int = 24, only: tuple
                 real = plant is not None and by_id[i]["family"] in ("cross-sectional", "pooled time-series", "pooled book")
                 ok_any |= j["passed"] and real
                 false_valid += j["passed"] and not real
-            promoted += bool(res["batch"])
+            promoted += any(by_id[i]["class"] == "PROMISING_UNCONFIRMED" for i in res["batch"])
             validated += ok_any
             hits.append(len(res["batch"]))
-        out.append({"market": label, "one_way_cost": cost, "runs": seeds, "runs_with_a_promoted_rule": promoted,
+        out.append({"market": label, "one_way_cost": cost, "runs": seeds, "runs_with_a_promising_rule": promoted,
                     "runs_with_a_pooled_rule_validated": validated if plant else None,
                     "validated_rules_that_were_not_pooled": false_valid, "mean_rules_per_run": round(rules / seeds, 1),
-                    "promoted_per_run": hits})
+                    "rules_judged_per_run": hits})
         print(json.dumps(out[-1]), flush=True)
     return {"version": DLAB_VERSION, "instruments": assets,
             "rows": {"fit": fit_n - 250, "check": chk_n, "validation": val_n},
             "note": "the effect is in every instrument, so a book of all of them carries it and an instrument alone "
                     "cannot. A correlation c in each of N instruments gives the book a gross Sharpe ratio of about "
-                    "c x sqrt(252 N) a year",
+                    "c x sqrt(252 N) a year. Twelve places in each batch cost the bar nothing, as on the crypto panel: "
+                    "every judged rule faces t 3.0 and every other gate",
             "results": out}
 
 

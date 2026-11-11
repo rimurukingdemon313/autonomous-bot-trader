@@ -28,6 +28,12 @@ corrections are made, and both are estimates, not tests:
 A rule is PROMISING when it is positive in both halves of the check rows and its chance of passing its validation, by
 those two numbers, is at least 1 in 4. Validation stays what it was: a preregistered test on unread rows at the
 registry's bar. Discovery only decides what that test is asked.
+
+**A place that costs nothing is not withheld.** The bar is max(3.0, Bonferroni over every test on the validation rows).
+While the tests on those rows are few, adding a rule to the batch leaves the bar at 3.0. Such a place goes to the
+next strongest rule that is positive in both halves of the check rows, promising or not: withholding it would spare
+the test nothing and could hide a real rule whose check-row t happened to be modest. The rule keeps its class
+(INSUFFICIENT_POWER) and its plan, and is judged like any other.
 """
 
 from __future__ import annotations
@@ -48,6 +54,7 @@ SAME = 0.7  # two rules whose check-row returns correlate this much are one beha
 BETA = 0.9  # a rule this close to always holding its instrument has no timing
 MIN_IN_POSITION, MIN_ENTRIES = 30, 8
 P_MIN = 0.25  # the least estimated chance of passing its validation to be worth a registered test
+P_FREE = 0.03  # the least chance for a place in the batch that costs the validation bar nothing
 HAIRCUT = 0.75  # a selected rule's strength, if real, as a share of its check-row t (the winner's curse)
 MAX_BATCH, PER_FAMILY, PER_TARGET = 12, 3, 4
 
@@ -175,11 +182,12 @@ def plan(pw: dict, z: float, n_check: int, n_val: float, ppy: float, book: dict 
 
 def triage(emitted: list[Emit], p: Panel, fit: np.ndarray, check: np.ndarray, n_val: float, bar: float,
            closed: list[tuple[str, dict]] | None = None, hint: str = "", known: dict | None = None,
-           prior_looks: int = 0) -> dict:
+           prior_looks: int = 0, free_places: int = 0) -> dict:
     """Class every emitted rule. Returns the records (each with its class, reason and plan), the run's noise and the
     batch proposed for validation. `known`: rule id -> (run, class) for rules an earlier scan of this market already
     classed: such a rule is recorded as seen and is not looked at again. `prior_looks`: the distinct behaviours earlier
-    scans evaluated on these same check rows: a later scan's rules are judged against all of those looks too."""
+    scans evaluated on these same check rows: a later scan's rules are judged against all of those looks too.
+    `free_places`: how many rules the batch may hold while the validation bar stays at its floor."""
     known = known or {}
     seen = [{"id": spec_id(e.spec), "family": e.family, "method": e.method, "why": e.why, "detail": e.detail,
              "spec": e.spec, "rule": describe(e.spec), "targets": list(targets(e.spec)), "parents": [],
@@ -255,12 +263,25 @@ def triage(emitted: list[Emit], p: Panel, fit: np.ndarray, check: np.ndarray, n_
                              {"id": b_["id"], "class": b_["class"]} if b_ is not None and b_["id"] != r["id"] else None,
                              hint)
     promising = sorted((r for r in recs if r["class"] == "PROMISING_UNCONFIRMED"), key=lambda r: -r["power"]["p_pass"])
+    spare = sorted((r for r in kept if r["class"] == "INSUFFICIENT_POWER" and r["power"]["p_pass"] >= P_FREE
+                    and all((h or 0) > 0 for h in r["check"]["half_means"])), key=lambda r: -r["power"]["p_pass"])
     batch, fam, tgt = [], {}, {}
-    for r in promising:
+
+    def take(r: dict) -> bool:
         t_ = ",".join(r["targets"])
         if len(batch) < MAX_BATCH and fam.get(r["family"], 0) < PER_FAMILY and tgt.get(t_, 0) < PER_TARGET:
             batch.append(r["id"])
             fam[r["family"]], tgt[t_] = fam.get(r["family"], 0) + 1, tgt.get(t_, 0) + 1
+            return True
+        return False
+    for r in promising:
+        take(r)
+    for r in spare:  # a place that leaves the bar at its floor: not withheld from a positive rule
+        if len(batch) >= free_places:
+            break
+        if take(r):
+            r["place_costs_the_bar_nothing"] = True
+            r["reason"] += "; judged all the same: its place in the batch leaves the validation bar at 3.0"
     for r in recs:
         r["in_batch"] = r["id"] in batch
     recs += seen
@@ -293,5 +314,5 @@ def append(ledger: Path, run: str, recs: list[dict], at: str, version: str) -> i
     return len(recs)
 
 
-__all__ = ["CLASSES", "HAIRCUT", "MAX_BATCH", "P_MIN", "SAME", "append", "behaviour", "chances", "distinct", "evaluate", "noise",
+__all__ = ["CLASSES", "HAIRCUT", "MAX_BATCH", "P_FREE", "P_MIN", "SAME", "append", "behaviour", "chances", "distinct", "evaluate", "noise",
            "plan", "power", "summary", "triage"]

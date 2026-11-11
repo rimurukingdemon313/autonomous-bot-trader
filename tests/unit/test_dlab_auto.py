@@ -110,7 +110,8 @@ def test_code_that_changed_a_rule_or_changed_after_registration_is_refused_and_n
     from aitrader.research.dlab import signals as S
     root, loads = lab
     scan = L.auto_scan("syn", "DLAB-SYN-1", 7, NOW)
-    kinds = {r["spec"]["kind"] for r in scan["records"] if r["id"] in scan["batch"]}
+    assert scan["batch"]
+    kinds = set(S.KINDS)  # every kind of rule: a batch may hold a book, whose parts are of any of them
     real = {k: S.KINDS[k] for k in kinds}
     for k in kinds:  # today's code computes the batch's rules differently from the scan's
         monkeypatch.setitem(S.KINDS, k, lambda p, s, f=real[k]: -f(p, s))

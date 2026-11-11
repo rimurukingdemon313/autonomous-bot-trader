@@ -301,4 +301,46 @@ def test_one_year_may_not_carry_a_rule_and_a_short_window_is_not_failed_for_bein
     assert good["rows_by_year"]["2025"] / good["rows"] > 0.42 and 0.35 < good["top_year_share"] < 0.6
     assert good["gates"]["top_year"] and good["passed"]  # 2025 gives about its share of the rows: not a failure
     assert bad["t"] > 3.0 and bad["top_year_share"] > 0.9 and not bad["gates"]["top_year"] and not bad["passed"]
-    assert "top_year" in L.GATES and "1.5 times" in L.GATES["top_year"]
+    assert "top_year" in L.GATES and "two standard errors" in L.GATES["top_year"]
+    # twelve equal years: 35%, as ever. A window of three equal years: a third of the rows, and 65% of the total
+    assert L.year_cap(1 / 12) == 0.35 and L.year_cap(0.146) == pytest.approx(0.381, abs=0.002)
+    assert L.year_cap(1 / 3) == pytest.approx(0.648, abs=0.002) and L.year_cap(0.428) == pytest.approx(0.758, abs=0.002)
+    assert L.year_cap(1.0) == 1.0  # one calendar year is the whole window: the gate has nothing to compare
+
+
+def test_a_place_that_costs_the_bar_nothing_goes_to_the_next_strongest_positive_rule(tmp_path):
+    """Three instruments, one real lead-lag of middling size: positive on the check rows, short of promising."""
+    p = D.synthetic(rows=2100, assets=3, seed=5, plant={"leadlag": 0.07})
+    fit = np.zeros(p.T, dtype=bool)
+    fit[:1300] = True
+    emitted, _ = M.discover(M.Context(p, fit, seed=7))
+    none = T.triage(emitted, p, fit, ~fit, n_val=2000, bar=3.0)
+    some = T.triage(emitted, p, fit, ~fit, n_val=2000, bar=3.0, free_places=3)
+    full = T.triage(emitted, p, fit, ~fit, n_val=2000, bar=3.0, free_places=12)
+    promising = {r["id"] for r in none["records"] if r["class"] == "PROMISING_UNCONFIRMED"}
+    assert set(none["batch"]) <= promising  # with no free place, only what is promising is judged
+    by = {r["id"]: r for r in full["records"]}
+    extra = [i for i in full["batch"] if by[i]["class"] != "PROMISING_UNCONFIRMED"]
+    assert extra and len(full["batch"]) > len(none["batch"]) and len(some["batch"]) <= max(3, len(none["batch"]))
+    for i in extra:
+        r = by[i]
+        assert r["class"] == "INSUFFICIENT_POWER" and r["place_costs_the_bar_nothing"] and r["plan"]  # class and plan kept
+        assert r["power"]["p_pass"] >= T.P_FREE and all(h > 0 for h in r["check"]["half_means"]) and r["in_batch"]
+        assert "leaves the validation bar at 3.0" in r["reason"]
+    fams = {}
+    for i in full["batch"]:
+        fams[by[i]["family"]] = fams.get(by[i]["family"], 0) + 1
+    assert len(full["batch"]) <= T.MAX_BATCH and max(fams.values()) <= T.PER_FAMILY  # the batch stays spread
+    lost = [r for r in full["records"] if r["class"] in ("NEGATIVE_EXPECTANCY", "OVERFIT", "INSUFFICIENT_DATA")]
+    assert lost and not any(r["in_batch"] for r in lost)  # a free place is never given to a rule that lost
+    # how many places are free is the registry's arithmetic: 18 tests keep the bar at 3.0, the 19th does not
+    (tmp_path / "holdout.json").write_text(json.dumps({"universe": "fx-majors", "start": "2017-01-01", "rationale": "t",
+                                                       "sealed_at": "2026-09-26T20:28:47+00:00"}))
+    reg = Registry.load(tmp_path / "registry.jsonl", Holdout.load(tmp_path / "holdout.json"))
+    w = (date(2024, 7, 1), date(2026, 11, 1))
+    assert L.free_places(reg, "crypto-perp-daily", w) == 12
+    from datetime import datetime, timezone
+    reg.register(Trial(id="OLD-9", registered=datetime(2026, 11, 1, tzinfo=timezone.utc), title="t", hypothesis="h",
+                       tests=10, configurations=10, uses=(Use("crypto-binance-spot", date(2024, 1, 1), date(2025, 1, 1), "judge"),)))
+    assert L.free_places(reg, "crypto-perp-daily", w) == 8 and L.bar_for(reg, "crypto-perp-daily", w, 8) == 3.0
+    assert L.bar_for(reg, "crypto-perp-daily", w, 9) > 3.0
