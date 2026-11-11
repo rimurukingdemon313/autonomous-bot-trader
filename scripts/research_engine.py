@@ -67,7 +67,9 @@ ENGINE_VERSION = "research-engine-1.2.0"  # 1.0.1: a failing model is passed ove
 #: 1.2.0 (docs/DISCOVERY_AUDIT.md, weaknesses 2, 3 and 7): a critic's rejection needs one of five named reasons, and
 #: the owner's conditions are a flag, not a rejection; an idea is gated on its own window's bar, never below 3.0, and
 #: an underpowered one is kept with a plan; the three ideas of a cycle come from three mechanism classes; the
-#: discovery lab's lessons are in the proposer's context.
+#: discovery lab's lessons are in the proposer's context. Each known family is listed with what became of it: one
+#: dropped for power only stays open to a version that answers the lack, and a critic's rejection closes nothing
+#: (the cycle of 2026-11-11 rejected an idea as a repeat of one a critic had wrongly rejected the day before).
 MODEL_TRIES = 5
 BAR_FLOOR = 3.0  # no program is judged below it, so no idea is gated below it
 RECENT_YEARS = 5.0  # the window the context's market table describes
@@ -163,6 +165,21 @@ def lab_lessons(root: Path, cap: int = 10) -> list[str]:
     return [f"the discovery lab's record: {x}" for x in got if isinstance(x, str)][:cap]
 
 
+def queue_reasons(text: str) -> dict[str, str]:
+    """Each idea the hand-kept queue dropped before building, with why: the second column of its table."""
+    out: dict[str, str] = {}
+    table, prev = False, ""
+    for line in text.splitlines():
+        if line.startswith("|") and not prev.startswith("|"):
+            table = line.startswith("| Idea")
+        prev = line
+        if table and line.startswith("| ") and not line.startswith("| Idea"):
+            cells = [c.strip() for c in line.split("|")]
+            if len(cells) >= 3 and cells[1]:
+                out[cells[1]] = cells[2]
+    return out
+
+
 def decide(h: dict, bar: float) -> tuple[str, str, dict | None]:
     if h["claimed_sharpe_annual"] > MAX_CLAIMED_SHARPE:
         return ("DROPPED_IMPLAUSIBLE", f"a claimed net Sharpe of {h['claimed_sharpe_annual']} at retail costs is "
@@ -241,7 +258,9 @@ Propose up to three NEW trading hypotheses that could earn money net of retail c
 mechanism (who is forced or willing to lose, and why that persists), not on a chart pattern. The hypotheses must come
 from DIFFERENT mechanism classes (mechanism_class): the context lists how often each class has been proposed here, and
 the classes proposed least come first. Prefer mechanisms and data this lab has never tested. Never propose a family listed as already tested or dropped unless you name genuinely
-new evidence (new data, a new market, a new mechanism) in why_new.
+new evidence (new data, a new market, a new mechanism) in why_new. A family listed as dropped for lack of power ONLY
+may be proposed again in a form that answers the lack: on many more instruments tested as one book, or many more
+years. Say in why_new how your version answers it.
 
 Hard conditions (the owner's):
 - the account is a swap-free (Islamic) CFD account: spread, slippage and commission, no overnight financing, and no
@@ -278,7 +297,9 @@ SYSTEM_CRITIC = """You are the independent critic of a quantitative research lab
 approve, add, change or repair a hypothesis. You may reject a hypothesis for one of these five reasons only, and you
 must name the reason in "category":
 - repeats_closed_family: it repeats a family already tested or dropped, without genuinely new evidence. Name that
-  family in duplicate_of;
+  family in duplicate_of. A family whose entry says it was dropped for lack of power ONLY is not closed to a version
+  that answers the lack (the same mechanism on many more instruments tested as one book, or on many more years): such
+  a version is new. Nor is a family closed because an earlier critic rejected it: only a test, or evidence, closes one;
 - no_mechanism: it has no economic mechanism, or one that would not survive after publication;
 - implausible_claim: it claims more than its evidence could support, or a net Sharpe ratio implausible at retail costs;
 - cannot_be_tested_cleanly: it cannot be tested without look-ahead, survivorship bias or data leakage;
@@ -375,12 +396,30 @@ class Engine:
         return problems
 
     def known_families(self) -> list[str]:
+        """Every family the lab has met, each with what became of it. A family that was only dropped for lack of power
+        says so, with its plan: it is open to a version that answers the lack, and a critic that reads "dropped"
+        alone would close it for ever (the second production cycle rejected an idea as a repeat of one the first
+        cycle's critic had rejected for a reason that broke no rule)."""
         from scripts.research_report import queue_drops, read_registry
         trials, _ = read_registry(self.root)
-        out = [t.get("title") or t["id"] for t in trials.values()]
-        out += [i for x in queue_drops((self.root / "research" / "QUEUE.md").read_text()) for i in x["ideas"]]
-        out += [f"{i['title']} ({i['decision']})" for i in read_jsonl(self.ideas_path)]
-        return [x[:200] for x in out]
+        text = (self.root / "research" / "QUEUE.md").read_text()
+        why = queue_reasons(text)
+        out = [f"{t.get('title') or t['id']} [tested: registered and judged]"[:420] for t in trials.values()]
+        out += [f"{i} [dropped before any test: {why.get(i, 'see the queue')}]"[:420]
+                for x in queue_drops(text) for i in x["ideas"]]
+        for i in read_jsonl(self.ideas_path):
+            if i["decision"] == "DROPPED_POWER":
+                ways = "; ".join(((i.get("power") or {}).get("plan") or {}).get("ways", [])) or "more instruments as one book, or more years"
+                label = f"proposed here, never tested, dropped for lack of power ONLY. Open to a version that answers it: {ways}"
+            elif i["decision"] == "REJECTED_BY_CRITIC" and not i.get("critic_category"):
+                label = ("proposed here, never tested; rejected by a critic before a rejection needed a named reason. "
+                         "Its second look is in the queue's dropped list")
+            elif i["decision"] == "REJECTED_BY_CRITIC":
+                label = f"proposed here, never tested; rejected by a critic: {i['critic_category']}"
+            else:
+                label = f"proposed here: {i['decision']}"
+            out.append(f"{i['title']} [{label}]"[:420])
+        return out
 
     def _registry(self):
         from aitrader.research.registry import Holdout, Registry
@@ -529,5 +568,5 @@ def openrouter_ask(env: dict | None = None) -> Ask | None:
 
 
 __all__ = ["BAR_FLOOR", "DECISIONS", "ENGINE_VERSION", "Engine", "FLAGS", "MECHANISMS", "REJECTIONS", "SEAL_SHA256",
-           "decide", "fingerprint", "idea_class", "lab_lessons", "openrouter_ask", "plan", "power", "read_jsonl",
-           "validate_proposal", "validate_review"]
+           "decide", "fingerprint", "idea_class", "lab_lessons", "openrouter_ask", "plan", "power", "queue_reasons",
+           "read_jsonl", "validate_proposal", "validate_review"]

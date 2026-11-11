@@ -407,7 +407,21 @@ result is reported as it is, failures first.
   - The entries did no better than random ones at the same hours (74% of 2,000 random books did as well).
   - The cascades continued, above all in 2022. The family is closed on these data, and stage 2's data stay unfetched
     (`research/preregistrations/LIQ-1.md`, Result).
-- **Next: INV-1's power check** (step 7).
+- **The discovery process was audited and rebuilt** (2026-11-10 and 11; `docs/DISCOVERY_AUDIT.md`).
+  - The finding: nothing here had ever looked at data to find a hypothesis, and three final filters stopped most
+    recalled ideas before any data were read.
+  - The answer: the discovery lab (`docs/DISCOVERY_LAB.md`). Eight methods read data and emit rules; every rule is
+    kept with one of eight classes; what is promising goes to a preregistered validation on unread rows at the
+    registry's bar. It runs by itself on `.github/workflows/lab-cycle.yml`.
+- **DLAB-ENG-1 proposed nothing** (2026-11-10): the lab's first scan, on WTI and natural gas, 1994-2011.
+  - 2,015 statistics looked at, 102 rules kept: 0 promising, 25 positive but not told from noise (the best at t 1.43),
+    43 lost, 21 overfit, 11 with too few rows, 2 duplicates.
+  - A scan validates and disproves nothing. Its validation window (2012-2024) was never loaded.
+- **The lab's own calibration** (`research/dlab/operating_characteristic*.json`): on one instrument it confirms only
+  an edge of gross Sharpe about 1.5 or more, and it validated no noise rule in any run. So the next panels are broad:
+  55 crypto perpetuals and 31 funds, where one rule is traded on every instrument at once.
+- **Next, by the lab's own queue**: the scans of those two panels and the validation of what they propose. Then
+  INV-1's power check (step 7), which is unchanged and waits.
 
 ## Sources
 

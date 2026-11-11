@@ -108,9 +108,25 @@ someone had already written about, and it stopped most of that before testing it
 The statistical standard was not lowered. A rule is validated only by a preregistered test on rows no scan has read,
 at the larger of 3.0 and the Bonferroni bar over every test on those rows.
 
-## What this audit does not change yet
+## The idea engine and the classifier, fixed in the same change
 
-The idea engine itself (weaknesses 2 and 3) and the classifier (weakness 6) are still as described. Their fixes are
-listed in `docs/DISCOVERY_LAB.md` under what is next: a critic whose rejection needs a category and can be overruled
-when it contradicts the stated rules, a power gate that writes a plan and reads the window's bar, and near-misses
-recorded as promising and unconfirmed.
+| Weakness | Answer | Where |
+|---|---|---|
+| 2. A critic that was final and wrong | A rejection must name one of five reasons (a repeat of a named closed family, no mechanism, an implausible claim, a test that cannot be clean, data that cannot be had). Short selling and leverage are stated as allowed. A doubt about the owner's conditions is a flag for the research loop to check, never a rejection. An answer in the old form is out of schema: discarded whole, and the next model is asked | `scripts/research_engine.py` 1.2.0: `REJECTIONS`, `FLAGS`, `validate_review`, `SYSTEM_CRITIC` |
+| 3. A power gate on the wrong bar, with no plan | An idea is gated on the tests counted on its own fresh years, never below 3.0. One that cannot pass is kept with a plan: the years of fresh data, or the number of independent instruments tested as one book, that would make it testable | `Engine.bar_for`, `plan`, `decide` |
+| 3. The report's market table | Each market's tests are split into judged tests and discovery charges, with the bar on its last five years beside the bar over its whole history | `scripts/research_report.py` 1.1.0: `market_bars` |
+| 6. Near-misses erased | A single program that failed on the bar alone, with every other preregistered gate held and its own t at 2 or more, is PROMISING: DAY-1, FXT-1 and TME-1. Not validated, never a trade: evidence for a fresh test on new data | `aitrader/research/discovery/edges.py` 1.11.0: `judged_t`, `from_single` |
+| 7. No diversity in the ideas | A cycle's three ideas must come from three mechanism classes of ten; the proposer is shown how often each has been proposed, fewest first | `MECHANISMS`, `validate_proposal`, `Engine.classes` |
+| 1. Recall only, in the engine | The discovery lab's lessons are in the proposer's context | `lab_lessons` |
+
+The two ideas the first cycle rejected for "short selling" were looked at again by this arithmetic
+(`research/QUEUE.md`, 2026-11-11). Both lack power at their claimed strength: they are dropped again, for a reason
+that holds, and each has its plan. The engine's own ledger is never rewritten.
+
+## What is still as it was
+
+- The engine proposes from a model's recall. That is now one source of ideas among two, not the only one.
+- The proposer and the critic are different models, but in the first cycle both came from one lab. Free models are
+  what the budget allows; a critic from another lab is preferred when one is available.
+- 53 ideas were dropped from the hand-kept queue on power estimates before this audit. They are not re-opened one by
+  one: the lab's scans look at their families on data where the panels allow it.

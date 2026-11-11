@@ -238,16 +238,18 @@ registered, judged scan and holds exactly as many rules as its evidence. If any 
 - **GitHub's schedule is best-effort.** A slot may fire hours late or not at all. The cycle is built so that this
   costs time and nothing else.
 - **No model is in the loop.** The idea engine (`scripts/research_engine.py`) still proposes from recall once a day
-  and is kept apart; feeding it the lab's lessons and sources is listed below.
+  and is kept apart. From engine 1.2.0 the lab's lessons are in its proposer's context.
 
 ## 11. What is next
 
 1. The first scans of the two broad panels, and the validation of anything they propose (the lab's own queue).
-2. The idea engine's fixes from the audit: a critic whose rejection needs a category and is overruled when it
-   contradicts the stated rules; a power gate that reads the window's bar and writes a plan; the lab's lessons and
-   sources in the proposer's context.
-3. Near-misses recorded as promising and unconfirmed (DAY-1, FXT-1, TME-1 failed on t alone).
-4. More panels: the hours inside each crypto day; commodity and rate futures.
+2. Volume in the crypto panel: each day's quote volume from the same archive, as a dollar-volume and an illiquidity
+   state series. Nothing in this project has used volume (`docs/RESEARCH_SOURCES.md`, hypothesis H5).
+3. More panels: the hours inside each crypto day; commodity and rate futures.
+4. A deflated Sharpe ratio reported beside each validation (method M1 of the same document).
+
+Done with the lab, from the same audit: the idea engine's critic and power gate, and near-misses recorded as
+promising (`docs/DISCOVERY_AUDIT.md`).
 
 ## 12. Files
 

@@ -372,6 +372,30 @@ def test_a_cycles_ideas_come_from_different_mechanism_classes_and_the_least_used
     assert order[0] == "information diffusion"  # never proposed: first
 
 
+def test_a_family_dropped_for_power_stays_open_to_a_version_that_answers_it_and_a_critic_closes_nothing(tmp_path):
+    E.Engine(ROOT, tmp_path, scripted(*three()), DAY1).run()
+    # an idea a critic rejected before a rejection needed a named reason: the first production cycle's rows
+    E.append_jsonl(tmp_path / "ideas.jsonl", [{"cycle": "2026-11-09", "fingerprint": "f" * 20, "title": "an old rejection",
+                                               "decision": "REJECTED_BY_CRITIC", "critic_reason": "requires short selling"}])
+    ask = scripted(None, None)
+    E.Engine(ROOT, tmp_path, ask, DAY1 + timedelta(days=1)).run()
+    said = ask.calls[0]["messages"][1]["content"]
+    power = next(x for x in said.splitlines() if x.startswith("- FX majors drift"))
+    assert "dropped for lack of power ONLY" in power and "Open to a version that answers it" in power
+    assert "independent instruments" in power and "tested as one book" in power  # its plan, in the listing
+    old = next(x for x in said.splitlines() if x.startswith("- an old rejection"))
+    assert "before a rejection needed a named reason" in old and "REJECTED" not in old  # not listed as a closed family
+    named = next(x for x in said.splitlines() if x.startswith("- a repeat of a dropped family"))
+    assert "rejected by a critic: repeats_closed_family" in named
+    assert any("[tested: registered and judged]" in x for x in said.splitlines())
+    # the hand-kept queue's drops carry their reason, so "dropped" is never read without its why
+    gotobi = next(x for x in said.splitlines() if x.startswith("- Gotobi USD/JPY flows"))
+    assert "[dropped before any test: Already judged: FLOW-1" in gotobi
+    assert E.queue_reasons("| Idea | Why it was dropped |\n|---|---|\n| A thing | too weak |\n\n| Other | x |\n| B | y |") == {"A thing": "too weak"}
+    assert "dropped for lack of power ONLY" in E.SYSTEM_CRITIC and "only a test, or evidence, closes one" in E.SYSTEM_CRITIC
+    assert "dropped for lack of power ONLY" in E.SYSTEM_PROPOSER
+
+
 def test_the_discovery_labs_lessons_reach_the_proposer(tmp_path):
     r = copy_repo(tmp_path)
     assert E.lab_lessons(r) == []  # no lab record there: nothing is invented

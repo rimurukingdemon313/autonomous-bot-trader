@@ -222,7 +222,8 @@ live state in `LAB_REPORT.md` on `lab-data`.
   that can pass; the research loop builds it. An idea queued while the loop is not running waits in `ideas.jsonl`.
   The discovery lab does build and run its own experiments, but only on the panels in its catalog: a new panel is
   new code.
-- **The idea engine's known faults are not fixed yet** (`docs/DISCOVERY_AUDIT.md`, weaknesses 2, 3 and 6): a critic
-  that cannot be overruled, a power gate that writes no plan, and near-misses recorded as rejections.
+- **The idea engine's faults found by the audit are fixed in engine 1.2.0** (`docs/DISCOVERY_AUDIT.md`): a critic's
+  rejection needs one of five named reasons, the power gate reads the idea's own window and writes a plan, and
+  near-misses are recorded as promising. Not yet seen in production: the first cycle under 1.2.0.
 - **The $4,000 a month.** No strategy validated so far supports it at acceptable risk (`docs/FX_TARGET_REPORT.md`).
   The system never raises risk to reach it (CLAUDE.md rule 8).
