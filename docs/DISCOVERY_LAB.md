@@ -100,11 +100,20 @@ Two estimates decide the last two classes. Both are estimates, never tests:
 **The plan** of an INSUFFICIENT_POWER rule says what would make it testable: how many more years of rows, how many
 independent instruments with the same mechanism, or whether its family's pooled book already carries it.
 
+**A place that costs nothing is not withheld.** The bar is max(3.0, Bonferroni over every test on the validation
+rows). While those tests are few (18 or fewer, the batch included), a rule added to the batch leaves the bar at 3.0.
+Such a place goes to the next strongest rule that is positive in both halves of the check rows and has at least a 3%
+estimated chance, promising or not. It keeps its class and its plan and is judged like any other. The calibration
+study is why: real planted rules whose check-row t was a modest 2.0 to 2.7 went on to validate at t 3.8 to 4.6, and
+a triage that withheld them would have spared the test nothing. The crypto panel has twelve such places; the fund
+panel has none (21 tests are already counted on its validation rows).
+
 ## 5. What keeps the search diverse
 
 - **Sameness is behaviour, not wording.** Two rules whose check-row returns correlate 0.7 or more are one behaviour;
   the stronger is kept and the other names it.
-- **A batch is spread.** At most 12 rules go to a validation: at most 3 a family and 4 an instrument.
+- **A batch is spread.** At most 12 rules go to a validation: at most 3 a family and 4 an instrument, whether a
+  rule is there as promising or in a place that costs the bar nothing.
 - **Closed families are recognised by what they do.** Each family the record has closed is stated as a rule
   (`datasets.closed`): trend following, single-coin and cross-coin momentum, funding carry, volatility-managed
   exposure, ENG-1, LIQ-1. A discovery that behaves like one is named and stopped, whatever it is called.
@@ -124,7 +133,7 @@ Each rule in a batch is judged once, on its own, and passes only if every gate h
 | one_row_late | Its mean net return is positive entered one row late, for a rule that holds three rows or more on average. For a faster rule the figure is reported and is not a gate: entered a row late, a one-row rule is another rule |
 | halves | Its mean net return is positive in each half of the validation rows |
 | beats_random | It beats the 95th percentile of 1,000 books that hold its own positions shifted in time: the same exposure and turnover, no timing |
-| top_year | No calendar year gives more than 35% of its total; or, in a window so short that a year holds more of the rows than that allows, more than 1.5 times the year's own share of them |
+| top_year | No calendar year gives more than 35% of its total. Where a year holds so many of the window's rows that this cannot be asked, the limit is the year's share of the rows plus two standard errors of that share for a rule at t 3.0 (`year_cap`): 35% over twelve years, 65% for a year that is a third of the window, 76% for 2025 in the crypto window |
 
 Also reported for each rule: the mean, the gross mean and the costs, the Sharpe ratio, a block-bootstrap 95% interval,
 the worst fall, the exposure, the entries a year, and each year.
