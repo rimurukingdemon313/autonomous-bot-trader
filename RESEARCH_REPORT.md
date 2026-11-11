@@ -2,19 +2,21 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 82 فرضية مسجلة، 60 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 82 فرضية مسجلة، 60 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-10 21:50 UTC from the committed record · research-report-1.0.0
+Generated 2026-11-11 12:13 UTC from the committed record · research-report-1.0.0
 
-## Today (2026-11-10, UTC)
+## Today (2026-11-11, UTC)
+
+Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **LIQ-1**: LIQ-1 stage 1: buying after forced crypto deleveraging (development, select). After an hour in which BTCUSDT's or ETHUSDT's open interest and price both fall below their trailing 90-day 1st percentile, does a long held 24 hours earn a positive net return, more than matched random entries? (`research/preregistrations/LIQ-1.md`, 1 test counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **LIQ-1: FAILED**. Evidence: `research/knowledge/LIQ-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
@@ -35,16 +37,16 @@ Generated 2026-11-10 21:50 UTC from the committed record · research-report-1.0.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-10 00:13 UTC, OK
-- Last successful idea step: 2026-11-10 00:13 UTC
+- Last cycle: 2026-11-11 12:13 UTC, OK
+- Last successful idea step: 2026-11-11 12:13 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 3 ideas: DROPPED_POWER 1, REJECTED_BY_CRITIC 2
+- All time: 6 ideas: DROPPED_POWER 1, REJECTED_BY_CRITIC 5
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: EM FX central bank intervention follow-through (em-fx-daily, swing). Violates owner's swap-free/no interest-bearing instrument condition (requires short selling and leverage). (critic: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free)
-- **REJECTED_BY_CRITIC**: EIA crude oil inventory surprise same-day mean reversion (energy-futures-eia, intraday). Violates owner's swap-free/no interest-bearing instrument condition (requires short selling and leverage). (critic: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free)
-- **DROPPED_POWER**: Central bank gold purchase follow-through (metals-futures-daily, position). even at its claimed strength it expects t 1.0 against a bar of 2.2414: it cannot pass, so it is not built
+- **REJECTED_BY_CRITIC**: Funding‑time price pressure in Binance USDT‑M perpetuals (crypto-binance-usdtm, scalping). Repeats the dropped family "Price pressure around the crypto perpetuals' funding times (00:00, 08:00 and 16:00 UTC)". The cited evidence (arXiv 2411.06327) also already appears in the dropped family "Exchange flows of USDT and BTC as intraday signals (arXiv 2411.06327)". No genuinely new evidence is offered for an already archived funding-time price-pressure family. (critic: nvidia/nemotron-3.5-super-vl:free)
+- **REJECTED_BY_CRITIC**: Retail client contrarian during monthly options expiration weeks in US equity ETFs (us-equity-etf, swing). Repeats the dropped family "Retail-broker client positioning as a contrarian signal (the share of a broker's clients long the US 500 or gold, read against them)". Restricting the same contrarian client-ratio signal to monthly options-expiration weeks is a variant of an already dropped family, not genuinely new evidence; it also overlaps dropped options-expiration week families. (critic: nvidia/nemotron-3.5-super-vl:free)
+- **REJECTED_BY_CRITIC**: EIA inventory surprise term‑structure premium in energy futures (energy-futures-eia, position). Repeats the rejected family "EIA crude oil inventory surprise same-day mean reversion (REJECTED_BY_CRITIC)". Reframing the same EIA-surprise energy-futures event as a 5-day near/next-month calendar spread does not constitute genuinely new evidence; the underlying family and data source were already rejected. (critic: nvidia/nemotron-3.5-super-vl:free)
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
