@@ -108,6 +108,8 @@ def story(tmp_path_factory):
         snap[5] = {"code": code, "tasks": tasks(Store(s)), "registry": registry_lines(root), "loads": list(asked["loads"]),
                    "runs": Store(s).read("runs"), "budget": Store(s).read("budget"), "report": (s / "LAB_REPORT.md").read_text(),
                    "forward": Store(s).read("forward")}
+        again = C.do_forward(Store(s), s, {}, NOW + timedelta(days=2))  # the marks asked for once more, another day
+        snap[6] = {"again": again, "forward": Store(s).read("forward")}
         yield {"root": root, "tmp": tmp, "state": s, "snap": snap, "posted": posted, "asked": asked}
     finally:
         mp.undo()
@@ -143,7 +145,7 @@ def test_nothing_runs_twice_across_restarts(story):
     assert set(status(sn, 5).values()) == {"DONE"}
     ran = [r["step"] for r in sn[5]["runs"] if r["step"].startswith("task:")]
     assert len(ran) == len(set(ran)) == 5  # data, scan, validate, forward, sources
-    assert len(story["asked"]["feeds"]) == 2  # the month's data once, and once more for the forward marks
+    assert len(story["snap"][4]["feeds"]) == 2  # the month's data once, and once more for the forward marks
     assert "No task ran" in sn[5]["report"] and len(sn[5]["budget"]) == 5
     rows = (story["root"] / "research" / "dlab" / "candidates.jsonl").read_text().splitlines()
     rules = [json.loads(x) for x in rows if '"event"' not in x]
@@ -160,7 +162,8 @@ def test_a_validated_rule_raises_one_alert_and_is_marked_forward_on_rows_after_i
     passed = set(sn[3]["tasks"]["validate:DLAB-SYN-1"]["result"]["passed"])
     assert {f["rule"] for f in fwd} == passed and all(f["row"] >= "2026-01-01" for f in fwd)  # after the window only
     assert len(fwd) == len({(f["rule"], f["row"]) for f in fwd}) and len(fwd) > 500 * len(passed)
-    assert sn[5]["forward"] == fwd  # the same day again: no row is marked twice
+    assert sn[5]["forward"] == fwd  # the same day again: nothing to do
+    assert sn[6]["again"] == {"rules": len(passed), "rows_added": 0} and sn[6]["forward"] == fwd  # no row is marked twice
     assert story["asked"]["loads"][-1].year == 2100 and "forward:2026-11-12" in sn[4]["tasks"]
 
 

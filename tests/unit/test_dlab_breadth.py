@@ -280,3 +280,25 @@ def test_a_later_scan_of_the_same_rows_is_judged_against_the_earlier_scans_looks
     assert a.keys() == b.keys() and all(b[i] <= a[i] for i in a) and any(b[i] < a[i] for i in a)
     assert again["noise"]["of_them_from_earlier_scans"] == 400
     assert again["noise"]["distinct_behaviours"] == first["noise"]["distinct_behaviours"] + 400
+
+
+def test_one_year_may_not_carry_a_rule_and_a_short_window_is_not_failed_for_being_short():
+    """Two and a third years of daily rows, as the crypto validation window is: 2025 alone holds 43% of them."""
+    rng = np.random.default_rng(8)
+    ds = days(853, date(2024, 7, 1))
+    lead = rng.normal(0, 0.01, 853)
+    steady = np.concatenate([[0.0], 0.006 * np.sign(lead[:-1])]) + rng.normal(0, 0.004, 853)  # follows the leader always
+    lucky = rng.normal(0, 0.004, 853)
+    in_2025 = np.array([d.year == 2025 and d.month <= 6 for d in ds])
+    lucky[1:] += np.where(in_2025[1:], 0.012 * np.sign(lead[:-1]), 0.0)  # follows it for half of one year only
+    p = Panel("built", ds, ("LEAD", "STEADY", "LUCKY"), np.column_stack([lead, steady, lucky]), {},
+              {"LEAD": 0.0, "STEADY": 0.0001, "LUCKY": 0.0001}, 365.0)
+    vmask = np.ones(p.T, dtype=bool)
+
+    def rule(target):
+        return {"kind": "level", "target": target, "feat": {"f": "ret", "a": "LEAD", "k": 1}, "op": ">", "x": 0.0, "side": 1}
+    good, bad = L.judge_rule(rule("STEADY"), p, vmask, 3.0, 5, False), L.judge_rule(rule("LUCKY"), p, vmask, 3.0, 5, False)
+    assert good["rows_by_year"]["2025"] / good["rows"] > 0.42 and 0.35 < good["top_year_share"] < 0.6
+    assert good["gates"]["top_year"] and good["passed"]  # 2025 gives about its share of the rows: not a failure
+    assert bad["t"] > 3.0 and bad["top_year_share"] > 0.9 and not bad["gates"]["top_year"] and not bad["passed"]
+    assert "top_year" in L.GATES and "1.5 times" in L.GATES["top_year"]

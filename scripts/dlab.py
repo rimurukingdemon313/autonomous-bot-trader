@@ -54,6 +54,7 @@ DATASETS = {"energy": ("energy-futures-eia", D.energy, 5), "crypto": ("crypto-bi
 MAX_RULES, MAX_SCANNED = 600, 100000
 RANDOM_N, RANDOM_SEED, BOOT_N, BOOT_SEED, BOOT_BLOCK = 1000, 61, 2000, 67, 20
 TOP_YEAR = 0.35
+TOP_YEAR_ROWS = 1.5  # in a short window: a year may give this many times its own share of the validation rows
 SLOW_ROWS = 3.0  # a rule's mean rows in position per entry, on the check rows, from which the delay is a gate
 GATES = {
     "t": "the Newey-West t of the rule's net return over the validation rows >= the threshold",
@@ -64,7 +65,9 @@ GATES = {
     "halves": "its mean net return > 0 in each half of the validation rows",
     "beats_random": f"its mean net return above the 95th percentile of {RANDOM_N} books that hold its own positions "
                     "shifted in time (the same exposure and turnover, no timing)",
-    "top_year": f"no calendar year gives more than {TOP_YEAR:.0%} of its total net return",
+    "top_year": f"no calendar year gives more than {TOP_YEAR:.0%} of its total net return; or, where the window is so "
+                f"short that a year holds more of its rows than that allows, more than {TOP_YEAR_ROWS} times the "
+                "year's own share of the rows",
 }
 
 
@@ -278,12 +281,16 @@ def judge_rule(spec: dict, p, vmask: np.ndarray, bar: float, lags: int, delay_ga
     n = len(rows)
     rnd = _shifted_means(spec, p, vmask, rng.integers(20, max(n - 20, 21), size=RANDOM_N))
     actual = float(_shifted_means(spec, p, vmask, [0])[0])
-    by_year: dict = {}
+    by_year, n_year = {}, {}
     for i in rows:
         y = str(p.times[i])[:4]
-        by_year[y] = by_year.get(y, 0.0) + float(r["net"][i])
+        by_year[y], n_year[y] = by_year.get(y, 0.0) + float(r["net"][i]), n_year.get(y, 0) + 1
     total = float(sum(by_year.values()))
     top = max(by_year.values()) / total if total > 0 else None
+    # a year may give 35% of the total; in a window of two or three years it holds more of the rows than that, and
+    # may give one and a half times its own share of them
+    spread = total > 0 and all(v / total <= max(TOP_YEAR, TOP_YEAR_ROWS * n_year[y] / len(rows))
+                               for y, v in by_year.items())
     cum = np.cumsum(v)
     fall = float((np.maximum.accumulate(cum) - cum).max()) if len(cum) else 0.0
     brng = np.random.default_rng(BOOT_SEED)
@@ -293,7 +300,7 @@ def judge_rule(spec: dict, p, vmask: np.ndarray, bar: float, lags: int, delay_ga
     gross = stats(np.where(vmask, r["gross"], np.nan), vmask, p.ppy)["mean"]
     gates = {"t": t is not None and t >= bar, "costs_x2": (x2 or 0) > 0,
              "halves": all((h or 0) > 0 for h in halves), "beats_random": actual > float(np.percentile(rnd, 95)),
-             "top_year": top is not None and top <= TOP_YEAR}
+             "top_year": bool(spread)}
     if delay_gate:
         gates["one_row_late"] = (late or 0) > 0
     years = len(v) / p.ppy if len(v) else 0.0
@@ -310,6 +317,7 @@ def judge_rule(spec: dict, p, vmask: np.ndarray, bar: float, lags: int, delay_ga
             "random": {"books": RANDOM_N, "p95": rd(np.percentile(rnd, 95), 8), "mean": rd(rnd.mean(), 8),
                        "share_at_least_as_good": rd(float((rnd >= actual).mean()), 4)},
             "top_year_share": rd(top, 3), "by_year": {y: rd(x, 5) for y, x in sorted(by_year.items())},
+            "rows_by_year": dict(sorted(n_year.items())),
             "gates": gates, "failed_gates": [g for g, ok in gates.items() if not ok], "passed": all(gates.values())}
 
 
