@@ -593,7 +593,7 @@ def operating_characteristic(seeds: int = 12, rows: int = 7500) -> dict:
             "results": out}
 
 
-def operating_characteristic_broad(seeds: int = 6, assets: int = 24) -> dict:
+def operating_characteristic_broad(seeds: int = 6, assets: int = 24, only: tuple | None = None) -> dict:
     """The same question on a broad panel shaped like the crypto one (790 fit rows, 730 check rows, 850 validation
     rows): how small a cross-sectional effect, present in every instrument, the lab promotes and then validates. The
     planted effect lasts one row, so a book must trade every row to earn it: the last line plants the largest effect
@@ -603,6 +603,8 @@ def operating_characteristic_broad(seeds: int = 6, assets: int = 24) -> dict:
     cases = [("nothing", None, 0.00005)] + [(f"cross-sectional reversal, correlation {ic} in each instrument", {"xs": ic},
                                              0.00005) for ic in (0.01, 0.02, 0.03)]
     cases.append(("cross-sectional reversal, correlation 0.03, at a one-way cost of 5 basis points", {"xs": 0.03}, 0.0005))
+    if only is not None:  # some of the cases only: the study can be run a case at a time and its results joined
+        cases = [c for i, c in enumerate(cases) if i in only]
     for label, plant, cost in cases:
         promoted = validated = false_valid = rules = 0
         hits = []
