@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 141 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 138 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -123,8 +123,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.422 | | | | | | | | | |
 | D3-SQUEEZE+H1-TREND | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 627 | -0.095 | -1.79 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.194 | | | | | | | | | |
-| DAY-1 | — | — | `see research/preregistrations/DAY-1.md` | see research/preregistrations/DAY-1.md | — | — | — | — | — | 1 | **REJECTED** | t |
-| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| DAY-1 | — | — | `see research/preregistrations/DAY-1.md` | see research/preregistrations/DAY-1.md | — | — | — | — | — | 1 | **PROMISING** | t |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.482 on its `days` against 3.388. Not validated: evidence for a fresh preregistered test on new data | | | | | | | | | |
 | DIV1-H1-TSMOM12 | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | -0.001 | -0.22 (3.00) | -0.008 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
 | ↳ correction | | | portfolio trend: expectancies are monthly net portfolio returns, not R | | | | | | | | | |
 | DIV1-H2-BLEND | BOTH | MN | `time-series momentum sign, volatility-targeted` | monthly rebalance | 156 | +0.001 | +0.15 (3.00) | -0.007 | — | 1 | **REJECTED** | t, validation, costs_x2, leave_one_class_out |
@@ -151,8 +151,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | FXS-1 | — | — | `see research/preregistrations/FXS-1.md` | see research/preregistrations/FXS-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x1.5, pairs, top_year, bootstrap, profit_factor, delay |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
-| FXT-1 | — | MN | `see research/preregistrations/FXT-1.md` | see research/preregistrations/FXT-1.md | 180 | +0.005 | +2.71 (3.63) | +0.005 | — | 1 | **REJECTED** | t |
-| ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R | | | | | | | | | |
+| FXT-1 | — | MN | `see research/preregistrations/FXT-1.md` | see research/preregistrations/FXT-1.md | 180 | +0.005 | +2.71 (3.63) | +0.005 | — | 1 | **PROMISING** | t |
+| ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R; a near miss: it failed on the bar alone, with t 2.712 on its `months` against 3.629. Not validated: evidence for a fresh preregistered test on new data | | | | | | | | | |
 | GSR-1 | — | — | `see research/preregistrations/GSR-1.md` | see research/preregistrations/GSR-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x2, both_sides, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | LVOL-1 | — | — | `see research/preregistrations/LVOL-1.md` | see research/preregistrations/LVOL-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, top_year |
@@ -296,8 +296,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 1 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.968 | | | | | | | | | |
 | T3W-LONDON-TRUE-OPEN-WIDE | BOTH | M5 | `see research/preregistrations/QT-2.md` | stop / target / time (bid/ask) | 2405 | -0.044 | -1.32 (3.57) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 3.226 | | | | | | | | | |
-| TME-1 | — | — | `see research/preregistrations/TME-1.md` | see research/preregistrations/TME-1.md | — | — | — | — | — | 1 | **REJECTED** | t |
-| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| TME-1 | — | — | `see research/preregistrations/TME-1.md` | see research/preregistrations/TME-1.md | — | — | — | — | — | 1 | **PROMISING** | t |
+| ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.239 on its `month_ends` against 3.078. Not validated: evidence for a fresh preregistered test on new data | | | | | | | | | |
 | TRND-1 | — | MN | `see research/preregistrations/TRND-1.md` | see research/preregistrations/TRND-1.md | 732 | +0.005 | +3.83 (3.38) | +0.005 | — | 1 | **VALIDATED** | — |
 | ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R; holdout 69 months, net t 2.737 | | | | | | | | | |
 | TSY-1 | — | — | `see research/preregistrations/TSY-1.md` | see research/preregistrations/TSY-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, costs_x2, both_legs, top_year |

@@ -120,6 +120,22 @@ def test_the_bars_count_every_test_on_each_market(tmp_path):
     bars = r["cumulative"]["bars"]
     assert bars["equity-index-daily"]["tests"] == 3 and bars["fx-majors"]["tests"] == 1
     assert bars["equity-index-daily"]["next_bar_t"] > bars["fx-majors"]["next_bar_t"]  # more reading, a higher bar
+    for b in bars.values():  # every test is either a judged one or a discovery step's charge
+        assert b["judged_tests"] + b["discovery_tests"] == b["tests"] and b["recent_bar_t"] >= 3.0
+        assert b["recent_tests"] <= b["tests"]
+
+
+def test_a_discovery_charge_raises_the_bar_of_its_own_rows_only():
+    root = Path(RR.ROOT)
+    bars = RR.build_report(root, DAY, NOW)["cumulative"]["bars"]
+    e = bars["energy-futures-eia"]
+    assert e["discovery_tests"] >= 400 and e["judged_tests"] == 1  # the lab's scan, and ENG-1
+    assert e["next_bar_t"] > 3.8  # a test on the whole history, the scanned rows included, pays for the scan
+    assert e["recent_tests"] == 0 and e["recent_bar_t"] == 3.0  # a test on rows no scan and no judge read does not
+    fx = bars["fx-majors"]  # nearly all of its tests read rows before the seal: its last five years carry few
+    assert fx["judged_tests"] > 100 and fx["recent_tests"] < fx["tests"] and 3.0 <= fx["recent_bar_t"] <= fx["next_bar_t"]
+    text = RR.markdown(RR.build_report(root, DAY, NOW))
+    assert "| Market data | Judged tests | Discovery charges |" in text and "that charge does not touch the rows it never loaded" in text
 
 
 def test_on_the_committed_record_no_evidence_has_changed_and_only_trnd1_is_validated(tmp_path):

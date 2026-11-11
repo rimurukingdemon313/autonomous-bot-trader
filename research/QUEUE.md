@@ -54,6 +54,17 @@ effect is real is not run. Each of these was checked and dropped:
 | RSI(2) dip-buying on index CFDs | About +0.26% a trade on the S&P 500 in 2016-2026, roughly t 1 |
 | Monetary momentum: the market for 15 days after a dovish FOMC surprise (Neuhierl & Weber) | Sharpe 0.52 in 1994-2009, read from the paper. Over the fresh 2010-2026 that is about t 2 at full strength, at CFD or futures costs alike, against a bar of about 3.18 |
 
+**Checked on 2026-11-11 and dropped again, this time for a reason that holds.** The engine's first cycle
+(2026-11-10) rejected two ideas on its critic's word. Both rejections said "short selling and leverage", which break
+no condition of the owner's (`docs/DISCOVERY_AUDIT.md`, weakness 2). The engine's ledger is never rewritten, so
+their second look is recorded here, by the arithmetic the engine now applies to every idea (engine 1.2.0: the bar of
+the idea's own window, never below 3.0, and a plan for what it would take):
+
+| Idea | Why it was dropped |
+|---|---|
+| EM FX central-bank intervention follow-through (engine, 2026-11-10) | Insufficient power, not a broken condition. At its claimed net Sharpe of 0.5 over 5 fresh years it expects t 1.1 against 3.0. Its plan: about 36 years of fresh data, or the same mechanism on about 8 independent currencies tested as one book. Few central banks publish daily intervention amounts, so the book is the harder half |
+| Same-day reversal after the EIA crude inventory report (engine, 2026-11-10) | Insufficient power: a net Sharpe of 0.5 over 8 fresh years expects t 1.4 against 3.0. Its plan: about 36 years, or about 5 independent instruments. It is also an intraday rule on one instrument, where a CFD's costs took the whole gross edge of every family tested here |
+
 **What the record says about costs.** Real effects keep showing before costs and vanishing after them:
 
 - the Treasury month-end effect: t 4.07 before costs, 2.24 after (TME-1);

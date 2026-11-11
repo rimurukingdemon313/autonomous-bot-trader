@@ -402,6 +402,7 @@ def test_the_cycle_writes_its_report_with_the_engine_kept_apart(tmp_path, capsys
     text = (tmp_path / "RESEARCH_REPORT.md").read_text()
     engine = text.split("## The autonomous engine's ideas")[1].split("## Validation status")[0]
     assert "QUEUED_FOR_BUILD**: closing auction imbalance" in engine and "REJECTED_BY_CRITIC" in engine
+    assert "Class: UNTESTED_HYPOTHESIS." in engine and "Class: INSUFFICIENT_POWER." in engine and "kept with a plan" in engine
     assert "closing auction imbalance (new:ftse-auction; queued 2026-11-10" in engine
     assert "RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT" in text
     js = json.loads((tmp_path / "RESEARCH_REPORT.json").read_text())
