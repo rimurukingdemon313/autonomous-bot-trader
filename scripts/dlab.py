@@ -587,15 +587,19 @@ def operating_characteristic(seeds: int = 12, rows: int = 7500) -> dict:
 
 def operating_characteristic_broad(seeds: int = 6, assets: int = 24) -> dict:
     """The same question on a broad panel shaped like the crypto one (790 fit rows, 730 check rows, 850 validation
-    rows): how small a cross-sectional effect, present in every instrument, the lab promotes and then validates."""
+    rows): how small a cross-sectional effect, present in every instrument, the lab promotes and then validates. The
+    planted effect lasts one row, so a book must trade every row to earn it: the last line plants the largest effect
+    again at a one-way cost of 5 basis points, where that turnover costs more than the effect pays."""
     fit_n, chk_n, val_n = 790 + 250, 730, 850  # 250 rows of warm-up before the fit rows, as the real panels have
     out = []
-    for label, plant in [("nothing", None)] + [(f"cross-sectional reversal, correlation {ic} in each instrument",
-                                                 {"xs": ic}) for ic in (0.02, 0.03, 0.05)]:
+    cases = [("nothing", None, 0.00005)] + [(f"cross-sectional reversal, correlation {ic} in each instrument", {"xs": ic},
+                                             0.00005) for ic in (0.01, 0.02, 0.03)]
+    cases.append(("cross-sectional reversal, correlation 0.03, at a one-way cost of 5 basis points", {"xs": 0.03}, 0.0005))
+    for label, plant, cost in cases:
         promoted = validated = false_valid = rules = 0
         hits = []
         for seed in range(seeds):
-            p = D.synthetic(rows=fit_n + chk_n + val_n, assets=assets, seed=300 + seed, plant=plant, cost=0.0005)
+            p = D.synthetic(rows=fit_n + chk_n + val_n, assets=assets, seed=300 + seed, plant=plant, cost=cost)
             head = p.head(fit_n + chk_n)
             fit = np.zeros(head.T, dtype=bool)
             fit[250:fit_n] = True
@@ -616,14 +620,16 @@ def operating_characteristic_broad(seeds: int = 6, assets: int = 24) -> dict:
             promoted += bool(res["batch"])
             validated += ok_any
             hits.append(len(res["batch"]))
-        out.append({"market": label, "runs": seeds, "runs_with_a_promoted_rule": promoted,
+        out.append({"market": label, "one_way_cost": cost, "runs": seeds, "runs_with_a_promoted_rule": promoted,
                     "runs_with_a_pooled_rule_validated": validated if plant else None,
                     "validated_rules_that_were_not_pooled": false_valid, "mean_rules_per_run": round(rules / seeds, 1),
                     "promoted_per_run": hits})
         print(json.dumps(out[-1]), flush=True)
-    return {"version": DLAB_VERSION, "instruments": assets, "one_way_cost": 0.0005,
+    return {"version": DLAB_VERSION, "instruments": assets,
             "rows": {"fit": fit_n - 250, "check": chk_n, "validation": val_n},
-            "note": "the effect is in every instrument, so a book of all of them carries it; an instrument alone cannot",
+            "note": "the effect is in every instrument, so a book of all of them carries it and an instrument alone "
+                    "cannot. A correlation c in each of N instruments gives the book a gross Sharpe ratio of about "
+                    "c x sqrt(252 N) a year",
             "results": out}
 
 

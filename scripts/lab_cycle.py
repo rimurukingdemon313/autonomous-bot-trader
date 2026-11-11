@@ -99,7 +99,7 @@ def integrity() -> list[str]:
         reg = L._registry()
     except Exception as e:  # the registry's own errors, or a line that is not JSON
         return problems + [f"the registry does not load: {type(e).__name__}: {e}"]
-    trials, verdicts = read_registry(L.ROOT)
+    trials, verdicts = read_registry(L.ROOT) if (L.R / "registry.jsonl").exists() else ({}, {})
     for tid, t in sorted(trials.items()):
         e = evidence(L.ROOT, t, verdicts.get(tid))
         if e["artifact_unchanged"] is False:
