@@ -174,10 +174,12 @@ def plan(pw: dict, z: float, n_check: int, n_val: float, ppy: float, book: dict 
 
 
 def triage(emitted: list[Emit], p: Panel, fit: np.ndarray, check: np.ndarray, n_val: float, bar: float,
-           closed: list[tuple[str, dict]] | None = None, hint: str = "", known: dict | None = None) -> dict:
+           closed: list[tuple[str, dict]] | None = None, hint: str = "", known: dict | None = None,
+           prior_looks: int = 0) -> dict:
     """Class every emitted rule. Returns the records (each with its class, reason and plan), the run's noise and the
     batch proposed for validation. `known`: rule id -> (run, class) for rules an earlier scan of this market already
-    classed: such a rule is recorded as seen and is not looked at again."""
+    classed: such a rule is recorded as seen and is not looked at again. `prior_looks`: the distinct behaviours earlier
+    scans evaluated on these same check rows: a later scan's rules are judged against all of those looks too."""
     known = known or {}
     seen = [{"id": spec_id(e.spec), "family": e.family, "method": e.method, "why": e.why, "detail": e.detail,
              "spec": e.spec, "rule": describe(e.spec), "targets": list(targets(e.spec)), "parents": [],
@@ -224,8 +226,8 @@ def triage(emitted: list[Emit], p: Panel, fit: np.ndarray, check: np.ndarray, n_
     zs = [r["check"]["t"] for r in recs if r["check"]["t"] is not None and r["class"] not in
           ("SCIENTIFICALLY_INVALID", "REPEATS_CLOSED_FAMILY", "INSUFFICIENT_DATA")]
     mu0, sd0 = noise(zs)
-    looks = distinct([r["id"] for r in recs if r["check"]["t"] is not None and r["class"] not in
-                      ("SCIENTIFICALLY_INVALID", "REPEATS_CLOSED_FAMILY", "INSUFFICIENT_DATA")], beh)
+    looks = prior_looks + distinct([r["id"] for r in recs if r["check"]["t"] is not None and r["class"] not in
+                                    ("SCIENTIFICALLY_INVALID", "REPEATS_CLOSED_FAMILY", "INSUFFICIENT_DATA")], beh)
     kept: list[dict] = []
     for r in sorted((r for r in recs if r["class"] is None), key=lambda r: -r["check"]["t"]):
         dup = next((k for k in kept if _corr(beh[r["id"]], beh[k["id"]]) >= SAME), None)
@@ -263,7 +265,8 @@ def triage(emitted: list[Emit], p: Panel, fit: np.ndarray, check: np.ndarray, n_
         r["in_batch"] = r["id"] in batch
     recs += seen
     return {"records": recs, "noise": {"centre_t": round(mu0, 3), "spread_t": round(sd0, 3), "rules": len(zs),
-                                       "distinct_behaviours": looks}, "batch": batch}
+                                       "distinct_behaviours": looks, "of_them_from_earlier_scans": prior_looks},
+            "batch": batch}
 
 
 def summary(recs: list[dict]) -> dict:

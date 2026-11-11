@@ -161,7 +161,7 @@ def _save(data: Path, name: str, body: dict, manifest: dict) -> None:
     manifest["files"][name] = {"sha256": hashlib.sha256(text.encode()).hexdigest()}
 
 
-def crypto_daily(data: Path, now: datetime, first: date = date(2020, 1, 1), symbols: tuple = PERPS, fetch=checked,
+def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symbols: tuple = PERPS, fetch=checked,
                  workers: int = 16) -> dict:
     """Bring data/crypto_daily up to the last complete month. Returns the manifest."""
     data = Path(data)

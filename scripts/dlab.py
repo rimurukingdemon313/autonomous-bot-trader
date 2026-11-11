@@ -179,6 +179,13 @@ def known_rules(universe: str) -> dict:
     return out
 
 
+def earlier_looks(universe: str) -> int:
+    """The distinct behaviours earlier scans evaluated on this market's check rows."""
+    arts = [json.loads(p.read_text()) for p in OUT.glob("DLAB-*.json")] if OUT.exists() else []
+    return sum(a["noise"]["distinct_behaviours"] - a["noise"].get("of_them_from_earlier_scans", 0)
+               for a in arts if a.get("kind") == "discovery_scan" and a.get("universe") == universe)
+
+
 def scan(dataset: str, seed: int, reg: Registry | None = None, panel=None, tops: dict | None = None) -> dict:
     """One discovery scan: the emitted rules, classed. Reads nothing at or after the check rows' end."""
     universe, loader, _ = DATASETS[dataset]
@@ -194,7 +201,8 @@ def scan(dataset: str, seed: int, reg: Registry | None = None, panel=None, tops:
     years = (w["validation"][1] - w["validation"][0]).days / 365.25
     bar = bar_for(reg, universe, w["validation"], T.MAX_BATCH) if reg is not None else 3.0
     res = T.triage(emitted, p, fit, check, n_val=p.ppy * years, bar=bar, closed=D.closed(p), hint=D.HINTS.get(universe, ""),
-                   known=known_rules(universe) if reg is not None else None)
+                   known=known_rules(universe) if reg is not None else None,
+                   prior_looks=earlier_looks(universe) if reg is not None else 0)
     return {"universe": universe, "rows": {"panel": p.T, "fit": int(fit.sum()), "check": int(check.sum()),
                                            "validation_expected": int(p.ppy * years)},
             "first_row": str(p.times[0]), "last_row": str(p.times[-1]), "instruments": list(p.assets),
@@ -577,10 +585,54 @@ def operating_characteristic(seeds: int = 12, rows: int = 7500) -> dict:
             "results": out}
 
 
+def operating_characteristic_broad(seeds: int = 6, assets: int = 24) -> dict:
+    """The same question on a broad panel shaped like the crypto one (790 fit rows, 730 check rows, 850 validation
+    rows): how small a cross-sectional effect, present in every instrument, the lab promotes and then validates."""
+    fit_n, chk_n, val_n = 790 + 250, 730, 850  # 250 rows of warm-up before the fit rows, as the real panels have
+    out = []
+    for label, plant in [("nothing", None)] + [(f"cross-sectional reversal, correlation {ic} in each instrument",
+                                                 {"xs": ic}) for ic in (0.02, 0.03, 0.05)]:
+        promoted = validated = false_valid = rules = 0
+        hits = []
+        for seed in range(seeds):
+            p = D.synthetic(rows=fit_n + chk_n + val_n, assets=assets, seed=300 + seed, plant=plant, cost=0.0005)
+            head = p.head(fit_n + chk_n)
+            fit = np.zeros(head.T, dtype=bool)
+            fit[250:fit_n] = True
+            check = np.zeros(head.T, dtype=bool)
+            check[fit_n:] = True
+            emitted, _ = M.discover(M.Context(head, fit, seed=7))
+            res = T.triage(emitted, head, fit, check, n_val=val_n, bar=3.0, closed=D.closed(head))
+            rules += len(res["records"])
+            by_id = {r["id"]: r for r in res["records"]}
+            vmask = np.zeros(p.T, dtype=bool)
+            vmask[fit_n + chk_n:] = True
+            ok_any = False
+            for i in res["batch"]:
+                j = judge_rule(by_id[i]["spec"], p, vmask, 3.0, 5, mean_hold(by_id[i]) >= SLOW_ROWS)
+                real = plant is not None and by_id[i]["family"] in ("cross-sectional", "pooled time-series", "pooled book")
+                ok_any |= j["passed"] and real
+                false_valid += j["passed"] and not real
+            promoted += bool(res["batch"])
+            validated += ok_any
+            hits.append(len(res["batch"]))
+        out.append({"market": label, "runs": seeds, "runs_with_a_promoted_rule": promoted,
+                    "runs_with_a_pooled_rule_validated": validated if plant else None,
+                    "validated_rules_that_were_not_pooled": false_valid, "mean_rules_per_run": round(rules / seeds, 1),
+                    "promoted_per_run": hits})
+        print(json.dumps(out[-1]), flush=True)
+    return {"version": DLAB_VERSION, "instruments": assets, "one_way_cost": 0.0005,
+            "rows": {"fit": fit_n - 250, "check": chk_n, "validation": val_n},
+            "note": "the effect is in every instrument, so a book of all of them carries it; an instrument alone cannot",
+            "results": out}
+
+
 def cmd_oc(a) -> None:
-    res = operating_characteristic(a.seeds)
     (R / "dlab").mkdir(parents=True, exist_ok=True)
-    (R / "dlab" / "operating_characteristic.json").write_text(_dump(res))
+    if a.broad:
+        (R / "dlab" / "operating_characteristic_broad.json").write_text(_dump(operating_characteristic_broad(a.seeds)))
+    else:
+        (R / "dlab" / "operating_characteristic.json").write_text(_dump(operating_characteristic(a.seeds)))
 
 
 def main() -> int:
@@ -591,6 +643,7 @@ def main() -> int:
     ap.add_argument("--run", default="")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--seeds", type=int, default=12)
+    ap.add_argument("--broad", action="store_true", help="oc: the broad-panel study")
     a = ap.parse_args()
     now = datetime.now(timezone.utc).replace(microsecond=0)
     if a.cmd != "oc" and not a.run:
@@ -603,7 +656,7 @@ def main() -> int:
 
 
 __all__ = ["auto_scan", "auto_validate", "bar_for", "batch_spec", "code_hash", "judge_rule", "mean_hold",
-           "operating_characteristic", "prereg_batch_doc", "prereg_scan_doc", "same_rules", "scan", "scan_spec",
+           "operating_characteristic", "operating_characteristic_broad", "prereg_batch_doc", "prereg_scan_doc", "same_rules", "scan", "scan_spec",
            "tests_counted"]
 
 if __name__ == "__main__":

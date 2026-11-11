@@ -316,7 +316,7 @@ def regimes(ctx: Context) -> list[Emit]:
     for feats, ks, only in spaces:
         x = regime_state(p, feats, ctx.w)
         ok = ctx.fit & np.isfinite(x).all(axis=1)
-        if ok.sum() < (3 if broad(p) else 4) * MIN_ROWS:
+        if ok.sum() < (2 if broad(p) else 4) * MIN_ROWS:  # a broad panel's history is often short (crypto)
             continue
         for k in ks:
             cen, lab = kmeans(x[ok], k, rng)
@@ -360,7 +360,7 @@ def anomaly(ctx: Context) -> list[Emit]:
             feats = [{"f": "mkt", "k": 1}, {"f": "disp", "k": 1}, {"f": "ret", "a": tg, "k": 1}]
             x = np.column_stack([zscore(p, f, ctx.w) for f in feats])
             ok = ctx.fit & np.isfinite(x).all(axis=1)
-            if ok.sum() >= 3 * MIN_ROWS:
+            if ok.sum() >= 2 * MIN_ROWS:
                 groups.append(({"feats": feats, "w": ctx.w, **_frozen_shock(x, ok)}, ok, [tg]))
     else:
         x = shock(p, 60)
@@ -587,7 +587,7 @@ def breadth(ctx: Context, pop: int = 120, gens: int = 20, size_penalty: float = 
     xs = []
     for tpl in own:
         for q in (0.2, 0.34):
-            for hold in (1, 5):
+            for hold in (1, 5, 20):  # a slow book trades a fraction of a fast one's turnover: costs decide which lives
                 x = {"feat": tpl, "q": q, "hold": hold, "min": max(6, len(p.assets) // 4), "side": 1}
                 ctx.count("breadth", 1)
                 g, _ = book_t(xs_book(p, x))

@@ -38,10 +38,11 @@ WINDOWS = {
                              "check": (datetime(2022, 7, 1, tzinfo=timezone.utc), datetime(2024, 1, 1, tzinfo=timezone.utc)),
                              "validation": (datetime(2024, 1, 1, tzinfo=timezone.utc),
                                             datetime(2026, 11, 1, tzinfo=timezone.utc))},
-    # No test in the registry touches 2025-01..2026-10 on Binance's perpetuals or spot coins. XTS-1, FND-1 and XSM-1
-    # reserved 2024-07..2026-09 as their holdouts and failed before opening them: those rows are unread.
-    "crypto-perp-daily": {"fit": (date(2020, 9, 1), date(2023, 7, 1)), "check": (date(2023, 7, 1), date(2025, 1, 1)),
-                          "validation": (date(2025, 1, 1), date(2026, 11, 1))},
+    # Crypto's history is short, so the check and validation rows get most of it: two years and 28 months. XTS-1, FND-1
+    # and XSM-1 reserved 2024-07..2026-09 as their holdouts and failed before opening them: those rows are unread. Six
+    # earlier tests touch the window (funding carry: CR-1-V, CR-2, CR-4-V, CR-5, CR-5-H, RADAR-1) and are counted.
+    "crypto-perp-daily": {"fit": (date(2020, 5, 1), date(2022, 7, 1)), "check": (date(2022, 7, 1), date(2024, 7, 1)),
+                          "validation": (date(2024, 7, 1), date(2026, 11, 1))},
     "us-etf-broad-daily": {"fit": (date(2007, 1, 1), date(2015, 1, 1)), "check": (date(2015, 1, 1), date(2020, 1, 1)),
                            "validation": (date(2020, 1, 1), date(2026, 11, 1))},
 }
@@ -138,7 +139,7 @@ def _returns(px: np.ndarray) -> np.ndarray:
     return out
 
 
-def crypto_daily(last: date, data: Path | None = None, first: date = date(2020, 1, 1)) -> Panel:
+def crypto_daily(last: date, data: Path | None = None, first: date = date(2019, 9, 1)) -> Panel:
     """Binance's USDT-M perpetuals by UTC day, with nothing on or after `last`. A long's return over a day is the
     close-to-close move less the funding it paid at that day's settlements; a short's is the negative. A day whose
     funding is not on file has no return: nothing is assumed to be zero. State series, each known at the day's close:
