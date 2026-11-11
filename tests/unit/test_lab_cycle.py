@@ -246,8 +246,35 @@ def test_a_feed_that_keeps_failing_is_retried_three_times_then_reported_and_bloc
     problems = [a for a in st.read("alerts") if a["level"] == "PROBLEM"]
     assert len(problems) == 1 and "data:syn_feed:2026-11" in problems[0]["title"]  # raised once, not every cycle
     text = (state / "LAB_REPORT.md").read_text()
-    assert "failed on every attempt" in text and "the archive did not answer" in text and "its data (syn_feed) are not on file yet" in text
+    assert "failed on every attempt" in text and "the archive did not answer" in text
+    assert "its data (syn_feed) are not completely on file yet" in text
     assert t["sources:2026-W46"]["status"] == "DONE"  # the rest of the queue went on
+
+
+def test_a_scan_waits_for_a_complete_fetch_and_what_arrived_is_kept(tmp_path, monkeypatch):
+    state = {"failed": 3}
+
+    def partial(data, now):
+        data.mkdir(parents=True, exist_ok=True)
+        (data / "close.json").write_text("{}")  # what arrived is on file
+        man = {"retrieved": now.isoformat(), "failed_count": state["failed"], "failed_now": ["A0:klines:2021-03"],
+               "quality": {a: {"rows": 7500, "last": "2028-09-29"} for a in ("A0", "A1", "A2")}}
+        (data / "manifest.json").write_text(json.dumps(man))
+        return man
+    root = tmp_path / "repo"
+    root.mkdir()
+    asked = make_lab(root, monkeypatch, feed=partial)
+    st = tmp_path / "state"
+    assert C.cycle(st, NOW, max_tasks=3) == 0
+    t = tasks(Store(st))
+    assert t["data:syn_feed:2026-11"]["status"] == "FAILED" and "did not answer for 3 files" in t["data:syn_feed:2026-11"]["result"]["error"]
+    assert (st / "data" / "syn_feed" / "close.json").exists()  # kept for the next attempt
+    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    state["failed"] = 0  # the archive answers: the fetch completes, and only then may the panel be scanned
+    assert C.cycle(st, NOW + timedelta(hours=6), max_tasks=1) == 0
+    t = tasks(Store(st))
+    assert t["data:syn_feed:2026-11"]["status"] == "DONE" and t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0
+    assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st)) is None
 
 
 def test_a_thin_panel_is_refused(tmp_path, monkeypatch):

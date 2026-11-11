@@ -163,9 +163,30 @@ runs each; `research/dlab/operating_characteristic.json`):
 No noise rule was validated in any run. On one instrument, only an edge of gross Sharpe about 1.5 or more is found
 and confirmed.
 
-**A broad panel** (24 instruments; 790 fit rows, 730 check rows and 850 validation rows, as the crypto panel has;
-`research/dlab/operating_characteristic_broad.json`): see that file. The study plants one small effect in every
-instrument, which only a book of all of them can carry, and plants the largest again at a realistic cost.
+**A broad panel** (24 instruments; 790 fit rows, 730 check rows and 850 validation rows, as the crypto panel has; 6
+runs each; twelve places in each batch cost the bar nothing; `research/dlab/operating_characteristic_broad.json`).
+The study plants one small effect in every instrument, a one-day cross-sectional reversal, which only a book of all
+of them can carry:
+
+| Market | One-way cost | Rules judged, by run | Runs in which a pooled rule validated | Noise rules validated |
+|---|---|---|---|---|
+| Nothing planted | 0.5 bp | 0, 2, 3, 2, 11, 1 | — | 0 |
+| Correlation 0.01 in each instrument (the book's gross Sharpe about 0.8) | 0.5 bp | 5, 2, 1, 6, 7, 3 | 0 of 6 | 0 |
+| Correlation 0.02 (about 1.6) | 0.5 bp | 8, 5, 2, 4, 12, 5 | 0 of 6 | 0 |
+| Correlation 0.03 (about 2.3) | 0.5 bp | 12, 5, 4, 10, 12, 5 | 3 of 6 | 0 |
+| Correlation 0.03, at a cost of 5 bp | 5 bp | 0, 2, 1, 0, 0, 2 | 0 of 6 | 0 |
+
+What it says:
+
+- No noise rule was validated in any of the 30 runs, although 132 rules were judged. The places that cost the bar
+  nothing did not buy a false discovery.
+- With three and a half years of validation rows, a pooled effect needs a gross Sharpe ratio above about 2 to be
+  confirmed even half the time. At 1.6 it was confirmed in none of six runs.
+- Costs decide. The same effect that validated in three runs of six validated in none at a one-way cost of 5 basis
+  points: a book that must trade every day to earn a one-day effect pays more than the effect.
+- The study changed the design before any real validation ran. The first version validated nothing even at 0.03: a
+  flat 35% limit on one year's share failed real rules in a short window, and the triage withheld real rules whose
+  check-row t was modest. Both were corrected (sections 4 and 6), and the same study then confirmed the effect.
 
 ## 8. The autonomous worker
 

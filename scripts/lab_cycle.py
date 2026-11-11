@@ -180,12 +180,15 @@ def prioritize(store: Store, table: dict, now: datetime) -> None:
     reprioritize(store, pr, now)
 
 
-def ready(t: dict, state: Path) -> str | None:
-    """Why a task cannot run yet, or None. Waiting is not an attempt."""
+def ready(t: dict, state: Path, store: Store) -> str | None:
+    """Why a task cannot run yet, or None. Waiting is not an attempt. A scan waits for a COMPLETE fetch of its data:
+    a panel with months the archive did not answer for would be scanned once, with holes, and never again."""
     if t["kind"] == "scan":
         feed = CATALOG.get(t["args"]["dataset"], {}).get("feed")
-        if feed and not (state / "data" / feed / "close.json").exists():
-            return f"its data ({feed}) are not on file yet"
+        fetched = any(x["kind"] == "data" and x["args"].get("feed") == feed and x["status"] == "DONE"
+                      for x in tasks(store).values())
+        if feed and not (fetched and (state / "data" / feed / "close.json").exists()):
+            return f"its data ({feed}) are not completely on file yet"
     return None
 
 
@@ -195,6 +198,9 @@ def do_data(store: Store, state: Path, args: dict, now: datetime) -> dict:
     feed = args["feed"]
     man = FEEDS[feed](state / "data" / feed, now)
     q = man["quality"]
+    if man.get("failed_count"):  # kept on file, and the next attempt asks only for what is missing
+        raise RuntimeError(f"{feed}: the archive did not answer for {man['failed_count']} files (the first: "
+                           f"{', '.join(man.get('failed_now', [])[:5])}). What arrived is kept; the data are not complete")
     have = [s for s, v in q.items() if v.get("rows", 0) >= 250 and not s.startswith("^")]
     if len(have) < MIN_INSTRUMENTS[feed]:
         raise RuntimeError(f"{feed}: only {len(have)} instruments have 250 rows; at least {MIN_INSTRUMENTS[feed]} are "
@@ -289,7 +295,7 @@ def run_tasks(store: Store, state: Path, now: datetime, max_tasks: int, max_minu
     tried: set[str] = set()
     while len(ran) < max_tasks:
         left = max_minutes - (clock() - started) / 60.0
-        t = next((t for t in runnable(store, now) if t["task"] not in tried and ready(t, state) is None
+        t = next((t for t in runnable(store, now) if t["task"] not in tried and ready(t, state, store) is None
                   and MINUTES[t["kind"]] <= left), None)
         if t is None:
             break
@@ -420,7 +426,7 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
         o.append("No task ran: nothing was due, or nothing could run yet (see the queue).")
     o += ["", "## The queue", "", "| Task | State | Attempts | Priority | Waiting for |", "|---|---|---|---|---|"]
     for t in sorted(waiting, key=lambda t: (-t["priority"], t["task"])):
-        o.append(f"| `{t['task']}` | {t['status']} | {t['attempts']} | {t['priority']} | {ready(t, state) or ''} |")
+        o.append(f"| `{t['task']}` | {t['status']} | {t['attempts']} | {t['priority']} | {ready(t, state, store) or ''} |")
     if not waiting:
         o.append("| (empty) | | | | |")
     o += ["", f"Done so far: {sum(1 for t in tk.values() if t['status'] == 'DONE')} tasks. A task is known by its id and "

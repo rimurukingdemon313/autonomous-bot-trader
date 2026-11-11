@@ -7,8 +7,10 @@
   research-source database. Titles, dates, links and abstracts only: nothing is claimed about a paper that was not read.
 
 Every fetch is a read with no side effect, so it retries with bounded backoff. A file that is not there (a coin not yet
-listed, or delisted) is not an error. A file that fails its checksum stops the fetch: nothing is filled. Each dataset
-gets a manifest with its content hash and a quality report (rows, first and last day, missing days, suspect moves).
+listed, or delisted) is not an error. A file that fails its checksum stops the fetch: nothing is filled. A file the
+archive did not answer for is counted as failed and asked for again by the next fetch; what did arrive is kept, and
+the dataset is not complete until none has failed. Each dataset gets a manifest with its content hash and a quality
+report (rows, first and last day, missing days, suspect moves).
 """
 
 from __future__ import annotations
@@ -162,7 +164,7 @@ def _save(data: Path, name: str, body: dict, manifest: dict) -> None:
 
 
 def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symbols: tuple = PERPS, fetch=checked,
-                 workers: int = 16) -> dict:
+                 workers: int = 8) -> dict:
     """Bring data/crypto_daily up to the last complete month. Returns the manifest."""
     data = Path(data)
     old = json.loads((data / "manifest.json").read_text()) if (data / "manifest.json").exists() else {"months": {}}
@@ -177,11 +179,17 @@ def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symb
     def one(job):
         s, m, k = job
         url = f"{VISION}{k}/{s}/" + (f"1d/{s}-1d-{m}.zip" if k == "klines" else f"{s}-fundingRate-{m}.zip")
-        return job, fetch(url)
+        try:
+            return job, fetch(url), None
+        except RuntimeError as e:  # the archive did not answer for this file: the next fetch asks again
+            return job, None, str(e)[:160]
     with ThreadPoolExecutor(max_workers=workers) as pool:
         got = list(pool.map(one, todo))
-    absent = 0
-    for (s, m, k), raw in got:
+    absent, failed = 0, []
+    for (s, m, k), raw, err in got:
+        if err is not None:
+            failed.append(f"{s}:{k}:{m}")
+            continue
         if raw is None:
             absent += 1
             continue
@@ -189,7 +197,8 @@ def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symb
         (closes if k == "klines" else funding).setdefault(s, {}).update(part)
         old["months"].setdefault(f"{s}:{k}", []).append(m)
     man = {"dataset": "crypto_daily", "retrieved": now.isoformat(), "source": VISION, "months": old["months"],
-           "fetched_now": len(todo) - absent, "absent_now": absent, "files": {}, "quality": quality(closes)}
+           "fetched_now": len(todo) - absent - len(failed), "absent_now": absent, "failed_count": len(failed),
+           "failed_now": failed[:40], "files": {}, "quality": quality(closes)}
     _save(data, "close", closes, man)
     _save(data, "funding", funding, man)
     (data / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")

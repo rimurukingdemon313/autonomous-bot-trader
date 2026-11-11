@@ -200,6 +200,31 @@ def test_the_crypto_feed_fetches_only_what_it_does_not_hold(tmp_path):
     man = F.crypto_daily(tmp_path, now + timedelta(days=30), first=date(2020, 1, 1), symbols=("BTCUSDT",), fetch=fetch)
     assert sorted(calls) == sorted(u for u in calls if "2020-04" in u) and len(calls) == 2  # the new month only
     assert json.loads((tmp_path / "close.json").read_text())["BTCUSDT"]["2020-04-01"] == 104.0
+    assert man["failed_count"] == 0
+
+
+def test_a_file_the_archive_did_not_answer_for_is_counted_kept_apart_and_asked_for_again(tmp_path):
+    down = {"on": True}
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        month = url[-11:-4]
+        if down["on"] and month == "2020-02" and "klines" in url:
+            raise RuntimeError("the archive timed out")
+        ms = int(datetime(int(month[:4]), int(month[5:]), 1, tzinfo=timezone.utc).timestamp() * 1000)
+        return zipped(f"{ms},8,0.0001\n") if "fundingRate" in url else zipped(f"{ms},1,1,1,{100 + int(month[5:])},1,0\n")
+    now = datetime(2020, 4, 10, tzinfo=timezone.utc)
+    man = F.crypto_daily(tmp_path, now, first=date(2020, 1, 1), symbols=("BTCUSDT",), fetch=fetch, workers=2)
+    assert man["failed_count"] == 1 and man["failed_now"] == ["BTCUSDT:klines:2020-02"] and man["fetched_now"] == 5
+    close = json.loads((tmp_path / "close.json").read_text())["BTCUSDT"]
+    assert sorted(close) == ["2020-01-01", "2020-03-01"]  # what arrived is kept; the missing month is not filled
+    assert "2020-02" not in man["months"]["BTCUSDT:klines"]
+    calls.clear()
+    down["on"] = False
+    man = F.crypto_daily(tmp_path, now, first=date(2020, 1, 1), symbols=("BTCUSDT",), fetch=fetch, workers=2)
+    assert len(calls) == 1 and "2020-02" in calls[0] and man["failed_count"] == 0  # only the missing file is asked for
+    assert sorted(json.loads((tmp_path / "close.json").read_text())["BTCUSDT"]) == ["2020-01-01", "2020-02-01", "2020-03-01"]
 
 
 def test_data_quality_is_measured_and_nothing_is_removed():
