@@ -2,32 +2,30 @@
 
 **RESEARCH ONLY · NOT TRADING · NOTHING HERE IS A PROFIT CLAIM.** Written by the lab's own worker on GitHub's runner, with no person and no open conversation in the loop. A rule is validated only by a preregistered test on rows no scan has read, at the registry's bar; everything short of that is a candidate.
 
-**بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 2 فحص اكتشاف وصنّف 368 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 2 مهمة. سجل البحث سليم.
+**بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 634 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-12 15:47 UTC · lab-cycle-1.0.0 · dlab-1.1.0 · cycles so far: 2
+Updated 2026-11-12 23:38 UTC · lab-cycle-1.0.1 · dlab-1.1.0 · cycles so far: 2
 
 ## This cycle
 
 | Task | Result |
 |---|---|
-| `data:crypto_daily:2026-10` | **FAILED** · RuntimeError: crypto_daily: 8 instruments are priced to the end of 2026-09 and have no whole 2026-10 (the first: BALUSDT, BLZUSDT, FTMUSDT, ICXUSDT, MKRUSDT): the month looks half-published. What arrived is kept. The data are not complete: nothing is scanned, judged or marked on them |
-| `data:etf_daily:2026-11` | **DONE** · {"feed": "etf_daily", "instruments": 31, "usable_in_the_fit_rows": {"etf-daily": 31}, "last_day": "2026-11-11", "missing_days": 6461, "moves_beyond_50pct": 8, "not_served": [], "fetched_now": null} |
-| `scan:etf-daily:dlab-1.1.0:7` | **DONE** · {"run": "DLAB-ETF-1", "verdict": "FAILED", "universe": "us-etf-broad-daily", "instruments": 31, "rules": 266, "by_class": {"DUPLICATE": 18, "INSUFFICIENT_DATA": 19, "INSUFFICIENT_POWER": 49, "NEGATIVE_EXPECTANCY": 102, "OVERFIT": 78}, "batch": 0, "scanned": 15349} |
-| `sources:2026-W46` | **DONE** · {"new": 85, "query": "intraday periodicity volume volatility return predictability", "by_origin": {"arxiv": 60, "openalex": 25}} |
+| `data:crypto_daily:2026-10` | **DONE** · {"feed": "crypto_daily", "instruments": 55, "usable_in_the_fit_rows": {"crypto-daily": 55}, "last_day": "2026-10-31", "missing_days": 95, "moves_beyond_50pct": 62, "not_served": [], "fetched_now": 0} |
+| `scan:crypto-daily:dlab-1.1.0:7` | **DONE** · {"run": "DLAB-CRD-1", "verdict": "FAILED", "universe": "crypto-perp-daily", "instruments": 55, "rules": 266, "by_class": {"DUPLICATE": 19, "INSUFFICIENT_DATA": 28, "INSUFFICIENT_POWER": 69, "NEGATIVE_EXPECTANCY": 72, "OVERFIT": 60, "REPEATS_CLOSED_FAMILY": 18}, "batch": 0, "scanned": 29218} |
 
 ## The queue
 
 | Task | State | Attempts | Priority | Waiting for |
 |---|---|---|---|---|
-| `data:crypto_daily:2026-10` | FAILED | 1 | 4.0 |  |
-| `scan:crypto-daily:dlab-1.1.0:7` | QUEUED | 0 | 2.0 | its data (crypto_daily) are not completely on file yet |
+| (empty) | | | | |
 
-Done so far: 3 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most.
+Done so far: 5 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most.
 
 ## Discovery scans
 
 | Scan | Market | Instruments | Rules kept | Statistics looked at | Promising | Verdict |
 |---|---|---|---|---|---|---|
+| `DLAB-CRD-1` | crypto-perp-daily | 55 | 266 | 29218 | 0 | FAILED |
 | `DLAB-ENG-1` | energy-futures-eia | 2 | 102 | 2015 | 0 | FAILED |
 | `DLAB-ETF-1` | us-etf-broad-daily | 31 | 266 | 15349 | 0 | FAILED |
 
@@ -38,42 +36,42 @@ A scan's verdict says only whether it proposed rules for validation. It validate
 | Class | Rules |
 |---|---|
 | SCIENTIFICALLY_INVALID | 0 |
-| REPEATS_CLOSED_FAMILY | 0 |
-| INSUFFICIENT_DATA | 30 |
-| NEGATIVE_EXPECTANCY | 145 |
-| OVERFIT | 99 |
-| DUPLICATE | 20 |
-| INSUFFICIENT_POWER | 74 |
+| REPEATS_CLOSED_FAMILY | 18 |
+| INSUFFICIENT_DATA | 58 |
+| NEGATIVE_EXPECTANCY | 217 |
+| OVERFIT | 159 |
+| DUPLICATE | 39 |
+| INSUFFICIENT_POWER | 143 |
 | PROMISING_UNCONFIRMED | 0 |
 
 | Family | Rules | Positive out of sample | Promising |
 |---|---|---|---|
-| anomaly | 32 | 5 | 0 |
-| combination | 61 | 5 | 0 |
-| cross-asset lead-lag | 34 | 9 | 0 |
-| cross-sectional | 24 | 2 | 0 |
-| evolved rule | 48 | 11 | 0 |
-| information (non-linear) | 59 | 17 | 0 |
-| ordinal pattern | 29 | 3 | 0 |
-| own-lag | 16 | 2 | 0 |
-| pooled book | 12 | 0 | 0 |
-| pooled time-series | 24 | 10 | 0 |
-| regime | 29 | 10 | 0 |
+| anomaly | 56 | 8 | 0 |
+| combination | 97 | 18 | 0 |
+| cross-asset lead-lag | 58 | 17 | 0 |
+| cross-sectional | 48 | 2 | 0 |
+| evolved rule | 72 | 19 | 0 |
+| information (non-linear) | 107 | 31 | 0 |
+| ordinal pattern | 53 | 9 | 0 |
+| own-lag | 24 | 5 | 0 |
+| pooled book | 18 | 1 | 0 |
+| pooled time-series | 48 | 16 | 0 |
+| regime | 53 | 17 | 0 |
 
 ### The strongest candidates not yet judged
 
 | Scan | Rule | Family | Check-row t | Class | Its plan |
 |---|---|---|---|---|---|
+| DLAB-CRD-1 | ONTUSDT: rev for 5 rows after a multivariate shock of mkt(1), disp(1), ret(ONTUSDT,1) beyond 11.9 | anomaly | 2.756 | INSUFFICIENT_POWER | its family's book across instruments (d0c5c831fcc740e5) is INSUFFICIENT_POWER too; it cannot be told from noise yet: about 0.4 more years of discovery rows at this strength would tell; if real, about 1.9 more years after the validation window reach half power |
+| DLAB-CRD-1 | XMRUSDT: against the sign of z250[ret(XMRUSDT,1)] beyond 0.5 | own-lag | 2.148 | INSUFFICIENT_POWER | its family's book across instruments (2d1190355297b547) is DUPLICATE too; it cannot be told from noise yet: about 1.9 more years of discovery rows at this strength would tell; if real, the same mechanism on about 3 independent instruments reaches half power in |
+| DLAB-CRD-1 | BNBUSDT: by 2 regimes of 1 state features, map [1.0, 0.0] | regime | 2.025 | INSUFFICIENT_POWER | its family's book across instruments (4b30cfc0360f5001) is OVERFIT too; it cannot be told from noise yet: about 2.4 more years of discovery rows at this strength would tell; if real, the same mechanism on about 4 independent instruments reaches half power in t |
+| DLAB-CRD-1 | XMRUSDT: rev for 5 rows after a multivariate shock of mkt(1), disp(1), ret(XMRUSDT,1) beyond 13.2 | anomaly | 1.889 | INSUFFICIENT_POWER | its family's book across instruments (d0c5c831fcc740e5) is INSUFFICIENT_POWER too; it cannot be told from noise yet: about 3.0 more years of discovery rows at this strength would tell; if real, the same mechanism on about 4 independent instruments reaches half |
+| DLAB-CRD-1 | BCHUSDT: by the rank bins of ret(BCHUSDT,1) x aux(BCHUSDT.fund7), map [0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0] | information (non-linear) | 1.822 | INSUFFICIENT_POWER | its family's book across instruments (050c3cd2ab036db9) is NEGATIVE_EXPECTANCY too; it cannot be told from noise yet: about 3.4 more years of discovery rows at this strength would tell; if real, the same mechanism on about 5 independent instruments reaches hal |
 | DLAB-ETF-1 | book of 31: long SPY for 5 rows while rank250[disp(20)] < 0.2; long QQQ for 5 rows while rank250[disp(20)] < 0.2; long IWM for 5 rows while rank250[di | pooled time-series | 1.701 | INSUFFICIENT_POWER | it cannot be told from noise yet: about 10.5 more years of discovery rows at this strength would tell; if real, the same mechanism on about 5 independent instruments reaches half power in the window |
+| DLAB-CRD-1 | IOTAUSDT: and of IOTAUSDT: by the ordering of IOTAUSDT's last 3 1-row returns, map [0.0, 0.0, -1.0, 0.0, 1.0, 1.0] | IOTAUSDT: with the sign of z250[r | combination | 1.652 | INSUFFICIENT_POWER | it cannot be told from noise yet: about 4.6 more years of discovery rows at this strength would tell; if real, the same mechanism on about 6 independent instruments reaches half power in the window |
+| DLAB-CRD-1 | AVAXUSDT: with the sign of z250[ret(EGLDUSDT,5)] beyond 0.5 | cross-asset lead-lag | 1.617 | INSUFFICIENT_POWER | its family's book across instruments (745a635c7d141dee) is OVERFIT too; it cannot be told from noise yet: about 4.9 more years of discovery rows at this strength would tell; if real, the same mechanism on about 6 independent instruments reaches half power in t |
+| DLAB-CRD-1 | BCHUSDT: by the rank bins of ret(BCHUSDT,1) x volr(BCHUSDT,5,60), map [-1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 0.0, 1.0, -1.0] | information (non-linear) | 1.613 | INSUFFICIENT_POWER | its family's book across instruments (050c3cd2ab036db9) is NEGATIVE_EXPECTANCY too; it cannot be told from noise yet: about 4.9 more years of discovery rows at this strength would tell; if real, the same mechanism on about 6 independent instruments reaches hal |
 | DLAB-ETF-1 | EWY: and of EWY: by the rank bins of rel(EWY,20) x disp(20), map [1.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0] | EWY: against the sign of z250[ret(X | combination | 1.597 | INSUFFICIENT_POWER | it cannot be told from noise yet: about 12.6 more years of discovery rows at this strength would tell; if real, the same mechanism on about 6 independent instruments reaches half power in the window |
-| DLAB-ETF-1 | book of 31: long SPY for 5 rows while rank250[aux(VIX,5)] > 0.8; long QQQ for 5 rows while rank250[aux(VIX,5)] > 0.8; long IWM for 5 rows while rank25 | pooled time-series | 1.487 | INSUFFICIENT_POWER | it cannot be told from noise yet: about 15.3 more years of discovery rows at this strength would tell; if real, the same mechanism on about 6 independent instruments reaches half power in the window |
-| DLAB-ENG-1 | NATGAS: by the rank bins of absret(NATGAS), map [0.0, 0.0, 0.0, 0.0, -1.0] | information (non-linear) | 1.431 | INSUFFICIENT_POWER | its family's book across instruments (cf30b58b44983653) is OVERFIT too; it cannot be told from noise yet: about 26.3 more years of discovery rows at this strength would tell; if real, the same mechanism on about 5 independent instruments reaches half power in  |
-| DLAB-ETF-1 | across 31 instruments: short the top 34% and long the bottom 34% by ret(2), equal weights, no net exposure; each row's book is held 20 rows | cross-sectional | 1.365 | INSUFFICIENT_POWER | it cannot be told from noise yet: about 19.1 more years of discovery rows at this strength would tell; if real, the same mechanism on about 8 independent instruments reaches half power in the window |
-| DLAB-ETF-1 | book of 31: long SPY for 1 rows while rank250[rel(SPY,20)] < 0.1; long QQQ for 1 rows while rank250[rel(QQQ,20)] < 0.1; long IWM for 1 rows while rank | pooled time-series | 1.353 | INSUFFICIENT_POWER | it cannot be told from noise yet: about 19.5 more years of discovery rows at this strength would tell; if real, the same mechanism on about 8 independent instruments reaches half power in the window |
-| DLAB-ETF-1 | EWG: by the rank bins of mkt(5) x rel(EWG,20), map [0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, -1.0, 0.0] | information (non-linear) | 1.282 | INSUFFICIENT_POWER | its family's book across instruments (8dca81d95cb63a0d) is NEGATIVE_EXPECTANCY too; it cannot be told from noise yet: about 22.3 more years of discovery rows at this strength would tell; if real, the same mechanism on about 8 independent instruments reaches ha |
-| DLAB-ETF-1 | FXI: by 3 regimes of 1 state features, map [0.0, 0.0, 1.0] | regime | 1.269 | INSUFFICIENT_POWER | its family's book across instruments (22c335210501683b) is DUPLICATE too; it cannot be told from noise yet: about 22.9 more years of discovery rows at this strength would tell; if real, the same mechanism on about 9 independent instruments reaches half power i |
-| DLAB-ETF-1 | USO: by 3 regimes of 1 state features, map [-1.0, 0.0, 1.0] | regime | 1.251 | INSUFFICIENT_POWER | its family's book across instruments (22c335210501683b) is DUPLICATE too; it cannot be told from noise yet: about 23.7 more years of discovery rows at this strength would tell; if real, the same mechanism on about 9 independent instruments reaches half power i |
-| DLAB-ETF-1 | EEM: by the rank bins of mkt(5), map [1.0, 0.0, 0.0, 0.0, -1.0] | information (non-linear) | 1.228 | INSUFFICIENT_POWER | its family's book across instruments (8dca81d95cb63a0d) is NEGATIVE_EXPECTANCY too; it cannot be told from noise yet: about 24.8 more years of discovery rows at this strength would tell; if real, the same mechanism on about 9 independent instruments reaches ha |
 
 ## Independent validation
 
@@ -85,6 +83,16 @@ None: no rule has passed its validation. Nothing is traded, on paper or otherwis
 
 ## What the record has taught so far
 
+- crypto-perp-daily: 266 rules from data-driven discovery; 0 promising; 69 positive out of sample but not told from noise; 72 lost out of sample (48 of them only after costs); 60 overfit; 0 passed validation and 0 failed it
+- crypto-perp-daily: combination rules overfit most often (14 of 36)
+- crypto-perp-daily: 6 combination rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 5 cross-asset lead-lag rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 8 cross-sectional rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 11 information (non-linear) rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 6 ordinal pattern rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 4 own-lag rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 3 pooled time-series rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: the information audit found 44 of 982 feature-instrument pairs with z >= 2 about the next return (12 of them with no linear trace); chance alone gives about 22.6
 - energy-futures-eia: 102 rules from data-driven discovery; 0 promising; 25 positive out of sample but not told from noise; 43 lost out of sample (10 of them only after costs); 21 overfit; 0 passed validation and 0 failed it
 - energy-futures-eia: 3 evolved rule rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - energy-futures-eia: the information audit found 3 of 46 feature-instrument pairs with z >= 2 about the next return (1 of them with no linear trace); chance alone gives about 1.1
@@ -118,7 +126,7 @@ None: no rule has passed its validation. Nothing is traded, on paper or otherwis
 
 ## Data on file
 
-- `crypto_daily`: 55 instruments, to 2026-10-31; 95 missing days in all; 62 one-day moves beyond 50% (flagged, never removed); retrieved 2026-11-12T15:47 UTC · **NOT COMPLETE: 8 instruments are priced to the end of 2026-09 and have no whole 2026-10 (the first: BALUSDT, BLZUSDT, FTMUSDT, ICXUSDT, MKRUSDT): the month looks half-published. What arrived is kept**
+- `crypto_daily`: 55 instruments, to 2026-10-31; 95 missing days in all; 62 one-day moves beyond 50% (flagged, never removed); retrieved 2026-11-12T23:38 UTC; 44 priced and funded on the last day, 10 delisted before it (their later prices make no return)
 - `etf_daily`: 32 instruments, to 2026-11-11; 6461 missing days in all; 8 one-day moves beyond 50% (flagged, never removed); retrieved 2026-11-12T15:47 UTC
 
 ## Alerts
@@ -130,5 +138,6 @@ None.
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
 | 2026-11-12T15:47 | 639.6 | 4 | 1 |
+| 2026-11-12T23:38 | 57.9 | 2 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.
