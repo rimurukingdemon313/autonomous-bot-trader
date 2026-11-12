@@ -10,8 +10,8 @@ publishes it back.
 A cycle:
 
 1. checks the permanent research record. If that fails, nothing else runs;
-2. queues what is due: this month's data for each panel, a discovery scan of each panel under this version of the
-   lab, the week's new papers, the day's forward marks of any validated rule;
+2. queues what is due: the newest data each panel's source should hold whole, a discovery scan of each panel under
+   this version of the lab, the week's new papers, the day's forward marks of any validated rule;
 3. orders the queue by what the lab's own record says each task is worth (brain.py);
 4. runs tasks, the most valuable first, inside the cycle's budget. A task that fails is retried by later cycles, three
    times at most, and then reported. A task is known by its id and is never run twice;
@@ -20,6 +20,11 @@ A cycle:
 
 A scan that proposes rules queues their validation: a preregistered test on rows no scan has read, at the registry's
 bar (scripts/dlab.py). The lab approves nothing itself: a rule is validated only by that test.
+
+A scan and a validation each run once, so neither starts on data that are not whole: files the source did not answer
+for, a month published for some instruments only, a fund served with a series that stops early, or files that stop
+before a validation window ends. Each of those is a wait, said in the report, never an attempt. No forward mark is
+written from such a panel either, or by a rule that no longer gives, on its validation rows, what its judge recorded.
 
 In the repository itself a cycle writes the registry, each scan's and validation's spec, preregistration and evidence,
 the candidate ledger and the lessons. The workflow commits exactly those paths.
@@ -38,7 +43,7 @@ import os
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -60,8 +65,11 @@ CYCLE_VERSION = "lab-cycle-1.0.0"
 #: The panels the lab scans by itself: dataset -> its run tag, its feed and its nominal breadth. One scan for each
 #: version of the lab: a second look at the same discovery rows under the same methods would find the same rules.
 CATALOG = {"crypto-daily": {"tag": "CRD", "feed": "crypto_daily", "instruments": len(F.PERPS)},
-           "etf-daily": {"tag": "ETF", "feed": "etf_daily", "instruments": len(F.ETFS)}}
+           "etf-daily": {"tag": "ETF", "feed": "etf_daily", "instruments": len(F.ETFS), "daily": True}}
 FEEDS = {"crypto_daily": F.crypto_daily, "etf_daily": F.etf_daily}
+#: The newest period a feed can bring, which names its data task: a feed not listed here is asked for once a month.
+#: A "daily" panel is also refreshed by the forward marks; a monthly one brings its new rows with its data task.
+DUE = {"crypto_daily": F.due_month}
 MIN_INSTRUMENTS = {"crypto_daily": 20, "etf_daily": 20}  # a feed that returns fewer is refused: the panel is not broad
 SEED = 7
 #: minutes a task may need: it is not started with less of the cycle's budget left
@@ -146,8 +154,10 @@ def validated_rules() -> list[dict]:
     for name, a in artifacts().items():
         if a.get("kind") == "discovery_validation" and a.get("passed_rules"):
             spec = json.loads((L.R / "specs" / f"{name}.json").read_text())["spec"]
+            judged = {r["id"]: r["t"] for r in a["results"]}
             out += [{"trial": name, "run": a["scan"], "id": r["id"], "spec": r["spec"], "rule": r["rule"],
-                     "family": r["family"], "dataset": spec["dataset"], "universe": spec["universe"]}
+                     "family": r["family"], "dataset": spec["dataset"], "universe": spec["universe"],
+                     "t": judged[r["id"]], "lags": spec["newey_west_lags"]}
                     for r in spec["rules"] if r["id"] in a["passed_rules"]]
     return out
 
@@ -160,7 +170,8 @@ def seed(store: Store, reg, now: datetime) -> list[str]:
         if enqueue(store, task, kind, args, priority, now):
             new.append(task)
     for ds, c in CATALOG.items():
-        q(f"data:{c['feed']}:{now:%Y-%m}", "data", {"feed": c["feed"]}, PRIORITY["data"])
+        period = DUE[c["feed"]](now) if c["feed"] in DUE else f"{now:%Y-%m}"
+        q(f"data:{c['feed']}:{period}", "data", {"feed": c["feed"]}, PRIORITY["data"])
         task = f"scan:{ds}:{DLAB_VERSION}:{SEED}"
         if task not in tasks(store):
             q(task, "scan", {"dataset": ds, "seed": SEED, "run": existing_run(ds, reg) or next_run(c["tag"], reg, store)}, 2.0)
@@ -180,15 +191,38 @@ def prioritize(store: Store, table: dict, now: datetime) -> None:
     reprioritize(store, pr, now)
 
 
+def incomplete(state: Path, feed: str) -> str | None:
+    """Why a feed's files on disk are not a whole panel, or None. The feed says so itself, in its manifest."""
+    d = Path(state) / "data" / feed
+    if not ((d / "manifest.json").exists() and (d / "close.json").exists()):
+        return "nothing is on file"
+    return json.loads((d / "manifest.json").read_text()).get("incomplete")
+
+
+def last_day_on_file(state: Path, feed: str) -> str | None:
+    q = json.loads((Path(state) / "data" / feed / "manifest.json").read_text()).get("quality", {})
+    return max((v["last"] for v in q.values() if v.get("rows") and v.get("last")), default=None)
+
+
 def ready(t: dict, state: Path, store: Store) -> str | None:
-    """Why a task cannot run yet, or None. Waiting is not an attempt. A scan waits for a COMPLETE fetch of its data:
-    a panel with months the archive did not answer for would be scanned once, with holes, and never again."""
-    if t["kind"] == "scan":
-        feed = CATALOG.get(t["args"]["dataset"], {}).get("feed")
-        fetched = any(x["kind"] == "data" and x["args"].get("feed") == feed and x["status"] == "DONE"
-                      for x in tasks(store).values())
-        if feed and not (fetched and (state / "data" / feed / "close.json").exists()):
-            return f"its data ({feed}) are not completely on file yet"
+    """Why a task cannot run yet, or None. Waiting is not an attempt. A scan and a validation wait for a COMPLETE fetch
+    of their data: each runs once, and a panel with holes would be scanned or judged with them, and never again. A
+    validation also waits until the files reach the end of its window."""
+    if t["kind"] not in ("scan", "validate"):
+        return None
+    ds = t["args"].get("dataset") or json.loads((L.R / "specs" / f"{t['args']['run']}.json").read_text())["spec"]["dataset"]
+    feed = CATALOG.get(ds, {}).get("feed")
+    if not feed:
+        return None
+    fetched = any(x["kind"] == "data" and x["args"].get("feed") == feed and x["status"] == "DONE"
+                  for x in tasks(store).values())
+    why = incomplete(state, feed)
+    if not fetched or why:
+        return f"its data ({feed}) are not completely on file yet" + (f": {why}" if fetched else "")
+    if t["kind"] == "validate":
+        end, last = L._day(D.WINDOWS[L.DATASETS[ds][0]]["validation"][1]), last_day_on_file(state, feed)
+        if last is None or (end - date.fromisoformat(last[:10])).days > L.MAX_GAP_DAYS:
+            return f"its data ({feed}) end on {last}, before its validation window does ({end})"
     return None
 
 
@@ -209,9 +243,9 @@ def do_data(store: Store, state: Path, args: dict, now: datetime) -> dict:
     feed = args["feed"]
     man = FEEDS[feed](state / "data" / feed, now)
     q = man["quality"]
-    if man.get("failed_count"):  # kept on file, and the next attempt asks only for what is missing
-        raise RuntimeError(f"{feed}: the archive did not answer for {man['failed_count']} files (the first: "
-                           f"{', '.join(man.get('failed_now', [])[:5])}). What arrived is kept; the data are not complete")
+    if man.get("incomplete"):  # the feed's own reason: files that did not arrive, a month half-published, a stale fund
+        raise RuntimeError(f"{feed}: {man['incomplete']}. The data are not complete: nothing is scanned, judged or "
+                           "marked on them")
     have = [s for s, v in q.items() if v.get("rows", 0) >= 250 and not s.startswith("^")]
     if len(have) < MIN_INSTRUMENTS[feed]:
         raise RuntimeError(f"{feed}: only {len(have)} instruments have 250 rows; at least {MIN_INSTRUMENTS[feed]} are "
@@ -246,7 +280,7 @@ def do_scan(store: Store, state: Path, args: dict, now: datetime) -> dict:
     tops = B.allocation(record[universe], args["seed"]) if record.get(universe) else None
     art = L.auto_scan(ds, run, args["seed"], now, tops=tops)
     if art["batch"]:
-        enqueue(store, f"validate:{run}", "validate", {"run": run}, PRIORITY["validate"], now)
+        enqueue(store, f"validate:{run}", "validate", {"run": run, "dataset": ds}, PRIORITY["validate"], now)
     best = sorted((r for r in art["records"] if (r.get("check") or {}).get("t") is not None
                    and r["class"] in ("INSUFFICIENT_POWER", "PROMISING_UNCONFIRMED")),
                   key=lambda r: -r["check"]["t"])[:3]
@@ -282,25 +316,42 @@ def do_sources(store: Store, state: Path, args: dict, now: datetime) -> dict:
 
 
 def do_forward(store: Store, state: Path, args: dict, now: datetime) -> dict:
-    """Mark each validated rule on the rows after its validation window: its frozen spec, new data, nothing fitted."""
+    """Mark each validated rule on the rows after its validation window: its frozen spec, new data, nothing fitted.
+
+    No mark is written from a panel that is not whole (the dataset waits), or by a rule that no longer gives, on its
+    validation rows, the t its judge recorded: then the data or the code have changed since, and the task fails for a
+    person to look. A panel marked "daily" is refreshed here; a monthly one brings its rows with its data task."""
     rules = validated_rules()
     seen = {(r["rule"], r["row"]) for r in store.read("forward")}
-    new = []
+    new, waiting = [], {}
     for ds in sorted({r["dataset"] for r in rules}):
         universe, loader, _ = L.DATASETS[ds]
-        feed = CATALOG.get(ds, {}).get("feed")
-        if feed:
-            FEEDS[feed](state / "data" / feed, now)
-        end = D.WINDOWS[universe]["validation"][1]
+        c = CATALOG.get(ds, {})
+        feed = c.get("feed")
+        if feed and c.get("daily"):
+            FEEDS[feed](state / "data" / feed, now)  # a fetch that is not complete changes nothing on file
+        why = incomplete(state, feed) if feed else None
+        if why:
+            waiting[ds] = why
+            continue
+        w = D.WINDOWS[universe]["validation"]
+        end, mine = w[1], [x for x in rules if x["dataset"] == ds]
+        judged = loader(end)  # the panel exactly as the judge loaded it
+        vmask = judged.rows(*w)
+        for r in mine:
+            t = L.nw_t(np.where(vmask, pnl(r["spec"], judged)["net"], np.nan), r["lags"])
+            if t is None or abs(t - r["t"]) > 2e-3:
+                raise RuntimeError(f"{r['id']} ({r['trial']}): on its validation rows the rule gives t {t} today, and its "
+                                   f"judge recorded {r['t']}. The data or the code changed: no forward mark is written")
         p = loader(end.replace(year=2100))
-        for r in (x for x in rules if x["dataset"] == ds):
+        for r in mine:
             x = pnl(r["spec"], p)
             for i, t in enumerate(p.times):
                 if t >= end and np.isfinite(x["net"][i]) and (r["id"], str(t)) not in seen:
                     new.append({"rule": r["id"], "trial": r["trial"], "row": str(t), "net": round(float(x["net"][i]), 8),
                                 "exposure": round(float(abs(np.nan_to_num(x["pos"][i]))), 4), "at": now.isoformat()})
     store.append("forward", new)
-    return {"rules": len(rules), "rows_added": len(new)}
+    return {"rules": len(rules), "rows_added": len(new), **({"waiting_for_whole_data": waiting} if waiting else {})}
 
 
 HANDLERS = {"data": do_data, "scan": do_scan, "validate": do_validate, "sources": do_sources, "forward": do_forward}
@@ -385,7 +436,7 @@ def github_issue(env=None):
             f"https://api.github.com/repos/{repo}/issues", method="POST",
             data=json.dumps({"title": f"[lab · {a['level']}] {a['title']}"[:240], "body": a["body"][:60000]}).encode(),
             headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
-                     "User-Agent": "aitrader-research-lab"})
+                     "User-Agent": "research-lab-worker"})
         with urllib.request.urlopen(req, timeout=30) as r:
             return json.loads(r.read()).get("html_url")
     return post
@@ -468,28 +519,48 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
     o += ["", "| Family | Rules | Positive out of sample | Promising |", "|---|---|---|---|"]
     o += [f"| {f} | {sum(c.values())} | {sum(c.get(k, 0) for k in pos)} | {c.get('PROMISING_UNCONFIRMED', 0)} |"
           for f, c in sorted(fam.items())]
-    best = sorted((r for r in rules if r["class"] in pos and (r.get("check") or {}).get("t") is not None),
-                  key=lambda r: -r["check"]["t"])[:10]
-    o += ["", "### The strongest candidates not yet validated", ""]
+    done = {(r["run"], r["id"]) for r in judged}  # a judged rule has its own table: it is no longer waiting
+    best = sorted((r for r in rules if r["class"] in pos and (r.get("check") or {}).get("t") is not None
+                   and (r["run"], r["id"]) not in done), key=lambda r: -r["check"]["t"])[:10]
+    o += ["", "### The strongest candidates not yet judged", ""]
     if best:
         o += ["| Scan | Rule | Family | Check-row t | Class | Its plan |", "|---|---|---|---|---|---|"]
         for r in best:
-            ways = "; ".join((r.get("plan") or {}).get("ways", []))[:260] or ("in a validation batch" if r.get("in_batch") else "")
+            ways = "; ".join((r.get("plan") or {}).get("ways", []))[:260]
+            if r.get("in_batch"):
+                ways = "in its scan's validation batch"
+            elif r["class"] == "PROMISING_UNCONFIRMED":
+                ways = ("promising, and left out of its scan's batch: stronger rules of its family, or on its "
+                        "instrument, took the places")
             o.append(f"| {r['run']} | {r['rule'][:150]} | {r['family']} | {r['check']['t']} | {r['class']} | {ways} |")
     else:
-        o.append("None yet.")
+        o.append("None.")
     o += ["", "## Independent validation", ""]
     if vals:
         o += ["| Trial | Rules judged | Bar | Passed | Verdict |", "|---|---|---|---|---|"]
         o += [f"| `{n}` | {len(a['results'])} | {a['threshold_t']} | {len(a['passed_rules'])} | {a['verdict']} |"
               for n, a in vals.items()]
+        text_of = {(r["run"], r["id"]): r for r in rules}
+        o += ["", "Every rule judged, each once, on rows no scan had read:", "",
+              "| Trial | Rule | Family | t | Bar | Result |", "|---|---|---|---|---|---|"]
+        for j in sorted(judged, key=lambda j: (j["trial"], -(j["t"] or 0.0))):
+            r = text_of.get((j["run"], j["id"]), {})
+            o.append(f"| `{j['trial']}` | {r.get('rule', j['id'])[:150]} | {r.get('family', '')} | {j['t']} | {j['bar']} | "
+                     f"{j['class']}: {j['reason']} |")
     else:
         o.append("No rule has reached a registered validation yet.")
     o += ["", "## Validated rules, marked forward on paper", ""]
-    if fwd:
-        o += ["| Rule | Rows since its validation window | Mean net a row | Total | t |", "|---|---|---|---|---|"]
-        o += [f"| `{f['rule']}` | {f['rows']} | {f['mean']:.6f} | {f['total_pct']:.2f}% | "
-              f"{'' if f['t'] is None else round(f['t'], 2)} |" for f in fwd]
+    valid = validated_rules()
+    if valid:
+        marks = {f["rule"]: f for f in fwd}
+        o += ["| Rule | Trial | Rows since its validation window | Mean net a row | Total | t |", "|---|---|---|---|---|---|"]
+        for v in valid:
+            f = marks.get(v["id"])
+            o.append(f"| `{v['id']}` {v['rule'][:110]} | `{v['trial']}` | " + (
+                "0: no row after its window is on file yet | | | |" if f is None else
+                f"{f['rows']} | {f['mean']:.6f} | {f['total_pct']:.2f}% | {'' if f['t'] is None else round(f['t'], 2)} |"))
+        o += ["", "A validated rule is a candidate, not a trading system. These marks are the rule's own frozen arithmetic "
+              "on new rows: no order, no account. It trades only on the owner's word, on paper, through the risk engine."]
     else:
         o.append("None: no rule has passed its validation. Nothing is traded, on paper or otherwise, from this lab.")
     lessons = (json.loads((L.R / "dlab" / "lessons.json").read_text()).get("lessons", [])
@@ -513,7 +584,8 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
             o.append(f"- `{feed}`: {len(q)} instruments, to {max(v['last'] for v in q)}; "
                      f"{sum(v.get('missing_days', 0) for v in q)} missing days in all; "
                      f"{sum(v.get('moves_beyond_50pct', 0) for v in q)} one-day moves beyond 50% (flagged, never "
-                     f"removed); retrieved {man['retrieved'][:16]} UTC")
+                     f"removed); retrieved {man['retrieved'][:16]} UTC"
+                     + (f" · **NOT COMPLETE: {man['incomplete']}**" if man.get("incomplete") else ""))
     if not any_data:
         o.append("None yet.")
     o += ["", "## Alerts", ""]
@@ -560,8 +632,10 @@ def cycle(state: Path, now: datetime, max_tasks: int = 4, max_minutes: float = 4
         ran = run_tasks(store, state, now, max_tasks, max_minutes, started, clock)
         learn(now)
         for t in abandoned(store):
-            alert(store, now, "PROBLEM", f"the task {t['task']} failed on each of its {t['attempts']} attempts",
-                  json.dumps(t["result"], indent=1)[:4000])
+            # a day's forward marks are one task a day: one alert a month for them, not one a day
+            what = f"the forward marks of {t['task'].split(':')[1][:7]}" if t["kind"] == "forward" else f"the task {t['task']}"
+            alert(store, now, "PROBLEM", f"{what} failed on each of {t['attempts']} attempts",
+                  f"`{t['task']}`\n\n" + json.dumps(t["result"], indent=1)[:4000])
     if post is not None:
         send_alerts(store, now, post)
     store.append("budget", [{"cycle": now.isoformat(), "seconds": round(clock() - started, 1), "tasks": len(ran),
@@ -583,8 +657,8 @@ def main() -> int:
     return cycle(a.state, now, a.max_tasks, a.max_minutes, github_issue())
 
 
-__all__ = ["CATALOG", "CYCLE_VERSION", "alert", "cycle", "integrity", "learn", "report", "run_tasks", "seed",
-           "send_alerts", "validated_rules"]
+__all__ = ["CATALOG", "CYCLE_VERSION", "alert", "cycle", "incomplete", "integrity", "learn", "ready", "report",
+           "run_tasks", "seed", "send_alerts", "validated_rules"]
 
 if __name__ == "__main__":
     raise SystemExit(main())

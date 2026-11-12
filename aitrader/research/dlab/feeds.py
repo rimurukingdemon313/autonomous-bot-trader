@@ -11,6 +11,11 @@ listed, or delisted) is not an error. A file that fails its checksum stops the f
 archive did not answer for is counted as failed and asked for again by the next fetch; what did arrive is kept, and
 the dataset is not complete until none has failed. Each dataset gets a manifest with its content hash and a quality
 report (rows, first and last day, missing days, suspect moves).
+
+A manifest's `incomplete` says, in words, why the files are not a whole panel, or is None. Nothing is scanned, judged
+or marked forward on an incomplete panel (scripts/lab_cycle.py). Two ways a panel can be whole in its files and holed
+in its newest rows are looked for here: a month the archive has published for some instruments and not yet for the
+others, and a fund the source served with a series that stops early.
 """
 
 from __future__ import annotations
@@ -29,7 +34,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-UA = {"User-Agent": "Mozilla/5.0 (compatible; aitrader-research-lab/1.0)"}
+UA = {"User-Agent": "Mozilla/5.0 (compatible; research-data-fetch/1.0)"}  # generic: it names no person and no project
+PAUSE = 0.4  # seconds between two requests to the fund source: thirty-two in a row, asked for politely
 VISION = "https://data.binance.vision/data/futures/um/monthly/"
 #: USDT-M perpetuals listed on Binance by the end of September 2020, as far as is known: chosen by listing date, not
 #: by what became of them, so the coins that later died are in the panel too. A symbol with no files is simply absent.
@@ -129,6 +135,26 @@ def parse_funding(raw: bytes) -> dict[str, float]:
     return out
 
 
+#: A month's archives are asked for from this day of the next month. They appear some days after the month ends, and
+#: not all at once: a month fetched while only some instruments have theirs is a panel with holes in its newest rows.
+PUBLISHED_BY_DAY = 10
+STALE_DAYS = 7  # a fund whose series stops this many days before the calendar's last day was not served whole
+
+
+def due_month(now: datetime) -> str:
+    """The newest month `crypto_daily` asks for: last month from the tenth on, the month before it until then."""
+    y, m = now.year, now.month - (1 if now.day >= PUBLISHED_BY_DAY else 2)
+    if m < 1:
+        y, m = y - 1, m + 12
+    return f"{y:04d}-{m:02d}"
+
+
+def month_end(month: str) -> str:
+    """The last calendar day of a month written YYYY-MM."""
+    y, m = int(month[:4]), int(month[5:7])
+    return date.fromordinal(date(y + (m == 12), 1 if m == 12 else m + 1, 1).toordinal() - 1).isoformat()
+
+
 def months(first: date, last: date) -> list[str]:
     out, y, m = [], first.year, first.month
     while (y, m) <= (last.year, last.month):
@@ -165,14 +191,14 @@ def _save(data: Path, name: str, body: dict, manifest: dict) -> None:
 
 def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symbols: tuple = PERPS, fetch=checked,
                  workers: int = 8) -> dict:
-    """Bring data/crypto_daily up to the last complete month. Returns the manifest."""
+    """Bring data/crypto_daily up to the newest month the archive should hold whole (`due_month`). Returns the
+    manifest. What arrives is kept even when the fetch is not complete: the next one asks only for what is missing."""
     data = Path(data)
     old = json.loads((data / "manifest.json").read_text()) if (data / "manifest.json").exists() else {"months": {}}
     closes = json.loads((data / "close.json").read_text()) if (data / "close.json").exists() else {}
     funding = json.loads((data / "funding.json").read_text()) if (data / "funding.json").exists() else {}
-    last = date(now.year, now.month, 1).replace(day=1)
-    last = date(last.year - (last.month == 1), 12 if last.month == 1 else last.month - 1, 1)  # the last complete month
-    want = months(first, last)
+    due = due_month(now)
+    want = months(first, date(int(due[:4]), int(due[5:7]), 1))
     todo = [(s, m, k) for s in symbols for m in want for k in ("klines", "fundingRate")
             if m not in old["months"].get(f"{s}:{k}", [])]
 
@@ -196,9 +222,24 @@ def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symb
         part = parse_daily_klines(raw) if k == "klines" else parse_funding(raw)
         (closes if k == "klines" else funding).setdefault(s, {}).update(part)
         old["months"].setdefault(f"{s}:{k}", []).append(m)
+    # An instrument priced on the last day of the month before the newest one, and without the newest month's prices
+    # or funding: delisted exactly at the month's end, or (far more likely) its files are not published yet.
+    have, late = old["months"], []
+    if len(want) > 1:
+        day = month_end(want[-2])
+        late = sorted(s for s in symbols if day in closes.get(s, {})
+                      and not (due in have.get(f"{s}:klines", []) and due in have.get(f"{s}:fundingRate", [])))
+    why = None
+    if failed:
+        why = (f"the archive did not answer for {len(failed)} files (the first: {', '.join(failed[:5])}). What arrived "
+               "is kept")
+    elif late:
+        why = (f"{len(late)} instruments are priced to the end of {want[-2]} and have no whole {due} (the first: "
+               f"{', '.join(late[:5])}): the month looks half-published. What arrived is kept")
     man = {"dataset": "crypto_daily", "retrieved": now.isoformat(), "source": VISION, "months": old["months"],
-           "fetched_now": len(todo) - absent - len(failed), "absent_now": absent, "failed_count": len(failed),
-           "failed_now": failed[:40], "files": {}, "quality": quality(closes)}
+           "newest_month": due, "fetched_now": len(todo) - absent - len(failed), "absent_now": absent,
+           "failed_count": len(failed), "failed_now": failed[:40], "late": late[:40], "incomplete": why, "files": {},
+           "quality": quality(closes)}
     _save(data, "close", closes, man)
     _save(data, "funding", funding, man)
     (data / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
@@ -219,7 +260,8 @@ def parse_yahoo(res: dict) -> dict[str, float]:
 
 def etf_daily(data: Path, now: datetime, first: date = date(2005, 1, 1), symbols: tuple = ETFS, fetch=get) -> dict:
     """Write data/etf_daily: each ETF's adjusted closes and the VIX's closes, up to yesterday (a day's last bar is
-    final only after its close)."""
+    final only after its close). All or nothing: if a fund was not served, or was served with a series that stops
+    early, nothing on file changes, and the manifest returned says why."""
     data = Path(data)
     p1 = int(datetime(first.year, first.month, first.day, tzinfo=timezone.utc).timestamp())
     today = now.strftime("%Y-%m-%d")
@@ -228,6 +270,8 @@ def etf_daily(data: Path, now: datetime, first: date = date(2005, 1, 1), symbols
         url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(s)}?period1={p1}"
                f"&period2={int(now.timestamp())}&interval=1d&events=div%2Csplits")
         raw = fetch(url)
+        if fetch is get:
+            time.sleep(PAUSE)
         try:
             series = parse_yahoo(json.loads(raw)["chart"]["result"][0]) if raw else {}
         except (KeyError, IndexError, TypeError, ValueError):
@@ -237,10 +281,20 @@ def etf_daily(data: Path, now: datetime, first: date = date(2005, 1, 1), symbols
             out[s] = series
         else:
             missing.append(s)
+    ref = max(out["SPY"]) if "SPY" in out else None  # the panel's calendar
+    stale = sorted(s for s, v in out.items()
+                   if ref and (date.fromisoformat(ref) - date.fromisoformat(max(v))).days > STALE_DAYS)
+    why = None
+    if missing:
+        why = f"the source did not serve {', '.join(missing)}. Nothing on file was changed"
+    elif stale:
+        why = (f"{', '.join(stale)} stop more than {STALE_DAYS} days before the calendar's last day ({ref}). Nothing on "
+               "file was changed")
     man = {"dataset": "etf_daily", "retrieved": now.isoformat(), "source": "query1.finance.yahoo.com (adjusted closes)",
-           "not_served": missing, "files": {}, "quality": quality(out)}
-    _save(data, "close", out, man)
-    (data / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
+           "not_served": missing, "stale": stale, "incomplete": why, "files": {}, "quality": quality(out)}
+    if why is None:
+        _save(data, "close", out, man)
+        (data / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
     return man
 
 
@@ -299,5 +353,6 @@ def papers(known: set[str], now: datetime, week: int, fetch=get, per_query: int 
     return new
 
 
-__all__ = ["ETFS", "PERPS", "QUERIES", "checked", "crypto_daily", "etf_daily", "get", "months", "papers", "parse_arxiv",
-           "parse_daily_klines", "parse_funding", "parse_openalex", "parse_yahoo", "quality"]
+__all__ = ["ETFS", "PERPS", "PUBLISHED_BY_DAY", "QUERIES", "STALE_DAYS", "checked", "crypto_daily", "due_month",
+           "etf_daily", "get", "month_end", "months", "papers", "parse_arxiv", "parse_daily_klines", "parse_funding",
+           "parse_openalex", "parse_yahoo", "quality"]

@@ -172,6 +172,16 @@ def test_a_file_that_fails_its_checksum_stops_the_fetch(monkeypatch):
         F.checked("u")
 
 
+def test_a_month_is_asked_for_only_once_the_archive_should_hold_it_whole():
+    u = timezone.utc
+    assert F.due_month(datetime(2026, 11, 10, tzinfo=u)) == "2026-10"  # from the tenth: last month
+    assert F.due_month(datetime(2026, 11, 9, 23, 59, tzinfo=u)) == "2026-09"  # until then: the month before it
+    assert F.due_month(datetime(2026, 1, 10, tzinfo=u)) == "2025-12" and F.due_month(datetime(2026, 1, 9, tzinfo=u)) == "2025-11"
+    assert F.due_month(datetime(2026, 2, 3, tzinfo=u)) == "2025-12"
+    assert [F.month_end(m) for m in ("2026-09", "2026-12", "2024-02", "2025-02")] == \
+        ["2026-09-30", "2026-12-31", "2024-02-29", "2025-02-28"]
+
+
 def test_the_crypto_feed_fetches_only_what_it_does_not_hold(tmp_path):
     calls = []
 
@@ -227,6 +237,54 @@ def test_a_file_the_archive_did_not_answer_for_is_counted_kept_apart_and_asked_f
     man = F.crypto_daily(tmp_path, now, first=date(2020, 1, 1), symbols=("BTCUSDT",), fetch=fetch, workers=2)
     assert len(calls) == 1 and "2020-02" in calls[0] and man["failed_count"] == 0  # only the missing file is asked for
     assert sorted(json.loads((tmp_path / "close.json").read_text())["BTCUSDT"]) == ["2020-01-01", "2020-02-01", "2020-03-01"]
+    assert man["incomplete"] is None and json.loads((tmp_path / "manifest.json").read_text())["incomplete"] is None
+
+
+def whole_month(month: str, close: float, days=None) -> str:
+    y, m = int(month[:4]), int(month[5:])
+    last = int(F.month_end(month)[8:])
+    return "".join(f"{int(datetime(y, m, d, tzinfo=timezone.utc).timestamp() * 1000)},1,1,1,{close + d},1,0\n"
+                   for d in (days or range(1, last + 1)))
+
+
+def test_a_month_published_for_some_instruments_and_not_for_the_others_is_not_a_whole_panel(tmp_path):
+    published = {"on": False}
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        sym, month = url.split("/")[-1].split("-")[0], url[-11:-4]
+        funding = "fundingRate" in url
+        if month == "2020-03" and not published["on"] and (sym == "LATEUSDT" or (sym == "NOFUNDUSDT" and funding)):
+            return None  # the archive has not published this file yet
+        if sym == "GONEUSDT" and month == "2020-03":
+            return None  # delisted in February: its last close is the 20th
+        if funding:
+            ms = int(datetime(int(month[:4]), int(month[5:]), 1, tzinfo=timezone.utc).timestamp() * 1000)
+            return zipped(f"calc_time,h,rate\n{ms},8,0.0001\n")
+        return zipped(whole_month(month, 100.0, range(1, 21) if (sym, month) == ("GONEUSDT", "2020-02") else None))
+    syms = ("BTCUSDT", "LATEUSDT", "NOFUNDUSDT", "GONEUSDT")
+    now = datetime(2020, 4, 10, tzinfo=timezone.utc)
+    man = F.crypto_daily(tmp_path, now, first=date(2020, 1, 1), symbols=syms, fetch=fetch, workers=2)
+    # priced on February's last day, and without March's prices or March's funding: late. Delisted in February: not
+    assert man["newest_month"] == "2020-03" and man["late"] == ["LATEUSDT", "NOFUNDUSDT"] and man["failed_count"] == 0
+    assert "2 instruments are priced to the end of 2020-02 and have no whole 2020-03" in man["incomplete"]
+    assert "half-published" in man["incomplete"] and "LATEUSDT" in man["incomplete"]
+    close = json.loads((tmp_path / "close.json").read_text())
+    assert "2020-03-31" in close["BTCUSDT"] and "2020-03-01" not in close["LATEUSDT"]  # what arrived is kept, nothing filled
+    assert json.loads((tmp_path / "manifest.json").read_text())["incomplete"] == man["incomplete"]  # and it is on file
+    published["on"] = True
+    calls.clear()
+    man = F.crypto_daily(tmp_path, now + timedelta(days=1), first=date(2020, 1, 1), symbols=syms, fetch=fetch, workers=2)
+    assert man["incomplete"] is None and man["late"] == [] and "2020-03-31" in json.loads((tmp_path / "close.json").read_text())["LATEUSDT"]
+    assert sorted(u.split("/")[-1] for u in calls) == ["GONEUSDT-1d-2020-03.zip", "GONEUSDT-fundingRate-2020-03.zip",
+                                                         "LATEUSDT-1d-2020-03.zip", "LATEUSDT-fundingRate-2020-03.zip",
+                                                         "NOFUNDUSDT-fundingRate-2020-03.zip"]
+    # before the tenth, last month is not asked for at all: the archive may hold it for some instruments only
+    calls.clear()
+    early = F.crypto_daily(tmp_path / "early", datetime(2020, 4, 9, tzinfo=timezone.utc), first=date(2020, 1, 1),
+                           symbols=syms, fetch=fetch, workers=2)
+    assert early["newest_month"] == "2020-02" and not any("2020-03" in u for u in calls) and early["incomplete"] is None
 
 
 def test_data_quality_is_measured_and_nothing_is_removed():
@@ -254,11 +312,36 @@ def test_the_etf_feed_keeps_finished_days_only_and_says_what_was_not_served(tmp_
         if "%5EVIX" in url:
             return yahoo([("2024-01-02", 13.2), ("2024-01-04", 14.1)])
         return b"{}" if "/BAD?" in url else None
-    man = F.etf_daily(tmp_path, now, first=date(2024, 1, 1), symbols=("SPY", "BAD", "GONE"), fetch=fetch)
+    man = F.etf_daily(tmp_path, now, first=date(2024, 1, 1), symbols=("SPY",), fetch=fetch)
     close = json.loads((tmp_path / "close.json").read_text())
     assert close["SPY"] == {"2024-01-02": 470.0, "2024-01-04": 468.0}  # the missing close stays missing; today is not final
-    assert close["^VIX"] == {"2024-01-02": 13.2, "2024-01-04": 14.1} and man["not_served"] == ["BAD", "GONE"]
+    assert close["^VIX"] == {"2024-01-02": 13.2, "2024-01-04": 14.1} and man["not_served"] == [] and man["incomplete"] is None
     assert man["quality"]["SPY"]["missing_days"] == 1 and man["files"]["close"]["sha256"]
+    # a fund the source did not serve: the fetch says so, and NOTHING on file changes (a panel is never rewritten
+    # without one of its instruments)
+    before = {n: (tmp_path / n).read_bytes() for n in ("close.json", "manifest.json")}
+    man = F.etf_daily(tmp_path, now + timedelta(days=1), first=date(2024, 1, 1), symbols=("SPY", "BAD", "GONE"), fetch=fetch)
+    assert man["not_served"] == ["BAD", "GONE"] and "did not serve BAD, GONE" in man["incomplete"]
+    assert {n: (tmp_path / n).read_bytes() for n in before} == before
+
+
+def test_a_fund_served_with_a_series_that_stops_early_is_not_a_whole_panel(tmp_path):
+    now = datetime(2024, 2, 1, 18, 0, tzinfo=timezone.utc)
+    days = [(date(2024, 1, 2) + timedelta(days=i)).isoformat() for i in range(29) if (date(2024, 1, 2) + timedelta(days=i)).weekday() < 5]
+    stop = {"OLD": 100}
+
+    def fetch(url):
+        sym = url.split("/chart/")[1].split("?")[0]
+        return yahoo([(d, 50.0 + i) for i, d in enumerate(days[:stop["OLD"]] if sym == "OLD" else days)])
+    man = F.etf_daily(tmp_path, now, first=date(2024, 1, 1), symbols=("SPY", "OLD"), fetch=fetch)
+    assert man["incomplete"] is None and man["stale"] == [] and (tmp_path / "close.json").exists()
+    before = (tmp_path / "close.json").read_bytes()
+    stop["OLD"] = len(days) - 6  # its series now stops eight days before the calendar's last day
+    man = F.etf_daily(tmp_path, now + timedelta(hours=1), first=date(2024, 1, 1), symbols=("SPY", "OLD"), fetch=fetch)
+    assert man["stale"] == ["OLD"] and "OLD stop more than 7 days before the calendar's last day (2024-01-30)" in man["incomplete"]
+    assert (tmp_path / "close.json").read_bytes() == before  # nothing on file changed
+    stop["OLD"] = len(days) - 5  # seven days before: a long weekend, not a stale series
+    assert F.etf_daily(tmp_path, now, first=date(2024, 1, 1), symbols=("SPY", "OLD"), fetch=fetch)["incomplete"] is None
 
 
 ATOM = b"""<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">

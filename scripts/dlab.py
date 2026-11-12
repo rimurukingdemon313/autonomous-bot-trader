@@ -56,6 +56,7 @@ RANDOM_N, RANDOM_SEED, BOOT_N, BOOT_SEED, BOOT_BLOCK = 1000, 61, 2000, 67, 20
 TOP_YEAR = 0.35
 TOP_YEAR_SE = 2.0  # in a short window: a year may give its share of the rows plus this many standard errors of it
 SLOW_ROWS = 3.0  # a rule's mean rows in position per entry, on the check rows, from which the delay is a gate
+MAX_GAP_DAYS = 5  # a panel holds a whole validation window if it ends within these days of it: a weekend and a holiday
 GATES = {
     "t": "the Newey-West t of the rule's net return over the validation rows >= the threshold",
     "costs_x2": "its mean net return > 0 with every cost doubled",
@@ -100,6 +101,15 @@ def _write(name: str, body: dict) -> dict:
 
 def _day(x) -> date:
     return x.date() if isinstance(x, datetime) else x
+
+
+def covers(p, window: tuple) -> str | None:
+    """Why a panel does not hold a whole validation window, or None. A batch is judged once: on data that stop early
+    it would be judged on fewer rows than were registered, and could never be judged again."""
+    gap = (_day(window[1]) - _day(p.times[-1])).days
+    if gap <= MAX_GAP_DAYS:
+        return None
+    return f"the panel ends on {_day(p.times[-1])}, {gap} days before its validation window does ({_day(window[1])})"
 
 
 def tests_counted(reg: Registry, universe: str, window: tuple) -> int:
@@ -400,6 +410,9 @@ def cmd_judge(a, now: datetime) -> None:
     s = f["spec"]
     w = D.WINDOWS[s["universe"]]
     p = DATASETS[s["dataset"]][1](w["validation"][1])
+    short = covers(p, w["validation"])
+    if short:
+        raise SystemExit(f"{pid}: {short}: nothing is judged until the data hold the whole window")
     vmask = p.rows(*w["validation"])
     results = [{"id": r["id"], "family": r["family"], "rule": r["rule"], "why": r["why"],
                 **judge_rule(r["spec"], p, vmask, s["threshold_t"], s["newey_west_lags"], r["delay_is_a_gate"])}

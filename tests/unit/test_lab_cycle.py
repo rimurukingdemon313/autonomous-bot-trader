@@ -10,25 +10,29 @@ import json
 import shutil
 from datetime import date, datetime, timedelta, timezone
 
+import numpy as np
 import pytest
 
 import scripts.dlab as L
 import scripts.lab_cycle as C
 from aitrader.research.dlab import datasets as D
 from aitrader.research.dlab import feeds as F
+from aitrader.research.dlab.panel import Panel
 from aitrader.research.dlab.store import Store, tasks
 from aitrader.research.registry import Holdout, Registry
 
 NOW = datetime(2026, 11, 11, 4, 0, tzinfo=timezone.utc)
+REAL = {"CATALOG": dict(C.CATALOG), "DUE": dict(C.DUE)}  # the panels the worker really scans, before any test's patch
 W = {"fit": (date(2000, 1, 3), date(2009, 8, 1)), "check": (date(2009, 8, 1), date(2017, 4, 1)),
      "validation": (date(2017, 4, 1), date(2026, 1, 1))}
 SOURCE = {"id": "arxiv:2611.00001", "origin": "arxiv", "url": "http://arxiv.org/abs/2611.00001v1",
           "title": "A paper about lead-lag", "published": "2026-11-09", "status": "UNREAD", "reproducibility": "not attempted"}
 
 
-def make_lab(root, mp, feed=None):
+def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
     """A scratch repository with an empty registry, a built market with a planted lead-lag, and a feed that touches
-    no network. Returns what the feed and the loader were asked."""
+    no network. Returns what the feed and the loader were asked. `last` is the last day the feed says it holds; a
+    `daily` panel is refreshed by the forward marks, as the ETF panel is."""
     r = root / "research"
     (r / "specs").mkdir(parents=True, exist_ok=True)
     (r / "preregistrations").mkdir(exist_ok=True)
@@ -40,7 +44,7 @@ def make_lab(root, mp, feed=None):
     mp.setattr(L, "code_hash", lambda: "c" * 64)
     mp.setattr(C, "SEAL_SHA256", hashlib.sha256((r / "holdout.json").read_bytes()).hexdigest())
     full = D.synthetic(rows=7500, seed=100, plant={"leadlag": 0.12})
-    asked = {"loads": [], "feeds": []}
+    asked = {"loads": [], "feeds": [], "last": last}
 
     def loader(last):
         asked["loads"].append(last)
@@ -50,14 +54,16 @@ def make_lab(root, mp, feed=None):
         asked["feeds"].append(now)
         data.mkdir(parents=True, exist_ok=True)
         (data / "close.json").write_text("{}")
-        man = {"retrieved": now.isoformat(), "quality": {a: {"rows": 7500, "first": "2000-01-03", "last": "2028-09-29",
-                                                             "missing_days": 0, "moves_beyond_50pct": 0} for a in full.assets}}
+        man = {"retrieved": now.isoformat(), "incomplete": None,
+               "quality": {a: {"rows": 7500, "first": "2000-01-03", "last": asked["last"], "missing_days": 0,
+                               "moves_beyond_50pct": 0} for a in full.assets}}
         (data / "manifest.json").write_text(json.dumps(man))
         return man
     mp.setitem(D.WINDOWS, "synthetic", W)
     mp.setitem(L.DATASETS, "syn", ("synthetic", loader, 5))
-    mp.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": 3}})
+    mp.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": 3, "daily": daily}})
     mp.setattr(C, "FEEDS", {"syn_feed": feed or fake_feed})
+    mp.setattr(C, "DUE", {})
     mp.setattr(C, "MIN_INSTRUMENTS", {"syn_feed": 3})
     mp.setattr(F, "papers", lambda known, now, week: [] if SOURCE["id"] in known else [dict(SOURCE)])
     return asked
@@ -97,7 +103,7 @@ def story(tmp_path_factory):
         s = restart(s, tmp, 2)
         code = C.cycle(s, NOW + timedelta(hours=12), max_tasks=1)
         snap[3] = {"code": code, "tasks": tasks(Store(s)), "registry": registry_lines(root), "loads": list(asked["loads"]),
-                   "alerts": Store(s).read("alerts")}
+                   "alerts": Store(s).read("alerts"), "report": (s / "LAB_REPORT.md").read_text()}
         s = restart(s, tmp, 3)
         code = C.cycle(s, NOW + timedelta(days=1), max_tasks=4, post=lambda a: posted.append(a["id"]) or "https://x/1")
         snap[4] = {"code": code, "tasks": tasks(Store(s)), "registry": registry_lines(root), "loads": list(asked["loads"]),
@@ -177,6 +183,15 @@ def test_the_report_says_what_exists_and_claims_nothing_more(story):
     assert "A paper about lead-lag" in text and "UNREAD" in text
     assert "| `DLAB-SYN-1-V` |" in text and "PASSED" in text and "Rows since its validation window" in text
     assert "syn_feed" in text and "3 instruments" in text and "No model call" in text
+    passed = story["snap"][3]["tasks"]["validate:DLAB-SYN-1"]["result"]["passed"]
+    # every judged rule is listed with its result, and is no longer listed as waiting for its batch
+    assert "VALIDATED_ON_UNREAD_ROWS: every gate held" in text and all(f"| `{i}` " in text for i in passed)
+    waiting = text.split("### The strongest candidates not yet judged")[1].split("## Independent validation")[0]
+    assert "in its scan's validation batch" not in waiting and "a candidate, not a trading system" in text
+    # right after the validation, before any forward row is on file: the rules that passed are named, not denied
+    early = story["snap"][3]["report"]
+    assert "None: no rule has passed its validation" not in early and all(f"| `{i}` " in early for i in passed)
+    assert early.count("0: no row after its window is on file yet") == len(passed)
     lessons = json.loads((story["root"] / "research" / "dlab" / "lessons.json").read_text())
     assert lessons["arms"]["synthetic"] and any("passed validation" in x for x in lessons["lessons"])
 
@@ -260,7 +275,9 @@ def test_a_scan_waits_for_a_complete_fetch_and_what_arrived_is_kept(tmp_path, mo
     def partial(data, now):
         data.mkdir(parents=True, exist_ok=True)
         (data / "close.json").write_text("{}")  # what arrived is on file
+        why = f"the archive did not answer for {state['failed']} files (the first: A0:klines:2021-03). What arrived is kept"
         man = {"retrieved": now.isoformat(), "failed_count": state["failed"], "failed_now": ["A0:klines:2021-03"],
+               "incomplete": why if state["failed"] else None,
                "quality": {a: {"rows": 7500, "last": "2028-09-29"} for a in ("A0", "A1", "A2")}}
         (data / "manifest.json").write_text(json.dumps(man))
         return man
@@ -278,6 +295,13 @@ def test_a_scan_waits_for_a_complete_fetch_and_what_arrived_is_kept(tmp_path, mo
     t = tasks(Store(st))
     assert t["data:syn_feed:2026-11"]["status"] == "DONE" and t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0
     assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st)) is None
+    # a later fetch that is not complete leaves holes on file: the finished fetch of last month does not make them whole
+    state["failed"] = 2
+    partial(st / "data" / "syn_feed", NOW + timedelta(days=30))
+    why = C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st))
+    assert "its data (syn_feed) are not completely on file yet" in why and "did not answer for 2 files" in why
+    assert C.cycle(st, NOW + timedelta(hours=12), max_tasks=3) == 0
+    assert tasks(Store(st))["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0
 
 
 def test_a_thin_panel_is_refused(tmp_path, monkeypatch):
@@ -297,13 +321,152 @@ def test_files_that_arrived_but_make_no_usable_panel_stop_the_scan_before_it_is_
     asked = make_lab(root, monkeypatch)
     assert C.usable_instruments("syn") == 3 and asked["loads"] == [W["check"][1]]  # counted on the discovery rows only
     monkeypatch.setattr(C, "MIN_INSTRUMENTS", {"syn_feed": 4})  # the manifest counts three; a scan here would need four
-    monkeypatch.setattr(C, "FEEDS", {"syn_feed": lambda data, now: {
-        "retrieved": now.isoformat(), "quality": {a: {"rows": 7500, "last": "2028-09-29"} for a in ("A0", "A1", "A2", "A3")}}})
-    assert C.cycle(tmp_path / "state", NOW, max_tasks=2) == 0
-    t = tasks(Store(tmp_path / "state"))
+
+    def four(data, now):  # the files arrive whole, and say so: only the panel they make is too thin in its fit rows
+        data.mkdir(parents=True, exist_ok=True)
+        (data / "close.json").write_text("{}")
+        man = {"retrieved": now.isoformat(), "incomplete": None,
+               "quality": {a: {"rows": 7500, "last": "2028-09-29"} for a in ("A0", "A1", "A2", "A3")}}
+        (data / "manifest.json").write_text(json.dumps(man))
+        return man
+    monkeypatch.setattr(C, "FEEDS", {"syn_feed": four})
+    state = tmp_path / "state"
+    assert C.cycle(state, NOW, max_tasks=2) == 0
+    t = tasks(Store(state))
     r = t["data:syn_feed:2026-11"]
     assert r["status"] == "FAILED" and "only 3 instruments of the syn panel have the fit rows" in r["result"]["error"]
+    assert C.incomplete(state, "syn_feed") is None  # whole files on disk are not a finished fetch: the scan still waits
     assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0  # nothing registered
+    assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], state, Store(state)) == "its data (syn_feed) are not completely on file yet"
+
+
+def test_a_validation_waits_until_the_files_reach_the_end_of_its_window(story, tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    shutil.copytree(story["tmp"] / "repo_after_scan", root)
+    asked = make_lab(root, monkeypatch, last="2025-12-26")  # the files stop six days before the window's end
+    before = registry_lines(root)
+    state = tmp_path / "state"
+    assert C.cycle(state, NOW + timedelta(hours=7), max_tasks=4) == 0
+    st = Store(state)
+    v = tasks(st)["validate:DLAB-SYN-1"]
+    assert v["status"] == "QUEUED" and v["attempts"] == 0 and v["args"]["dataset"] == "syn"  # waiting is not an attempt
+    assert C.ready(v, state, st) == "its data (syn_feed) end on 2025-12-26, before its validation window does (2026-01-01)"
+    # nothing was registered, and no validation row was read
+    assert registry_lines(root) == before and W["validation"][1] not in asked["loads"]
+    assert "before its validation window does" in (state / "LAB_REPORT.md").read_text()
+    asked["last"] = "2025-12-27"  # five days: a weekend and a holiday. The files hold the window
+    C.FEEDS["syn_feed"](state / "data" / "syn_feed", NOW + timedelta(hours=8))
+    assert C.ready(v, state, st) is None
+    assert C.cycle(state, NOW + timedelta(hours=13), max_tasks=1) == 0
+    assert tasks(Store(state))["validate:DLAB-SYN-1"]["status"] == "DONE" and registry_lines(root) == before + 2
+
+
+def test_the_judge_refuses_a_panel_that_stops_before_its_window_ends(story, tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    shutil.copytree(story["tmp"] / "repo_after_scan", root)
+    make_lab(root, monkeypatch)
+    universe, loader, lags = L.DATASETS["syn"]
+    p = loader(W["validation"][1])
+    assert str(p.times[-1]) == "2025-12-31" and L.covers(p, W["validation"]) is None
+    assert L.covers(p.head(p.T - 2), W["validation"]) is None  # Monday the 29th: three days
+    assert "ends on 2025-12-26, 6 days before its validation window does (2026-01-01)" in L.covers(p.head(p.T - 3), W["validation"])
+    before = registry_lines(root)
+    monkeypatch.setitem(L.DATASETS, "syn", (universe, lambda last: loader(min(last, date(2025, 11, 1))), lags))
+    with pytest.raises(SystemExit, match="nothing is judged until the data hold the whole window"):
+        L.auto_validate("DLAB-SYN-1", NOW + timedelta(days=1))
+    reg = Registry.load(root / "research" / "registry.jsonl", Holdout.load(root / "research" / "holdout.json"))
+    assert reg.get("DLAB-SYN-1-V") and reg.verdict_of("DLAB-SYN-1-V") is None  # registered; not judged, so not spent
+    assert not (root / "research" / "knowledge" / "DLAB-SYN-1-V.json").exists()
+    assert '"VALIDATION"' not in (root / "research" / "dlab" / "candidates.jsonl").read_text()
+    monkeypatch.setitem(L.DATASETS, "syn", (universe, loader, lags))  # the data arrive: the same registration is judged
+    res = L.auto_validate("DLAB-SYN-1", NOW + timedelta(days=2))
+    assert res["verdict"] == "PASSED" and res["validation_rows"] > 2000 and registry_lines(root) == before + 2
+
+
+def test_no_forward_mark_from_a_panel_that_is_not_whole_or_a_rule_that_no_longer_computes_as_judged(story, tmp_path, monkeypatch):
+    root, asked = copy_lab(story, tmp_path, monkeypatch)  # the story's repository at its end: validated rules exist
+    state = tmp_path / "state"
+    shutil.copytree(story["state"], state)
+    st = Store(state)
+    marked = st.read("forward")
+    lines = (state / "forward.jsonl").read_text().splitlines()
+    assert len(lines) == len(marked) > 500
+    (state / "forward.jsonl").write_text("\n".join(lines[:-40]) + "\n")  # forty marks are still to be written
+    before = st.read("forward")
+    rules = C.validated_rules()
+    assert rules and all(r["t"] >= 3.0 and r["lags"] == 5 for r in rules) and len(before) == len(marked) - 40
+    later = NOW + timedelta(days=400)
+    man = state / "data" / "syn_feed" / "manifest.json"
+    whole = man.read_text()
+    calls = []
+    monkeypatch.setattr(C, "FEEDS", {"syn_feed": lambda data, now: calls.append(now)})  # a refresh that changes nothing
+    # 1. files that are not a whole panel: the dataset waits, and nothing is marked
+    man.write_text(json.dumps({**json.loads(whole), "incomplete": "the source did not serve A1"}))
+    res = C.do_forward(st, state, {}, later)
+    assert res == {"rules": len(rules), "rows_added": 0, "waiting_for_whole_data": {"syn": "the source did not serve A1"}}
+    assert st.read("forward") == before and len(calls) == 1  # a daily panel: the marks asked the feed
+    man.write_text(whole)
+    # 2. a monthly panel is not fetched by the marks: its data task brings its rows
+    monkeypatch.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": 3}})
+    # 3. a panel whose validation rows are no longer what the judge read: the rule gives another t there
+    universe, loader, lags = L.DATASETS["syn"]
+
+    def revised(last):
+        p = loader(last)
+        ret = p.ret.copy()
+        rows = np.nonzero(p.rows(*W["validation"]))[0][100:160]
+        ret[rows] = ret[rows] * 3.0  # sixty days restated
+        return Panel(p.name, p.times, p.assets, ret, p.aux, p.cost, p.ppy, p.hold_cost)
+    monkeypatch.setitem(L.DATASETS, "syn", (universe, revised, lags))
+    with pytest.raises(RuntimeError, match="its\n? ?judge recorded|no forward mark is written"):
+        C.do_forward(st, state, {}, later)
+    assert st.read("forward") == before and len(calls) == 1  # nothing written; the monthly panel's feed was not asked
+    monkeypatch.setitem(L.DATASETS, "syn", (universe, loader, lags))
+    res = C.do_forward(st, state, {}, later)  # the judged data again: the marks go on
+    assert res == {"rules": len(rules), "rows_added": 40}
+    assert {(f["rule"], f["row"], f["net"]) for f in st.read("forward")} == {(f["rule"], f["row"], f["net"]) for f in marked}
+
+
+def test_forward_marks_that_keep_failing_raise_one_alert_a_month_not_one_a_day(story, tmp_path, monkeypatch):
+    root, asked = copy_lab(story, tmp_path, monkeypatch)
+    state = tmp_path / "state"
+    shutil.copytree(story["state"], state)
+    universe, loader, lags = L.DATASETS["syn"]
+
+    def revised(last):
+        p = loader(last)
+        return Panel(p.name, p.times, p.assets, p.ret * 1.5, p.aux, p.cost, p.ppy, p.hold_cost)
+    monkeypatch.setitem(L.DATASETS, "syn", (universe, revised, lags))
+    for day in (date(2026, 11, 14), date(2026, 11, 15), date(2026, 12, 11)):
+        for hour in (1, 7, 13):  # three cycles a day: the day's task fails on each
+            assert C.cycle(state, datetime(day.year, day.month, day.day, hour, tzinfo=timezone.utc), max_tasks=4) == 0
+    st = Store(state)
+    t = tasks(st)
+    assert all(t[f"forward:{d}"]["status"] == "FAILED" and t[f"forward:{d}"]["attempts"] == 3
+               for d in ("2026-11-14", "2026-11-15", "2026-12-11"))
+    titles = [a["title"] for a in st.read("alerts") if a["event"] == "RAISED" and a["level"] == "PROBLEM"]
+    assert titles == ["the forward marks of 2026-11 failed on each of 3 attempts",
+                      "the forward marks of 2026-12 failed on each of 3 attempts"]
+    assert st.read("forward") == Store(story["state"]).read("forward")  # and no mark was written meanwhile
+
+
+def test_a_data_task_is_named_by_the_newest_period_its_feed_can_bring(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    root.mkdir()
+    make_lab(root, monkeypatch)
+    for k, v in REAL.items():
+        monkeypatch.setattr(C, k, v)  # the real panels: crypto by the archive's month, the funds by the calendar's
+    st, reg = Store(tmp_path / "state"), L._registry()
+
+    def data(now):
+        return sorted(x for x in C.seed(st, reg, now) if x.startswith("data:"))
+    assert data(datetime(2026, 11, 5, tzinfo=timezone.utc)) == ["data:crypto_daily:2026-09", "data:etf_daily:2026-11"]
+    assert data(datetime(2026, 11, 9, tzinfo=timezone.utc)) == []  # the same period: nothing new is due
+    # from the tenth the archive should hold October whole: a new task, so the month's rows are fetched this month
+    assert data(datetime(2026, 11, 10, tzinfo=timezone.utc)) == ["data:crypto_daily:2026-10"]
+    assert data(datetime(2026, 12, 2, tzinfo=timezone.utc)) == ["data:etf_daily:2026-12"]
+    # the funds' panel is refreshed by the forward marks each day; the perpetuals' only by its monthly data task
+    assert C.CATALOG["etf-daily"].get("daily") is True and not C.CATALOG["crypto-daily"].get("daily")
 
 
 def test_a_task_is_not_started_without_the_time_it_may_need(tmp_path, monkeypatch):
