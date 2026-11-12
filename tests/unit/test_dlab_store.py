@@ -149,9 +149,11 @@ KLINES = ("open_time,open,high,low,close,volume,close_time\n"
 def test_a_month_of_klines_and_of_funding_is_read_without_repairing_anything():
     assert F.parse_daily_klines(zipped(KLINES)) == {"2020-01-01": 7197.5, "2020-01-02": 6962.3, "2025-01-01": 94500.0}
     funding = ("calc_time,funding_interval_hours,last_funding_rate\n1577836800000,8,0.0001\n1577865600000,8,0.0002\n"
-               "1577894400000,8,-0.00005\n1577923200000,8,0.0001\n1577952000000,8,oops\n")
+               "1577894400000,8,-0.00005\n1577923200000,8,0.0001\n1577952000000,8,oops\n"
+               "1578009600000.0,8,0.0003\n")  # a timestamp written as a float, as some files have it
     out = F.parse_funding(zipped(funding))
-    assert out["2020-01-01"] == pytest.approx(0.00025) and out["2020-01-02"] == pytest.approx(0.0001) and len(out) == 2
+    assert out["2020-01-01"] == pytest.approx(0.00025) and out["2020-01-02"] == pytest.approx(0.0001)
+    assert out["2020-01-03"] == pytest.approx(0.0003) and len(out) == 3
     assert F.months(date(2019, 11, 15), date(2020, 2, 1)) == ["2019-11", "2019-12", "2020-01", "2020-02"]
 
 

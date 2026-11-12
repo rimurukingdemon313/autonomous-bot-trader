@@ -194,6 +194,17 @@ def ready(t: dict, state: Path, store: Store) -> str | None:
 
 # ── 4. the tasks ────────────────────────────────────────────────────────────
 
+def usable_instruments(ds: str) -> int:
+    """How many of a panel's instruments have the fit rows a scan needs, on the DISCOVERY rows only (the panel is loaded
+    to the check rows' end, as a scan loads it). A feed can return every file and still leave a panel no scan can use:
+    prices without the funding that makes a return, for one."""
+    universe, loader, _ = L.DATASETS[ds]
+    w = D.WINDOWS[universe]
+    p = loader(w["check"][1])
+    fit, fwd = p.rows(*w["fit"]), p.fwd()
+    return sum(int((fit & np.isfinite(fwd[:, j])).sum() >= 2 * L.M.MIN_ROWS) for j in range(len(p.assets)))
+
+
 def do_data(store: Store, state: Path, args: dict, now: datetime) -> dict:
     feed = args["feed"]
     man = FEEDS[feed](state / "data" / feed, now)
@@ -205,7 +216,13 @@ def do_data(store: Store, state: Path, args: dict, now: datetime) -> dict:
     if len(have) < MIN_INSTRUMENTS[feed]:
         raise RuntimeError(f"{feed}: only {len(have)} instruments have 250 rows; at least {MIN_INSTRUMENTS[feed]} are "
                            "needed. Nothing is scanned on a thin panel")
-    return {"feed": feed, "instruments": len(have), "last_day": max(v["last"] for v in q.values() if v.get("rows")),
+    usable = {ds: usable_instruments(ds) for ds, c in CATALOG.items() if c["feed"] == feed}
+    for ds, n in usable.items():  # before any scan is registered: a scan runs once, and must not run on a husk
+        if n < MIN_INSTRUMENTS[feed]:
+            raise RuntimeError(f"{feed}: only {n} instruments of the {ds} panel have the fit rows a scan needs; at "
+                               f"least {MIN_INSTRUMENTS[feed]} are needed. The files arrived, the panel is not usable")
+    return {"feed": feed, "instruments": len(have), "usable_in_the_fit_rows": usable,
+            "last_day": max(v["last"] for v in q.values() if v.get("rows")),
             "missing_days": sum(v.get("missing_days", 0) for v in q.values()),
             "moves_beyond_50pct": sum(v.get("moves_beyond_50pct", 0) for v in q.values()),
             "not_served": man.get("not_served", []), "fetched_now": man.get("fetched_now")}

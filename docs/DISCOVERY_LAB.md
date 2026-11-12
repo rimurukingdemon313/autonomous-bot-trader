@@ -214,7 +214,7 @@ GitHub's schedule (four slots a day)            workflow_dispatch (by hand)
 | Checkpointing | Each step and each task is logged as it finishes (`runs`); a scan registers before it runs and resumes if it died after registering |
 | Recovery | A task STARTED six hours ago with nothing after it died with its machine and is taken up again. A failed task is retried by later cycles, three times at most, then reported. A scan whose record reached `main` while its queue entry did not is resumed, not repeated |
 | Prioritization | Validation first, then data, forward marks, scans by breadth and by what the market's earlier rules were worth, then sources |
-| Data acquisition | `feeds.py`: Binance's public archive (every file against its published checksum; only the months not yet held), Yahoo's chart endpoint, arXiv and OpenAlex |
+| Data acquisition | `feeds.py`: Binance's public archive (every file against its published checksum; only the months not yet held), Yahoo's chart endpoint, arXiv and OpenAlex. A file the archive did not answer for is counted and asked for again; what arrived is kept. A scan waits for a fetch with none missing: a panel with holes would be scanned once and never again |
 | Data quality | Each feed writes a manifest: content hash, rows, first and last day, missing days, one-day moves beyond 50% (flagged, never removed). A thin panel is refused |
 | Budget | A cycle has a task count and a time budget; a task is not started without the time it may need. No model call and no paid service |
 | Automatic experiments | A scan of each panel under each version of the lab; the validation of any batch it proposes |

@@ -97,7 +97,8 @@ def _rows(raw: bytes) -> list[list[str]]:
 
 
 def _ms(x: str) -> datetime:
-    v = int(x)
+    """A Binance timestamp, in milliseconds or (the newer files) microseconds, written as an integer or a float."""
+    v = int(float(x))
     return datetime.fromtimestamp(v / (1e6 if v > 1e14 else 1e3), timezone.utc)
 
 
@@ -105,13 +106,13 @@ def parse_daily_klines(raw: bytes) -> dict[str, float]:
     """{day: close} of a month of 1d klines. A header row, or a row that cannot be read, is skipped, never repaired."""
     out = {}
     for r in _rows(raw):
-        if len(r) > 4 and r[0].strip().isdigit():
+        if len(r) > 4 and r[0].strip()[:1].isdigit():
             try:
-                c = float(r[4])
+                c, day = float(r[4]), _ms(r[0]).strftime("%Y-%m-%d")
             except ValueError:
                 continue
             if c > 0:
-                out[_ms(r[0]).strftime("%Y-%m-%d")] = c
+                out[day] = c
     return out
 
 
@@ -119,12 +120,11 @@ def parse_funding(raw: bytes) -> dict[str, float]:
     """{day: the sum of that UTC day's funding rates}: what a long paid, as a fraction of notional."""
     out: dict[str, float] = {}
     for r in _rows(raw):
-        if len(r) > 2 and r[0].strip().isdigit():
+        if len(r) > 2 and r[0].strip()[:1].isdigit():
             try:
-                rate = float(r[2])
+                rate, d = float(r[2]), _ms(r[0]).strftime("%Y-%m-%d")
             except ValueError:
                 continue
-            d = _ms(r[0]).strftime("%Y-%m-%d")
             out[d] = out.get(d, 0.0) + rate
     return out
 
