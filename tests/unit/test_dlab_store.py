@@ -58,6 +58,31 @@ def test_a_run_that_died_is_taken_up_again_and_a_task_that_keeps_failing_is_repo
     assert all(json.loads(x) for x in (tmp_path / "queue.jsonl").read_text().splitlines())
 
 
+def test_a_task_that_failed_is_given_its_attempts_back_only_when_asked_and_only_if_it_failed(tmp_path):
+    st = S.Store(tmp_path)
+    S.enqueue(st, "validate:X-1", "validate", {"run": "X-1"}, 5.0, NOW)
+    with pytest.raises(ValueError, match="has not failed"):
+        S.retry(st, "validate:X-1", NOW, "nothing to retry")  # a queued task, or a finished one, is never given back
+    for i in range(S.MAX_ATTEMPTS):
+        S.mark(st, "validate:X-1", "STARTED", NOW + timedelta(hours=i), by="worker-1")
+        S.mark(st, "validate:X-1", "FAILED", NOW + timedelta(hours=i, minutes=5), {"error": "a bug"}, by="worker-1")
+    t = S.tasks(st)["validate:X-1"]
+    assert t["attempts"] == S.MAX_ATTEMPTS and t["by"] == "worker-1" and S.runnable(st, NOW + timedelta(days=1)) == []
+    assert [x["task"] for x in S.abandoned(st)] == ["validate:X-1"]
+    S.retry(st, "validate:X-1", NOW + timedelta(days=1), "it failed under worker-1; this is worker-2")
+    t = S.tasks(st)["validate:X-1"]
+    assert t["status"] == "QUEUED" and t["attempts"] == 0 and t["by"] == "worker-1" and S.abandoned(st) == []
+    assert [x["task"] for x in S.runnable(st, NOW + timedelta(days=1))] == ["validate:X-1"]
+    assert t["result"] == {"error": "a bug"} and t["args"] == {"run": "X-1"} and t["priority"] == 5.0  # what it was is kept
+    S.mark(st, "validate:X-1", "STARTED", NOW + timedelta(days=1), by="worker-2")
+    S.mark(st, "validate:X-1", "DONE", NOW + timedelta(days=1, minutes=3), {"ok": True}, by="worker-2")
+    t = S.tasks(st)["validate:X-1"]
+    assert t["status"] == "DONE" and t["attempts"] == 1 and t["by"] == "worker-2"
+    with pytest.raises(ValueError, match="has not failed"):
+        S.retry(st, "validate:X-1", NOW + timedelta(days=2), "done is done")
+    assert len(st.read("queue")) == 1 + 2 * S.MAX_ATTEMPTS + 1 + 2  # every event kept: nothing is rewritten
+
+
 def test_the_queue_is_ordered_by_priority_and_priorities_can_change(tmp_path):
     st = S.Store(tmp_path)
     for name, p in (("a", 1.0), ("b", 3.0), ("c", 2.0), ("d", 2.0)):

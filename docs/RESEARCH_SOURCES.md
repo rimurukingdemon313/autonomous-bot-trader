@@ -47,19 +47,19 @@ Each names its parents (the source numbers above). None is a claim that anything
 
 | Id | Hypothesis | Parents | Can the lab test it now? |
 |---|---|---|---|
-| H1 | Among liquid perpetuals, some coins' moves lead others' by a day or more, and a book of those links pays after costs | 1 | Yes: the crypto panel's scan (`leadlag`, pooled books) |
-| H2 | A cross-sectional reversal over one to five days exists among liquid perpetuals and survives 7 to 13 basis points | 2, 5 | Yes: `breadth`, with the direction set by the fit rows. The sources disagree on the sign for large coins |
-| H3 | Coins that fell most over two months outperform over the following weeks | 4 | Yes: the 60-day ranking is in `breadth` |
-| H4 | Low-volatility perpetuals outperform high-volatility ones | 11 | Yes: the volatility rankings are in `breadth`. The evidence conflicts |
+| H1 | Among liquid perpetuals, some coins' moves lead others' by a day or more, and a book of those links pays after costs | 1 | Looked at by DLAB-CRD-1 (2026-11-12): 15,125 lead-lag statistics, 24 rules kept; 8 positive on the check rows and not told from noise (the best at t 1.62), 11 lost. Nothing promising |
+| H2 | A cross-sectional reversal over one to five days exists among liquid perpetuals and survives 7 to 13 basis points | 2, 5 | **Not yet out of sample.** DLAB-CRD-1 ranked on it on the fit rows, where rankings on funding were stronger and took the places: no ranking on past returns reached the check rows. Waits for the next version of `breadth` |
+| H3 | Coins that fell most over two months outperform over the following weeks | 4 | **Not yet out of sample**, for the same reason as H2 |
+| H4 | Low-volatility perpetuals outperform high-volatility ones | 11 | **Not yet out of sample.** Only the ratio of short to long volatility reached the check rows, and lost there (t -0.69 and -0.75); the ranking on volatility itself did not reach them |
 | H5 | Size or liquidity carries a premium in the cross-section of perpetuals | 6, 7 | **No.** The panel has no volume. Plan: add each day's quote volume to the crypto feed, and a dollar-volume and an illiquidity state series to the panel, in the lab's next version |
-| H6 | Rankings of country funds on recent returns or volatility pay after costs | 13 | Yes: the fund panel's scan |
+| H6 | Rankings of country funds on recent returns or volatility pay after costs | 13 | Looked at by DLAB-ETF-1 (2026-11-12) on 31 funds, country funds among them: every ranking on past returns of one day to a month, and on the volatility ratio, reached the check rows. 18 of 24 books lost there, none was told from noise (the best at t 1.37). Nothing promising |
 | H7 | Providing liquidity to leveraged and inverse funds' daily rebalancing pays | 12 | **No.** It needs a panel of leveraged pairs and a borrow-cost model. Low priority |
 | H8 | A rule that joins several price features of one coin, applied to every coin, pays where no single feature does | 8 | Partly: the pooled evolutionary search joins two conditions. A richer aggregate is a method not yet built |
 | M1 | Report a deflated Sharpe ratio for every judged rule | 16 | Not built |
 
-Four of the nine are already inside the two scans the lab's worker has queued. That is the point of a data-driven
-scan: it does not need the hypothesis named in advance, and when it finds nothing, the hypothesis has been looked at
-all the same.
+Two of the nine have now been looked at out of sample by the worker's scans, and three more wait for one change to
+the scan (`docs/DISCOVERY_LAB.md` section 11). A data-driven scan does not need the hypothesis named in advance; but
+it looks out of sample only at what its places allow, and reading its evidence is how that was found.
 
 ## What the campaign changed in the design
 

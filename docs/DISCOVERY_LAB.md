@@ -230,9 +230,11 @@ GitHub's schedule (four slots a day)            workflow_dispatch (by hand)
 The worker waits (a wait is in the report and is not one of a task's three attempts) while:
 
 - a file the archive did not answer for is still missing;
-- the newest month is published for some instruments and not for the others (an instrument priced on the last day of
-  the month before, without the month's prices or without its funding). A month is asked for only from the tenth of
-  the next one;
+- the newest month is published for some instruments and not for the others: an instrument alive (priced and funded)
+  on the last day of the month before, without the month's prices or without its funding. A month is asked for only
+  from the tenth of the next one. A delisted contract is not waited for: the archive goes on printing its last price
+  every day (nine of the fifty-five on 2026-11-12, one for 499 days), and those days make no return, because a day
+  without funding has none. The worker's first run waited for eight of them; lab-cycle-1.0.1 does not;
 - a fund was not served, or was served with a series that stops more than seven days before the calendar's last day.
   The fund panel on file is then left exactly as it was: it is never rewritten without one of its instruments;
 - for a validation: the files stop more than five days before its window's end. The judge checks the loaded panel
@@ -289,7 +291,13 @@ registered, judged scan and holds exactly as many rules as its evidence. If any 
 
 ## 11. What is next
 
-1. The first scans of the two broad panels, and the validation of anything they propose (the lab's own queue).
+1. **Places by ranking before places by strength.** The perpetuals' scan gave 22 of its 24 cross-sectional places to
+   rankings on funding: the strongest on the fit rows, and a family the lab itself then recognised as closed. No
+   ranking on past returns or on volatility reached the check rows, so the cross-sectional reversal, the two-month
+   losers and the volatility sorts (H2 to H4 of `docs/RESEARCH_SOURCES.md`) are not yet looked at out of sample on
+   that panel. The `breadth` method should give each ranking its best book first and fill the rest by strength, and
+   should not spend a place on a book a closed family already explains. That is a new version of the lab, with its
+   calibration run again, and then one more scan of each panel, charged as such.
 2. Volume in the crypto panel: each day's quote volume from the same archive, as a dollar-volume and an illiquidity
    state series. Nothing in this project has used volume (`docs/RESEARCH_SOURCES.md`, hypothesis H5).
 3. More panels: the hours inside each crypto day; commodity and rate futures.
@@ -325,4 +333,30 @@ Only what was confirmed is written here.
 |---|---|---|
 | 2026-11-10 | DLAB-ENG-1, the first scan, run by hand under dlab-1.0.0: 102 rules classed, none promising | `research/knowledge/DLAB-ENG-1.json` |
 | 2026-11-12 | The worker rehearsed end to end in a copy of the repository, on built data of the real panels' shape (section 8) | not evidence about any market |
-| 2026-11-12 | The worker on GitHub's runner | **Not yet run.** This line is replaced by the first confirmed run, with its run number, what it did and what it left on `lab-data` |
+| 2026-11-12 15:46 | The worker's first run on GitHub's runner, started by hand (`workflow_dispatch`): run 1 of `lab-cycle.yml`, id 43251484761, every step green, 11 minutes | It fetched 8,384 archive files of the perpetuals (each against its checksum; 1,076 months do not exist) and the 31 funds with the VIX; registered, ran and recorded **DLAB-ETF-1**; filed 85 new papers as UNREAD; pushed commit `4c5db29` to `main` by itself (two registry lines, the spec, the preregistration, the evidence, 266 candidates, the lessons); created `lab-data` (`282274f`) with its memory, the data and `LAB_REPORT.md` |
+| 2026-11-12 | The perpetuals' data in that run | **Refused by the worker, and rightly stopped, for the wrong reason.** Eight delisted contracts the archive still prices were taken for a half-published month. Nothing was scanned on them. Fixed in lab-cycle-1.0.1, and checked against the files that run fetched: none is waited for, 44 contracts are alive at 2026-10-31, all 55 have the fit rows a scan needs |
+| 2026-11-12 23:38 | The worker's second run (`workflow_dispatch`), on lab-cycle-1.0.1: every step green, 2 minutes | It restored its memory and data from `lab-data` (nothing was fetched or run twice: five tasks done in all), completed the perpetuals' data on its second attempt, registered, ran and recorded **DLAB-CRD-1**, and pushed commit `d851d10` to `main` and `af6202f` to `lab-data` by itself. Its queue is empty |
+| | A run started by GitHub's schedule | **Not confirmed yet.** The workflow reached `main` at 15:46 UTC; its 21:11 slot had not fired by 23:40. This repository's other schedules run two to nine hours late. This line is replaced when a run with the event `schedule` is seen |
+
+### Results so far
+
+| Scan | Panel | Statistics looked at | Rules kept | Promising | Best check-row t | Verdict |
+|---|---|---|---|---|---|---|
+| DLAB-ENG-1 | WTI and natural gas, 1994-2011 | 2,015 | 102 | 0 | 1.43 | proposed nothing |
+| DLAB-ETF-1 | 31 US-listed funds, 2007-2019 | 15,349 | 266 | 0 | 1.70 | proposed nothing |
+| DLAB-CRD-1 | 55 Binance perpetuals, 2020-05 to 2024-06 | 29,218 | 266 | 0 | 2.76 | proposed nothing |
+
+No rule has reached a validation. No validation window has been loaded: all three stay unread.
+
+- **The funds.** 102 rules lost on the check rows, 55 of them only after costs, and the rules' check-row t are centred
+  at -0.56: on that panel the average rule the methods find loses after a 3 basis point cost. Rankings of the funds
+  on past returns of one day to a month, and on the ratio of short to long volatility, reached the check rows: 18 of
+  those 24 books lost there and none was told from noise (the best at t 1.37). The three-month ranking and the
+  ranking on volatility itself did not reach them.
+- **The perpetuals.** 69 rules were positive on the check rows and none could be told from noise: the best, t 2.76, is
+  one coin's reversal after a shock, and among 174 distinct behaviours a t of that size is what chance gives. Twelve
+  places in the batch would have cost the bar nothing, and none was taken. 72 rules lost there, 48 of them only after
+  costs of 7 to 13 basis points. 18 rules were recognised as closed families by what they do.
+- **What the information audit says.** In both panels about twice as many feature-instrument pairs carry information
+  about the next return as chance gives (funds 30 of 434 against 10; perpetuals 44 of 982 against 23). The rules built
+  on them do not survive costs. That is a statement about these panels at a daily horizon, not about every market.
