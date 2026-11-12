@@ -56,14 +56,17 @@ from aitrader.research.dlab import brain as B  # noqa: E402
 from aitrader.research.dlab import datasets as D  # noqa: E402
 from aitrader.research.dlab import feeds as F  # noqa: E402
 from aitrader.research.dlab.signals import pnl  # noqa: E402
-from aitrader.research.dlab.store import Store, abandoned, enqueue, mark, reprioritize, runnable, tasks  # noqa: E402
+from aitrader.research.dlab.store import (  # noqa: E402
+    MAX_ATTEMPTS, Store, abandoned, enqueue, mark, reprioritize, retry, runnable, tasks)
 from aitrader.research.registry import Verdict  # noqa: E402
 from scripts.research_engine import SEAL_SHA256  # noqa: E402
 from scripts.research_report import evidence, read_registry  # noqa: E402
 
 #: 1.0.1: a delisted contract the archive still prices is not waited for (the first run on the runner waited for
 #:        eight); the report counts its cycles from one.
-CYCLE_VERSION = "lab-cycle-1.0.1"
+#: 1.0.2: a task that failed under an older version of the worker gets its attempts back under a new one. Until then a
+#:        task that had failed three times was never tried again, whatever was fixed: a validation's id never changes.
+CYCLE_VERSION = "lab-cycle-1.0.2"
 #: The panels the lab scans by itself: dataset -> its run tag, its feed and its nominal breadth. One scan for each
 #: version of the lab: a second look at the same discovery rows under the same methods would find the same rules.
 CATALOG = {"crypto-daily": {"tag": "CRD", "feed": "crypto_daily", "instruments": len(F.PERPS)},
@@ -359,6 +362,19 @@ def do_forward(store: Store, state: Path, args: dict, now: datetime) -> dict:
 HANDLERS = {"data": do_data, "scan": do_scan, "validate": do_validate, "sources": do_sources, "forward": do_forward}
 
 
+def retry_after_a_fix(store: Store, now: datetime) -> list[str]:
+    """Tasks that failed under ANOTHER version of the worker get their attempts back: what failed them may be what
+    changed. Under the same version a failed task keeps its count, and after three it is reported and left alone:
+    nothing here retries for ever. A task is given back at most once for each version."""
+    out = []
+    for t in tasks(store).values():
+        failed = t["status"] == "FAILED" or (t["status"] == "STARTED" and t["attempts"] >= MAX_ATTEMPTS)
+        if failed and t.get("by") != CYCLE_VERSION:
+            retry(store, t["task"], now, f"it failed under {t.get('by') or 'an earlier version'}; this is {CYCLE_VERSION}")
+            out.append(t["task"])
+    return out
+
+
 def run_tasks(store: Store, state: Path, now: datetime, max_tasks: int, max_minutes: float, started: float,
               clock=time.monotonic) -> list[dict]:
     ran: list[dict] = []
@@ -370,12 +386,12 @@ def run_tasks(store: Store, state: Path, now: datetime, max_tasks: int, max_minu
         if t is None:
             break
         tried.add(t["task"])
-        mark(store, t["task"], "STARTED", now)
+        mark(store, t["task"], "STARTED", now, by=CYCLE_VERSION)
         try:
             res, status = HANDLERS[t["kind"]](store, state, t["args"], now), "DONE"
         except (Exception, SystemExit) as e:  # a failed task must not take the cycle, or its report, with it
             res, status = {"error": f"{type(e).__name__}: {e}"[:800]}, "FAILED"
-        mark(store, t["task"], status, now, res)
+        mark(store, t["task"], status, now, res, by=CYCLE_VERSION)
         _log(store, now, f"task:{t['task']}", "OK" if status == "DONE" else "FAILED", res)
         ran.append({"task": t["task"], "kind": t["kind"], "status": status, "result": res})
     return ran
@@ -500,7 +516,8 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
     if not waiting:
         o.append("| (empty) | | | | |")
     o += ["", f"Done so far: {sum(1 for t in tk.values() if t['status'] == 'DONE')} tasks. A task is known by its id and "
-          "never runs twice. A failed task is retried by later cycles, three times at most."]
+          "never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker "
+          "gives a failed task its attempts back, once."]
     if lost:
         o += ["", "**Tasks that failed on every attempt (they need a person):**", ""]
         o += [f"- `{t['task']}`: {json.dumps(t['result'])[:300]}" for t in lost]
@@ -631,8 +648,9 @@ def cycle(state: Path, now: datetime, max_tasks: int = 4, max_minutes: float = 4
               "No experiment ran.\n\n" + "\n".join(f"- {p}" for p in problems))
     else:
         queued = seed(store, L._registry(), now)
+        retried = retry_after_a_fix(store, now)
         prioritize(store, learn(now)["arms"], now)
-        _log(store, now, "queue", "OK", {"queued": queued})
+        _log(store, now, "queue", "OK", {"queued": queued, **({"given_back_after_a_new_version": retried} if retried else {})})
         ran = run_tasks(store, state, now, max_tasks, max_minutes, started, clock)
         learn(now)
         for t in abandoned(store):

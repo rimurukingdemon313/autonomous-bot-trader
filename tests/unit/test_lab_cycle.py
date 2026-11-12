@@ -270,6 +270,38 @@ def test_a_feed_that_keeps_failing_is_retried_three_times_then_reported_and_bloc
     assert t["sources:2026-W46"]["status"] == "DONE"  # the rest of the queue went on
 
 
+def test_a_task_that_failed_under_an_older_worker_is_tried_afresh_under_a_new_one_and_never_under_the_same(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    root.mkdir()
+    asked = make_lab(root, monkeypatch)
+    good, box = C.FEEDS["syn_feed"], {"broken": True}
+
+    def feed(data, now):
+        if box["broken"]:
+            asked["feeds"].append(now)
+            raise RuntimeError("a bug in the worker")
+        return good(data, now)
+    monkeypatch.setattr(C, "FEEDS", {"syn_feed": feed})
+    monkeypatch.setattr(C, "CYCLE_VERSION", "worker-1")
+    state = tmp_path / "state"
+    for i in range(5):
+        assert C.cycle(state, NOW + timedelta(hours=6 * i), max_tasks=1) == 0
+    t = tasks(Store(state))["data:syn_feed:2026-11"]
+    assert t["status"] == "FAILED" and t["attempts"] == 3 and t["by"] == "worker-1" and len(asked["feeds"]) == 3
+    box["broken"] = False  # the bug is gone from the world, and the worker is the same: the task stays where it failed
+    assert C.cycle(state, NOW + timedelta(days=2), max_tasks=2) == 0
+    assert len(asked["feeds"]) == 3 and not any(e["event"] == "RETRY" for e in Store(state).read("queue"))
+    monkeypatch.setattr(C, "CYCLE_VERSION", "worker-2")  # a new version of the worker: what failed it may be what changed
+    assert C.cycle(state, NOW + timedelta(days=2, hours=6), max_tasks=1) == 0
+    t = tasks(Store(state))["data:syn_feed:2026-11"]
+    assert t["status"] == "DONE" and t["attempts"] == 1 and t["by"] == "worker-2" and len(asked["feeds"]) == 4
+    log = [r for r in Store(state).read("runs") if r["step"] == "queue"][-1]
+    assert log["detail"]["given_back_after_a_new_version"] == ["data:syn_feed:2026-11"]
+    assert C.cycle(state, NOW + timedelta(days=3), max_tasks=1) == 0  # given back once, not at every cycle
+    assert sum(e["event"] == "RETRY" for e in Store(state).read("queue")) == 1
+    assert "gives a failed task its attempts back, once" in (state / "LAB_REPORT.md").read_text()
+
+
 def test_a_scan_waits_for_a_complete_fetch_and_what_arrived_is_kept(tmp_path, monkeypatch):
     state = {"failed": 3}
 

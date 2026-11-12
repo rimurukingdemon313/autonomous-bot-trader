@@ -70,9 +70,14 @@ def tasks(store: Store) -> dict[str, dict]:
         elif e["event"] == "PRIORITY":
             t["priority"] = e["priority"]
             continue
+        elif e["event"] == "RETRY":  # it failed under older code: the attempts start again, and it waits its turn
+            t["attempts"], t["status"], t["at"] = 0, "QUEUED", e["at"]
+            continue
         elif e["event"] == "STARTED":
             t["attempts"] += 1
         t["status"], t["at"] = e["event"], e["at"]
+        if "by" in e:
+            t["by"] = e["by"]
         if e["event"] in ("DONE", "FAILED"):
             t["result"] = e.get("result")
     return out
@@ -87,10 +92,20 @@ def enqueue(store: Store, task: str, kind: str, args: dict, priority: float, now
     return True
 
 
-def mark(store: Store, task: str, event: str, now: datetime, result: object = None) -> None:
+def mark(store: Store, task: str, event: str, now: datetime, result: object = None, by: str | None = None) -> None:
+    """`by` is the version of the worker that wrote the event: what a later version reads to know a failure is old."""
     if event not in ("STARTED", "DONE", "FAILED"):
         raise ValueError(event)
-    store.append("queue", [{"task": task, "event": event, "at": now.isoformat(), "result": result}])
+    store.append("queue", [{"task": task, "event": event, "at": now.isoformat(), "result": result,
+                            **({"by": by} if by else {})}])
+
+
+def retry(store: Store, task: str, now: datetime, why: str) -> None:
+    """Give a task that failed its attempts back. Only for a failure the code that produced it no longer is: the
+    worker calls this when its own version has changed since the task last failed, never under the same version."""
+    if tasks(store).get(task, {}).get("status") not in ("FAILED", "STARTED"):
+        raise ValueError(f"{task} has not failed")
+    store.append("queue", [{"task": task, "event": "RETRY", "at": now.isoformat(), "why": why}])
 
 
 def reprioritize(store: Store, priorities: dict[str, float], now: datetime) -> None:
@@ -120,5 +135,5 @@ def abandoned(store: Store) -> list[dict]:
     return [t for t in tasks(store).values() if t["status"] in ("FAILED", "STARTED") and t["attempts"] >= MAX_ATTEMPTS]
 
 
-__all__ = ["MAX_ATTEMPTS", "STALE_HOURS", "Store", "TABLES", "abandoned", "enqueue", "mark", "reprioritize", "runnable",
-           "tasks"]
+__all__ = ["MAX_ATTEMPTS", "STALE_HOURS", "Store", "TABLES", "abandoned", "enqueue", "mark", "reprioritize", "retry",
+           "runnable", "tasks"]

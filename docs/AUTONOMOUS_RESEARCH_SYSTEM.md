@@ -204,6 +204,10 @@ rules in data, registers and runs its own experiments, and validates what it fin
 branch. It uses no model and no paid service. Its deployment status is recorded in `docs/DISCOVERY_LAB.md`, and its
 live state in `LAB_REPORT.md` on `lab-data`.
 
+Confirmed on 2026-11-12: two runs on GitHub's runner, both started by hand, fetched the data, registered and ran the
+scans of both broad panels (DLAB-ETF-1 and DLAB-CRD-1: neither proposed a rule), pushed their records to `main` and
+kept their memory across the two runs. Not confirmed yet: a run started by GitHub's own schedule.
+
 ## What is missing, and why
 
 - **Forex.** No validated Forex edge exists (`docs/FX_MISSION_REPORT.md`). Under the project's rules three things
