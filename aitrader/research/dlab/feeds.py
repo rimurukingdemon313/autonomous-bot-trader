@@ -16,6 +16,11 @@ A manifest's `incomplete` says, in words, why the files are not a whole panel, o
 or marked forward on an incomplete panel (scripts/lab_cycle.py). Two ways a panel can be whole in its files and holed
 in its newest rows are looked for here: a month the archive has published for some instruments and not yet for the
 others, and a fund the source served with a series that stops early.
+
+A perpetual is alive on a day it is both priced and funded. The archive goes on printing a delisted contract's last
+price, day after day, long after its funding stopped (nine of the fifty-five on 2026-11-12, one for 499 days): those
+closes are kept as they came and make no return, because a day without funding has none (datasets.crypto_daily). A
+contract that was not alive at the end of last month is not waited for this month.
 """
 
 from __future__ import annotations
@@ -222,24 +227,28 @@ def crypto_daily(data: Path, now: datetime, first: date = date(2019, 9, 1), symb
         part = parse_daily_klines(raw) if k == "klines" else parse_funding(raw)
         (closes if k == "klines" else funding).setdefault(s, {}).update(part)
         old["months"].setdefault(f"{s}:{k}", []).append(m)
-    # An instrument priced on the last day of the month before the newest one, and without the newest month's prices
-    # or funding: delisted exactly at the month's end, or (far more likely) its files are not published yet.
+    # An instrument ALIVE (priced and funded) on the last day of the month before the newest one, and without the
+    # newest month's prices or funding: delisted exactly at the month's end, or (far more likely) its files are not
+    # published yet. A contract delisted earlier is priced there and not funded: it is not waited for.
     have, late = old["months"], []
     if len(want) > 1:
         day = month_end(want[-2])
-        late = sorted(s for s in symbols if day in closes.get(s, {})
+        late = sorted(s for s in symbols if day in closes.get(s, {}) and day in funding.get(s, {})
                       and not (due in have.get(f"{s}:klines", []) and due in have.get(f"{s}:fundingRate", [])))
+    end = month_end(due)
+    ended = {s: max(funding[s]) for s in sorted(funding) if funding[s] and max(funding[s]) < end}
     why = None
     if failed:
         why = (f"the archive did not answer for {len(failed)} files (the first: {', '.join(failed[:5])}). What arrived "
                "is kept")
     elif late:
-        why = (f"{len(late)} instruments are priced to the end of {want[-2]} and have no whole {due} (the first: "
-               f"{', '.join(late[:5])}): the month looks half-published. What arrived is kept")
+        why = (f"{len(late)} instruments are priced and funded to the end of {want[-2]} and have no whole {due} (the "
+               f"first: {', '.join(late[:5])}): the month looks half-published. What arrived is kept")
     man = {"dataset": "crypto_daily", "retrieved": now.isoformat(), "source": VISION, "months": old["months"],
            "newest_month": due, "fetched_now": len(todo) - absent - len(failed), "absent_now": absent,
-           "failed_count": len(failed), "failed_now": failed[:40], "late": late[:40], "incomplete": why, "files": {},
-           "quality": quality(closes)}
+           "failed_count": len(failed), "failed_now": failed[:40], "late": late[:40], "incomplete": why,
+           "alive_at_the_end": sum(1 for s in symbols if end in closes.get(s, {}) and end in funding.get(s, {})),
+           "funding_ended": ended, "files": {}, "quality": quality(closes)}
     _save(data, "close", closes, man)
     _save(data, "funding", funding, man)
     (data / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")

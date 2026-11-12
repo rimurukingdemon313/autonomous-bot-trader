@@ -230,9 +230,11 @@ GitHub's schedule (four slots a day)            workflow_dispatch (by hand)
 The worker waits (a wait is in the report and is not one of a task's three attempts) while:
 
 - a file the archive did not answer for is still missing;
-- the newest month is published for some instruments and not for the others (an instrument priced on the last day of
-  the month before, without the month's prices or without its funding). A month is asked for only from the tenth of
-  the next one;
+- the newest month is published for some instruments and not for the others: an instrument alive (priced and funded)
+  on the last day of the month before, without the month's prices or without its funding. A month is asked for only
+  from the tenth of the next one. A delisted contract is not waited for: the archive goes on printing its last price
+  every day (nine of the fifty-five on 2026-11-12, one for 499 days), and those days make no return, because a day
+  without funding has none. The worker's first run waited for eight of them; lab-cycle-1.0.1 does not;
 - a fund was not served, or was served with a series that stops more than seven days before the calendar's last day.
   The fund panel on file is then left exactly as it was: it is never rewritten without one of its instruments;
 - for a validation: the files stop more than five days before its window's end. The judge checks the loaded panel
@@ -289,7 +291,8 @@ registered, judged scan and holds exactly as many rules as its evidence. If any 
 
 ## 11. What is next
 
-1. The first scans of the two broad panels, and the validation of anything they propose (the lab's own queue).
+1. The perpetuals' scan, and the validation of anything it proposes (the lab's own queue). The funds' scan is done:
+   it proposed nothing (section 13).
 2. Volume in the crypto panel: each day's quote volume from the same archive, as a dollar-volume and an illiquidity
    state series. Nothing in this project has used volume (`docs/RESEARCH_SOURCES.md`, hypothesis H5).
 3. More panels: the hours inside each crypto day; commodity and rate futures.
@@ -325,4 +328,17 @@ Only what was confirmed is written here.
 |---|---|---|
 | 2026-11-10 | DLAB-ENG-1, the first scan, run by hand under dlab-1.0.0: 102 rules classed, none promising | `research/knowledge/DLAB-ENG-1.json` |
 | 2026-11-12 | The worker rehearsed end to end in a copy of the repository, on built data of the real panels' shape (section 8) | not evidence about any market |
-| 2026-11-12 | The worker on GitHub's runner | **Not yet run.** This line is replaced by the first confirmed run, with its run number, what it did and what it left on `lab-data` |
+| 2026-11-12 15:46 | The worker's first run on GitHub's runner, started by hand (`workflow_dispatch`): run 1 of `lab-cycle.yml`, id 43251484761, every step green, 11 minutes | It fetched 8,384 archive files of the perpetuals (each against its checksum; 1,076 months do not exist) and the 31 funds with the VIX; registered, ran and recorded **DLAB-ETF-1**; filed 85 new papers as UNREAD; pushed commit `4c5db29` to `main` by itself (two registry lines, the spec, the preregistration, the evidence, 266 candidates, the lessons); created `lab-data` (`282274f`) with its memory, the data and `LAB_REPORT.md` |
+| 2026-11-12 | The perpetuals' data in that run | **Refused by the worker, and rightly stopped, for the wrong reason.** Eight delisted contracts the archive still prices were taken for a half-published month. Nothing was scanned on them. Fixed in lab-cycle-1.0.1, and checked against the files that run fetched: none is waited for, 44 contracts are alive at 2026-10-31, all 55 have the fit rows a scan needs |
+| | A run started by GitHub's schedule | **Not confirmed yet.** The workflow reached `main` at 15:46 UTC; its 21:11 slot had not fired by 23:30. This repository's other schedules run two to nine hours late. This line is replaced when a run with the event `schedule` is seen |
+
+### Results so far
+
+| Scan | Panel | Statistics looked at | Rules kept | Promising | Best check-row t | Verdict |
+|---|---|---|---|---|---|---|
+| DLAB-ENG-1 | WTI and natural gas, 1994-2011 | 2,015 | 102 | 0 | 1.43 | proposed nothing |
+| DLAB-ETF-1 | 31 US-listed funds, 2007-2019 | 15,349 | 266 | 0 | 1.70 | proposed nothing |
+
+No rule has reached a validation. Neither validation window has been loaded. In the funds' scan 102 rules lost on the
+check rows, 55 of them only after costs, and the rules' check-row t are centred at -0.56: on that panel the average
+rule the methods find loses after a 3 basis point cost.

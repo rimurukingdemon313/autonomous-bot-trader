@@ -259,16 +259,25 @@ def test_a_month_published_for_some_instruments_and_not_for_the_others_is_not_a_
             return None  # the archive has not published this file yet
         if sym == "GONEUSDT" and month == "2020-03":
             return None  # delisted in February: its last close is the 20th
-        if funding:
-            ms = int(datetime(int(month[:4]), int(month[5:]), 1, tzinfo=timezone.utc).timestamp() * 1000)
-            return zipped(f"calc_time,h,rate\n{ms},8,0.0001\n")
-        return zipped(whole_month(month, 100.0, range(1, 21) if (sym, month) == ("GONEUSDT", "2020-02") else None))
-    syms = ("BTCUSDT", "LATEUSDT", "NOFUNDUSDT", "GONEUSDT")
+        if sym in ("ZOMBIEUSDT", "EDGEUSDT") and funding and month >= "2020-02":
+            return None  # delisted in January: no funding since. The archive still prints its last price every day
+        days = range(1, 21) if (sym, month) == ("GONEUSDT", "2020-02") or (sym, month, funding) == ("ZOMBIEUSDT", "2020-01", True) else None
+        if funding:  # a settlement on every day the contract lived
+            y, m = int(month[:4]), int(month[5:])
+            return zipped("calc_time,h,rate\n" + "".join(
+                f"{int(datetime(y, m, d, tzinfo=timezone.utc).timestamp() * 1000)},8,0.0001\n"
+                for d in (days or range(1, int(F.month_end(month)[8:]) + 1))))
+        return zipped(whole_month(month, 100.0, days))
+    syms = ("BTCUSDT", "LATEUSDT", "NOFUNDUSDT", "GONEUSDT", "ZOMBIEUSDT", "EDGEUSDT")
     now = datetime(2020, 4, 10, tzinfo=timezone.utc)
     man = F.crypto_daily(tmp_path, now, first=date(2020, 1, 1), symbols=syms, fetch=fetch, workers=2)
-    # priced on February's last day, and without March's prices or March's funding: late. Delisted in February: not
+    # alive on February's last day, and without March's prices or March's funding: late. Delisted in February: not.
+    # Delisted in January and still priced every day by the archive, March included: not waited for either
     assert man["newest_month"] == "2020-03" and man["late"] == ["LATEUSDT", "NOFUNDUSDT"] and man["failed_count"] == 0
-    assert "2 instruments are priced to the end of 2020-02 and have no whole 2020-03" in man["incomplete"]
+    assert "2 instruments are priced and funded to the end of 2020-02 and have no whole 2020-03" in man["incomplete"]
+    assert "2020-03-31" in json.loads((tmp_path / "close.json").read_text())["ZOMBIEUSDT"]  # its prices are kept as they came
+    assert man["funding_ended"] == {"EDGEUSDT": "2020-01-31", "GONEUSDT": "2020-02-20", "LATEUSDT": "2020-02-29",
+                                    "NOFUNDUSDT": "2020-02-29", "ZOMBIEUSDT": "2020-01-20"} and man["alive_at_the_end"] == 1
     assert "half-published" in man["incomplete"] and "LATEUSDT" in man["incomplete"]
     close = json.loads((tmp_path / "close.json").read_text())
     assert "2020-03-31" in close["BTCUSDT"] and "2020-03-01" not in close["LATEUSDT"]  # what arrived is kept, nothing filled
@@ -277,14 +286,20 @@ def test_a_month_published_for_some_instruments_and_not_for_the_others_is_not_a_
     calls.clear()
     man = F.crypto_daily(tmp_path, now + timedelta(days=1), first=date(2020, 1, 1), symbols=syms, fetch=fetch, workers=2)
     assert man["incomplete"] is None and man["late"] == [] and "2020-03-31" in json.loads((tmp_path / "close.json").read_text())["LATEUSDT"]
-    assert sorted(u.split("/")[-1] for u in calls) == ["GONEUSDT-1d-2020-03.zip", "GONEUSDT-fundingRate-2020-03.zip",
-                                                         "LATEUSDT-1d-2020-03.zip", "LATEUSDT-fundingRate-2020-03.zip",
-                                                         "NOFUNDUSDT-fundingRate-2020-03.zip"]
+    assert man["alive_at_the_end"] == 3 and man["funding_ended"] == {"EDGEUSDT": "2020-01-31", "GONEUSDT": "2020-02-20",
+                                                                     "ZOMBIEUSDT": "2020-01-20"}
+    assert sorted(u.split("/")[-1] for u in calls) == [
+        "EDGEUSDT-fundingRate-2020-02.zip", "EDGEUSDT-fundingRate-2020-03.zip", "GONEUSDT-1d-2020-03.zip",
+        "GONEUSDT-fundingRate-2020-03.zip", "LATEUSDT-1d-2020-03.zip", "LATEUSDT-fundingRate-2020-03.zip",
+        "NOFUNDUSDT-fundingRate-2020-03.zip", "ZOMBIEUSDT-fundingRate-2020-02.zip", "ZOMBIEUSDT-fundingRate-2020-03.zip"]
     # before the tenth, last month is not asked for at all: the archive may hold it for some instruments only
     calls.clear()
     early = F.crypto_daily(tmp_path / "early", datetime(2020, 4, 9, tzinfo=timezone.utc), first=date(2020, 1, 1),
                            symbols=syms, fetch=fetch, workers=2)
-    assert early["newest_month"] == "2020-02" and not any("2020-03" in u for u in calls) and early["incomplete"] is None
+    assert early["newest_month"] == "2020-02" and not any("2020-03" in u for u in calls)
+    # the one case that cannot be told from a late file: a contract whose last funded day is a month's last day. It is
+    # waited for, for that one month. The one delisted on the 20th is not
+    assert early["late"] == ["EDGEUSDT"] and "EDGEUSDT" in early["incomplete"] and "ZOMBIEUSDT" not in early["incomplete"]
 
 
 def test_data_quality_is_measured_and_nothing_is_removed():

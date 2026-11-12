@@ -2,21 +2,19 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 83 فرضية مسجلة، 61 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 84 فرضية مسجلة، 62 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-12 15:37 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-12 23:29 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-12, UTC)
 
-Nothing new today: no idea checked, no test registered, no verdict.
-
 **New hypotheses registered** (each preregistered before any data was read):
 
-- none
+- **DLAB-ETF-1**: DLAB-ETF-1: a discovery scan of us-etf-broad-daily (select). Which causal rules, found by the lab's independent methods on the fit rows, are positive on the check rows, distinct, and worth a registered validation? (`research/preregistrations/DLAB-ETF-1.md`, 600 tests counted)
 
 **Verdicts recorded** (each judged once):
 
-- none
+- **DLAB-ETF-1: FAILED**. Evidence: `research/knowledge/DLAB-ETF-1.json`; matches its verdict: yes
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
@@ -26,11 +24,11 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 | | |
 |---|---|
-| Hypotheses registered | 83 |
-| Verdicts | 73: ABANDONED 2, FAILED 61, INCONCLUSIVE 1, PASSED 9 |
+| Hypotheses registered | 84 |
+| Verdicts | 74: ABANDONED 2, FAILED 62, INCONCLUSIVE 1, PASSED 9 |
 | Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
-| Evidence files that still match their verdict | 54 of 54 checked |
+| Evidence files that still match their verdict | 55 of 55 checked |
 | Specs whose hash is missing from their preregistration | none |
 
 ## Validation status
@@ -59,6 +57,7 @@ Bonferroni over every test already counted on the rows a new test would read, an
 
 | Market data | Judged tests | Discovery charges | Bar over its whole history (t) | Tests on its last five years | Bar there (t) |
 |---|---|---|---|---|---|
+| us-etf-broad-daily | 0 | 600 | 3.935 | 0 | 3.000 |
 | energy-futures-eia | 1 | 400 | 3.837 | 0 | 3.000 |
 | fx-majors | 151 | 25 | 3.631 | 16 | 3.000 |
 | index-cfd-intraday | 10 | 22 | 3.172 | 6 | 3.000 |
@@ -85,6 +84,7 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 
 | Recorded | Hypothesis | Verdict | Preregistration | Spec hash quoted | Evidence file | Matches |
 |---|---|---|---|---|---|---|
+| 2026-11-12 | DLAB-ETF-1 | FAILED | `research/preregistrations/DLAB-ETF-1.md` | yes | `research/knowledge/DLAB-ETF-1.json` | yes |
 | 2026-11-10 | DLAB-ENG-1 | FAILED | `research/preregistrations/DLAB-ENG-1.md` | yes | `research/knowledge/DLAB-ENG-1.json` | yes |
 | 2026-11-10 | LIQ-1 | FAILED | `research/preregistrations/LIQ-1.md` | yes | `research/knowledge/LIQ-1.json` | yes |
 | 2026-11-09 | ENG-1 | FAILED | `research/preregistrations/ENG-1.md` | yes | `research/knowledge/ENG-1.json` | yes |
@@ -109,6 +109,5 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 | 2026-11-04 | FND-1A | FAILED | `research/preregistrations/FND-1A.md` | yes | `research/knowledge/FND-1A.json` | yes |
 | 2026-11-04 | FND-1 | ABANDONED | `research/preregistrations/FND-1.md` | yes | — | — |
 | 2026-11-04 | MEH-1 | FAILED | `research/preregistrations/MEH-1.md` | yes | `research/knowledge/MEH-1.json` | yes |
-| 2026-11-04 | XTS-1 | FAILED | `research/preregistrations/XTS-1.md` | yes | `research/knowledge/XTS-1.json` | yes |
 
 **Matches**: the evidence file's own hash equals the one recorded with its verdict; where none was recorded, the file names the spec (and code) hashes registered before the test. Every verdict is in `research/registry.jsonl`. Each program's command and frozen spec are in its preregistration, and the program refuses to judge if its spec or code no longer match the hashes recorded at registration.
