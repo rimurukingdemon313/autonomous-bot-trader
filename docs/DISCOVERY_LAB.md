@@ -1,8 +1,9 @@
 # The discovery lab
 
 **Research only. Nothing here trades, and nothing here is a profit claim.** The lab looks for rules in data, keeps
-every rule it looks at, and sends the few worth it to a preregistered test. It runs by itself on GitHub's runner
-(`.github/workflows/lab-cycle.yml`), with no person and no open conversation in the loop.
+every rule it looks at, and sends the few worth it to a preregistered test. It is built to run by itself on GitHub's
+runner (`.github/workflows/lab-cycle.yml`), with no person and no open conversation in the loop. What has actually
+run there is in section 13, and nowhere else: a workflow file is not a running process.
 
 Why it was built: `docs/DISCOVERY_AUDIT.md`. In short, the project had only ever tested ideas someone recalled, and
 filtered most of them out before reading any data.
@@ -214,8 +215,8 @@ GitHub's schedule (four slots a day)            workflow_dispatch (by hand)
 | Checkpointing | Each step and each task is logged as it finishes (`runs`); a scan registers before it runs and resumes if it died after registering |
 | Recovery | A task STARTED six hours ago with nothing after it died with its machine and is taken up again. A failed task is retried by later cycles, three times at most, then reported. A scan whose record reached `main` while its queue entry did not is resumed, not repeated |
 | Prioritization | Validation first, then data, forward marks, scans by breadth and by what the market's earlier rules were worth, then sources |
-| Data acquisition | `feeds.py`: Binance's public archive (every file against its published checksum; only the months not yet held), Yahoo's chart endpoint, arXiv and OpenAlex. A file the archive did not answer for is counted and asked for again; what arrived is kept. A scan waits for a fetch with none missing: a panel with holes would be scanned once and never again |
-| Data quality | Each feed writes a manifest: content hash, rows, first and last day, missing days, one-day moves beyond 50% (flagged, never removed). A thin panel is refused |
+| Data acquisition | `feeds.py`: Binance's public archive (every file against its published checksum; only the months not yet held), Yahoo's chart endpoint, arXiv and OpenAlex. A file the archive did not answer for is counted and asked for again; what arrived is kept |
+| Data quality | Each feed writes a manifest: content hash, rows, first and last day, missing days, one-day moves beyond 50% (flagged, never removed), and `incomplete`: why the files are not a whole panel, or nothing. A thin panel is refused, and so is one without the fit rows a scan needs |
 | Budget | A cycle has a task count and a time budget; a task is not started without the time it may need. No model call and no paid service |
 | Automatic experiments | A scan of each panel under each version of the lab; the validation of any batch it proposes |
 | Automatic reporting | `LAB_REPORT.md` on `lab-data`, rewritten every cycle, with an Arabic summary |
@@ -224,6 +225,31 @@ GitHub's schedule (four slots a day)            workflow_dispatch (by hand)
 | Hypothesis genealogy | A rule's `parents` are the rules it was built from (a combination, a book); a hypothesis's are the sources it came from |
 | Duplicate detection | By id (the same spec is never classed twice) and by behaviour (section 5) |
 | No self-approval | The lab approves nothing. A rule is validated only by a preregistered test on unread rows; the integrity check stops a cycle whose record no longer matches its hashes |
+
+**Whole data, or a wait.** A scan and a validation each run once, so neither may start on data with a hole in them.
+The worker waits (a wait is in the report and is not one of a task's three attempts) while:
+
+- a file the archive did not answer for is still missing;
+- the newest month is published for some instruments and not for the others (an instrument priced on the last day of
+  the month before, without the month's prices or without its funding). A month is asked for only from the tenth of
+  the next one;
+- a fund was not served, or was served with a series that stops more than seven days before the calendar's last day.
+  The fund panel on file is then left exactly as it was: it is never rewritten without one of its instruments;
+- for a validation: the files stop more than five days before its window's end. The judge checks the loaded panel
+  again and refuses it (`covers` in `scripts/dlab.py`): a batch judged on a shortened window could never be judged
+  again.
+
+The forward marks follow the same rule and one more: before a mark is written, each validated rule is recomputed on
+its validation rows, exactly as its judge loaded them, and must give the t the judge recorded. If it does not, the
+data or the code have changed since: no mark is written, and the task fails for a person to look (one alert a month,
+not one a day).
+
+**Rehearsed before it was deployed.** The whole cycle was run in a copy of the repository on built data of the real
+panels' shape (55 perpetuals by month from 9,460 archive files, 31 funds and the VIX), through the real parsers, the
+real registry and the real report: once on a market with nothing in it, where neither scan proposed a rule, and once
+with an effect planted, where the scan proposed five rules and the validation passed three. A scan of either panel
+takes under a minute. That rehearsal is what found the holes the list above closes. It says nothing about any real
+market.
 
 **Integrity, each cycle, before anything else.** The seal is the pinned one; the registry loads; every verdict's
 evidence has the hash recorded with it; every preregistration quotes its spec; every run in the candidate ledger is a
@@ -290,3 +316,13 @@ promising (`docs/DISCOVERY_AUDIT.md`).
 | `tests/unit/test_dlab_*.py`, `tests/unit/test_lab_cycle.py` | Built markets where each answer is known by construction |
 | `research/dlab/candidates.jsonl` | Every rule ever classed |
 | `research/dlab/lessons.json` | What the record has taught |
+
+## 13. Deployment status
+
+Only what was confirmed is written here.
+
+| Date (UTC) | What | Evidence |
+|---|---|---|
+| 2026-11-10 | DLAB-ENG-1, the first scan, run by hand under dlab-1.0.0: 102 rules classed, none promising | `research/knowledge/DLAB-ENG-1.json` |
+| 2026-11-12 | The worker rehearsed end to end in a copy of the repository, on built data of the real panels' shape (section 8) | not evidence about any market |
+| 2026-11-12 | The worker on GitHub's runner | **Not yet run.** This line is replaced by the first confirmed run, with its run number, what it did and what it left on `lab-data` |

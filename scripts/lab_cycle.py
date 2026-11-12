@@ -61,7 +61,9 @@ from aitrader.research.registry import Verdict  # noqa: E402
 from scripts.research_engine import SEAL_SHA256  # noqa: E402
 from scripts.research_report import evidence, read_registry  # noqa: E402
 
-CYCLE_VERSION = "lab-cycle-1.0.0"
+#: 1.0.1: a delisted contract the archive still prices is not waited for (the first run on the runner waited for
+#:        eight); the report counts its cycles from one.
+CYCLE_VERSION = "lab-cycle-1.0.1"
 #: The panels the lab scans by itself: dataset -> its run tag, its feed and its nominal breadth. One scan for each
 #: version of the lab: a second look at the same discovery rows under the same methods would find the same rules.
 CATALOG = {"crypto-daily": {"tag": "CRD", "feed": "crypto_daily", "instruments": len(F.PERPS)},
@@ -480,7 +482,7 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
          f"القواعد اللي وصلت اختبار التحقق المستقل: {len(judged)}، ونجح منها {len(passed)}. "
          f"بالطابور هسه {len(waiting)} مهمة. "
          + ("سجل البحث سليم." if not problems else "تنبيه: سجل البحث فشل بفحص السلامة، والمختبر وقّف التجارب."), "",
-         f"Updated {now:%Y-%m-%d %H:%M} UTC · {CYCLE_VERSION} · {DLAB_VERSION} · cycles so far: {len(budget) + 1}", ""]
+         f"Updated {now:%Y-%m-%d %H:%M} UTC · {CYCLE_VERSION} · {DLAB_VERSION} · cycles so far: {len(budget)}", ""]
     if problems:
         o += ["## The record failed its integrity check: no experiment ran", ""] + [f"- {p}" for p in problems] + [""]
     o += ["## This cycle", ""]
@@ -585,6 +587,8 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
                      f"{sum(v.get('missing_days', 0) for v in q)} missing days in all; "
                      f"{sum(v.get('moves_beyond_50pct', 0) for v in q)} one-day moves beyond 50% (flagged, never "
                      f"removed); retrieved {man['retrieved'][:16]} UTC"
+                     + (f"; {man['alive_at_the_end']} priced and funded on the last day, {len(man['funding_ended'])} "
+                        "delisted before it (their later prices make no return)" if "alive_at_the_end" in man else "")
                      + (f" · **NOT COMPLETE: {man['incomplete']}**" if man.get("incomplete") else ""))
     if not any_data:
         o.append("None yet.")

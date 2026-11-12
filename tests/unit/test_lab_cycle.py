@@ -154,7 +154,8 @@ def test_nothing_runs_twice_across_restarts(story):
     ran = [r["step"] for r in sn[5]["runs"] if r["step"].startswith("task:")]
     assert len(ran) == len(set(ran)) == 5  # data, scan, validate, forward, sources
     assert len(story["snap"][4]["feeds"]) == 2  # the month's data once, and once more for the forward marks
-    assert "No task ran" in sn[5]["report"] and len(sn[5]["budget"]) == 5
+    assert "No task ran" in sn[5]["report"] and len(sn[5]["budget"]) == 5 and "cycles so far: 5" in sn[5]["report"]
+    assert "cycles so far: 4" in sn[4]["report"]
     rows = (story["root"] / "research" / "dlab" / "candidates.jsonl").read_text().splitlines()
     rules = [json.loads(x) for x in rows if '"event"' not in x]
     assert len({(r["run"], r["id"]) for r in rules}) == len(rules) > 80  # every rule kept, once
