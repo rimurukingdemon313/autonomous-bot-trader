@@ -126,12 +126,41 @@ def test_a_single_program_is_validated_only_by_its_own_holdout_at_t_2_5():
     weak = from_single(art, {**hold, "months": {"n": 69, "mean": 0.007, "t": 2.4}})  # a sign alone validates nothing
     assert weak.status == "REJECTED" and any("holdout" in c for c in weak.failed_checks)
     assert from_single(art, {**hold, "classification": "REJECTED"}).status == "REJECTED"
-    assert from_single({**art, "verdict": "FAILED", "failed_gates": ["t"]}, hold).status == "REJECTED"
+    lost = {**art, "verdict": "FAILED", "failed_gates": ["t"], "months": {"n": 700, "mean": 0.001, "t": 1.3}}
+    assert from_single(lost, None).status == "REJECTED"  # below t 2: not a near miss
     other = from_single({"program": "Y-1", "verdict": "FAILED", "gates": {"t": False}, "failed_gates": ["t"],
                          "events": {"n": 140, "mean": 0.001, "t": 1.0}}, None)
     assert other.t_stat is None and other.net_expectancy is None  # not a monthly statistic: nothing is guessed
     assert not any(_single({**art, k: v}) for k, v in (("judged", []), ("kind", "trend"), ("stage", 1),
                                                         ("verdict", "PROMOTED")))
+
+
+def test_a_single_program_that_failed_on_the_bar_alone_is_a_near_miss_not_a_rejection():
+    from aitrader.research.discovery.edges import judged_t
+    base = {"program": "N-1", "verdict": "FAILED", "gates": {"t": False, "costs_x2": True}, "failed_gates": ["t"],
+            "threshold_t": 3.39, "days": {"n": 8004, "mean": 7e-5, "t": 2.48}}
+    rec = from_single(base, None)
+    assert rec.status == "PROMISING" and "near miss" in rec.note and "2.48" in rec.note and "3.39" in rec.note
+    assert "Not validated" in rec.note and rec.failed_checks == ("t",)
+    assert rec.t_stat is None  # the monthly field stays empty for a daily statistic: nothing is guessed
+    assert judged_t(base) == ("days", 2.48) and judged_t({"program": "Z"}) == (None, None)
+    # another preregistered gate failed too: a failure, however high its t
+    assert from_single({**base, "failed_gates": ["t", "top_year"]}, None).status == "REJECTED"
+    assert from_single({**base, "failed_gates": ["costs_x2"]}, None).status == "REJECTED"
+    # the bar alone, but its own t is below 2
+    assert from_single({**base, "days": {"n": 8004, "mean": 1e-5, "t": 1.27}}, None).status == "REJECTED"
+    # no statistic recorded where one is looked for: nothing is assumed
+    assert from_single({k: v for k, v in base.items() if k != "days"}, None).status == "REJECTED"
+    assert from_single({**base, "days": {"t": True}}, None).status == "REJECTED"
+
+
+def test_on_the_committed_record_the_three_near_misses_are_promising_and_nothing_else_changed():
+    reg = build(ROOT / "research")
+    status = {e["edge_id"]: e["status"] for e in reg["edges"]}
+    assert {k for k in ("DAY-1", "FXT-1", "TME-1") if status.get(k) == "PROMISING"} == {"DAY-1", "FXT-1", "TME-1"}
+    assert status["VOLM-1"] == "REJECTED"  # the bar alone, but t 1.27
+    assert status["ENG-1"] == "REJECTED" and status["XTS-1"] == "REJECTED"  # a second gate failed
+    assert [k for k, v in status.items() if v == "VALIDATED"] == ["TRND-1"]
 
 
 def test_an_intraday_gate_stored_as_the_string_false_is_a_failed_check():

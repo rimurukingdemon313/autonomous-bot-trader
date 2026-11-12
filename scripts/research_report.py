@@ -31,14 +31,18 @@ import hashlib
 import json
 import re
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from aitrader.research.registry import Holdout, Registry  # noqa: E402
 
-REPORT_VERSION = "research-report-1.0.0"
+#: 1.1.0: each market's tests are split into judged tests and discovery charges, and the bar of a test on its last
+#: five years is shown beside the bar over its whole history (docs/DISCOVERY_AUDIT.md, weakness 3)
+REPORT_VERSION = "research-report-1.1.0"
+RECENT_YEARS = 5.0
+BAR_FLOOR = 3.0
 DROP_HEAD = re.compile(r"^\*\*[^*]*?\b(?:checked|considered|dropped)\b[^*]*?(\d{4}-\d{2}-\d{2})", re.I)
 
 
@@ -109,6 +113,24 @@ def evidence(root: Path, trial: dict, verdict: dict | None) -> dict:
     return out
 
 
+def market_bars(trials: dict[str, dict], reg: Registry, now: datetime) -> dict[str, dict]:
+    """For each market: every test counted on its data and the Bonferroni bar over them all; how many of those were
+    judged tests and how many a discovery step's charge against its own rows; and the tests that touch its last five
+    years, with the bar a new test on those years would face (never below 3.0). A test is charged to the rows it read:
+    a discovery scan of 1994-2011 does not raise the bar of a test on 2025."""
+    end = now.date()
+    start = end - timedelta(days=round(365.25 * RECENT_YEARS))
+    out = {}
+    for u in sorted({x["universe"] for t in trials.values() for x in t.get("uses", [])}):
+        judged = sum(int(t.get("tests") or 0) for t in trials.values()
+                     if any(x["universe"] == u and x.get("role") == "judge" for x in t.get("uses", [])))
+        total = reg.tests_on(u)
+        out[u] = {"tests": total, "next_bar_t": round(reg.threshold_for_next(u), 4), "judged_tests": judged,
+                  "discovery_tests": total - judged, "recent_tests": reg.tests_on(u, start, end),
+                  "recent_bar_t": round(max(BAR_FLOOR, reg.threshold_for_next(u, start, end)), 4)}
+    return out
+
+
 def classification(root: Path) -> dict:
     from aitrader.research.discovery.edges import build
     reg = build(root / "research")
@@ -134,7 +156,6 @@ def build_report(root: Path, day: date, now: datetime, classify=classification, 
     reg = Registry.load(root / "research" / "registry.jsonl", Holdout.load(root / "research" / "holdout.json"))
     drops = queue_drops((root / "research" / "QUEUE.md").read_text())
     d = str(day)
-    universes = sorted({u["universe"] for t in trials.values() for u in t.get("uses", [])})
     pending = []
     for tid, t in trials.items():
         if tid in verdicts:
@@ -163,8 +184,7 @@ def build_report(root: Path, day: date, now: datetime, classify=classification, 
             "pending": pending,
             "dropped_before_building": sum(len(x["ideas"]) for x in drops),
             "drop_checks": len(drops), "drop_days": len({x["date"] for x in drops}),
-            "bars": {u: {"tests": reg.tests_on(u), "next_bar_t": round(reg.threshold_for_next(u), 4)}
-                     for u in universes},
+            "bars": market_bars(trials, reg, now),
             "evidence_checked": sum(1 for c in checked if c["artifact_unchanged"] is not None),
             "evidence_unchanged": sum(1 for c in checked if c["artifact_unchanged"] is True),
             "evidence_changed": [v["trial"] for v, c in zip(verdicts.values(), checked)
@@ -226,7 +246,9 @@ def engine_markdown(e: dict) -> list[str]:
     L += ["**Today:**", ""]
     for i in e["today"]:
         L.append(f"- **{i['decision']}**: {i['title']} ({i['universe']}, {i['horizon']}). {i['why']}"
-                 + ("" if i["decision"] != "REJECTED_BY_CRITIC" else f" (critic: {i.get('critic') or '?'})"))
+                 + ("" if i["decision"] != "REJECTED_BY_CRITIC" else f" (critic: {i.get('critic') or '?'})")
+                 + (f" Class: {i['idea_class']}." if i.get("idea_class") else "")
+                 + (f" Flagged for the loop to check: {i['conditions_flag']}." if i.get("conditions_flag") else ""))
     if not e["today"]:
         L.append("- none")
     L += ["", "**Queued for building** (each waits for its claim to be checked at the source):", ""]
@@ -300,11 +322,15 @@ def markdown(r: dict) -> str:
         L += ["", "Also registered without a verdict here, and counted in every bar: "
               + "; ".join(f"{p['id']} ({p['kind']})" for p in sorted(other, key=lambda p: p["registered"])) + "."]
     L += ["", "## The bar each market's next test must clear", "",
-          "Bonferroni over every test already counted on that market's data. The more an idea's data has been read, "
-          "the higher its bar: discovery never lowers it.", "", "| Market data | Tests counted | Next bar (t) |",
-          "|---|---|---|"]
+          "Bonferroni over every test already counted on the rows a new test would read, and never below 3.0. The "
+          "more those rows have been read, the higher the bar: discovery never lowers it. A test is charged to the "
+          "rows it read. A discovery scan charges hundreds of tests to its own discovery rows, which can then judge "
+          "nothing at an ordinary bar; that charge does not touch the rows it never loaded.", "",
+          "| Market data | Judged tests | Discovery charges | Bar over its whole history (t) | Tests on its last five "
+          "years | Bar there (t) |", "|---|---|---|---|---|---|"]
     for u, b in sorted(c["bars"].items(), key=lambda kv: -kv[1]["tests"]):
-        L.append(f"| {u} | {b['tests']} | {b['next_bar_t']:.3f} |")
+        L.append(f"| {u} | {b['judged_tests']} | {b['discovery_tests']} | {b['next_bar_t']:.3f} | {b['recent_tests']} | "
+                 f"{b['recent_bar_t']:.3f} |")
     seal = r["seal"]
     L += ["", f"The sealed holdout: {seal['universe']} from {seal['start']} (sealed {seal['sealed_at'][:10]}). It is "
               "opened once, by a preregistered final test of a candidate that has passed, and never for discovery.",

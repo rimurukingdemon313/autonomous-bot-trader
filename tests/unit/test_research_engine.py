@@ -22,8 +22,9 @@ ROOT = Path(E.__file__).resolve().parent.parent
 DAY1 = datetime(2026, 11, 10, 4, 47, tzinfo=timezone.utc)
 
 
-def hyp(title, universe="new:ftse-auction", horizon="swing", rule=None, sharpe=1.2, years=12.0):
-    return {"title": title, "mechanism": "forced sellers at a fixed time", "universe": universe, "horizon": horizon,
+def hyp(title, universe="new:ftse-auction", horizon="swing", rule=None, sharpe=1.2, years=12.0, cls="forced flows"):
+    return {"title": title, "mechanism": "forced sellers at a fixed time", "mechanism_class": cls, "universe": universe,
+            "horizon": horizon,
             "rule": rule or f"buy at the close when {title} holds, sell at the next close",
             "data_source": "a public daily series", "evidence": "Someone (2020), Journal: 12 bp a day",
             "claimed_sharpe_annual": sharpe, "years_of_fresh_data": years, "why_new": "never tested here",
@@ -51,11 +52,13 @@ def scripted(proposal, review, proposer="lab-a/model-1", critic="lab-b/model-2")
 
 def three():
     hs = [hyp("a repeat of a dropped family"),
-          hyp("FX majors drift", universe="fx-majors", sharpe=0.5, years=10.0),
-          hyp("closing auction imbalance", universe="new:ftse-auction", sharpe=1.2, years=12.0)]
-    rv = [{"index": 0, "verdict": "REJECT", "reason": "repeats the gotobi flows", "duplicate_of": "FLOW-1"},
-          {"index": 1, "verdict": "PASS", "reason": "plausible", "duplicate_of": None},
-          {"index": 2, "verdict": "PASS", "reason": "plausible", "duplicate_of": None}]
+          hyp("FX majors drift", universe="fx-majors", sharpe=0.5, years=10.0, cls="risk premium"),
+          hyp("closing auction imbalance", universe="new:ftse-auction", sharpe=1.2, years=12.0, cls="liquidity provision")]
+    rv = [{"index": 0, "verdict": "REJECT", "category": "repeats_closed_family", "reason": "repeats the gotobi flows",
+           "duplicate_of": "FLOW-1"},
+          {"index": 1, "verdict": "PASS", "category": None, "reason": "plausible", "duplicate_of": None},
+          {"index": 2, "verdict": "PASS", "category": None, "reason": "plausible", "duplicate_of": None,
+           "conditions_flag": None}]
     return {"hypotheses": hs}, {"reviews": rv}
 
 
@@ -77,9 +80,12 @@ def test_a_cycle_records_every_idea_once_with_the_decision_the_critic_and_the_ar
     got = ideas(tmp_path)
     assert [i["decision"] for i in got] == ["REJECTED_BY_CRITIC", "DROPPED_POWER", "QUEUED_FOR_BUILD"]
     assert got[0]["duplicate_of"] == "FLOW-1" and got[0]["power"] is None  # a rejected idea is never power-checked
-    assert got[1]["power"]["expected_t"] == round(0.5 * 10 ** 0.5, 3) < got[1]["power"]["bar"] > 3.6  # fx-majors
-    from aitrader.research.registry import bonferroni_t
-    assert got[2]["power"]["bar"] == round(bonferroni_t(1), 4)  # data no test here has read: the first test's bar
+    # fx-majors: the bar of the ten fresh years the idea would use, by the tests the registry counts on them
+    assert got[1]["power"]["expected_t"] == round(0.5 * 10 ** 0.5, 3) < got[1]["power"]["bar"] > 3.5
+    assert got[2]["power"]["bar"] == E.BAR_FLOOR == 3.0  # data no test here has read: the floor every program is judged at
+    assert [i["idea_class"] for i in got] == ["REPEATS_CLOSED_FAMILY", "INSUFFICIENT_POWER", "UNTESTED_HYPOTHESIS"]
+    assert got[0]["critic_category"] == "repeats_closed_family" and got[1]["power"]["plan"]["ways"]
+    assert [i["mechanism_class"] for i in got] == ["forced flows", "risk premium", "liquidity provision"]
     assert all(i["proposer"] == "lab-a/model-1" and i["critic"] == "lab-b/model-2" for i in got)
     assert [c["role"] for c in ask.calls] == ["researcher", "critic"]
     assert ask.calls[1]["avoid"] == ("lab-a/model-1",)  # the critic may never be the proposer's model
@@ -107,7 +113,8 @@ def test_the_same_idea_another_day_is_never_recorded_again_however_it_is_worded(
     E.Engine(ROOT, tmp_path, scripted(*three()), DAY1).run()
     old = hyp("closing auction imbalance", rule="BUY at the close when closing auction imbalance holds; sell at "
               "the NEXT close.")
-    new = hyp("a genuinely different idea", universe="new:gold-fix", rule="buy gold at the London PM fix")
+    new = hyp("a genuinely different idea", universe="new:gold-fix", rule="buy gold at the London PM fix",
+              cls="macro and policy")
     rv = {"reviews": [{"index": 0, "verdict": "PASS", "reason": "ok", "duplicate_of": None},
                       {"index": 1, "verdict": "PASS", "reason": "ok", "duplicate_of": None}]}
     res = E.Engine(ROOT, tmp_path, scripted({"hypotheses": [old, new]}, rv), DAY1 + timedelta(days=1)).run()
@@ -136,7 +143,7 @@ def test_the_state_restored_elsewhere_carries_on_as_if_never_stopped(tmp_path):
     ({"hypotheses": [hyp("x", universe="Bitcoin")]}, None, "neither a listed market"),
     ({"hypotheses": [hyp("x")]}, None, "the critic gave no usable answer"),
     ({"hypotheses": [hyp("x")]}, {"reviews": [{"index": 0, "verdict": "MAYBE", "reason": "?"}]}, "PASS or REJECT"),
-    ({"hypotheses": [hyp("x"), hyp("y", rule="other")]},
+    ({"hypotheses": [hyp("x"), hyp("y", rule="other", cls="volatility")]},
      {"reviews": [{"index": 0, "verdict": "PASS", "reason": "ok"}]}, "exactly 2"),
 ])
 def test_a_model_that_fails_or_answers_out_of_schema_records_nothing_and_is_never_repaired(tmp_path, proposal,
@@ -290,6 +297,119 @@ def test_the_power_gate_is_arithmetic_and_an_implausible_claim_is_dropped():
     assert E.decide(hyp("x", sharpe=0.9, years=9.0), 2.5)[0] == "QUEUED_FOR_BUILD"  # expects t 2.7
 
 
+def test_an_idea_that_cannot_reach_its_bar_is_kept_with_a_plan_not_dropped_in_silence():
+    decision, why, pw = E.decide(hyp("x", sharpe=0.5, years=4.0), 3.0)  # expects t 1.0 against 3.0
+    assert decision == "DROPPED_POWER" and E.idea_class(decision, None) == "INSUFFICIENT_POWER"
+    plan = pw["plan"]
+    assert plan["years_of_fresh_data_needed"] == 36.0  # (3.0 / 0.5) squared: t grows with the square root of the years
+    assert plan["independent_instruments_needed"] == 9  # (3.0 / 1.0) squared: or of the instruments in one book
+    assert "kept with a plan" in why and "36 years" in why and "9 independent instruments" in why
+    assert E.decide(hyp("x", sharpe=1.6, years=4.0), 3.0)[2].get("plan") is None  # one that can pass needs none
+    assert E.idea_class("QUEUED_FOR_BUILD", None) == "UNTESTED_HYPOTHESIS"  # queued is untested, not promising
+
+
+def test_a_critic_must_name_one_of_five_reasons_and_short_selling_is_not_one():
+    ok = {"index": 0, "verdict": "PASS", "category": None, "reason": "fine", "duplicate_of": None}
+    assert E.validate_review({"reviews": [ok]}, 1) is None
+    # the first production cycle's rejection, word for word: no category, and a reason that breaks no condition
+    said = {"index": 0, "verdict": "REJECT", "duplicate_of": None,
+            "reason": "Violates owner's swap-free/no interest-bearing instrument condition (requires short selling and leverage)."}
+    assert "needs a category" in E.validate_review({"reviews": [said]}, 1)
+    assert "needs a category" in E.validate_review({"reviews": [{**said, "category": "breaks_owner_conditions"}]}, 1)
+    assert "name the family" in E.validate_review({"reviews": [{**said, "category": "repeats_closed_family"}]}, 1)
+    assert E.validate_review({"reviews": [{**said, "category": "no_mechanism"}]}, 1) is None
+    assert "carries no category" in E.validate_review({"reviews": [{**ok, "category": "no_mechanism"}]}, 1)
+    assert "conditions_flag" in E.validate_review({"reviews": [{**ok, "conditions_flag": "needs short selling"}]}, 1)
+    assert E.validate_review({"reviews": [{**ok, "conditions_flag": "needs_overnight_financing"}]}, 1) is None
+    assert "ARE allowed" in E.SYSTEM_PROPOSER and "SHORT\nSELLING AND LEVERAGE ARE ALLOWED" in E.SYSTEM_CRITIC
+    assert set(E.REJECTIONS.values()) >= {"SCIENTIFICALLY_INVALID", "INSUFFICIENT_DATA", "REPEATS_CLOSED_FAMILY"}
+
+
+def test_a_doubt_about_the_owners_conditions_is_a_flag_for_the_loop_and_the_arithmetic_still_decides(tmp_path):
+    hs = [hyp("short the richest perpetual", universe="new:perp-basis", sharpe=1.9, years=4.0, cls="risk premium")]
+    flagged = {"reviews": [{"index": 0, "verdict": "PASS", "category": None, "reason": "it may need financing overnight",
+                            "duplicate_of": None, "conditions_flag": "needs_overnight_financing"}]}
+    E.Engine(ROOT, tmp_path, scripted({"hypotheses": hs}, flagged), DAY1).run()
+    got = ideas(tmp_path)
+    assert len(got) == 1 and got[0]["decision"] == "QUEUED_FOR_BUILD"  # 1.9 x sqrt(4) = 3.8 against 3.0
+    assert got[0]["conditions_flag"] == "needs_overnight_financing" and got[0]["critic_verdict"] == "PASS"
+    # the old way of saying it is out of schema: the next model is asked, and nothing is recorded on its word
+    old = {"reviews": [{"index": 0, "verdict": "REJECT", "reason": "requires short selling", "duplicate_of": None}]}
+    res = E.Engine(ROOT, tmp_path / "b", scripted({"hypotheses": hs}, old), DAY1).run()
+    assert res.ideas.startswith("FAILED: the critic gave no usable answer") and ideas(tmp_path / "b") == []
+
+
+def test_an_idea_is_gated_on_its_own_windows_bar_and_never_below_three(tmp_path):
+    eng = E.Engine(ROOT, tmp_path, None, DAY1)
+    reg = eng._registry()
+    recent = eng.bar_for(hyp("x", universe="energy-futures-eia", years=2.0), reg)
+    whole = eng.bar_for(hyp("x", universe="energy-futures-eia", years=30.0), reg)
+    assert recent == 3.0  # the discovery scan charged rows from 1994 to 2011: not the rows of a test on 2024-2026
+    assert whole > 3.5 and reg.tests_on("energy-futures-eia") > 400  # an idea that reaches back into them pays for it
+    assert eng.bar_for(hyp("x", universe="new:never-read", years=50.0), reg) == 3.0  # the floor, not a first test's 2.24
+    assert 3.5 < eng.bar_for(hyp("x", universe="fx-majors", years=10.0), reg) < eng.bar_for(
+        hyp("x", universe="fx-majors", years=60.0), reg)  # the more of the read years an idea needs, the higher
+    bars = eng.bars()
+    assert bars["energy-futures-eia"]["tests"] == 0 and bars["energy-futures-eia"]["next_bar_t"] == 3.0
+    assert bars["energy-futures-eia"]["tests_ever"] > 400 and all(b["next_bar_t"] >= 3.0 for b in bars.values())
+
+
+def test_a_cycles_ideas_come_from_different_mechanism_classes_and_the_least_used_are_listed_first(tmp_path):
+    same = {"hypotheses": [hyp("a"), hyp("b", rule="another rule entirely")]}
+    assert "different mechanism classes" in E.validate_proposal(same, set())
+    assert "mechanism_class must be one of" in E.validate_proposal({"hypotheses": [hyp("a", cls="chart pattern")]}, set())
+    assert E.validate_proposal({"hypotheses": [hyp("a"), hyp("b", cls="volatility")]}, set()) is None
+    ask = scripted(*three())
+    E.Engine(ROOT, tmp_path, ask, DAY1).run()
+    eng = E.Engine(ROOT, tmp_path, None, DAY1 + timedelta(days=1))
+    counts = eng.classes()
+    assert counts["forced flows"] == counts["risk premium"] == counts["liquidity provision"] == 1 and sum(counts.values()) == 3
+    ask2 = scripted(None, None)
+    E.Engine(ROOT, tmp_path, ask2, DAY1 + timedelta(days=1)).run()
+    listing = ask2.calls[0]["messages"][1]["content"].split("Mechanism classes proposed here so far (fewest first):")[1]
+    order = [x[2:].split(":")[0] for x in listing.split("\n\n")[0].strip().splitlines()]
+    assert order[-3:] == ["forced flows", "risk premium", "liquidity provision"] and len(order) == len(E.MECHANISMS)
+    assert order[0] == "information diffusion"  # never proposed: first
+
+
+def test_a_family_dropped_for_power_stays_open_to_a_version_that_answers_it_and_a_critic_closes_nothing(tmp_path):
+    E.Engine(ROOT, tmp_path, scripted(*three()), DAY1).run()
+    # an idea a critic rejected before a rejection needed a named reason: the first production cycle's rows
+    E.append_jsonl(tmp_path / "ideas.jsonl", [{"cycle": "2026-11-09", "fingerprint": "f" * 20, "title": "an old rejection",
+                                               "decision": "REJECTED_BY_CRITIC", "critic_reason": "requires short selling"}])
+    ask = scripted(None, None)
+    E.Engine(ROOT, tmp_path, ask, DAY1 + timedelta(days=1)).run()
+    said = ask.calls[0]["messages"][1]["content"]
+    power = next(x for x in said.splitlines() if x.startswith("- FX majors drift"))
+    assert "dropped for lack of power ONLY" in power and "Open to a version that answers it" in power
+    assert "independent instruments" in power and "tested as one book" in power  # its plan, in the listing
+    old = next(x for x in said.splitlines() if x.startswith("- an old rejection"))
+    assert "before a rejection needed a named reason" in old and "REJECTED" not in old  # not listed as a closed family
+    named = next(x for x in said.splitlines() if x.startswith("- a repeat of a dropped family"))
+    assert "rejected by a critic: repeats_closed_family" in named
+    assert any("[tested: registered and judged]" in x for x in said.splitlines())
+    # the hand-kept queue's drops carry their reason, so "dropped" is never read without its why
+    gotobi = next(x for x in said.splitlines() if x.startswith("- Gotobi USD/JPY flows"))
+    assert "[dropped before any test: Already judged: FLOW-1" in gotobi
+    assert E.queue_reasons("| Idea | Why it was dropped |\n|---|---|\n| A thing | too weak |\n\n| Other | x |\n| B | y |") == {"A thing": "too weak"}
+    assert "dropped for lack of power ONLY" in E.SYSTEM_CRITIC and "only a test, or evidence, closes one" in E.SYSTEM_CRITIC
+    assert "dropped for lack of power ONLY" in E.SYSTEM_PROPOSER
+
+
+def test_the_discovery_labs_lessons_reach_the_proposer(tmp_path):
+    r = copy_repo(tmp_path)
+    assert E.lab_lessons(r) == []  # no lab record there: nothing is invented
+    (r / "research" / "dlab").mkdir()
+    (r / "research" / "dlab" / "lessons.json").write_text(json.dumps({"lessons": ["mkt-a: 40 rules; 0 promising", 7]}))
+    assert E.lab_lessons(r) == ["the discovery lab's record: mkt-a: 40 rules; 0 promising"]
+    ask = scripted(None, None)
+    E.Engine(r, tmp_path / "state", ask, DAY1).run()
+    said = ask.calls[0]["messages"][1]["content"]
+    assert "the discovery lab's record: mkt-a: 40 rules; 0 promising" in said and "breadth:" in said
+    (r / "research" / "dlab" / "lessons.json").write_text("not json")
+    assert E.lab_lessons(r) == []
+
+
 def test_the_engine_cannot_trade_register_or_judge():
     tree = ast.parse((ROOT / "scripts" / "research_engine.py").read_text())
     imported = {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module} | \
@@ -306,6 +426,7 @@ def test_the_cycle_writes_its_report_with_the_engine_kept_apart(tmp_path, capsys
     text = (tmp_path / "RESEARCH_REPORT.md").read_text()
     engine = text.split("## The autonomous engine's ideas")[1].split("## Validation status")[0]
     assert "QUEUED_FOR_BUILD**: closing auction imbalance" in engine and "REJECTED_BY_CRITIC" in engine
+    assert "Class: UNTESTED_HYPOTHESIS." in engine and "Class: INSUFFICIENT_POWER." in engine and "kept with a plan" in engine
     assert "closing auction imbalance (new:ftse-auction; queued 2026-11-10" in engine
     assert "RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT" in text
     js = json.loads((tmp_path / "RESEARCH_REPORT.json").read_text())

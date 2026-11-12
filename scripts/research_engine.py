@@ -14,13 +14,21 @@ steps, each recorded in `cycles.jsonl`:
    - **Propose.** A proposer model (OpenRouter, role "researcher") suggests up to three hypotheses in a strict
      schema. The context it gets: every family already tested, the bar on each market, the costs, the seal, and the
      owner's conditions.
-   - **Challenge.** A critic on a different model can only REJECT a hypothesis: a repeat, no mechanism, an
-     implausible claim, a leak.
-   - **Power gate.** It is deterministic. Each surviving hypothesis is checked against its market's Bonferroni bar,
-     at the strength the proposer claims. One that cannot reach the bar even then is DROPPED. One that can is
+   - **Propose.** The three hypotheses must come from three different mechanism classes; the context lists how often
+     each class has been proposed, fewest first.
+   - **Challenge.** A critic on a different model can only REJECT a hypothesis, and only for one of five named
+     reasons: a repeat of a closed family (which it must name), no mechanism, an implausible claim, a test that cannot
+     be clean, data that cannot be had. Short selling and leverage are allowed and are no reason. A doubt about the
+     owner's conditions (overnight financing, an interest-bearing instrument) is a FLAG for the research loop to
+     check, not a rejection: in the first production cycle a critic rejected two ideas for "short selling", which
+     breaks no condition, and nothing could overrule it (docs/DISCOVERY_AUDIT.md).
+   - **Power gate.** It is deterministic. Each surviving hypothesis is checked at the strength the proposer claims
+     against the bar of ITS OWN window (the tests the registry counts on the fresh years it would use), never below
+     3.0. One that cannot reach the bar even then is DROPPED_POWER and **kept with a plan**: the years of fresh data,
+     or the number of independent instruments tested as one book, that would make it testable. One that can is
      QUEUED_FOR_BUILD. A claimed net Sharpe ratio above 2 is DROPPED as a likely error or leak.
-   - **Record.** Every hypothesis is written to `ideas.jsonl` with its fingerprint, the models, the critic's reason,
-     the power figures and the decision.
+   - **Record.** Every hypothesis is written to `ideas.jsonl` with its fingerprint, the models, the critic's
+     category and reason, the power figures, its plan, its class and the decision.
 3. **REPORT.** The research report is rebuilt with the ideas ledger.
 
 What it never does: register, test or judge a hypothesis. A QUEUED idea is built by the research loop:
@@ -49,14 +57,34 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
 
-ENGINE_VERSION = "research-engine-1.1.1"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
+ENGINE_VERSION = "research-engine-1.2.0"  # 1.0.1: a failing model is passed over; 1.0.2: room to finish
 #: 1.1.0: the strongest FREE models (openrouter 1.15.0 ranks both roles as the judge), and up to five of them a role.
 #: In the first three production cycles the three models offered all failed: timed out, rate-limited, or cut at
 #: max_tokens while thinking.
 #: 1.1.1 (the fourth cycle, 2026-11-09 23:52): the proposer's prompt states each number's type and range, from the
 #: same constants the validator enforces. One model answered with a claimed Sharpe ratio outside a range the prompt
 #: never stated; it was refused, as before. The validator is unchanged and nothing is repaired.
+#: 1.2.0 (docs/DISCOVERY_AUDIT.md, weaknesses 2, 3 and 7): a critic's rejection needs one of five named reasons, and
+#: the owner's conditions are a flag, not a rejection; an idea is gated on its own window's bar, never below 3.0, and
+#: an underpowered one is kept with a plan; the three ideas of a cycle come from three mechanism classes; the
+#: discovery lab's lessons are in the proposer's context. Each known family is listed with what became of it: one
+#: dropped for power only stays open to a version that answers the lack, and a critic's rejection closes nothing
+#: (the cycle of 2026-11-11 rejected an idea as a repeat of one a critic had wrongly rejected the day before).
 MODEL_TRIES = 5
+BAR_FLOOR = 3.0  # no program is judged below it, so no idea is gated below it
+RECENT_YEARS = 5.0  # the window the context's market table describes
+#: the mechanism classes a cycle's ideas are spread over
+MECHANISMS = ("forced flows", "risk premium", "information diffusion", "liquidity provision", "behavioural bias",
+              "structural or regulatory", "cross-asset linkage", "volatility", "market microstructure",
+              "macro and policy")
+#: why a critic may reject, and the class each reason gives the idea. The owner's conditions are not among them.
+REJECTIONS = {"repeats_closed_family": "REPEATS_CLOSED_FAMILY", "no_mechanism": "NO_MECHANISM",
+              "implausible_claim": "IMPLAUSIBLE_CLAIM", "cannot_be_tested_cleanly": "SCIENTIFICALLY_INVALID",
+              "data_cannot_be_had": "INSUFFICIENT_DATA"}
+#: what a critic may flag about the owner's conditions, for the research loop to check before anything is built
+FLAGS = ("needs_overnight_financing", "interest_bearing_instrument")
+IDEA_CLASSES = {"DROPPED_IMPLAUSIBLE": "IMPLAUSIBLE_CLAIM", "DROPPED_POWER": "INSUFFICIENT_POWER",
+                "QUEUED_FOR_BUILD": "UNTESTED_HYPOTHESIS"}
 #: (low, high]: the numbers a proposal must carry, as the validator enforces them and as the prompt states them
 NUMBERS = {"claimed_sharpe_annual": (0.0, 10.0), "years_of_fresh_data": (0.5, 100.0)}
 #: research/holdout.json, byte for byte. Any change to the seal fails every cycle until a person re-pins it here.
@@ -112,22 +140,64 @@ def power(claimed_sharpe: float, years: float, bar: float) -> dict:
             "expected_t": round(expected, 3), "p_pass": round(1 - _phi(bar - expected), 3)}
 
 
+def plan(pw: dict) -> dict:
+    """What would make an underpowered idea testable: t grows with the square root of the years, and of the number of
+    independent instruments that carry the same mechanism and are tested as one book."""
+    years = (pw["bar"] / pw["claimed_sharpe"]) ** 2
+    n = math.ceil((pw["bar"] / max(pw["expected_t"], 1e-9)) ** 2)
+    return {"years_of_fresh_data_needed": round(years, 1), "independent_instruments_needed": n,
+            "ways": [f"about {years:.0f} years of fresh data at the claimed strength, against the {pw['years']:g} it has",
+                     f"or the same mechanism on about {n} independent instruments over those {pw['years']:g} years, "
+                     "tested as one book"]}
+
+
+def idea_class(decision: str, category: str | None) -> str:
+    """What kind of outcome a decision is, in the lab's terms."""
+    return REJECTIONS[category] if decision == "REJECTED_BY_CRITIC" else IDEA_CLASSES[decision]
+
+
+def lab_lessons(root: Path, cap: int = 10) -> list[str]:
+    """What the discovery lab's own record has taught (research/dlab/lessons.json), where it has run."""
+    try:
+        got = json.loads((Path(root) / "research" / "dlab" / "lessons.json").read_text()).get("lessons", [])
+    except (OSError, ValueError):
+        return []
+    return [f"the discovery lab's record: {x}" for x in got if isinstance(x, str)][:cap]
+
+
+def queue_reasons(text: str) -> dict[str, str]:
+    """Each idea the hand-kept queue dropped before building, with why: the second column of its table."""
+    out: dict[str, str] = {}
+    table, prev = False, ""
+    for line in text.splitlines():
+        if line.startswith("|") and not prev.startswith("|"):
+            table = line.startswith("| Idea")
+        prev = line
+        if table and line.startswith("| ") and not line.startswith("| Idea"):
+            cells = [c.strip() for c in line.split("|")]
+            if len(cells) >= 3 and cells[1]:
+                out[cells[1]] = cells[2]
+    return out
+
+
 def decide(h: dict, bar: float) -> tuple[str, str, dict | None]:
     if h["claimed_sharpe_annual"] > MAX_CLAIMED_SHARPE:
         return ("DROPPED_IMPLAUSIBLE", f"a claimed net Sharpe of {h['claimed_sharpe_annual']} at retail costs is "
                 f"treated as an error or a leak until shown otherwise (above {MAX_CLAIMED_SHARPE})", None)
     pw = power(h["claimed_sharpe_annual"], h["years_of_fresh_data"], bar)
     if pw["expected_t"] < bar:
+        pw["plan"] = plan(pw)
         return ("DROPPED_POWER", f"even at its claimed strength it expects t {pw['expected_t']} against a bar of "
-                f"{pw['bar']}: it cannot pass, so it is not built", pw)
+                f"{pw['bar']}: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: "
+                + "; ".join(pw["plan"]["ways"]), pw)
     return ("QUEUED_FOR_BUILD", f"at its claimed strength it expects t {pw['expected_t']} against {pw['bar']} "
             f"(passes {pw['p_pass']:.0%} of the time); the claim must be verified at its source before it is built", pw)
 
 
 # ── what the models must answer ──────────────────────────────────────────
 
-FIELDS = {"title": 160, "mechanism": 900, "universe": 60, "horizon": 20, "rule": 900, "data_source": 400,
-          "evidence": 900, "why_new": 600, "needs_short_or_leverage": 200}
+FIELDS = {"title": 160, "mechanism": 900, "mechanism_class": 40, "universe": 60, "horizon": 20, "rule": 900,
+          "data_source": 400, "evidence": 900, "why_new": 600, "needs_short_or_leverage": 200}
 
 
 def validate_proposal(data: dict, universes: set[str]) -> str | None:
@@ -142,12 +212,16 @@ def validate_proposal(data: dict, universes: set[str]) -> str | None:
                 return f"hypothesis {i}: {k} must be text of 1 to {n} characters"
         if h["horizon"] not in HORIZONS:
             return f"hypothesis {i}: horizon must be one of {HORIZONS}"
+        if h["mechanism_class"] not in MECHANISMS:
+            return f"hypothesis {i}: mechanism_class must be one of {MECHANISMS}"
         if h["universe"] not in universes and not re.fullmatch(r"new:[a-z0-9-]{3,40}", h["universe"]):
             return f"hypothesis {i}: universe {h['universe']!r} is neither a listed market nor new:<name>"
         for k, (lo, hi) in NUMBERS.items():
             v = h.get(k)
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not lo < v <= hi:
                 return f"hypothesis {i}: {k} must be a number in ({lo}, {hi}]"
+    if len({h["mechanism_class"] for h in hs}) != len(hs):
+        return "the hypotheses must come from different mechanism classes"
     return None
 
 
@@ -162,6 +236,16 @@ def validate_review(data: dict, n: int) -> str | None:
             return "each verdict must be PASS or REJECT"
         if not isinstance(r.get("reason"), str) or not r["reason"].strip() or len(r["reason"]) > 900:
             return "each review needs a reason of 1 to 900 characters"
+        cat, rejected = r.get("category"), r.get("verdict") == "REJECT"
+        if rejected:
+            if cat not in REJECTIONS:
+                return f"a REJECT needs a category, one of {sorted(REJECTIONS)}"
+            if cat == "repeats_closed_family" and not (isinstance(r.get("duplicate_of"), str) and r["duplicate_of"].strip()):
+                return "a repeat must name the family it repeats in duplicate_of"
+        elif cat is not None:
+            return "a PASS carries no category"
+        if r.get("conditions_flag") is not None and r["conditions_flag"] not in FLAGS:
+            return f"conditions_flag must be null or one of {FLAGS}"
     return None
 
 
@@ -171,18 +255,23 @@ SYSTEM_PROPOSER = """You are the hypothesis proposer of a quantitative research 
 A separate critic model, deterministic statistics and preregistered tests decide everything.
 
 Propose up to three NEW trading hypotheses that could earn money net of retail costs. Each must rest on an economic
-mechanism (who is forced or willing to lose, and why that persists), not on a chart pattern. Prefer mechanisms and
-data this lab has never tested. Never propose a family listed as already tested or dropped unless you name genuinely
-new evidence (new data, a new market, a new mechanism) in why_new.
+mechanism (who is forced or willing to lose, and why that persists), not on a chart pattern. The hypotheses must come
+from DIFFERENT mechanism classes (mechanism_class): the context lists how often each class has been proposed here, and
+the classes proposed least come first. Prefer mechanisms and data this lab has never tested. Never propose a family listed as already tested or dropped unless you name genuinely
+new evidence (new data, a new market, a new mechanism) in why_new. A family listed as dropped for lack of power ONLY
+may be proposed again in a form that answers the lack: on many more instruments tested as one book, or many more
+years. Say in why_new how your version answers it.
 
 Hard conditions (the owner's):
 - the account is a swap-free (Islamic) CFD account: spread, slippage and commission, no overnight financing, and no
   interest-bearing instrument (no bonds, no carry earned as interest);
-- say plainly in needs_short_or_leverage whether it needs short selling or leverage;
+- short selling and leverage ARE allowed: say plainly in needs_short_or_leverage whether the idea needs either;
 - research and paper only.
 
 Statistical facts of this lab:
-- every market's data has a Bonferroni bar (listed) that grows with each test on it;
+- no test is judged below t 3.0, and a market's bar (listed) rises with each test on the rows a new test would use;
+- one rule traded on many instruments at once is ONE test with many times the data: a small effect present in fifty
+  instruments can pass where the same effect in one instrument cannot. Say in the rule how many instruments it spans;
 - the FX majors from 2017 on are a sealed holdout and cannot be used for discovery;
 - real effects have repeatedly shown before costs and vanished after them;
 - many published anomalies faded after publication.
@@ -190,8 +279,9 @@ So claim only what the source supports: claimed_sharpe_annual is the NET annual 
 after retail costs, and years_of_fresh_data is how many years of data NOT already read by this lab a test could use.
 Overstating either only wastes a test; a claim is checked at its source before anything is built.
 
-Answer with JSON only: {"hypotheses": [{"title", "mechanism", "universe", "horizon", "rule", "data_source",
-"evidence", "claimed_sharpe_annual", "years_of_fresh_data", "why_new", "needs_short_or_leverage"}]}
+Answer with JSON only: {"hypotheses": [{"title", "mechanism", "mechanism_class", "universe", "horizon", "rule",
+"data_source", "evidence", "claimed_sharpe_annual", "years_of_fresh_data", "why_new", "needs_short_or_leverage"}]}
+- mechanism_class: exactly one of: """ + ", ".join(MECHANISMS) + """;
 - universe: one of the listed markets, or "new:<short-name>" for data no test here has used;
 - horizon: one of scalping, intraday, swing, position;
 - rule: exact entry, exit and sizing-free position rule, with no look-ahead;
@@ -204,20 +294,38 @@ An answer that breaks any of these is discarded whole, never corrected.
 """
 
 SYSTEM_CRITIC = """You are the independent critic of a quantitative research lab. You can only REJECT; you cannot
-approve, add, change or repair a hypothesis. Reject each hypothesis that:
-- repeats a family already tested or dropped (name it) without genuinely new evidence;
-- has no economic mechanism, or one that would not survive after publication;
-- claims more than its evidence could support, or a net Sharpe ratio implausible at retail costs;
-- cannot be tested without look-ahead, survivorship bias or data leakage, or on data that cannot be had;
-- breaks the owner's conditions (swap-free, no interest-bearing instrument).
-Otherwise PASS it to the statistics, which decide. Answer with JSON only:
-{"reviews": [{"index": <int>, "verdict": "PASS" | "REJECT", "reason": "<why>", "duplicate_of": "<family or null>"}]}
+approve, add, change or repair a hypothesis. You may reject a hypothesis for one of these five reasons only, and you
+must name the reason in "category":
+- repeats_closed_family: it repeats a family already tested or dropped, without genuinely new evidence. Name that
+  family in duplicate_of. A family whose entry says it was dropped for lack of power ONLY is not closed to a version
+  that answers the lack (the same mechanism on many more instruments tested as one book, or on many more years): such
+  a version is new. Nor is a family closed because an earlier critic rejected it: only a test, or evidence, closes one;
+- no_mechanism: it has no economic mechanism, or one that would not survive after publication;
+- implausible_claim: it claims more than its evidence could support, or a net Sharpe ratio implausible at retail costs;
+- cannot_be_tested_cleanly: it cannot be tested without look-ahead, survivorship bias or data leakage;
+- data_cannot_be_had: it needs data that does not exist or cannot be obtained.
+Otherwise PASS it to the statistics, which decide. A PASS has "category": null.
+
+The owner's account is swap-free: it pays no overnight financing and holds no interest-bearing instrument. SHORT
+SELLING AND LEVERAGE ARE ALLOWED and are never a reason to reject. If a hypothesis would need overnight financing or
+an interest-bearing instrument, do NOT reject it for that: set "conditions_flag" to "needs_overnight_financing" or
+"interest_bearing_instrument", and the research loop will check it before anything is built. Otherwise
+"conditions_flag" is null.
+
+Answer with JSON only:
+{"reviews": [{"index": <int>, "verdict": "PASS" | "REJECT", "category": "<one of the five, or null>",
+"reason": "<why>", "duplicate_of": "<family or null>", "conditions_flag": "<one of the two, or null>"}]}
+An answer that breaks any of these is discarded whole, never corrected.
 """
 
 
-def context(known: list[str], bars: dict[str, dict], lessons: list[str]) -> str:
-    lines = ["Markets (universe: tests already counted, the next test's bar t):"]
+def context(known: list[str], bars: dict[str, dict], lessons: list[str], classes: dict[str, int] | None = None) -> str:
+    lines = ["Markets (universe: tests counted on its last five years, and the bar a new test on those years would "
+             "face; no bar is below 3.0):"]
     lines += [f"- {u}: {b['tests']} tests, bar {b['next_bar_t']:.3f}" for u, b in sorted(bars.items())]
+    if classes is not None:
+        lines += ["", "Mechanism classes proposed here so far (fewest first):"]
+        lines += [f"- {c}: {n}" for c, n in sorted(classes.items(), key=lambda kv: (kv[1], MECHANISMS.index(kv[0])))]
     lines += ["", "Lessons from the record:"] + [f"- {x}" for x in lessons]
     lines += ["", f"Families already tested or dropped ({len(known)}):"] + [f"- {k}" for k in known]
     return "\n".join(lines)
@@ -228,6 +336,8 @@ LESSONS = [
     "power: with years of daily data, a net Sharpe below about 1 cannot reach a bar near 3; monthly rules need decades",
     "publication: most published calendar and flow anomalies tested here had faded in the years after their papers",
     "the one VALIDATED rule (TRND-1) is a slow trend filter on stock indices: the equity premium with smaller crashes",
+    "breadth: on one instrument's daily data only an edge with a gross Sharpe ratio near 1.5 or more can be confirmed; "
+    "the same small effect in many instruments, traded as one book, is one test with many times the data",
 ]
 
 
@@ -286,21 +396,60 @@ class Engine:
         return problems
 
     def known_families(self) -> list[str]:
+        """Every family the lab has met, each with what became of it. A family that was only dropped for lack of power
+        says so, with its plan: it is open to a version that answers the lack, and a critic that reads "dropped"
+        alone would close it for ever (the second production cycle rejected an idea as a repeat of one the first
+        cycle's critic had rejected for a reason that broke no rule)."""
         from scripts.research_report import queue_drops, read_registry
         trials, _ = read_registry(self.root)
-        out = [t.get("title") or t["id"] for t in trials.values()]
-        out += [i for x in queue_drops((self.root / "research" / "QUEUE.md").read_text()) for i in x["ideas"]]
-        out += [f"{i['title']} ({i['decision']})" for i in read_jsonl(self.ideas_path)]
-        return [x[:200] for x in out]
+        text = (self.root / "research" / "QUEUE.md").read_text()
+        why = queue_reasons(text)
+        out = [f"{t.get('title') or t['id']} [tested: registered and judged]"[:420] for t in trials.values()]
+        out += [f"{i} [dropped before any test: {why.get(i, 'see the queue')}]"[:420]
+                for x in queue_drops(text) for i in x["ideas"]]
+        for i in read_jsonl(self.ideas_path):
+            if i["decision"] == "DROPPED_POWER":
+                ways = "; ".join(((i.get("power") or {}).get("plan") or {}).get("ways", [])) or "more instruments as one book, or more years"
+                label = f"proposed here, never tested, dropped for lack of power ONLY. Open to a version that answers it: {ways}"
+            elif i["decision"] == "REJECTED_BY_CRITIC" and not i.get("critic_category"):
+                label = ("proposed here, never tested; rejected by a critic before a rejection needed a named reason. "
+                         "Its second look is in the queue's dropped list")
+            elif i["decision"] == "REJECTED_BY_CRITIC":
+                label = f"proposed here, never tested; rejected by a critic: {i['critic_category']}"
+            else:
+                label = f"proposed here: {i['decision']}"
+            out.append(f"{i['title']} [{label}]"[:420])
+        return out
+
+    def _registry(self):
+        from aitrader.research.registry import Holdout, Registry
+        return Registry.load(self.root / "research" / "registry.jsonl",
+                             Holdout.load(self.root / "research" / "holdout.json"))
 
     def bars(self) -> dict[str, dict]:
-        from aitrader.research.registry import Holdout, Registry
+        """For each market: the tests that touch its last five years, and the bar a new test on those years would
+        face. An idea is gated on its own window (`bar_for`), not on a market's whole life: a test on rows from 1994
+        does not raise the bar of a test on rows from 2025."""
         from scripts.research_report import read_registry
         trials, _ = read_registry(self.root)
-        reg = Registry.load(self.root / "research" / "registry.jsonl",
-                            Holdout.load(self.root / "research" / "holdout.json"))
+        reg = self._registry()
+        end = self.now.date()
+        start = end - timedelta(days=round(365.25 * RECENT_YEARS))
         us = sorted({u["universe"] for t in trials.values() for u in t.get("uses", [])})
-        return {u: {"tests": reg.tests_on(u), "next_bar_t": reg.threshold_for_next(u)} for u in us}
+        return {u: {"tests": reg.tests_on(u, start, end), "tests_ever": reg.tests_on(u),
+                    "next_bar_t": max(BAR_FLOOR, reg.threshold_for_next(u, start, end))} for u in us}
+
+    def bar_for(self, h: dict, reg) -> float:
+        """The bar of the idea's own test: every test the registry counts on the fresh years it would use, and never
+        below the floor every program is judged at."""
+        end = self.now.date()
+        start = end - timedelta(days=round(365.25 * h["years_of_fresh_data"]))
+        return max(BAR_FLOOR, reg.threshold_for_next(h["universe"], start, end))
+
+    def classes(self) -> dict[str, int]:
+        """How often each mechanism class has been proposed: what the proposer is asked to spread its ideas over."""
+        seen = [i.get("mechanism_class") for i in read_jsonl(self.ideas_path)]
+        return {c: seen.count(c) for c in MECHANISMS}
 
     def ideas_done_today(self) -> bool:
         if any(i["cycle"] == self.cycle for i in read_jsonl(self.ideas_path)):
@@ -330,8 +479,8 @@ class Engine:
         if self.ask is None:
             return "FAILED: no model client (OPENROUTER_API_KEY is not set)", []
         bars = self.bars()
-        from aitrader.research.registry import bonferroni_t
-        ctx = context(self.known_families(), bars, LESSONS)
+        reg = self._registry()
+        ctx = context(self.known_families(), bars, LESSONS + lab_lessons(self.root), self.classes())
         msgs = [{"role": "system", "content": SYSTEM_PROPOSER},
                 {"role": "user", "content": f"Cycle {self.cycle}.\n\n{ctx}\n\nPropose up to {MAX_IDEAS}."}]
         ok, status, prop, proposer, err = self._ask("researcher", msgs, lambda d: validate_proposal(d, set(bars)), ())
@@ -358,7 +507,7 @@ class Engine:
                 continue  # the same idea again: never recorded or built twice
             seen.add(fp)
             r = reviews[n]
-            bar = bars[h["universe"]]["next_bar_t"] if h["universe"] in bars else bonferroni_t(1)
+            bar = self.bar_for(h, reg)
             if r["verdict"] == "REJECT":
                 decision, why, pw = "REJECTED_BY_CRITIC", r["reason"], None
             else:
@@ -367,8 +516,10 @@ class Engine:
                          "proposer": proposer, "critic": critic, **{k: h[k] for k in FIELDS},
                          "claimed_sharpe_annual": h["claimed_sharpe_annual"],
                          "years_of_fresh_data": h["years_of_fresh_data"], "critic_verdict": r["verdict"],
-                         "critic_reason": r["reason"], "duplicate_of": r.get("duplicate_of"), "power": pw,
-                         "decision": decision, "why": why, "version": ENGINE_VERSION})
+                         "critic_category": r.get("category"), "critic_reason": r["reason"],
+                         "duplicate_of": r.get("duplicate_of"), "conditions_flag": r.get("conditions_flag"),
+                         "power": pw, "decision": decision, "idea_class": idea_class(decision, r.get("category")),
+                         "why": why, "version": ENGINE_VERSION})
         append_jsonl(self.ideas_path, rows)
         return "OK", rows
 
@@ -416,5 +567,6 @@ def openrouter_ask(env: dict | None = None) -> Ask | None:
     return ask
 
 
-__all__ = ["DECISIONS", "ENGINE_VERSION", "Engine", "SEAL_SHA256", "decide", "fingerprint", "openrouter_ask",
-           "power", "read_jsonl", "validate_proposal", "validate_review"]
+__all__ = ["BAR_FLOOR", "DECISIONS", "ENGINE_VERSION", "Engine", "FLAGS", "MECHANISMS", "REJECTIONS", "SEAL_SHA256",
+           "decide", "fingerprint", "idea_class", "lab_lessons", "openrouter_ask", "plan", "power", "queue_reasons",
+           "read_jsonl", "validate_proposal", "validate_review"]

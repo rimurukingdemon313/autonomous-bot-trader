@@ -1,0 +1,107 @@
+# The autonomous discovery lab (docs/DISCOVERY_LAB.md): several times a day on GitHub's runner, with no person and no
+# open conversation in the loop. RESEARCH ONLY: no broker, no account, no order, no trading rule touched, no model
+# call, no paid service. Each cycle (scripts/lab_cycle.py):
+# - restores the lab's memory and data from the lab-data branch (every run is a restart on a fresh machine);
+# - checks the permanent research record, and stops before any experiment if it fails;
+# - fetches the data that are due, from public archives, each file checked;
+# - runs the most valuable queued tasks inside its budget: a discovery scan (registered before it runs), the
+#   preregistered validation of what a scan found promising, the week's new papers, the forward marks of any rule
+#   that passed its validation;
+# - learns from every classed rule, writes LAB_REPORT.md and raises an issue for anything the owner must see.
+# The registry and each experiment's spec, preregistration and evidence go to main (those paths only); the memory, the
+# data and the report go to lab-data.
+name: Lab cycle (autonomous discovery, research only)
+on:
+  schedule:
+    # GitHub's cron is best-effort: a run may start hours late or not at all. Four slots a day; a cycle with nothing
+    # due does nothing, and a task never runs twice.
+    - cron: "41 3 * * *"
+    - cron: "11 10 * * *"
+    - cron: "41 15 * * *"
+    - cron: "11 21 * * *"
+  workflow_dispatch:
+    inputs:
+      max_tasks:
+        description: "Tasks this cycle may run"
+        default: "4"
+      max_minutes:
+        description: "Minutes this cycle may spend"
+        default: "45"
+permissions:
+  contents: write
+  issues: write   # an alert is an issue on this repository
+  actions: write  # to keep this schedule enabled through GitHub's 60-day inactivity rule
+concurrency:
+  group: lab-cycle
+  cancel-in-progress: false
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the lab's memory and data from lab-data
+        run: |
+          git config user.name "lab-cycle"; git config user.email "lab-cycle@users.noreply.github.com"
+          if git fetch -q origin lab-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan lab-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          mkdir -p state
+          if [ -d pub/state ]; then cp -r pub/state/. state/; fi
+      - name: Run one cycle
+        id: cycle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python scripts/lab_cycle.py --state state \
+            --max-tasks "${{ github.event.inputs.max_tasks || '4' }}" \
+            --max-minutes "${{ github.event.inputs.max_minutes || '45' }}" 2>&1 | tee cycle.log
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+      - name: Commit the registry and each experiment's record to main
+        if: always()
+        run: |
+          # Those paths only: the registry, the lab's specs, preregistrations and evidence, its ledger and lessons.
+          for p in research/registry.jsonl 'research/specs/DLAB-*.json' 'research/preregistrations/DLAB-*.md' \
+                   'research/knowledge/DLAB-*.json' research/dlab; do
+            git add -- "$p" 2>/dev/null || true  # a pattern with no file yet is not an error
+          done
+          if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi
+          git commit -qm "lab cycle $(date -u +%Y-%m-%dT%H:%MZ): the registry and the experiments' records"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:refs/heads/main && exit 0
+            # main moved: replay this cycle's commit on top of it. The registry is append-only on both sides, so a
+            # conflict there means two writers appended at once: stop, and let the next cycle redo the work.
+            git fetch -q origin main && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
+            sleep $((i * 15))
+          done
+          echo "the cycle's records could not be pushed to main"; exit 1
+      - name: Publish the memory, the data and the report to lab-data
+        if: success() || steps.cycle.outputs.code == '1'
+        run: |
+          mkdir -p pub/state
+          cp -r state/. pub/state/
+          if [ -f state/LAB_REPORT.md ]; then cp state/LAB_REPORT.md pub/LAB_REPORT.md; fi
+          cd pub
+          git add -A .
+          git commit -qm "lab cycle $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/lab-data && exit 0; sleep $((i * 20)); done
+          exit 1
+      - name: Keep the schedule enabled through the 60-day look
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/lab-cycle.yml/enable" || true
+      - name: Fail visibly when the record fails its integrity check
+        run: |
+          code="${{ steps.cycle.outputs.code }}"
+          if [ "$code" != "0" ]; then echo "the cycle exited $code: see LAB_REPORT.md on lab-data"; exit 1; fi

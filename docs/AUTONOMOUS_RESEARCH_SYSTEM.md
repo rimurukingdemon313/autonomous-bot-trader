@@ -83,7 +83,7 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 
 | # | Requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule with a backup, and on demand | On demand: five runs, each a success. On schedule: first due 2026-11-10 04:47 UTC, **not yet observed** |
+| 1 | Automatic research-cycle execution | `research-cycle.yml`, daily schedule with a backup, and on demand | On demand: five runs, each a success. On schedule: **observed**. The schedule started runs by itself on 2026-11-10 at 13:02 and 21:50 UTC (the second: run 42908855938), each a success, each hours after its slot |
 | 2 | Autonomous hypothesis generation | The proposer and critic models in every cycle; nobody supplies an idea | Tested (`test_research_engine.py`). In production: **first observed 2026-11-10 00:13 UTC** (run 42726657914), after four failed cycles (below) |
 | 3 | Permanent experiment history | `research/registry.jsonl` (append-only, enforced), knowledge files whose hashes every cycle re-checks, `ideas.jsonl` and `cycles.jsonl` (append-only), the desk's hash-chained events | `test_research_report.py`, `test_desk_ledger.py` |
 | 4 | Automated statistical validation | The integrity checks and the power gate run every cycle. The preregistered gates and Bonferroni bars of each program judge it | `test_research_engine.py`, `test_research_report.py`, each program's tests |
@@ -92,7 +92,7 @@ This is the project's rule 5 ("AI can only subtract") applied to research.
 | 7 | Recovery from simulated failures | Simulated: a provider down, a crash inside the step, a crash after the write, a model out of schema, a critic out of schema, a ledger failure | `test_after_a_failure_the_next_run_retries_and_completes` and the failure tests beside it; `test_a_ledger_failure_never_stops_the_desk_and_is_said` |
 | 8 | No duplicate experiment execution | Fingerprints; the cycle-id guard; registry ids never reused; desk sessions applied once and recorded once | `test_a_rerun_the_same_day_asks_no_model_and_records_nothing_twice`, `test_the_same_idea_another_day_is_never_recorded_again_however_it_is_worded`, `test_each_session_is_recorded_once_and_a_rerun_records_nothing_more` |
 | 9 | No real-money trading | The engine imports no broker, execution, position, risk or service module, and calls no order, register or verdict method. The desk is paper only, behind the demo guard, the risk engine and the hard gate | `test_the_engine_cannot_trade_register_or_judge`; the desk's existing tests |
-| 10 | A verified deployment and operational status | GitHub Actions runs and data branches | Partly: the deployment and the first run are confirmed; the scheduled runs and a production ideas step are not yet |
+| 10 | A verified deployment and operational status | GitHub Actions runs and data branches | Confirmed for the research cycle, the trend desk and the funded-paper track: deployed, run on demand, and started by the schedule itself (below). The discovery lab's worker: see its own section |
 
 `scripts/mutation_audit.py` removes each of the engine's and the ledger's guards in turn and requires a test to fail
 (`docs/MUTATION_AUDIT.md`).
@@ -180,9 +180,29 @@ Nothing was queued for building. Two weaknesses show already:
   cap of three ideas holds across both runs.
 - The research loop's check-ins (11:26 and 23:26 UTC) verify each of these and start a missed run by hand.
 
-**Not yet observed** (each is checked at the next check-in and reported):
-- the first **scheduled** research cycle (2026-11-10 04:47 UTC) and the first **scheduled** trend-desk run;
-- the trend desk's first applied session.
+**Observed since, on 2026-11-10 and 2026-11-11: the schedule starts the runs by itself, hours late.**
+
+| Job | Runs the schedule started (UTC) | Result |
+|---|---|---|
+| Research cycle | 11-10 13:02 and 21:50 | Success; the record's integrity held. The day's ideas step had already run, so the later runs checked the record only |
+| Trend desk | 11-10 04:18, 08:25, 15:12; 11-11 02:14 and 07:44 (run 42981716845) | Success. The sessions of 2026-11-09 and 2026-11-10 were each applied once |
+| Funded-paper track | 11-10 04:09, 08:29, 15:15; 11-11 01:57 and 07:49 | Success |
+
+No slot fired at its time: each ran two to nine hours late. The backup slots are what made every session arrive.
+
+**The trend desk's first sessions** (paper only; the full figures are in `TRADING_REPORT.md` on `trend-desk-data`):
+- 2026-11-09: four positions opened, one for each index, each sized by the risk engine. Net -$7.40, the entry costs.
+- 2026-11-10: no trade; the four stops moved. Net -$238.67. Equity $199,753.93, which is -$246.07 since the start.
+- No trade is closed yet. The worst fall from the peak, intraday lows included, is $741.41.
+
+## The discovery lab's worker
+
+The research cycle above proposes ideas from a model's recall and builds nothing. The discovery lab
+(`docs/DISCOVERY_LAB.md`, built after the audit in `docs/DISCOVERY_AUDIT.md`) is a second, separate worker. It finds
+rules in data, registers and runs its own experiments, and validates what it finds on unread rows:
+`scripts/lab_cycle.py`, on `.github/workflows/lab-cycle.yml`, four slots a day, with its memory on the `lab-data`
+branch. It uses no model and no paid service. Its deployment status is recorded in `docs/DISCOVERY_LAB.md`, and its
+live state in `LAB_REPORT.md` on `lab-data`.
 
 ## What is missing, and why
 
@@ -198,7 +218,12 @@ Nothing was queued for building. Two weaknesses show already:
 - **Railway.** The live service's configuration could not be inspected from here: only the repository's
   `Dockerfile` and `railway.json`. Nothing was deployed to Railway. Everything above runs on GitHub Actions and in
   this session's scheduled task.
-- **The engine does not build tests.** A new test needs new code and often new data. The engine queues an idea that
-  can pass; the research loop builds it. An idea queued while the loop is not running waits in `ideas.jsonl`.
+- **The idea engine does not build tests.** A new test needs new code and often new data. The engine queues an idea
+  that can pass; the research loop builds it. An idea queued while the loop is not running waits in `ideas.jsonl`.
+  The discovery lab does build and run its own experiments, but only on the panels in its catalog: a new panel is
+  new code.
+- **The idea engine's faults found by the audit are fixed in engine 1.2.0** (`docs/DISCOVERY_AUDIT.md`): a critic's
+  rejection needs one of five named reasons, the power gate reads the idea's own window and writes a plan, and
+  near-misses are recorded as promising. Not yet seen in production: the first cycle under 1.2.0.
 - **The $4,000 a month.** No strategy validated so far supports it at acceptable risk (`docs/FX_TARGET_REPORT.md`).
   The system never raises risk to reach it (CLAUDE.md rule 8).

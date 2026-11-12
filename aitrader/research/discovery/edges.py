@@ -37,7 +37,7 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.10.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.11.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
@@ -48,6 +48,10 @@ EDGES_VERSION = "edges-1.10.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0
 #                                1.10.0: single-program verdicts (the programs judged by their own script,
 #                                RBL-1, TRND-1 and the like), which no earlier reader recorded: one record each,
 #                                VALIDATED only with its holdout's VALIDATED at a holdout t >= 2.5
+#                                1.11.0 (docs/DISCOVERY_AUDIT.md, weakness 6): a single program that failed on the
+#                                bar ALONE, every other preregistered gate held, with its own t >= 2, is PROMISING
+#                                (a near miss: DAY-1, FXT-1, TME-1), as every other kind of program already was. It
+#                                had been recorded exactly as a rule that lost money is
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -288,6 +292,19 @@ def _single(art) -> bool:
             and not any(k in art for k in ("judged", "kind", "stage")))
 
 
+#: where a single program's script records the statistic it was judged on, in the order looked for
+_STATISTICS = ("months", "days", "month_ends", "events", "weeks", "net", "alpha")
+
+
+def judged_t(art: dict) -> tuple[str | None, float | None]:
+    """The name and the t of the statistic a single program was judged on, where its artifact records one."""
+    for k in _STATISTICS:
+        v = art.get(k)
+        if isinstance(v, dict) and isinstance(v.get("t"), (int, float)) and not isinstance(v.get("t"), bool):
+            return k, float(v["t"])
+    return None, None
+
+
 def from_single(art: dict, hold: dict | None) -> EdgeRecord:
     """The record of a single-program verdict, decided by its holdout once one is opened: VALIDATED needs the
     holdout's VALIDATED and a holdout t >= 2.5. Each script names its own statistic, so t and the expectancies are
@@ -297,7 +314,11 @@ def from_single(art: dict, hold: dict | None) -> EdgeRecord:
     hm = hold["months"] if hold and isinstance(hold.get("months"), dict) else {}
     ht = hm.get("t")
     failed = tuple(art["failed_gates"])
-    if art["verdict"] != "PASSED":
+    stat, jt = judged_t(art)
+    near = art["verdict"] != "PASSED" and failed == ("t",) and jt is not None and jt >= PROMISING_T
+    if near:
+        status = "PROMISING"  # every preregistered gate held but the bar: worth a fresh test on new data, never a trade
+    elif art["verdict"] != "PASSED":
         status = "REJECTED"
     elif hold is None:
         status = "TESTING"  # passed its judge; its holdout is not opened yet
@@ -318,6 +339,9 @@ def from_single(art: dict, hold: dict | None) -> EdgeRecord:
         source=f"research/knowledge/{art['program']}.json",
         note=("single-program verdict: expectancies are monthly net returns, not R" if m else
               "single-program verdict: its statistic is named in its artifact and preregistration")
+             + (f"; a near miss: it failed on the bar alone, with t {_r(jt, 3)} on its `{stat}` against "
+                f"{_r(art.get('threshold_t'), 3)}. Not validated: evidence for a fresh preregistered test on new data"
+                if near else "")
              + (f"; holdout {hm.get('n')} months, net t {_r(ht, 3)}" if hold else ""))
 
 
