@@ -4,14 +4,11 @@
 
 **بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 634 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-12 23:38 UTC · lab-cycle-1.0.1 · dlab-1.1.0 · cycles so far: 2
+Updated 2026-11-12 23:51 UTC · lab-cycle-1.0.2 · dlab-1.1.0 · cycles so far: 3
 
 ## This cycle
 
-| Task | Result |
-|---|---|
-| `data:crypto_daily:2026-10` | **DONE** · {"feed": "crypto_daily", "instruments": 55, "usable_in_the_fit_rows": {"crypto-daily": 55}, "last_day": "2026-10-31", "missing_days": 95, "moves_beyond_50pct": 62, "not_served": [], "fetched_now": 0} |
-| `scan:crypto-daily:dlab-1.1.0:7` | **DONE** · {"run": "DLAB-CRD-1", "verdict": "FAILED", "universe": "crypto-perp-daily", "instruments": 55, "rules": 266, "by_class": {"DUPLICATE": 19, "INSUFFICIENT_DATA": 28, "INSUFFICIENT_POWER": 69, "NEGATIVE_EXPECTANCY": 72, "OVERFIT": 60, "REPEATS_CLOSED_FAMILY": 18}, "batch": 0, "scanned": 29218} |
+No task ran: nothing was due, or nothing could run yet (see the queue).
 
 ## The queue
 
@@ -19,7 +16,7 @@ Updated 2026-11-12 23:38 UTC · lab-cycle-1.0.1 · dlab-1.1.0 · cycles so far: 
 |---|---|---|---|---|
 | (empty) | | | | |
 
-Done so far: 5 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most.
+Done so far: 5 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
 
 ## Discovery scans
 
@@ -139,5 +136,6 @@ None.
 |---|---|---|---|
 | 2026-11-12T15:47 | 639.6 | 4 | 1 |
 | 2026-11-12T23:38 | 57.9 | 2 | 0 |
+| 2026-11-12T23:51 | 0.2 | 0 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.
