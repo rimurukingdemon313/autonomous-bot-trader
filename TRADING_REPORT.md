@@ -2,9 +2,13 @@
 
 **PAPER TRADING · NOT REAL MONEY · NOT A BACKTEST.** TRND-1 traded by the system itself, forward from 2026-11-09, with simulated fills on each index's real daily close. Backtest and validated out-of-sample results are listed at the end and are never added to these figures.
 
-**بالعربي:** هذا تقرير التداول الورقي وحده: فلوس مو حقيقية، ومو باكتيست، وما بيه ولا رقم من البحث. الرصيد هسه $201,126.69، يعني من البداية +$1,126.69. آخر يوم (2026-11-11) طلع +$1,372.76. الصفقات المسكّرة: 0 (ربحت 0، خسرت 0). أكبر نزول من القمة: $741.41. الـ$4,000 بالشهر هدف مو إلزام: النظام ما يزيد المخاطرة ولا يفتح صفقة حتى يوصله.
+**بالعربي:** هذا تقرير التداول الورقي وحده: فلوس مو حقيقية، ومو باكتيست، وما بيه ولا رقم من البحث. الرصيد هسه $201,126.69، يعني من البداية +$1,126.69. آخر يوم (2026-11-11) طلع +$1,372.76. بهالتشغيل صارت 1 مشكلة، مكتوبة تحت. الجلسة اللي بياناتها ناقصة ما تنطبق، وتنتظر لحد ما توصل كاملة. الصفقات المسكّرة: 0 (ربحت 0، خسرت 0). أكبر نزول من القمة: $741.41. الـ$4,000 بالشهر هدف مو إلزام: النظام ما يزيد المخاطرة ولا يفتح صفقة حتى يوصله.
 
-Updated 2026-11-12 15:34 UTC · sessions run: 6 · recorded: 6 · last: 2026-11-11 · desk-ledger-1.0.1
+Updated 2026-11-12 23:27 UTC · sessions run: 6 · recorded: 6 · last: 2026-11-11 · desk-ledger-1.0.1
+
+**Problems this run.** A session whose data is incomplete is not applied, and nothing is filled in for it: it waits, with every session after it, for the first run that reads it complete, and is then applied in order.
+
+- GER40 2026-11-12: a price is missing, not finite or not positive ((26910.5703125, 27001.669921875, 26671.44921875, nan)): nothing from 2026-11-12 on is used
 
 ## Daily
 
