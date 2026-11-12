@@ -1,0 +1,83 @@
+{
+ "code_sha256": "e38782c9e1536e0f72c425efd077eed22ed92b2d1309d55d2225d2d584fa1d81",
+ "sha256": "317b73cdd931f61e6c928b469821ea1684a10b4dd55a86a10e04c791a95458d4",
+ "spec": {
+  "classes": [
+   "SCIENTIFICALLY_INVALID",
+   "REPEATS_CLOSED_FAMILY",
+   "INSUFFICIENT_DATA",
+   "NEGATIVE_EXPECTANCY",
+   "OVERFIT",
+   "DUPLICATE",
+   "INSUFFICIENT_POWER",
+   "PROMISING_UNCONFIRMED"
+  ],
+  "dataset": "etf-daily",
+  "families": [
+   "cross-asset lead-lag",
+   "own-lag",
+   "information (non-linear)",
+   "ordinal pattern",
+   "regime",
+   "anomaly",
+   "evolved rule",
+   "combination",
+   "pooled book",
+   "cross-sectional",
+   "pooled time-series"
+  ],
+  "firewall": "the panel is loaded with nothing at or after the check rows' end: the validation rows are not in memory during discovery",
+  "kind": "discovery scan",
+  "limits": {
+   "rules_emitted": 600,
+   "statistics_scanned": 100000
+  },
+  "methods": [
+   "leadlag",
+   "info",
+   "ordinal",
+   "regimes",
+   "anomaly",
+   "evolve",
+   "breadth",
+   "combine"
+  ],
+  "program": "DLAB-ETF-1",
+  "related_universes": [
+   "multi-asset-etf",
+   "us-equity-etf",
+   "equity-index-daily",
+   "equity-index-monthly",
+   "us-vol-etp"
+  ],
+  "role": "select",
+  "rules_each_method_may_emit": "24 each (no record to learn from yet)",
+  "seed": 7,
+  "triage": {
+   "batch": 12,
+   "haircut": 0.75,
+   "least_chance_for_a_place_that_costs_the_bar_nothing": 0.03,
+   "least_chance_to_pass": 0.25,
+   "per_family": 3,
+   "per_instrument": 4,
+   "same_behaviour_correlation": 0.7
+  },
+  "universe": "us-etf-broad-daily",
+  "validation": "a separate registration (DLAB-ETF-1-V): the promising rules, frozen, judged once on the validation window at max(3.0, Bonferroni over every test on that window)",
+  "version": "dlab-1.1.0",
+  "windows": {
+   "check": [
+    "2015-01-01",
+    "2020-01-01"
+   ],
+   "fit": [
+    "2007-01-01",
+    "2015-01-01"
+   ],
+   "validation": [
+    "2020-01-01",
+    "2026-11-01"
+   ]
+  }
+ }
+}
