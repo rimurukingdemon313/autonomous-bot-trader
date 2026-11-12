@@ -4,9 +4,9 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 82 فرضية مسجلة، 60 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-11 22:44 UTC from the committed record · research-report-1.0.0
+Generated 2026-11-12 13:19 UTC from the committed record · research-report-1.0.0
 
-## Today (2026-11-11, UTC)
+## Today (2026-11-12, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -37,16 +37,16 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-11 12:13 UTC, OK
-- Last successful idea step: 2026-11-11 12:13 UTC
+- Last cycle: 2026-11-12 13:19 UTC, OK
+- Last successful idea step: 2026-11-12 13:19 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 6 ideas: DROPPED_POWER 1, REJECTED_BY_CRITIC 5
+- All time: 9 ideas: DROPPED_POWER 1, REJECTED_BY_CRITIC 8
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: Funding‑time price pressure in Binance USDT‑M perpetuals (crypto-binance-usdtm, scalping). Repeats the dropped family "Price pressure around the crypto perpetuals' funding times (00:00, 08:00 and 16:00 UTC)". The cited evidence (arXiv 2411.06327) also already appears in the dropped family "Exchange flows of USDT and BTC as intraday signals (arXiv 2411.06327)". No genuinely new evidence is offered for an already archived funding-time price-pressure family. (critic: nvidia/nemotron-3.5-super-vl:free)
-- **REJECTED_BY_CRITIC**: Retail client contrarian during monthly options expiration weeks in US equity ETFs (us-equity-etf, swing). Repeats the dropped family "Retail-broker client positioning as a contrarian signal (the share of a broker's clients long the US 500 or gold, read against them)". Restricting the same contrarian client-ratio signal to monthly options-expiration weeks is a variant of an already dropped family, not genuinely new evidence; it also overlaps dropped options-expiration week families. (critic: nvidia/nemotron-3.5-super-vl:free)
-- **REJECTED_BY_CRITIC**: EIA inventory surprise term‑structure premium in energy futures (energy-futures-eia, position). Repeats the rejected family "EIA crude oil inventory surprise same-day mean reversion (REJECTED_BY_CRITIC)". Reframing the same EIA-surprise energy-futures event as a 5-day near/next-month calendar spread does not constitute genuinely new evidence; the underlying family and data source were already rejected. (critic: nvidia/nemotron-3.5-super-vl:free)
+- **REJECTED_BY_CRITIC**: Asian‑European Gold Session Drift (metals-futures-daily, intraday). Repeats dropped family 'Gold's overnight drift (Blose & Gondhalekar)' and 'Gold rising in Asian hours and falling in Western ones' without genuinely new evidence; cites only a 1985-2012 paper while claiming unverified 2021-2024 CFD persistence; universe metals-futures-daily cannot test a 00:00/08:00/16:00 intraday rule; claimed net Sharpe 1.2 is implausible for an intraday retail CFD after spread and slippage, which the lab's cost lesson shows erases the whole gross edge. (critic: nvidia/nemotron-3.5-super-vl:free)
+- **REJECTED_BY_CRITIC**: Energy Futures Backwardation Roll Yield (energy-futures-eia, swing). The backwardation roll-yield mechanism is a published term-structure arbitrage (Kumar & Singh 2020) that would not survive publication per the lab's fading lesson; the specific rule and claimed Sharpe 1.5 are not supported by the cited evidence, and the asserted 2022-2024 confirmation is unsupported; claimed Sharpe is below the energy-futures-eia bar of 2.241. (critic: nvidia/nemotron-3.5-super-vl:free)
+- **REJECTED_BY_CRITIC**: Crypto Perpetual Funding Spike‑Reversal (crypto-perp-live-xvenue, intraday). Repeats dropped family 'Price pressure around the crypto perpetuals' funding times (00:00, 08:00 and 16:00 UTC)'; breaks the swap-free/no-interest condition because perpetual funding is a swap-like interest payment; claimed Sharpe 1.0 is below the crypto-perp-live-xvenue bar of 2.241 and implausible after retail intraday costs. (critic: nvidia/nemotron-3.5-super-vl:free)
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
