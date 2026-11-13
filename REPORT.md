@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-13 16:00 UTC**, run 878, version `radar-1.0.0`. State from: cache. Quotes this hour: 2381.
+Updated **2026-11-13 17:00 UTC**, run 879, version `radar-1.0.0`. State from: cache. Quotes this hour: 2381.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-13 16:00 UTC**, run 878, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 36.83
+- days: 36.88
 - run_coverage: 0.9921
 - closed_positions: 204
 - open_positions: 3
-- utilisation: 0.214
+- utilisation: 0.2141
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.8889
-- book_excess_pct: -1.9975
-- ann_excess_deployed_pct: -93.076
-- ann_excess_deployed_costs_x1.5_pct: -176.063
-- ann_excess_deployed_costs_x2_pct: -259.05
+- book_pnl_pct: -1.8778
+- book_excess_pct: -1.9866
+- ann_excess_deployed_pct: -92.418
+- ann_excess_deployed_costs_x1.5_pct: -175.273
+- ann_excess_deployed_costs_x2_pct: -258.128
 - best_coin: INIT
 - book_excess_without_best_coin_pct: -2.4838
 - max_dd_pct: 2.1986
-- t_excess_daily: -3.159
+- t_excess_daily: -3.122
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc | gate | 2026-11-09 21:00 | 35.8% | 18.5 | -18.1 | 17.0 | **-16.6** |
-| INIT | gate | mexc | 2026-11-12 00:00 | 2438.5% | 362.1 | 307.3 | 17.0 | **652.4** |
-| ARIA | mexc | gate | 2026-11-13 14:00 | 32.1% | 0.4 | -41.8 | 17.0 | **-58.4** |
+| PIEVERSE | mexc | gate | 2026-11-09 21:00 | 35.8% | 18.7 | -15.0 | 17.0 | **-13.3** |
+| INIT | gate | mexc | 2026-11-12 00:00 | 2438.5% | 376.0 | 315.3 | 17.0 | **674.4** |
+| ARIA | mexc | gate | 2026-11-13 14:00 | 32.1% | 0.5 | -44.9 | 17.0 | **-61.4** |
 
 ## Closed positions (204)
 
