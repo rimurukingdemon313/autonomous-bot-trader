@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-13 20:00 UTC**, run 882, version `radar-1.0.0`. State from: cache. Quotes this hour: 2381.
+Updated **2026-11-13 21:00 UTC**, run 883, version `radar-1.0.0`. State from: cache. Quotes this hour: 2381.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-13 20:00 UTC**, run 882, version `radar-1.0.0`. State from: ca
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 37.0
+- days: 37.04
 - run_coverage: 0.9921
 - closed_positions: 204
 - open_positions: 3
-- utilisation: 0.2144
+- utilisation: 0.2145
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -1.9753
-- book_excess_pct: -2.0845
-- ann_excess_deployed_pct: -96.514
-- ann_excess_deployed_costs_x1.5_pct: -178.974
-- ann_excess_deployed_costs_x2_pct: -261.435
+- book_pnl_pct: -1.9481
+- book_excess_pct: -2.0574
+- ann_excess_deployed_pct: -95.109
+- ann_excess_deployed_costs_x1.5_pct: -177.439
+- ann_excess_deployed_costs_x2_pct: -259.77
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -2.4816
+- book_excess_without_best_coin_pct: -2.4808
 - max_dd_pct: 2.1986
-- t_excess_daily: -3.439
+- t_excess_daily: -3.356
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc | gate | 2026-11-09 21:00 | 35.8% | 19.6 | -16.7 | 17.0 | **-14.1** |
-| INIT | gate | mexc | 2026-11-12 00:00 | 2438.5% | 397.3 | 93.9 | 17.0 | **474.2** |
-| ARIA | mexc | gate | 2026-11-13 14:00 | 32.1% | 0.5 | -39.1 | 17.0 | **-55.6** |
+| PIEVERSE | mexc | gate | 2026-11-09 21:00 | 35.8% | 19.8 | -20.2 | 17.0 | **-17.4** |
+| INIT | gate | mexc | 2026-11-12 00:00 | 2438.5% | 403.2 | 140.6 | 17.0 | **526.9** |
+| ARIA | mexc | gate | 2026-11-13 14:00 | 32.1% | 0.5 | -34.1 | 17.0 | **-50.5** |
 
 ## Closed positions (204)
 
