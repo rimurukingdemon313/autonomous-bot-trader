@@ -51,8 +51,9 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 import scripts.dlab as L  # noqa: E402
-from aitrader.research.dlab import DLAB_VERSION  # noqa: E402
+from aitrader.research.dlab import DLAB_VERSION, SCAN_VERSION  # noqa: E402
 from aitrader.research.dlab import brain as B  # noqa: E402
+from aitrader.research.dlab import coverage as V  # noqa: E402
 from aitrader.research.dlab import datasets as D  # noqa: E402
 from aitrader.research.dlab import feeds as F  # noqa: E402
 from aitrader.research.dlab.signals import pnl  # noqa: E402
@@ -66,7 +67,12 @@ from scripts.research_report import evidence, read_registry  # noqa: E402
 #:        eight); the report counts its cycles from one.
 #: 1.0.2: a task that failed under an older version of the worker gets its attempts back under a new one. Until then a
 #:        task that had failed three times was never tried again, whatever was fixed: a validation's id never changes.
-CYCLE_VERSION = "lab-cycle-1.0.2"
+#: 1.1.0: one queue for every hypothesis. Submissions (the research director's, the idea engine's) are taken from
+#:        research/director/inbox and run as directed tests; the lab fills the holes in its own coverage map with a
+#:        directed test of its own; every cycle writes the director's briefing; an empty queue says why it is empty.
+CYCLE_VERSION = "lab-cycle-1.1.0"
+INBOX = "research/director/inbox"  # in the repository: where a hypothesis is submitted, as rules
+SCAN_KINDS = ("discovery_scan", "directed_test")  # the evidence of anything that looked at a panel's check rows
 #: The panels the lab scans by itself: dataset -> its run tag, its feed and its nominal breadth. One scan for each
 #: version of the lab: a second look at the same discovery rows under the same methods would find the same rules.
 CATALOG = {"crypto-daily": {"tag": "CRD", "feed": "crypto_daily", "instruments": len(F.PERPS)},
@@ -78,8 +84,8 @@ DUE = {"crypto_daily": F.due_month}
 MIN_INSTRUMENTS = {"crypto_daily": 20, "etf_daily": 20}  # a feed that returns fewer is refused: the panel is not broad
 SEED = 7
 #: minutes a task may need: it is not started with less of the cycle's budget left
-MINUTES = {"data": 10, "scan": 25, "validate": 10, "sources": 2, "forward": 5}
-PRIORITY = {"validate": 5.0, "data": 4.0, "forward": 3.0, "sources": 0.5}
+MINUTES = {"data": 10, "scan": 25, "directed": 10, "validate": 10, "sources": 2, "forward": 5}
+PRIORITY = {"validate": 5.0, "data": 4.0, "directed": 3.5, "forward": 3.0, "sources": 0.5}
 
 
 def _log(store: Store, now: datetime, step: str, status: str, detail: object = None) -> None:
@@ -146,7 +152,7 @@ def existing_run(ds: str, reg) -> str | None:
     while the queue's memory of it did not (a run that died between its two pushes): it is resumed, not repeated."""
     for p in sorted((L.R / "specs").glob(f"DLAB-{CATALOG[ds]['tag']}-*.json")):
         s = json.loads(p.read_text())["spec"]
-        if s.get("kind") == "discovery scan" and s["dataset"] == ds and s["version"] == DLAB_VERSION \
+        if s.get("kind") == "discovery scan" and s["dataset"] == ds and s["version"] == SCAN_VERSION \
                 and s["seed"] == SEED and any(t.id == p.stem for t in reg.trials) \
                 and (reg.verdict_of(p.stem) is None or reg.verdict_of(p.stem).status != "ABANDONED"):
             return p.stem
@@ -177,7 +183,7 @@ def seed(store: Store, reg, now: datetime) -> list[str]:
     for ds, c in CATALOG.items():
         period = DUE[c["feed"]](now) if c["feed"] in DUE else f"{now:%Y-%m}"
         q(f"data:{c['feed']}:{period}", "data", {"feed": c["feed"]}, PRIORITY["data"])
-        task = f"scan:{ds}:{DLAB_VERSION}:{SEED}"
+        task = f"scan:{ds}:{SCAN_VERSION}:{SEED}"
         if task not in tasks(store):
             q(task, "scan", {"dataset": ds, "seed": SEED, "run": existing_run(ds, reg) or next_run(c["tag"], reg, store)}, 2.0)
     year, week, _ = now.isocalendar()
@@ -185,6 +191,105 @@ def seed(store: Store, reg, now: datetime) -> list[str]:
     if validated_rules():
         q(f"forward:{now:%Y-%m-%d}", "forward", {}, PRIORITY["forward"])
     return new
+
+
+def directed_runs(reg) -> dict[str, str]:
+    """submission id -> the directed test registered for it. Read from the repository, so a test whose record reached
+    main while the queue's memory of it did not is resumed under the same name, not registered a second time."""
+    out = {}
+    for path in sorted((L.R / "specs").glob("DLAB-*-D*.json")):
+        s = json.loads(path.read_text())["spec"]
+        if s.get("kind") == "directed test" and any(t.id == path.stem for t in reg.trials):
+            out[s["submission"]["id"]] = path.stem
+    return out
+
+
+def next_directed(tag: str, reg, store: Store) -> str:
+    used = {t.id for t in reg.trials} | {t["args"].get("run") for t in tasks(store).values()}
+    n = 1
+    while f"DLAB-{tag}-D{n}" in used:
+        n += 1
+    return f"DLAB-{tag}-D{n}"
+
+
+def ingest(store: Store, reg, now: datetime) -> dict:
+    """Take every new submission in the inbox into the queue, or refuse it with its reasons. A submission is looked
+    at once: taken as it was written, or not at all. Nothing is repaired, and nothing disappears: a refusal is on
+    record, in the report and in the director's briefing."""
+    seen = {r["id"] for r in store.read("submissions")}
+    done = directed_runs(reg)
+    out: dict[str, list] = {"queued": [], "refused": []}
+    box = L.ROOT / INBOX
+    for path in sorted(box.glob("*.json")) if box.exists() else []:
+        sid = path.stem
+        if sid in seen:
+            continue
+        sub, problems = None, []
+        if path.stat().st_size > L.MAX_SUBMISSION_BYTES:
+            problems = [f"the file is larger than {L.MAX_SUBMISSION_BYTES} bytes"]
+        else:
+            try:
+                sub = json.loads(path.read_text())
+            except (ValueError, UnicodeDecodeError):
+                problems = ["it is not JSON"]
+        if sub is not None:
+            problems = L.refuse(sub)
+            if not problems and sub["id"] != sid:
+                problems = ["its id is not its file's name"]
+            if not problems and sub["dataset"] not in CATALOG:
+                problems = [f"the worker fetches no data for {sub['dataset']}: it tests on {', '.join(sorted(CATALOG))}"]
+        row = {"id": sid, "at": now.isoformat(), "file": f"{INBOX}/{path.name}"}
+        if problems:
+            store.append("submissions", [{**row, "event": "REFUSED", "why": problems[:12]}])
+            out["refused"].append(sid)
+            continue
+        run = done.get(sid) or next_directed(CATALOG[sub["dataset"]]["tag"], reg, store)
+        who = f"{sub['author']['role']}:{sub['author']['model']}"
+        enqueue(store, f"directed:{sid}", "directed", {"submission_id": sid, "file": row["file"], "dataset": sub["dataset"],
+                                                         "run": run}, PRIORITY["directed"], now, origin=who)
+        store.append("submissions", [{**row, "event": "QUEUED", "run": run, "author": sub["author"], "title": sub["title"]}])
+        out["queued"].append(sid)
+    return out
+
+
+def coverage_of(ds: str, store: Store) -> dict:
+    """A panel's coverage map as it stands: the cells, those a classed rule sits in, those set aside, and the holes.
+    Needs the panel's data on file (the discovery rows only are loaded)."""
+    universe, loader, _ = L.DATASETS[ds]
+    p = loader(D.WINDOWS[universe]["check"][1])
+    arts = artifacts()
+    records = [r for r in ledger() if "event" not in r and arts.get(r["run"], {}).get("universe") == universe]
+    refusals = [x for a in arts.values() if a.get("kind") == "directed_test" and a.get("universe") == universe
+                for x in a.get("refused_before_registration", [])]
+    refusals += [x for t in tasks(store).values() if t["kind"] == "directed" and t["args"].get("dataset") == ds
+                 and (t.get("result") or {}).get("verdict") == "REFUSED" for x in t["result"].get("refused", [])]
+    holes = V.gaps(p, records, refusals)
+    return {"panel": p, "cells": len(V.cells(p)), "looked_at": len(V.looked_at(records) & {V.cell(f, h) for f, h in V.cells(p)}),
+            "set_aside": V.set_aside(refusals), "holes": holes}
+
+
+def coverage_tasks(store: Store, state: Path, reg, now: datetime) -> list[str]:
+    """The one research task the lab gives itself: a directed test of the cells of a scanned panel's map that no
+    classed rule sits in. One at a time for each panel, and none when the map has no hole."""
+    out = []
+    for ds, c in CATALOG.items():
+        tk = tasks(store)
+        scanned = any(t["kind"] == "scan" and t["args"].get("dataset") == ds and t["status"] == "DONE" for t in tk.values())
+        waiting = any(t["kind"] == "directed" and t["task"].startswith(f"directed:lab-coverage-{ds}-") and t["status"] != "DONE"
+                      for t in tk.values())
+        if not scanned or waiting or incomplete(state, c["feed"]):
+            continue
+        cov = coverage_of(ds, store)
+        if not cov["holes"]:
+            continue
+        sub = V.submission(ds, cov["panel"], cov["holes"][:L.MAX_DIRECTED], f"{now:%Y-%m-%d}", CYCLE_VERSION)
+        run = next_directed(c["tag"], reg, store)
+        if enqueue(store, f"directed:{sub['id']}", "directed", {"submission": sub, "dataset": ds, "run": run},
+                   PRIORITY["directed"], now, origin="lab:coverage"):
+            store.append("submissions", [{"id": sub["id"], "at": now.isoformat(), "event": "QUEUED", "run": run,
+                                          "author": sub["author"], "title": sub["title"]}])
+            out.append(sub["id"])
+    return out
 
 
 def prioritize(store: Store, table: dict, now: datetime) -> None:
@@ -213,12 +318,14 @@ def ready(t: dict, state: Path, store: Store) -> str | None:
     """Why a task cannot run yet, or None. Waiting is not an attempt. A scan and a validation wait for a COMPLETE fetch
     of their data: each runs once, and a panel with holes would be scanned or judged with them, and never again. A
     validation also waits until the files reach the end of its window."""
-    if t["kind"] not in ("scan", "validate"):
+    if t["kind"] not in ("scan", "directed", "validate"):
         return None
     ds = t["args"].get("dataset") or json.loads((L.R / "specs" / f"{t['args']['run']}.json").read_text())["spec"]["dataset"]
     feed = CATALOG.get(ds, {}).get("feed")
     if not feed:
         return None
+    if t["kind"] == "directed" and "submission" not in t["args"] and not (L.ROOT / t["args"]["file"]).exists():
+        return "its submission is no longer in the inbox"
     fetched = any(x["kind"] == "data" and x["args"].get("feed") == feed and x["status"] == "DONE"
                   for x in tasks(store).values())
     why = incomplete(state, feed)
@@ -277,11 +384,11 @@ def do_scan(store: Store, state: Path, args: dict, now: datetime) -> dict:
         reg.record_verdict(Verdict(run, now, "ABANDONED", {
             "reason": "the lab's code changed between this scan's registration and its run; it never ran"}))
         nxt = next_run(CATALOG[ds]["tag"], L._registry(), store)
-        enqueue(store, f"scan:{ds}:{DLAB_VERSION}:{args['seed']}:after-{run}", "scan", {**args, "run": nxt}, 2.0, now)
+        enqueue(store, f"scan:{ds}:{SCAN_VERSION}:{args['seed']}:after-{run}", "scan", {**args, "run": nxt}, 2.0, now)
         return {"run": run, "verdict": "ABANDONED", "requeued_as": nxt}
     universe = L.DATASETS[ds][0]
     arts = artifacts()
-    record = B.arms(ledger(), {n: a["universe"] for n, a in arts.items() if a.get("kind") == "discovery_scan"})
+    record = B.arms(ledger(), {n: a["universe"] for n, a in arts.items() if a.get("kind") in SCAN_KINDS})
     tops = B.allocation(record[universe], args["seed"]) if record.get(universe) else None
     art = L.auto_scan(ds, run, args["seed"], now, tops=tops)
     if art["batch"]:
@@ -292,6 +399,28 @@ def do_scan(store: Store, state: Path, args: dict, now: datetime) -> dict:
     return {"run": run, "verdict": art["verdict"], "universe": universe, "instruments": len(art["instruments"]),
             "rules": art["summary"]["rules"], "by_class": art["summary"]["by_class"], "batch": len(art["batch"]),
             "scanned": sum(art["scanned"].values()), "noise": art["noise"],
+            "best": [{"id": r["id"], "family": r["family"], "check_t": r["check"]["t"], "class": r["class"]} for r in best]}
+
+
+def do_directed(store: Store, state: Path, args: dict, now: datetime) -> dict:
+    """A submitted hypothesis, run as a directed test. A submission whose rules cannot be tested is refused before
+    anything is registered: that is an answer, not a failure of the worker, and it is not retried."""
+    sub = args.get("submission") or json.loads((L.ROOT / args["file"]).read_text())
+    run = args["run"]
+    res = L.auto_directed(args["dataset"], run, sub, now)
+    who = f"{sub['author']['role']}:{sub['author']['model']}"
+    if res["verdict"] == "REFUSED":
+        return {"run": run, "verdict": "REFUSED", "registered": False, "submission": sub["id"], "asked_by": who,
+                "why": res["why"], "refused": res["refused"][:L.MAX_DIRECTED]}
+    if res["batch"]:
+        enqueue(store, f"validate:{run}", "validate", {"run": run, "dataset": args["dataset"]}, PRIORITY["validate"], now,
+                origin=who)
+    best = sorted((r for r in res["records"] if (r.get("check") or {}).get("t") is not None),
+                  key=lambda r: -r["check"]["t"])[:3]
+    return {"run": run, "verdict": res["verdict"], "registered": True, "submission": sub["id"], "asked_by": who,
+            "universe": res["universe"], "rules": res["summary"]["rules"], "by_class": res["summary"]["by_class"],
+            "refused_before_registration": len(res["refused_before_registration"]), "batch": len(res["batch"]),
+            "noise": res["noise"],
             "best": [{"id": r["id"], "family": r["family"], "check_t": r["check"]["t"], "class": r["class"]} for r in best]}
 
 
@@ -359,7 +488,8 @@ def do_forward(store: Store, state: Path, args: dict, now: datetime) -> dict:
     return {"rules": len(rules), "rows_added": len(new), **({"waiting_for_whole_data": waiting} if waiting else {})}
 
 
-HANDLERS = {"data": do_data, "scan": do_scan, "validate": do_validate, "sources": do_sources, "forward": do_forward}
+HANDLERS = {"data": do_data, "scan": do_scan, "directed": do_directed, "validate": do_validate, "sources": do_sources,
+            "forward": do_forward}
 
 
 def retry_after_a_fix(store: Store, now: datetime) -> list[str]:
@@ -400,7 +530,7 @@ def run_tasks(store: Store, state: Path, now: datetime, max_tasks: int, max_minu
 # ── 5. what the record teaches ──────────────────────────────────────────────
 
 def learn(now: datetime) -> dict:
-    arts = {n: a for n, a in artifacts().items() if a.get("kind") == "discovery_scan"}
+    arts = {n: a for n, a in artifacts().items() if a.get("kind") in SCAN_KINDS}
     table = B.arms(ledger(), {n: a["universe"] for n, a in arts.items()})
     audits = {a["universe"]: a["information_audit"] for a in arts.values() if a.get("information_audit")}
     body = {"version": DLAB_VERSION, "arms": table, "lessons": B.lessons(table, audits)}
@@ -510,6 +640,9 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
             o.append(f"| `{t['task']}` | **{t['status']}** · {text[:300]} |")
     else:
         o.append("No task ran: nothing was due, or nothing could run yet (see the queue).")
+    idle = why_idle(store, state) if not waiting and not problems else []
+    if idle:
+        o += ["", "**Why nothing is queued.** The lab does not invent work. As things stand:", ""] + [f"- {x}" for x in idle]
     o += ["", "## The queue", "", "| Task | State | Attempts | Priority | Waiting for |", "|---|---|---|---|---|"]
     for t in sorted(waiting, key=lambda t: (-t["priority"], t["task"])):
         o.append(f"| `{t['task']}` | {t['status']} | {t['attempts']} | {t['priority']} | {ready(t, state, store) or ''} |")
@@ -528,7 +661,23 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
                  f"{sum(a['scanned'].values())} | {len(a['batch'])} | {a['verdict']} |")
     if not scans:
         o.append("| none yet | | | | | | |")
-    o += ["", "A scan's verdict says only whether it proposed rules for validation. It validates and disproves nothing.",
+    tests = {n: a for n, a in arts.items() if a.get("kind") == "directed_test"}
+    o += ["", "## Directed tests: hypotheses submitted as rules", "",
+          "| Test | Asked by | Hypothesis | Rules tested | Refused before the test | Promising | Verdict |", "|---|---|---|---|---|---|---|"]
+    for n, a in tests.items():
+        who = a["submission"]["author"]
+        o.append(f"| `{n}` | {who['role']} ({who['model']}) | {a['submission']['title'][:120]} | {a['summary']['rules']} | "
+                 f"{len(a['refused_before_registration'])} | {len(a['batch'])} | {a['verdict']} |")
+    if not tests:
+        o.append("| none yet | | | | | | |")
+    subs = store.read("submissions")
+    refused = [r for r in subs if r["event"] == "REFUSED"]
+    refused += [{"id": t["result"]["submission"], "why": t["result"]["why"]} for t in tk.values()
+                if t["kind"] == "directed" and (t.get("result") or {}).get("verdict") == "REFUSED"]
+    if refused:
+        o += ["", "Submissions refused (taken as written or not at all; nothing is repaired):", ""]
+        o += [f"- `{r['id']}`: {'; '.join(r['why'])[:400]}" for r in refused[-10:]]
+    o += ["", "A scan's or a test's verdict says only whether it proposed rules for validation. It validates and disproves nothing.",
           "", "## Every candidate, by class (cumulative)", "", "| Class | Rules |", "|---|---|"]
     o += [f"| {c} | {by_class.get(c, 0)} |" for c in L.T.CLASSES]
     fam: dict[str, dict[str, int]] = {}
@@ -622,6 +771,116 @@ def report(store: Store, state: Path, now: datetime, ran: list[dict], problems: 
     return text
 
 
+def why_idle(store: Store, state: Path) -> list[str]:
+    """Why no research task is waiting, in words: what has been done, and what would start the next one."""
+    out = []
+    for ds, c in CATALOG.items():
+        if incomplete(state, c["feed"]):
+            out.append(f"`{ds}`: its data are not whole on file ({incomplete(state, c['feed'])})")
+            continue
+        cov = coverage_of(ds, store)
+        out.append(f"`{ds}`: scanned once under {SCAN_VERSION}; of its {cov['cells']} ranking-and-holding-period cells, "
+                   f"{cov['looked_at']} have a classed rule, {len(cov['set_aside'])} are set aside as closed families, and "
+                   f"{len(cov['holes'])} are holes")
+    out.append("no submission is waiting in `research/director/inbox`")
+    out.append("the next experiment starts with a submission (the research director's, or the idea engine's), a new "
+               "panel or method (a new version of the lab), or a new month of data")
+    return out
+
+
+def reviewed() -> set[str]:
+    """The runs the research director has reviewed: named in a REVIEW entry of research/director/log.jsonl."""
+    log = L.R / "director" / "log.jsonl"
+    rows = [json.loads(x) for x in log.read_text().splitlines() if x.strip()] if log.exists() else []
+    return {run for r in rows if r.get("action") == "REVIEW" for run in r.get("of", [])}
+
+
+def briefing(store: Store, state: Path, now: datetime, problems: list[str]) -> str:
+    """What the research director needs to decide the next cycle, written by the worker: what waits for a review, the
+    coverage map, the record, the queue, the sources. The director is a model that reasons; this is its evidence. It
+    decides what to test and never what is true: a rule is validated only by a registered test on unread rows."""
+    arts, rows, tk = artifacts(), ledger(), tasks(store)
+    rules = [r for r in rows if "event" not in r]
+    judged = {(r["run"], r["id"]) for r in rows if r.get("event") == "VALIDATION"}
+    seen = reviewed()
+    o = ["# The research director's briefing", "",
+         f"Written by the lab's worker ({CYCLE_VERSION}, {DLAB_VERSION}) at {now:%Y-%m-%d %H:%M} UTC, for the model that "
+         "directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The "
+         "director reads it, decides what is worth testing, and writes: a hypothesis as rules into "
+         "`research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.", ""]
+    if problems:
+        o += ["## The record failed its integrity check: fix this first", ""] + [f"- {x}" for x in problems] + [""]
+    todo = [(n, a) for n, a in arts.items() if n not in seen and a.get("kind") in SCAN_KINDS + ("discovery_validation",)]
+    o += ["## 1. Results waiting for a review", ""]
+    if todo:
+        o += ["| Run | Kind | Verdict | In short |", "|---|---|---|---|"]
+        for n, a in todo:
+            if a["kind"] == "discovery_validation":
+                short = f"{len(a['passed_rules'])} of {len(a['results'])} rules passed at t {a['threshold_t']}"
+            else:
+                c = a["summary"]["by_class"]
+                best = max(((r.get("check") or {}).get("t") or -99 for r in a["records"]), default=None)
+                short = (f"{a['summary']['rules']} rules; {c.get('PROMISING_UNCONFIRMED', 0)} promising, "
+                         f"{c.get('INSUFFICIENT_POWER', 0)} positive and not told from noise, {c.get('NEGATIVE_EXPECTANCY', 0)} "
+                         f"lost, {c.get('OVERFIT', 0)} overfit; best check-row t {best}")
+            o.append(f"| `{n}` | {a['kind']} | {a['verdict']} | {short} |")
+    else:
+        o.append("None: every judged run is named in a REVIEW entry of the director's log.")
+    o += ["", "## 2. The coverage map", "",
+          "| Panel | Cells | With a classed rule | Set aside (closed family) | Holes |", "|---|---|---|---|---|"]
+    for ds, c in CATALOG.items():
+        if incomplete(state, c["feed"]):
+            o.append(f"| `{ds}` | | | | its data are not whole on file |")
+            continue
+        cov = coverage_of(ds, store)
+        names = ", ".join(f"{L.M._f(f)} x {h}" for f, h in cov["holes"][:8]) + (" ..." if len(cov["holes"]) > 8 else "")
+        o.append(f"| `{ds}` | {cov['cells']} | {cov['looked_at']} | {len(cov['set_aside'])} | {len(cov['holes'])}"
+                 + (f": {names}" if names else "") + " |")
+    o += ["", "The map covers one declared space only: each ranking a cross-sectional book may be built on, at each holding "
+          "period. A hole there is filled by the lab itself. What lies outside that space is the director's to propose.", "",
+          "## 3. The record in numbers", ""]
+    lessons = (json.loads((L.R / "dlab" / "lessons.json").read_text()).get("lessons", [])
+               if (L.R / "dlab" / "lessons.json").exists() else [])
+    o += [f"- {x}" for x in lessons] or ["Nothing yet."]
+    pos = ("INSUFFICIENT_POWER", "PROMISING_UNCONFIRMED")
+    best = sorted((r for r in rules if r["class"] in pos and (r.get("check") or {}).get("t") is not None
+                   and (r["run"], r["id"]) not in judged), key=lambda r: -r["check"]["t"])[:10]
+    o += ["", "## 4. The strongest candidates not judged", ""]
+    if best:
+        o += ["| Run | Rule | Family | Check-row t | Class |", "|---|---|---|---|---|"]
+        o += [f"| {r['run']} | {r['rule'][:140]} | {r['family']} | {r['check']['t']} | {r['class']} |" for r in best]
+    else:
+        o.append("None.")
+    waiting = [t for t in tk.values() if t["status"] != "DONE"]
+    o += ["", "## 5. The queue and the inbox", ""]
+    o += [f"- `{t['task']}` ({t['status']}, asked by {t.get('origin', 'lab')}): {ready(t, state, store) or 'ready'}"
+          for t in sorted(waiting, key=lambda t: (-t["priority"], t["task"]))] or ["- The queue is empty."]
+    if not waiting and not problems:
+        o += [f"- {x}" for x in why_idle(store, state)]
+    refused = [r for r in store.read("submissions") if r["event"] == "REFUSED"]
+    refused += [{"id": t["result"]["submission"], "why": t["result"]["why"]} for t in tk.values()
+                if t["kind"] == "directed" and (t.get("result") or {}).get("verdict") == "REFUSED"]
+    o += [f"- refused: `{r['id']}`: {'; '.join(r['why'])[:300]}" for r in refused[-10:]]
+    sources = store.read("sources")
+    o += ["", "## 6. Sources", "",
+          f"{len(sources)} on file; {sum(1 for x in sources if x.get('status') == 'UNREAD')} are UNREAD (a title and an "
+          "abstract are not a finding). The newest:", ""]
+    o += [f"- {x.get('published') or ''} · {x['title'][:150]} ({x.get('url') or ''})"
+          for x in sorted(sources, key=lambda x: x.get("published") or "", reverse=True)[:12]]
+    o += ["", "## 7. How a hypothesis is submitted", "",
+          "One file, `research/director/inbox/<id>.json`, committed to main. It is taken as written or refused: nothing is "
+          "repaired. Fields: `id` (the file's name), `author` (`role`: director, engine or lab; `model`; `interface`), "
+          f"`dataset` ({', '.join(sorted(CATALOG))}), `title`, `hypothesis`, `mechanism`, `why_now`, `refuted_by`, `parents`, "
+          f"and `rules`: 1 to {L.MAX_DIRECTED}, each with a `family`, a `why`, a `spec` in the lab's rule language "
+          "(aitrader/research/dlab/signals.py) and, if the fit rows are to choose its side, `orient: fit`. A rule that "
+          "reads the future, names an unknown instrument, repeats a classed rule or behaves as a closed family is refused "
+          "before any test is charged. `in_sample_on_check_rows: true` says the rules were chosen on the check rows (an "
+          "aggregate of classed rules): their check-row figures then show nothing, and only a validation can judge them.", ""]
+    text = "\n".join(o)
+    (state / "DIRECTOR_BRIEFING.md").write_text(text)
+    return text
+
+
 # ── the cycle ───────────────────────────────────────────────────────────────
 
 def link_data(state: Path) -> None:
@@ -648,10 +907,16 @@ def cycle(state: Path, now: datetime, max_tasks: int = 4, max_minutes: float = 4
               "No experiment ran.\n\n" + "\n".join(f"- {p}" for p in problems))
     else:
         queued = seed(store, L._registry(), now)
+        taken = ingest(store, L._registry(), now)
+        queued += [f"directed:{x}" for x in taken["queued"]]
+        queued += [f"directed:{x}" for x in coverage_tasks(store, state, L._registry(), now)]
         retried = retry_after_a_fix(store, now)
         prioritize(store, learn(now)["arms"], now)
         _log(store, now, "queue", "OK", {"queued": queued, **({"given_back_after_a_new_version": retried} if retried else {})})
         ran = run_tasks(store, state, now, max_tasks, max_minutes, started, clock)
+        after = coverage_tasks(store, state, L._registry(), now)  # what this cycle's results justify next, queued now
+        if after:
+            _log(store, now, "queue", "OK", {"queued_after_the_tasks": [f"directed:{x}" for x in after]})
         learn(now)
         for t in abandoned(store):
             # a day's forward marks are one task a day: one alert a month for them, not one a day
@@ -663,6 +928,7 @@ def cycle(state: Path, now: datetime, max_tasks: int = 4, max_minutes: float = 4
     store.append("budget", [{"cycle": now.isoformat(), "seconds": round(clock() - started, 1), "tasks": len(ran),
                              "failed": sum(1 for t in ran if t["status"] == "FAILED"), "version": CYCLE_VERSION}])
     report(store, state, now, ran, problems)
+    briefing(store, state, now, problems)
     print(json.dumps({"cycle": now.isoformat(), "integrity": problems or "OK",
                       "ran": [(t["task"], t["status"]) for t in ran],
                       "queue": [t["task"] for t in runnable(store, now)]}, indent=1))
@@ -679,8 +945,9 @@ def main() -> int:
     return cycle(a.state, now, a.max_tasks, a.max_minutes, github_issue())
 
 
-__all__ = ["CATALOG", "CYCLE_VERSION", "alert", "cycle", "incomplete", "integrity", "learn", "ready", "report",
-           "run_tasks", "seed", "send_alerts", "validated_rules"]
+__all__ = ["CATALOG", "CYCLE_VERSION", "INBOX", "SCAN_VERSION", "alert", "briefing", "coverage_of", "coverage_tasks", "cycle",
+           "incomplete", "ingest", "integrity", "learn", "ready", "report", "reviewed", "run_tasks", "seed",
+           "send_alerts", "validated_rules", "why_idle"]
 
 if __name__ == "__main__":
     raise SystemExit(main())

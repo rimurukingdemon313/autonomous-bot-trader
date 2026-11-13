@@ -128,17 +128,18 @@ def status(snap, n):
 def test_data_first_then_a_registered_scan_then_its_validation_one_task_a_cycle(story):
     sn = story["snap"]
     assert [sn[i]["code"] for i in range(1, 6)] == [0] * 5
-    assert status(sn, 1) == {"data:syn_feed:2026-11": "DONE", "scan:syn:" + C.DLAB_VERSION + ":7": "QUEUED",
+    assert status(sn, 1) == {"data:syn_feed:2026-11": "DONE", "scan:syn:" + C.SCAN_VERSION + ":7": "QUEUED",
                              "sources:2026-W46": "QUEUED"}
     # the scan waited for its data. The data step looked at the discovery rows (is the panel usable?); nothing registered
-    assert sn[1]["registry"] == 0 and sn[1]["loads"] == [W["check"][1]]
-    scan = "scan:syn:" + C.DLAB_VERSION + ":7"
+    assert sn[1]["registry"] == 0 and set(sn[1]["loads"]) == {W["check"][1]}
+    scan = "scan:syn:" + C.SCAN_VERSION + ":7"
     assert status(sn, 2)[scan] == "DONE" and status(sn, 2)["validate:DLAB-SYN-1"] == "QUEUED"
-    assert sn[2]["registry"] == 2 and sn[2]["loads"] == [W["check"][1]] * 2  # a trial and its verdict; discovery rows only
+    assert sn[2]["registry"] == 2 and set(sn[2]["loads"]) == {W["check"][1]}  # a trial and its verdict; discovery rows only
     assert sn[2]["tasks"][scan]["result"]["verdict"] == "PASSED" and sn[2]["tasks"][scan]["result"]["batch"] >= 1
     assert status(sn, 3)["validate:DLAB-SYN-1"] == "DONE" and sn[3]["registry"] == 4
-    # the batch re-checked on the discovery rows, then the validation rows loaded once, after the registration
-    assert sn[3]["loads"] == [W["check"][1]] * 3 + [W["validation"][1]]
+    # the batch re-checked on the discovery rows; the validation rows loaded once, by the judge, in the cycle that
+    # registered the validation and in no cycle before it
+    assert sn[3]["loads"].count(W["validation"][1]) == 1 and set(sn[3]["loads"]) == {W["check"][1], W["validation"][1]}
     v = sn[3]["tasks"]["validate:DLAB-SYN-1"]["result"]
     assert v["verdict"] == "PASSED" and v["passed"] and v["threshold_t"] == 3.0
     reg = Registry.load(story["root"] / "research" / "registry.jsonl", Holdout.load(story["root"] / "research" / "holdout.json"))
@@ -239,10 +240,10 @@ def test_a_scan_whose_record_was_pushed_but_whose_queue_was_lost_is_resumed_not_
     state = tmp_path / "empty"  # the state of the cycle that ran the scan never reached lab-data
     assert C.cycle(state, NOW + timedelta(hours=7), max_tasks=2) == 0
     t = tasks(Store(state))
-    scan = t["scan:syn:" + C.DLAB_VERSION + ":7"]
+    scan = t["scan:syn:" + C.SCAN_VERSION + ":7"]
     assert scan["args"]["run"] == "DLAB-SYN-1" and scan["status"] == "DONE"  # the same run, not a DLAB-SYN-2
     # nothing registered again; the only read is the data step's look at the discovery rows
-    assert registry_lines(root) == before and asked["loads"] == [W["check"][1]]
+    assert registry_lines(root) == before and set(asked["loads"]) == {W["check"][1]}
     assert t["validate:DLAB-SYN-1"]["status"] == "QUEUED"  # and its validation is queued, as it was
 
 
@@ -261,7 +262,7 @@ def test_a_feed_that_keeps_failing_is_retried_three_times_then_reported_and_bloc
     st = Store(state)
     t = tasks(st)
     assert len(calls) == 3 and t["data:syn_feed:2026-11"]["status"] == "FAILED" and t["data:syn_feed:2026-11"]["attempts"] == 3
-    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
     problems = [a for a in st.read("alerts") if a["level"] == "PROBLEM"]
     assert len(problems) == 1 and "data:syn_feed:2026-11" in problems[0]["title"]  # raised once, not every cycle
     text = (state / "LAB_REPORT.md").read_text()
@@ -322,19 +323,19 @@ def test_a_scan_waits_for_a_complete_fetch_and_what_arrived_is_kept(tmp_path, mo
     t = tasks(Store(st))
     assert t["data:syn_feed:2026-11"]["status"] == "FAILED" and "did not answer for 3 files" in t["data:syn_feed:2026-11"]["result"]["error"]
     assert (st / "data" / "syn_feed" / "close.json").exists()  # kept for the next attempt
-    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
     state["failed"] = 0  # the archive answers: the fetch completes, and only then may the panel be scanned
     assert C.cycle(st, NOW + timedelta(hours=6), max_tasks=1) == 0
     t = tasks(Store(st))
-    assert t["data:syn_feed:2026-11"]["status"] == "DONE" and t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0
-    assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st)) is None
+    assert t["data:syn_feed:2026-11"]["status"] == "DONE" and t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0
+    assert C.ready(t["scan:syn:" + C.SCAN_VERSION + ":7"], st, Store(st)) is None
     # a later fetch that is not complete leaves holes on file: the finished fetch of last month does not make them whole
     state["failed"] = 2
     partial(st / "data" / "syn_feed", NOW + timedelta(days=30))
-    why = C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st))
+    why = C.ready(t["scan:syn:" + C.SCAN_VERSION + ":7"], st, Store(st))
     assert "its data (syn_feed) are not completely on file yet" in why and "did not answer for 2 files" in why
     assert C.cycle(st, NOW + timedelta(hours=12), max_tasks=3) == 0
-    assert tasks(Store(st))["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0
+    assert tasks(Store(st))["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0
 
 
 def test_a_thin_panel_is_refused(tmp_path, monkeypatch):
@@ -369,8 +370,8 @@ def test_files_that_arrived_but_make_no_usable_panel_stop_the_scan_before_it_is_
     r = t["data:syn_feed:2026-11"]
     assert r["status"] == "FAILED" and "only 3 instruments of the syn panel have the fit rows" in r["result"]["error"]
     assert C.incomplete(state, "syn_feed") is None  # whole files on disk are not a finished fetch: the scan still waits
-    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0  # nothing registered
-    assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], state, Store(state)) == "its data (syn_feed) are not completely on file yet"
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0  # nothing registered
+    assert C.ready(t["scan:syn:" + C.SCAN_VERSION + ":7"], state, Store(state)) == "its data (syn_feed) are not completely on file yet"
 
 
 def test_a_validation_waits_until_the_files_reach_the_end_of_its_window(story, tmp_path, monkeypatch):
@@ -530,7 +531,7 @@ def test_a_scan_registered_under_code_that_then_changed_is_abandoned_and_queued_
     reg = Registry.load(root / "research" / "registry.jsonl", Holdout.load(root / "research" / "holdout.json"))
     assert reg.verdict_of("DLAB-SYN-1").status == "ABANDONED" and not (root / "research" / "knowledge" / "DLAB-SYN-1.json").exists()
     t = tasks(Store(state))
-    nxt = t["scan:syn:" + C.DLAB_VERSION + ":7:after-DLAB-SYN-1"]
+    nxt = t["scan:syn:" + C.SCAN_VERSION + ":7:after-DLAB-SYN-1"]
     assert nxt["args"]["run"] == "DLAB-SYN-2" and nxt["status"] == "QUEUED"
     assert C.integrity() == []  # an abandoned scan is part of the record, not a hole in it
 

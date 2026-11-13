@@ -569,15 +569,25 @@ def pooled(tpl: dict, assets) -> dict:
     return {"kind": "book", "parts": [_star({**tpl, "target": "*"}, a) for a in assets]}
 
 
+XS_SHARES, XS_HOLDS = (0.2, 0.34), (1, 5, 20)  # a cross-sectional book: the share held on each side, the rows it is held
+
+
+def rankings(p: Panel) -> list[dict]:
+    """Every feature a cross-sectional book of this panel may rank its instruments on: each instrument's own past
+    returns, volatility and state series. One definition: the breadth method searches these, and the coverage map
+    (coverage.py) says which of them have been looked at out of sample."""
+    return ([{"f": "ret", "k": k} for k in (1, 2, 5, 10, 20, 60)]
+            + [{"f": "vol", "k": 20}, {"f": "volr", "k": 5, "k2": 60}, {"f": "absret"}]
+            + [{"f": "aux", "s": s_, **d} for s_ in suffixes(p) for d in ({}, {"d": 5})])
+
+
 def breadth(ctx: Context, pop: int = 120, gens: int = 20, size_penalty: float = 0.15) -> list[Emit]:
     p = ctx.p
     tgs = ctx.targets
     if not broad(p) or len(tgs) < 6:
         return []
     cap = ctx.cap("breadth")
-    own = ([{"f": "ret", "k": k} for k in (1, 2, 5, 10, 20, 60)]
-           + [{"f": "vol", "k": 20}, {"f": "volr", "k": 5, "k2": 60}, {"f": "absret"}]
-           + [{"f": "aux", "s": s_, **d} for s_ in suffixes(p) for d in ({}, {"d": 5})])
+    own = rankings(p)
 
     def book_t(spec):
         r = pnl(spec, p)
@@ -586,8 +596,8 @@ def breadth(ctx: Context, pop: int = 120, gens: int = 20, size_penalty: float = 
     # (a) cross-sectional: the top of a ranking against its bottom, oriented by the fit rows
     xs = []
     for tpl in own:
-        for q in (0.2, 0.34):
-            for hold in (1, 5, 20):  # a slow book trades a fraction of a fast one's turnover: costs decide which lives
+        for q in XS_SHARES:
+            for hold in XS_HOLDS:  # a slow book trades a fraction of a fast one's turnover: costs decide which lives
                 x = {"feat": tpl, "q": q, "hold": hold, "min": max(6, len(p.assets) // 4), "side": 1}
                 ctx.count("breadth", 1)
                 g, _ = book_t(xs_book(p, x))
@@ -738,5 +748,5 @@ def discover(ctx: Context) -> tuple[list[Emit], dict]:
     return uniq, audit
 
 
-__all__ = ["Context", "Emit", "FAMILIES", "anomaly", "breadth", "cmi", "combine", "discover", "evolve", "info", "kmeans",
-           "leadlag", "mi", "ordinal", "pooled", "regimes", "shift_z"]
+__all__ = ["Context", "Emit", "FAMILIES", "XS_HOLDS", "XS_SHARES", "anomaly", "breadth", "cmi", "combine", "discover",
+           "evolve", "info", "kmeans", "leadlag", "mi", "ordinal", "pooled", "rankings", "regimes", "shift_z"]
