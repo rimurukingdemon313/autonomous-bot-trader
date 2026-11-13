@@ -562,21 +562,26 @@ def test_a_hypothesis_in_the_inbox_becomes_a_registered_test_and_what_it_finds_i
     assert [a["level"] for a in Store(state).read("alerts") if a["event"] == "RAISED"] == ["DISCOVERY"]
     assert C.cycle(state, NOW + timedelta(hours=18), max_tasks=4) == 0  # the scan and the rest; nothing runs twice
     t = tasks(Store(state))
-    assert all(x["attempts"] == 1 for x in t.values()) and registry_lines(root) == 6
+    # the test and its validation, then the scan and the validation of the scan's own batch: two lines each
+    assert all(x["attempts"] == 1 for x in t.values()) and registry_lines(root) == 8
     assert len(Store(state).read("submissions")) == 5  # a submission is looked at once, the refused ones too
     # the director reviews it: it is no longer waiting. A review is a record, never an approval
     assert C.reviewed() == set() and "| `DLAB-SYN-D1-V` | discovery_validation | PASSED |" in (state / "DIRECTOR_BRIEFING.md").read_text()
     log = root / "research" / "director" / "log.jsonl"
     log.write_text(json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"]}) + "\n"
                    + json.dumps({"action": "PLAN", "of": ["DLAB-OTHER"]}) + "\n")
-    assert C.reviewed() == {"DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"}
+    assert C.reviewed() == {"DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"}  # a plan is not a review
+    late = C.briefing(Store(state), state, NOW + timedelta(days=1), [])
+    assert "| `DLAB-SYN-1-V` | discovery_validation |" in late and "| `DLAB-SYN-D1` |" not in late  # one run still waits
+    with open(log, "a") as fh:
+        fh.write(json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-1-V"]}) + "\n")
     assert "None: every judged run is named in a REVIEW entry" in C.briefing(Store(state), state, NOW + timedelta(days=1), [])
     # a fresh machine with no memory: the test's record is in the repository, so it is resumed under its name
     again = tmp_path / "fresh"
     assert C.cycle(again, NOW + timedelta(days=2), max_tasks=4) == 0
     t2 = tasks(Store(again))
     assert t2["directed:D-leadlag"]["args"]["run"] == "DLAB-SYN-D1" and t2["directed:D-leadlag"]["status"] == "DONE"
-    assert registry_lines(root) == 6  # no second registration, no second look
+    assert registry_lines(root) == 8  # no second registration, no second look
 
 
 def test_the_lab_fills_the_holes_in_its_own_map_once_and_then_says_why_it_is_idle(tmp_path, monkeypatch):
