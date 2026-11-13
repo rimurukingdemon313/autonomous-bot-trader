@@ -791,8 +791,15 @@ def why_idle(store: Store, state: Path) -> list[str]:
 def reviewed() -> set[str]:
     """The runs the research director has reviewed: named in a REVIEW entry of research/director/log.jsonl."""
     log = L.R / "director" / "log.jsonl"
-    rows = [json.loads(x) for x in log.read_text().splitlines() if x.strip()] if log.exists() else []
-    return {run for r in rows if r.get("action") == "REVIEW" for run in r.get("of", [])}
+    out: set[str] = set()
+    for line in log.read_text().splitlines() if log.exists() else []:
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue  # a line that is not JSON reviews nothing, and stops nothing
+        if isinstance(r, dict) and r.get("action") == "REVIEW" and isinstance(r.get("of"), list):
+            out |= {x for x in r["of"] if isinstance(x, str)}
+    return out
 
 
 def briefing(store: Store, state: Path, now: datetime, problems: list[str]) -> str:

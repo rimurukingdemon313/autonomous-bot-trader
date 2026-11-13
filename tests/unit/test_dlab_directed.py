@@ -136,6 +136,9 @@ def test_a_directed_test_is_registered_looked_at_once_and_its_planted_rule_is_va
                       rule({**PLANTED, "target": "ZZ"}),  # an instrument the panel does not hold
                       rule(TREND, family="own-lag"),  # a closed family, under no name
                       rule({"kind": "peek", "target": "A1"})])  # tomorrow's return
+    with pytest.raises(SystemExit, match="holds validation rows: refused"):
+        L.auto_directed("syn", "DLAB-SYN-D1", sub, NOW, panel=full)  # the whole market, validation rows included
+    assert lines(root) == 0
     art = L.auto_directed("syn", "DLAB-SYN-D1", sub, NOW)
     reg = registry(root)
     t = reg.get("DLAB-SYN-D1")

@@ -794,7 +794,7 @@ def auto_directed(dataset: str, run: str, sub: dict, now: datetime, panel=None) 
     w = D.WINDOWS[universe]
     p = panel if panel is not None else loader(w["check"][1])
     if p.times[-1] >= w["validation"][0]:
-        raise SystemExit("the discovery panel holds validation rows: refused")
+        raise SystemExit("the panel given to a directed test holds validation rows: refused")
     fit, check = p.rows(*w["fit"]), p.rows(*w["check"])
     if not any(t.id == run for t in reg.trials):
         problems = refuse(sub)
@@ -817,7 +817,8 @@ def auto_directed(dataset: str, run: str, sub: dict, now: datetime, panel=None) 
                            design={"spec_sha256": f["sha256"], "code_sha256": f["code_sha256"], "submission": sub["id"]}))
         print("registered", run)
         reg = _registry()
-    if reg.verdict_of(run) is not None:
+    judged = reg.verdict_of(run)
+    if judged is not None:  # looked at once: the record is returned, never recomputed
         return json.loads((OUT / f"{run}.json").read_text())
     f = _frozen(run)
     if reg.get(run).design.get("spec_sha256") != f["sha256"] or code_hash() != f["code_sha256"]:

@@ -256,6 +256,7 @@ def test_a_feed_that_keeps_failing_is_retried_three_times_then_reported_and_bloc
     root = tmp_path / "repo"
     root.mkdir()
     asked = make_lab(root, monkeypatch, feed=broken)
+    post(root, hypothesis())
     state = tmp_path / "state"
     for i in range(5):
         assert C.cycle(state, NOW + timedelta(hours=6 * i), max_tasks=2) == 0  # a failed task is not a failed cycle
@@ -263,6 +264,7 @@ def test_a_feed_that_keeps_failing_is_retried_three_times_then_reported_and_bloc
     t = tasks(st)
     assert len(calls) == 3 and t["data:syn_feed:2026-11"]["status"] == "FAILED" and t["data:syn_feed:2026-11"]["attempts"] == 3
     assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    assert t["directed:D-leadlag"]["attempts"] == 0  # a submitted hypothesis waits for whole data too
     problems = [a for a in st.read("alerts") if a["level"] == "PROBLEM"]
     assert len(problems) == 1 and "data:syn_feed:2026-11" in problems[0]["title"]  # raised once, not every cycle
     text = (state / "LAB_REPORT.md").read_text()
@@ -573,9 +575,17 @@ def test_a_hypothesis_in_the_inbox_becomes_a_registered_test_and_what_it_finds_i
     assert C.reviewed() == {"DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"}  # a plan is not a review
     late = C.briefing(Store(state), state, NOW + timedelta(days=1), [])
     assert "| `DLAB-SYN-1-V` | discovery_validation |" in late and "| `DLAB-SYN-D1` |" not in late  # one run still waits
-    with open(log, "a") as fh:
-        fh.write(json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-1-V"]}) + "\n")
+    with open(log, "a") as fh:  # a line that is not JSON, or not a review, reviews nothing and stops nothing
+        fh.write("not json\n" + json.dumps(["REVIEW"]) + "\n" + json.dumps({"action": "REVIEW", "of": "DLAB-X"}) + "\n"
+                 + json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-1-V"]}) + "\n")
     assert "None: every judged run is named in a REVIEW entry" in C.briefing(Store(state), state, NOW + timedelta(days=1), [])
+    # a submission with nothing left to test is answered once: it is not a failure, and it is not retried
+    post(root, hypothesis("D-again", rules=[{"family": "cross-asset lead-lag", "why": "the same rule again", "spec": PLANTED}]))
+    assert C.cycle(state, NOW + timedelta(days=1, hours=6), max_tasks=4) == 0
+    r = tasks(Store(state))["directed:D-again"]
+    assert r["status"] == "DONE" and r["attempts"] == 1 and r["result"]["verdict"] == "REFUSED" and not r["result"]["registered"]
+    assert "not looked at twice" in r["result"]["refused"][0]["why"] and registry_lines(root) == 8
+    assert "`D-again`: no rule of the submission can be tested" in (state / "LAB_REPORT.md").read_text()
     # a fresh machine with no memory: the test's record is in the repository, so it is resumed under its name
     again = tmp_path / "fresh"
     assert C.cycle(again, NOW + timedelta(days=2), max_tasks=4) == 0
@@ -592,7 +602,9 @@ def test_the_lab_fills_the_holes_in_its_own_map_once_and_then_says_why_it_is_idl
     root.mkdir()
     make_lab(root, monkeypatch, full=full, windows=win)
     state = tmp_path / "state"
-    assert C.cycle(state, NOW, max_tasks=2) == 0  # the data, then the scan
+    assert C.cycle(state, NOW, max_tasks=1) == 0  # the data
+    assert not [k for k in tasks(Store(state)) if k.startswith("directed:lab-coverage")]  # no map before a scan
+    assert C.cycle(state, NOW + timedelta(hours=1), max_tasks=1) == 0  # the scan
     st = Store(state)
     t = tasks(st)
     cover = [k for k in t if k.startswith("directed:lab-coverage-syn-")]

@@ -2,21 +2,21 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 2 فرضية جديدة انسجلت، 2 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 85 فرضية مسجلة، 63 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 85 فرضية مسجلة، 63 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-12 23:41 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-13 18:34 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-12, UTC)
+## Today (2026-11-13, UTC)
+
+Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **DLAB-ETF-1**: DLAB-ETF-1: a discovery scan of us-etf-broad-daily (select). Which causal rules, found by the lab's independent methods on the fit rows, are positive on the check rows, distinct, and worth a registered validation? (`research/preregistrations/DLAB-ETF-1.md`, 600 tests counted)
-- **DLAB-CRD-1**: DLAB-CRD-1: a discovery scan of crypto-perp-daily (select). Which causal rules, found by the lab's independent methods on the fit rows, are positive on the check rows, distinct, and worth a registered validation? (`research/preregistrations/DLAB-CRD-1.md`, 600 tests counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **DLAB-ETF-1: FAILED**. Evidence: `research/knowledge/DLAB-ETF-1.json`; matches its verdict: yes
-- **DLAB-CRD-1: FAILED**. Evidence: `research/knowledge/DLAB-CRD-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 

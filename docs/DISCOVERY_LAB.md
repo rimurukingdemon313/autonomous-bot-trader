@@ -291,13 +291,12 @@ registered, judged scan and holds exactly as many rules as its evidence. If any 
 
 ## 11. What is next
 
-1. **Places by ranking before places by strength.** The perpetuals' scan gave 22 of its 24 cross-sectional places to
-   rankings on funding: the strongest on the fit rows, and a family the lab itself then recognised as closed. No
-   ranking on past returns or on volatility reached the check rows, so the cross-sectional reversal, the two-month
-   losers and the volatility sorts (H2 to H4 of `docs/RESEARCH_SOURCES.md`) are not yet looked at out of sample on
-   that panel. The `breadth` method should give each ranking its best book first and fill the rest by strength, and
-   should not spend a place on a book a closed family already explains. That is a new version of the lab, with its
-   calibration run again, and then one more scan of each panel, charged as such.
+1. **The holes the scans left** are filled by the lab itself from lab-cycle-1.1.0, without a second scan: a directed
+   test of each ranking-and-holding-period cell no classed rule sits in (`coverage.py`,
+   `docs/RESEARCH_INSTITUTION.md`). The perpetuals' scan had given 22 of its 24 cross-sectional places to rankings on
+   funding, a closed family, and no ranking on past returns or on volatility had reached the check rows (H2 to H4 of
+   `docs/RESEARCH_SOURCES.md`). A directed test charges one test for each rule it looks at, where a second scan would
+   have charged 600.
 2. Volume in the crypto panel: each day's quote volume from the same archive, as a dollar-volume and an illiquidity
    state series. Nothing in this project has used volume (`docs/RESEARCH_SOURCES.md`, hypothesis H5).
 3. More panels: the hours inside each crypto day; commodity and rate futures.
@@ -336,7 +335,8 @@ Only what was confirmed is written here.
 | 2026-11-12 15:46 | The worker's first run on GitHub's runner, started by hand (`workflow_dispatch`): run 1 of `lab-cycle.yml`, id 43251484761, every step green, 11 minutes | It fetched 8,384 archive files of the perpetuals (each against its checksum; 1,076 months do not exist) and the 31 funds with the VIX; registered, ran and recorded **DLAB-ETF-1**; filed 85 new papers as UNREAD; pushed commit `4c5db29` to `main` by itself (two registry lines, the spec, the preregistration, the evidence, 266 candidates, the lessons); created `lab-data` (`282274f`) with its memory, the data and `LAB_REPORT.md` |
 | 2026-11-12 | The perpetuals' data in that run | **Refused by the worker, and rightly stopped, for the wrong reason.** Eight delisted contracts the archive still prices were taken for a half-published month. Nothing was scanned on them. Fixed in lab-cycle-1.0.1, and checked against the files that run fetched: none is waited for, 44 contracts are alive at 2026-10-31, all 55 have the fit rows a scan needs |
 | 2026-11-12 23:38 | The worker's second run (`workflow_dispatch`), on lab-cycle-1.0.1: every step green, 2 minutes | It restored its memory and data from `lab-data` (nothing was fetched or run twice: five tasks done in all), completed the perpetuals' data on its second attempt, registered, ran and recorded **DLAB-CRD-1**, and pushed commit `d851d10` to `main` and `af6202f` to `lab-data` by itself. Its queue is empty |
-| | A run started by GitHub's schedule | **Not confirmed yet.** The workflow reached `main` at 15:46 UTC; its 21:11 slot had not fired by 23:40. This repository's other schedules run two to nine hours late. This line is replaced when a run with the event `schedule` is seen |
+| 2026-11-12 23:51 | The worker's third run (`workflow_dispatch`), on lab-cycle-1.0.2 | Nothing was due: it restored its memory, checked the record, and said so |
+| 2026-11-13 01:47 | **A run started by GitHub's own schedule**: run 4 of `lab-cycle.yml`, id 43347545811, event `schedule` (the 21:11 slot, four and a half hours late), every step green | Nothing was due: it restored its memory, checked the record and published its report. No person started it. The 03:41 and 10:11 slots of that day had not fired by 18:30 UTC: GitHub drops and delays slots, which is why there are four |
 
 ### Results so far
 
