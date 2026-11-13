@@ -688,11 +688,11 @@ def directed_rules(sub: dict, p, fit: np.ndarray, known: dict, closed: list) -> 
         except (KeyError, ValueError, IndexError, TypeError, ZeroDivisionError) as e:
             refused(f"it cannot be computed on this panel ({type(e).__name__}: {str(e)[:120]})")
             continue
+        held_rows, entries = _activity(s, p, fit)
         if not sound:
             refused("its position at a row changes when later rows are removed: it reads the future")
-        elif (g.get("in_position") or 0) < T.MIN_IN_POSITION or (g.get("entries") or 0) < T.MIN_ENTRIES:
-            refused(f"{g.get('in_position') or 0} rows in position and {g.get('entries') or 0} entries on the fit rows: "
-                    "too few to be a rule")
+        elif held_rows < T.MIN_IN_POSITION or entries < T.MIN_ENTRIES:
+            refused(f"{held_rows} rows in position and {entries} entries on the fit rows: too few to be a rule")
         elif spec_id(s) in known:
             refused(f"the same rule was classed {known[spec_id(s)][1]} by {known[spec_id(s)][0]}: it is not looked at twice")
         else:
@@ -706,6 +706,14 @@ def directed_rules(sub: dict, p, fit: np.ndarray, known: dict, closed: list) -> 
                 ok.append({"id": spec_id(s), "family": r["family"], "why": r["why"].strip(), "spec": s,
                            "oriented_by_the_fit_rows": r.get("orient") == "fit", "fit_gross_t": round(g["t"], 3) if g["t"] else None})
     return ok, no
+
+
+def _activity(spec: dict, p, mask: np.ndarray) -> tuple[int, int]:
+    """Rows in position and positions opened or reversed on the masked rows. A book's are its parts', taken together,
+    as the triage counts them."""
+    each = [pnl(x, p) for x in parts_of(spec)]
+    each = [stats(x["net"], mask, p.ppy, x["pos"]) for x in each]
+    return sum(x.get("in_position") or 0 for x in each), sum(x.get("entries") or 0 for x in each)
 
 
 def _words(spec: dict) -> str:
