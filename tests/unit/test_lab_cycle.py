@@ -29,7 +29,7 @@ SOURCE = {"id": "arxiv:2611.00001", "origin": "arxiv", "url": "http://arxiv.org/
           "title": "A paper about lead-lag", "published": "2026-11-09", "status": "UNREAD", "reproducibility": "not attempted"}
 
 
-def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
+def make_lab(root, mp, feed=None, last="2028-09-29", daily=True, full=None, windows=None):
     """A scratch repository with an empty registry, a built market with a planted lead-lag, and a feed that touches
     no network. Returns what the feed and the loader were asked. `last` is the last day the feed says it holds; a
     `daily` panel is refreshed by the forward marks, as the ETF panel is."""
@@ -43,7 +43,7 @@ def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
         mp.setattr(L, name, val)
     mp.setattr(L, "code_hash", lambda: "c" * 64)
     mp.setattr(C, "SEAL_SHA256", hashlib.sha256((r / "holdout.json").read_bytes()).hexdigest())
-    full = D.synthetic(rows=7500, seed=100, plant={"leadlag": 0.12})
+    full = full if full is not None else D.synthetic(rows=7500, seed=100, plant={"leadlag": 0.12})
     asked = {"loads": [], "feeds": [], "last": last}
 
     def loader(last):
@@ -59,9 +59,9 @@ def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
                                "moves_beyond_50pct": 0} for a in full.assets}}
         (data / "manifest.json").write_text(json.dumps(man))
         return man
-    mp.setitem(D.WINDOWS, "synthetic", W)
+    mp.setitem(D.WINDOWS, "synthetic", windows or W)
     mp.setitem(L.DATASETS, "syn", ("synthetic", loader, 5))
-    mp.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": 3, "daily": daily}})
+    mp.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": len(full.assets), "daily": daily}})
     mp.setattr(C, "FEEDS", {"syn_feed": feed or fake_feed})
     mp.setattr(C, "DUE", {})
     mp.setattr(C, "MIN_INSTRUMENTS", {"syn_feed": 3})
@@ -501,6 +501,125 @@ def test_a_data_task_is_named_by_the_newest_period_its_feed_can_bring(tmp_path, 
     assert data(datetime(2026, 12, 2, tzinfo=timezone.utc)) == ["data:etf_daily:2026-12"]
     # the funds' panel is refreshed by the forward marks each day; the perpetuals' only by its monthly data task
     assert C.CATALOG["etf-daily"].get("daily") is True and not C.CATALOG["crypto-daily"].get("daily")
+
+
+PLANTED = {"kind": "sign", "target": "A1", "feat": {"f": "ret", "a": "A0", "k": 1}, "w": 250, "band": 0.5, "side": 1}
+
+
+def hypothesis(sid="D-leadlag", **more) -> dict:
+    return {"id": sid, "submitted": "2026-11-11", "dataset": "syn", "parents": [],
+            "author": {"role": "director", "model": "test-model", "interface": "a test"},
+            "title": "A0's move leads A1's next row",
+            "hypothesis": "A1's next row moves with the sign of A0's last move, beyond half a standard deviation.",
+            "mechanism": "A1 is slower to take in what moves A0: a lead-lag between two related instruments.",
+            "why_now": "Stated directly, as one rule, rather than found by a search.",
+            "refuted_by": "A check-row mean that is not positive in both halves.",
+            "rules": [{"family": "cross-asset lead-lag", "why": "the link as one rule", "orient": "fit", "spec": L.mirror(PLANTED)}],
+            **more}
+
+
+def post(root, body, name=None) -> None:
+    box = root / C.INBOX
+    box.mkdir(parents=True, exist_ok=True)
+    (box / f"{name or body['id']}.json").write_text(body if isinstance(body, str) else json.dumps(body))
+
+
+def test_a_hypothesis_in_the_inbox_becomes_a_registered_test_and_what_it_finds_is_validated(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    root.mkdir()
+    asked = make_lab(root, monkeypatch)
+    state = tmp_path / "state"
+    assert C.cycle(state, NOW, max_tasks=1) == 0  # the data
+    post(root, hypothesis())
+    post(root, "{not json", "broken")
+    post(root, hypothesis("another-name"), "misnamed")
+    post(root, hypothesis("elsewhere", dataset="energy"))
+    post(root, hypothesis("no-mechanism", mechanism=""))
+    assert C.cycle(state, NOW + timedelta(hours=6), max_tasks=1) == 0
+    st = Store(state)
+    subs = {r["id"]: r for r in st.read("submissions")}
+    assert subs["D-leadlag"]["event"] == "QUEUED" and subs["D-leadlag"]["run"] == "DLAB-SYN-D1"
+    assert subs["broken"]["why"] == ["it is not JSON"] and subs["misnamed"]["why"] == ["its id is not its file's name"]
+    assert "fetches no data for energy" in subs["elsewhere"]["why"][0] and "`mechanism`" in subs["no-mechanism"]["why"][0]
+    t = tasks(st)
+    d = t["directed:D-leadlag"]
+    # asked by the director, executed by the worker, before the scan (a stated hypothesis outranks a search)
+    assert d["status"] == "DONE" and d["origin"] == "director:test-model" and d["owner"] == "lab-worker" and d["attempts"] == 1
+    assert d["result"]["verdict"] == "PASSED" and d["result"]["registered"] and d["result"]["batch"] == 1
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and len(t) == 5  # no task for a refused submission
+    assert t["validate:DLAB-SYN-D1"]["status"] == "QUEUED" and t["validate:DLAB-SYN-D1"]["origin"] == "director:test-model"
+    reg = Registry.load(root / "research" / "registry.jsonl", Holdout.load(root / "research" / "holdout.json"))
+    assert [x.id for x in reg.trials] == ["DLAB-SYN-D1"] and reg.get("DLAB-SYN-D1").tests == 1
+    assert W["validation"][1] not in asked["loads"]  # found on the discovery rows; nothing has read the validation rows
+    report, brief = (state / "LAB_REPORT.md").read_text(), (state / "DIRECTOR_BRIEFING.md").read_text()
+    assert "| `DLAB-SYN-D1` | director (test-model) | A0's move leads A1's next row | 1 | 0 | 1 | PASSED |" in report
+    assert "`broken`: it is not JSON" in report and "`no-mechanism`: `mechanism` must say something" in report
+    assert "| `DLAB-SYN-D1` | directed_test | PASSED |" in brief and "refused: `misnamed`" in brief
+    assert "How a hypothesis is submitted" in brief and "It approves nothing" in brief
+    assert C.cycle(state, NOW + timedelta(hours=12), max_tasks=1) == 0  # its validation: the judge, on unread rows
+    v = tasks(Store(state))["validate:DLAB-SYN-D1"]
+    assert v["status"] == "DONE" and v["result"]["verdict"] == "PASSED" and asked["loads"].count(W["validation"][1]) == 1
+    assert [a["level"] for a in Store(state).read("alerts") if a["event"] == "RAISED"] == ["DISCOVERY"]
+    assert C.cycle(state, NOW + timedelta(hours=18), max_tasks=4) == 0  # the scan and the rest; nothing runs twice
+    t = tasks(Store(state))
+    assert all(x["attempts"] == 1 for x in t.values()) and registry_lines(root) == 6
+    assert len(Store(state).read("submissions")) == 5  # a submission is looked at once, the refused ones too
+    # the director reviews it: it is no longer waiting. A review is a record, never an approval
+    assert C.reviewed() == set() and "| `DLAB-SYN-D1-V` | discovery_validation | PASSED |" in (state / "DIRECTOR_BRIEFING.md").read_text()
+    log = root / "research" / "director" / "log.jsonl"
+    log.write_text(json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"]}) + "\n"
+                   + json.dumps({"action": "PLAN", "of": ["DLAB-OTHER"]}) + "\n")
+    assert C.reviewed() == {"DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"}
+    assert "None: every judged run is named in a REVIEW entry" in C.briefing(Store(state), state, NOW + timedelta(days=1), [])
+    # a fresh machine with no memory: the test's record is in the repository, so it is resumed under its name
+    again = tmp_path / "fresh"
+    assert C.cycle(again, NOW + timedelta(days=2), max_tasks=4) == 0
+    t2 = tasks(Store(again))
+    assert t2["directed:D-leadlag"]["args"]["run"] == "DLAB-SYN-D1" and t2["directed:D-leadlag"]["status"] == "DONE"
+    assert registry_lines(root) == 6  # no second registration, no second look
+
+
+def test_the_lab_fills_the_holes_in_its_own_map_once_and_then_says_why_it_is_idle(tmp_path, monkeypatch):
+    full = D.synthetic(rows=1700, assets=8, seed=11, plant={"xs": 0.06}, cost=0.00005)
+    win = {"fit": (full.times[250], full.times[900]), "check": (full.times[900], full.times[1350]),
+           "validation": (full.times[1350], full.times[-1] + timedelta(days=1))}
+    root = tmp_path / "repo"
+    root.mkdir()
+    make_lab(root, monkeypatch, full=full, windows=win)
+    state = tmp_path / "state"
+    assert C.cycle(state, NOW, max_tasks=2) == 0  # the data, then the scan
+    st = Store(state)
+    t = tasks(st)
+    cover = [k for k in t if k.startswith("directed:lab-coverage-syn-")]
+    # the scan's own places left holes: the next task is queued by the cycle that ran the scan, with no one asking
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["status"] == "DONE" and len(cover) == 1
+    task = t[cover[0]]
+    holes = C.coverage_of("syn", st)["holes"]
+    assert task["status"] == "QUEUED" and task["origin"] == "lab:coverage" and task["args"]["run"] == "DLAB-SYN-D1"
+    assert 0 < len(holes) == len(task["args"]["submission"]["rules"]) < 27
+    assert {r["cell"] for r in task["args"]["submission"]["rules"]} == {C.V.cell(f, h) for f, h in holes}
+    for i in range(1, 6):
+        assert C.cycle(state, NOW + timedelta(hours=6 * i), max_tasks=4) == 0
+    st = Store(state)
+    t = tasks(st)
+    done = t[cover[0]]
+    assert done["status"] == "DONE" and done["attempts"] == 1 and done["result"]["registered"]
+    cov = C.coverage_of("syn", st)
+    assert cov["holes"] == [] and cov["cells"] == 27 and cov["looked_at"] + len(cov["set_aside"]) == 27
+    assert [k for k in t if k.startswith("directed:lab-coverage")] == cover  # the map is whole: no second task, ever
+    art = json.loads((root / "research" / "knowledge" / "DLAB-SYN-D1.json").read_text())
+    assert art["submission"]["author"]["role"] == "lab" and len(art["records"]) + len(art["refused_before_registration"]) == len(holes)
+    assert set(status_of(t).values()) == {"DONE"}
+    report, brief = (state / "LAB_REPORT.md").read_text(), (state / "DIRECTOR_BRIEFING.md").read_text()
+    assert "**Why nothing is queued.** The lab does not invent work." in report
+    assert "of its 27 ranking-and-holding-period cells" in report and "0 are holes" in report
+    assert "no submission is waiting in `research/director/inbox`" in report and "| `syn` | 27 |" in brief
+    assert "- The queue is empty." in brief and "lab (none (deterministic code))" in report
+    assert C.integrity() == []
+
+
+def status_of(t: dict) -> dict:
+    return {k: v["status"] for k, v in t.items()}
 
 
 def test_a_task_is_not_started_without_the_time_it_may_need(tmp_path, monkeypatch):
