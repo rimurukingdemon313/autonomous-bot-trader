@@ -19,7 +19,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-TABLES = ("queue", "runs", "sources", "hypotheses", "forward", "alerts", "budget")
+TABLES = ("queue", "runs", "sources", "hypotheses", "forward", "alerts", "budget", "submissions")
 MAX_ATTEMPTS = 3
 STALE_HOURS = 6  # a task STARTED this long ago with no DONE or FAILED after it died with its machine
 
@@ -66,7 +66,8 @@ def tasks(store: Store) -> dict[str, dict]:
         t = out.setdefault(e["task"], {"task": e["task"], "kind": e.get("kind"), "args": e.get("args") or {},
                                        "priority": 0.0, "status": None, "attempts": 0, "at": None, "result": None})
         if e["event"] == "QUEUED":
-            t.update(kind=e["kind"], args=e.get("args") or {}, priority=e.get("priority", 0.0))
+            t.update(kind=e["kind"], args=e.get("args") or {}, priority=e.get("priority", 0.0),
+                     owner=e.get("owner", "lab-worker"), origin=e.get("origin", "lab"))
         elif e["event"] == "PRIORITY":
             t["priority"] = e["priority"]
             continue
@@ -83,12 +84,15 @@ def tasks(store: Store) -> dict[str, dict]:
     return out
 
 
-def enqueue(store: Store, task: str, kind: str, args: dict, priority: float, now: datetime) -> bool:
-    """Queue a task once. A task is known by its id, so the same experiment is never queued, or run, twice."""
+def enqueue(store: Store, task: str, kind: str, args: dict, priority: float, now: datetime, owner: str = "lab-worker",
+            origin: str = "lab") -> bool:
+    """Queue a task once. A task is known by its id, so the same experiment is never queued, or run, twice. `owner`
+    is who executes it (the deterministic worker); `origin` is who asked for it: the lab itself, the research
+    director, or the idea engine."""
     if task in tasks(store):
         return False
     store.append("queue", [{"task": task, "kind": kind, "args": args, "priority": priority, "event": "QUEUED",
-                            "at": now.isoformat()}])
+                            "at": now.isoformat(), "owner": owner, "origin": origin}])
     return True
 
 

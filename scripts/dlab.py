@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -34,11 +35,12 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from aitrader.research.dlab import DLAB_VERSION  # noqa: E402
+from aitrader.research.dlab import DLAB_VERSION, SCAN_VERSION  # noqa: E402
 from aitrader.research.dlab import datasets as D  # noqa: E402
 from aitrader.research.dlab import methods as M  # noqa: E402
 from aitrader.research.dlab import triage as T  # noqa: E402
-from aitrader.research.dlab.signals import nw_t, parts_of, pnl, stats  # noqa: E402
+from aitrader.research.dlab.signals import (  # noqa: E402
+    KINDS, causal, describe, nw_t, parts_of, pnl, spec_id, stats, targets, weights)
 from aitrader.research.registry import Holdout, Registry, Trial, Use, Verdict, bonferroni_t  # noqa: E402
 
 R = ROOT / "research"
@@ -147,7 +149,7 @@ def bar_for(reg: Registry, universe: str, window: tuple, new_tests: int) -> floa
 def scan_spec(dataset: str, run: str, seed: int, tops: dict | None = None) -> dict:
     universe = DATASETS[dataset][0]
     w = D.WINDOWS[universe]
-    return {"program": run, "version": DLAB_VERSION, "kind": "discovery scan", "role": "select", "dataset": dataset,
+    return {"program": run, "version": SCAN_VERSION, "kind": "discovery scan", "role": "select", "dataset": dataset,
             "universe": universe, "seed": seed, "windows": {k: [str(v[0]), str(v[1])] for k, v in w.items()},
             "rules_each_method_may_emit": dict(sorted((tops or {}).items())) or "24 each (no record to learn from yet)",
             "methods": ["leadlag", "info", "ordinal", "regimes", "anomaly", "evolve", "breadth", "combine"],
@@ -215,7 +217,7 @@ def earlier_looks(universe: str) -> int:
     """The distinct behaviours earlier scans evaluated on this market's check rows."""
     arts = [json.loads(p.read_text()) for p in OUT.glob("DLAB-*.json")] if OUT.exists() else []
     return sum(a["noise"]["distinct_behaviours"] - a["noise"].get("of_them_from_earlier_scans", 0)
-               for a in arts if a.get("kind") == "discovery_scan" and a.get("universe") == universe)
+               for a in arts if a.get("kind") in ("discovery_scan", "directed_test") and a.get("universe") == universe)
 
 
 def scan(dataset: str, seed: int, reg: Registry | None = None, panel=None, tops: dict | None = None) -> dict:
@@ -269,8 +271,8 @@ def cmd_scan_run(a, now: datetime) -> None:
 
 def _shifted_means(spec: dict, p, vmask: np.ndarray, offsets, k: float = 1.0) -> np.ndarray:
     """For each offset: the mean net return on the validation rows of the rule's own positions moved that many rows in
-    time (each part on its own priced rows, the parts averaged)."""
-    legs = []
+    time (each part on its own priced rows, the parts averaged: by their shares, where the book has them)."""
+    legs, shares = [], weights(spec)
     for part in parts_of(spec):
         j = p.col(part["target"])
         fwd = p.fwd()[:, j]
@@ -284,7 +286,7 @@ def _shifted_means(spec: dict, p, vmask: np.ndarray, offsets, k: float = 1.0) ->
             turn = np.abs(pos - np.concatenate([[0.0], pos[:-1]]))
             net = pos * f - k * (c * turn + h * np.abs(pos))
             means.append(float(net.mean()) if len(net) else 0.0)
-        out.append(float(np.mean(means)))
+        out.append(float(np.mean(means)) if shares is None else float(np.dot(shares, means)))
     return np.asarray(out)
 
 
@@ -577,6 +579,303 @@ def auto_validate(run: str, now: datetime) -> dict | None:
     return json.loads((OUT / f"{pid}.json").read_text())
 
 
+# ── a directed test: a hypothesis submitted as rules ───────────────────────
+
+MAX_DIRECTED = 48  # rules one directed test may hold
+MAX_SUBMISSION_BYTES = 4_000_000
+AUTHOR_ROLES = ("director", "engine", "lab")
+DIRECTED_FAMILIES = M.FAMILIES + ("aggregate",)
+_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,79}$")
+_TEXT = {"title": 8, "hypothesis": 40, "mechanism": 40, "why_now": 20, "refuted_by": 20}
+
+
+def refuse(sub: object) -> list[str]:
+    """Why a submission cannot be taken, in words. Empty: it can. No data is read here and nothing is repaired: a
+    submission is taken as it was written, or not at all."""
+    if not isinstance(sub, dict):
+        return ["it is not an object"]
+    out = []
+    if not isinstance(sub.get("id"), str) or not _ID.match(sub["id"]):
+        out.append("its id must be 3 to 80 letters, digits, dots, dashes or underscores")
+    for k, least in _TEXT.items():
+        if not isinstance(sub.get(k), str) or len(sub[k].strip()) < least:
+            out.append(f"`{k}` must say something (at least {least} characters)")
+    a = sub.get("author")
+    if not (isinstance(a, dict) and a.get("role") in AUTHOR_ROLES and all(
+            isinstance(a.get(k), str) and a[k].strip() for k in ("model", "interface"))):
+        out.append(f"`author` must name a role ({', '.join(AUTHOR_ROLES)}), the model and the interface it wrote through")
+    if sub.get("dataset") not in DATASETS:
+        out.append(f"`dataset` must be one of {', '.join(sorted(DATASETS))}")
+    if not isinstance(sub.get("parents", []), list) or not all(isinstance(x, str) for x in sub.get("parents", [])):
+        out.append("`parents` must be a list of the records, sources or findings it comes from")
+    if not isinstance(sub.get("in_sample_on_check_rows", False), bool):
+        out.append("`in_sample_on_check_rows` must be true or false")
+    rules = sub.get("rules")
+    if not isinstance(rules, list) or not 1 <= len(rules) <= MAX_DIRECTED:
+        return out + [f"`rules` must hold 1 to {MAX_DIRECTED} rules"]
+    seen = set()
+    for i, r in enumerate(rules):
+        if not (isinstance(r, dict) and isinstance(r.get("spec"), dict)):
+            out.append(f"rule {i}: it must be an object with a `spec`")
+            continue
+        s = r["spec"]
+        parts = s.get("parts") if s.get("kind") == "book" else [s]
+        if s.get("kind") != "book" and s.get("kind") not in KINDS or s.get("kind") == "const":
+            out.append(f"rule {i}: kind {s.get('kind')!r} is not a rule the lab can test")
+        elif not (isinstance(parts, list) and parts and all(
+                isinstance(x, dict) and x.get("kind") in KINDS and x.get("kind") != "const"
+                and isinstance(x.get("target"), str) for x in parts)) or (s["kind"] == "book" and len(parts) < 2):
+            out.append(f"rule {i}: every part must be a rule on a named instrument, and a book holds at least two")
+        if r.get("family") not in DIRECTED_FAMILIES:
+            out.append(f"rule {i}: `family` must be one of {', '.join(DIRECTED_FAMILIES)}")
+        if not isinstance(r.get("why"), str) or len(r["why"].strip()) < 10:
+            out.append(f"rule {i}: `why` must say what it would mean if the rule held")
+        if r.get("orient", "as written") not in ("as written", "fit"):
+            out.append(f"rule {i}: `orient` is 'as written' or 'fit'")
+        try:
+            k_ = spec_id(s)
+        except (TypeError, ValueError):
+            out.append(f"rule {i}: its spec is not plain data")
+            continue
+        if k_ in seen:
+            out.append(f"rule {i}: the same rule appears twice")
+        seen.add(k_)
+    return out
+
+
+def mirror(spec: dict) -> dict:
+    """The same rule on the other side: every position's sign reversed."""
+    k = spec["kind"]
+    if k == "book" or k == "combo":
+        return {**spec, "parts": [mirror(x) for x in spec["parts"]]}
+    if k == "xsleg":
+        return {**spec, "xs": {**spec["xs"], "side": -spec["xs"]["side"]}}
+    if k in ("table", "ordinal", "regime"):
+        return {**spec, "map": [-float(v) for v in spec["map"]]}
+    if k == "anomaly":
+        return {**spec, "mode": {"cont": "rev", "rev": "cont", "long": "short", "short": "long"}[spec["mode"]]}
+    return {**spec, "side": -spec["side"]}
+
+
+def directed_rules(sub: dict, p, fit: np.ndarray, known: dict, closed: list) -> tuple[list[dict], list[dict]]:
+    """Each submitted rule against the data it would run on. Returns the rules that can be tested (oriented by the fit
+    rows where they ask for it) and the rules refused, each with its reason. Only the fit rows are read: nothing here
+    looks at a check-row return, so a refusal costs no test and a rule that passes has still seen nothing."""
+    rows = np.nonzero(fit)[0]
+    tomb = None
+    ok, no = [], []
+    for i, r in enumerate(sub["rules"]):
+        s = r["spec"]
+
+        def refused(why: str) -> None:
+            no.append({"rule": i, "family": r["family"], "what": _words(s), "why": why,
+                       **({"cell": r["cell"]} if isinstance(r.get("cell"), str) else {})})
+        if not set(targets(s)) <= set(p.assets):
+            refused("it names an instrument this panel does not hold: " + ", ".join(sorted(set(targets(s)) - set(p.assets))[:5]))
+            continue
+        try:
+            x = pnl(s, p)
+            g = stats(x["gross"], fit, p.ppy, x["pos"])
+            if r.get("orient") == "fit":
+                if not g["t"]:
+                    refused("it earns nothing on the fit rows, so they cannot say which way it points")
+                    continue
+                if g["t"] < 0:
+                    s = mirror(s)
+                    x = pnl(s, p)
+                    g = stats(x["gross"], fit, p.ppy, x["pos"])
+            sound = causal(s, p, points=3)
+        except (KeyError, ValueError, IndexError, TypeError, ZeroDivisionError) as e:
+            refused(f"it cannot be computed on this panel ({type(e).__name__}: {str(e)[:120]})")
+            continue
+        held_rows, entries = _activity(s, p, fit)
+        if not sound:
+            refused("its position at a row changes when later rows are removed: it reads the future")
+        elif held_rows < T.MIN_IN_POSITION or entries < T.MIN_ENTRIES:
+            refused(f"{held_rows} rows in position and {entries} entries on the fit rows: too few to be a rule")
+        elif spec_id(s) in known:
+            refused(f"the same rule was classed {known[spec_id(s)][1]} by {known[spec_id(s)][0]}: it is not looked at twice")
+        else:
+            if tomb is None:  # the closed families, as they behaved on the fit rows
+                tomb = [(n, T.behaviour(c, p, rows)) for n, c in closed if set(targets(c)) <= set(p.assets)]
+            b = T.behaviour(s, p, rows)
+            rep = next(((n, T._corr(b, c)) for n, c in tomb if T._corr(b, c) >= T.SAME), None)
+            if rep is not None:
+                refused(f"on the fit rows it behaves as {rep[0]} (correlation {rep[1]:.2f}), judged and closed")
+            else:
+                ok.append({"id": spec_id(s), "family": r["family"], "why": r["why"].strip(), "spec": s,
+                           "oriented_by_the_fit_rows": r.get("orient") == "fit", "fit_gross_t": round(g["t"], 3) if g["t"] else None})
+    return ok, no
+
+
+def _activity(spec: dict, p, mask: np.ndarray) -> tuple[int, int]:
+    """Rows in position and positions opened or reversed on the masked rows. A book's are its parts', taken together,
+    as the triage counts them."""
+    each = [pnl(x, p) for x in parts_of(spec)]
+    each = [stats(x["net"], mask, p.ppy, x["pos"]) for x in each]
+    return sum(x.get("in_position") or 0 for x in each), sum(x.get("entries") or 0 for x in each)
+
+
+def _words(spec: dict) -> str:
+    try:
+        return describe(spec)[:200]
+    except (KeyError, TypeError, ValueError, IndexError):
+        return "a rule that cannot be put in words"
+
+
+def directed_spec(dataset: str, run: str, sub: dict, rules: list[dict], refused: list[dict]) -> dict:
+    universe = DATASETS[dataset][0]
+    w = D.WINDOWS[universe]
+    return {"program": run, "version": DLAB_VERSION, "kind": "directed test", "role": "select", "dataset": dataset,
+            "universe": universe, "windows": {k: [str(v[0]), str(v[1])] for k, v in w.items()},
+            "submission": {**{k: sub[k] for k in ("id", "author", "title", "hypothesis", "mechanism", "why_now", "refuted_by")},
+                           "submitted": sub.get("submitted"), "parents": list(sub.get("parents", [])),
+                           "in_sample_on_check_rows": bool(sub.get("in_sample_on_check_rows", False)),
+                           "sha256": sha(sub)},
+            "rules": rules, "refused_before_registration": refused,
+            "related_universes": list(D.RELATED.get(universe, ())), "classes": list(T.CLASSES),
+            "triage": {"same_behaviour_correlation": T.SAME, "least_chance_to_pass": T.P_MIN,
+                       "least_chance_for_a_place_that_costs_the_bar_nothing": T.P_FREE, "haircut": T.HAIRCUT,
+                       "batch": T.MAX_BATCH, "per_family": T.PER_FAMILY, "per_instrument": T.PER_TARGET},
+            "firewall": "the panel is loaded with nothing at or after the check rows' end: the validation rows are "
+                        "not in memory. A rule was oriented, where it asked, by the fit rows alone",
+            "validation": "a separate registration (" + run + "-V): the promising rules, frozen, judged once on the "
+                          "validation window at max(3.0, Bonferroni over every test on that window)"}
+
+
+def prereg_directed_doc(run: str, f: dict, day: str) -> str:
+    s = f["spec"]
+    sub, w = s["submission"], s["windows"]
+    a = sub["author"]
+    o = [f"# {run}: a directed test on {s['universe']} (preregistration)", "",
+         f"**Written {day} by the discovery lab's worker, before any check row was read.** Research only: nothing here "
+         "trades.", "",
+         f"- Spec sha256: `{f['sha256']}` (`research/specs/{run}.json`)",
+         f"- Code sha256: `{f['code_sha256']}` (the lab: `scripts/dlab.py`, `aitrader/research/dlab/`)",
+         f"- Submission `{sub['id']}` (sha256 `{sub['sha256']}`), written by the {a['role']} ({a['model']}, through "
+         f"{a['interface']})", "- Protocol: `docs/DISCOVERY_LAB.md`, `docs/RESEARCH_INSTITUTION.md`", "",
+         "## The hypothesis", "", f"**{sub['title']}**", "", sub["hypothesis"], "", f"Mechanism: {sub['mechanism']}", "",
+         f"Why now: {sub['why_now']}", "", f"What would refute it: {sub['refuted_by']}", "",
+         "Comes from: " + (", ".join(sub["parents"]) or "nothing on record"), ""]
+    if sub["in_sample_on_check_rows"]:
+        o += ["**Its rules were chosen on the check rows.** Their check-row figures are therefore in sample and show "
+              "nothing. Only the validation rows, which no scan and no test has read, can judge them.", ""]
+    o += ["## The rules, frozen", "", "| Id | Family | The rule | Why |", "|---|---|---|---|"]
+    o += [f"| `{r['id']}` | {r['family']} | {_words(r['spec'])}"
+          + (" (pointed by the fit rows)" if r["oriented_by_the_fit_rows"] else "") + f" | {r['why'][:300]} |" for r in s["rules"]]
+    if s["refused_before_registration"]:
+        o += ["", "Refused before this registration, on the fit rows alone, and not tested (no test is charged for them):", ""]
+        o += [f"- {x['what']}: {x['why']}" for x in s["refused_before_registration"]]
+    o += ["", "## The rows", "", "| Rows | From | To (exclusive) | Use |", "|---|---|---|---|",
+          f"| Fit | {w['fit'][0]} | {w['fit'][1]} | a rule that asked was pointed by these; nothing else was read |",
+          f"| Check | {w['check'][0]} | {w['check'][1]} | each rule is evaluated here once |",
+          f"| Validation | {w['validation'][0]} | {w['validation'][1]} | **not loaded.** Read once, by `{run}-V`, if a rule is promising |",
+          "", "## What is counted", "",
+          f"- The test is charged {len(s['rules'])} tests against its fit and check rows (role select): one for each rule.",
+          "- Each rule is classed against every look earlier scans and tests took at the same check rows, not only "
+          "against this test's own rules.",
+          "- The validation rows are charged only for the rules later judged on them.", "",
+          "## What follows", "",
+          f"- At most {s['triage']['batch']} rules go to `{run}-V`: frozen, and judged once on the validation rows at "
+          "max(3.0, Bonferroni over every test on those rows), with every other gate (doubled costs, a late entry for a "
+          "slow rule, both halves, 1,000 time-shifted books, no one year carrying it).",
+          "- The verdict is PASSED if the test proposes such a batch and FAILED if it does not. Neither is a result "
+          "about any rule: no rule is validated or disproved here. No model approves anything: a rule is validated "
+          "only by that separate test.", ""]
+    return "\n".join(o)
+
+
+def auto_directed(dataset: str, run: str, sub: dict, now: datetime, panel=None) -> dict:
+    """A submitted hypothesis, end to end: check its rules against the data, freeze, write its preregistration,
+    register, look once at the check rows, class, record. Resumes where a crash left it. If no rule survives the
+    checks, nothing is registered and nothing is charged: the result says why."""
+    reg = _registry()
+    universe, loader, _ = DATASETS[dataset]
+    w = D.WINDOWS[universe]
+    p = panel if panel is not None else loader(w["check"][1])
+    if p.times[-1] >= w["validation"][0]:
+        raise SystemExit("the panel given to a directed test holds validation rows: refused")
+    fit, check = p.rows(*w["fit"]), p.rows(*w["check"])
+    if not any(t.id == run for t in reg.trials):
+        problems = refuse(sub)
+        if problems:
+            return {"program": run, "verdict": "REFUSED", "why": problems, "refused": []}
+        rules, refused = directed_rules(sub, p, fit, known_rules(universe), D.closed(p))
+        if not rules:
+            return {"program": run, "verdict": "REFUSED", "why": ["no rule of the submission can be tested"], "refused": refused}
+        s = directed_spec(dataset, run, sub, rules, refused)
+        (R / "specs").mkdir(parents=True, exist_ok=True)
+        (R / "specs" / f"{run}.json").write_text(_dump({"spec": s, "sha256": sha(s), "code_sha256": code_hash()}))
+        f = _frozen(run)
+        doc = ROOT / "research" / "preregistrations" / f"{run}.md"
+        doc.parent.mkdir(parents=True, exist_ok=True)
+        doc.write_text(prereg_directed_doc(run, f, f"{now:%Y-%m-%d}"))
+        reg.register(Trial(id=run, registered=now, title=f"{run}: a directed test of {len(rules)} rules on {universe} (select)",
+                           hypothesis=sub["hypothesis"].strip()[:900],
+                           uses=(Use(universe, _day(w["fit"][0]), _day(w["check"][1]), "select"),),
+                           tests=len(rules), configurations=len(rules), preregistration=f"research/preregistrations/{run}.md",
+                           design={"spec_sha256": f["sha256"], "code_sha256": f["code_sha256"], "submission": sub["id"]}))
+        print("registered", run)
+        reg = _registry()
+    judged = reg.verdict_of(run)
+    if judged is not None:  # looked at once: the record is returned, never recomputed
+        return json.loads((OUT / f"{run}.json").read_text())
+    f = _frozen(run)
+    if reg.get(run).design.get("spec_sha256") != f["sha256"] or code_hash() != f["code_sha256"]:
+        raise SystemExit(f"{run}: the spec or the code differs from what was registered")
+    s = f["spec"]
+    emitted = [M.Emit(r["spec"], r["family"], "directed", abs(r["fit_gross_t"] or 0.0), r["why"],
+                      {"submission": s["submission"]["id"], "author": s["submission"]["author"]["role"],
+                       "oriented_by_the_fit_rows": r["oriented_by_the_fit_rows"]}) for r in s["rules"]]
+    years = (w["validation"][1] - w["validation"][0]).days / 365.25
+    bar = bar_for(reg, universe, w["validation"], T.MAX_BATCH)
+    res = T.triage(emitted, p, fit, check, n_val=p.ppy * years, bar=bar, closed=D.closed(p), hint=D.HINTS.get(universe, ""),
+                   known=known_rules(universe), prior_looks=earlier_looks(universe),
+                   free_places=free_places(reg, universe, w["validation"]))
+    if s["submission"]["in_sample_on_check_rows"]:
+        for r in res["records"]:
+            r["in_sample_on_check_rows"] = True
+            r["reason"] = (r.get("reason") or "") + ("; its rules were chosen on these check rows, so this figure is in "
+                                                     "sample and shows nothing: only the validation rows judge it")
+    verdict = "PASSED" if res["batch"] else "FAILED"
+    body = _write(run, {"program": run, "kind": "directed_test", "verdict": verdict, "spec_sha256": f["sha256"],
+                        "code_sha256": f["code_sha256"], "windows": s["windows"], "universe": universe,
+                        "rows": {"panel": p.T, "fit": int(fit.sum()), "check": int(check.sum()),
+                                 "validation_expected": int(p.ppy * years)},
+                        "first_row": str(p.times[0]), "last_row": str(p.times[-1]), "instruments": list(p.assets),
+                        "submission": {k: s["submission"][k] for k in ("id", "author", "title", "in_sample_on_check_rows")},
+                        "refused_before_registration": s["refused_before_registration"], "bar_on_validation": round(bar, 4),
+                        "meaning": ("the batch goes to a registered validation" if res["batch"] else
+                                    "no rule is worth a registered validation; every rule is kept with its class"),
+                        **res, "summary": T.summary(res["records"])})
+    T.append(LEDGER, run, res["records"], now.isoformat(), DLAB_VERSION)
+    reg.record_verdict(Verdict(run, now, verdict, {"artifact": f"research/knowledge/{run}.json",
+                                                    "artifact_sha256": body["sha256"], "rules": len(res["records"]),
+                                                    "batch": res["batch"]}))
+    return body
+
+
+def aggregate_of(runs: list[str]) -> dict:
+    """One rule that is every rule of the given runs classed positive on the check rows and not told from noise, held
+    together: the families share the capital equally, the rules of a family share theirs equally, and the parts of a
+    rule (a book's legs) share the rule's. Deterministic: built from the candidate ledger as it stands."""
+    rows = [json.loads(x) for x in LEDGER.read_text().splitlines() if x.strip()]
+    mine = [r for r in rows if "event" not in r and r["run"] in runs and r["class"] in ("INSUFFICIENT_POWER", "PROMISING_UNCONFIRMED")]
+    fams: dict[str, list[dict]] = {}
+    for r in sorted(mine, key=lambda r: (r["family"], r["id"])):
+        if weights(r["spec"]) is None:  # an aggregate is not put inside an aggregate
+            fams.setdefault(r["family"], []).append(r)
+    if not fams:
+        raise SystemExit(f"no rule of {', '.join(runs)} is classed positive: nothing to hold together")
+    parts = []
+    for members in fams.values():
+        for r in members:
+            leaves = parts_of(r["spec"])
+            share = 1.0 / (len(fams) * len(members) * len(leaves))
+            parts += [{**x, "share": share} for x in leaves]
+    return {"kind": "book", "parts": parts}
+
+
 # ── what the lab can and cannot find ───────────────────────────────────────
 
 def operating_characteristic(seeds: int = 12, rows: int = 7500) -> dict:
@@ -705,7 +1004,8 @@ def main() -> int:
     return 0
 
 
-__all__ = ["auto_scan", "auto_validate", "bar_for", "batch_spec", "code_hash", "judge_rule", "mean_hold",
+__all__ = ["aggregate_of", "auto_directed", "auto_scan", "auto_validate", "bar_for", "batch_spec", "code_hash",
+           "covers", "directed_rules", "directed_spec", "judge_rule", "mean_hold", "mirror", "refuse",
            "operating_characteristic", "operating_characteristic_broad", "prereg_batch_doc", "prereg_scan_doc", "same_rules", "scan", "scan_spec",
            "tests_counted"]
 

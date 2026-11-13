@@ -29,7 +29,7 @@ SOURCE = {"id": "arxiv:2611.00001", "origin": "arxiv", "url": "http://arxiv.org/
           "title": "A paper about lead-lag", "published": "2026-11-09", "status": "UNREAD", "reproducibility": "not attempted"}
 
 
-def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
+def make_lab(root, mp, feed=None, last="2028-09-29", daily=True, full=None, windows=None):
     """A scratch repository with an empty registry, a built market with a planted lead-lag, and a feed that touches
     no network. Returns what the feed and the loader were asked. `last` is the last day the feed says it holds; a
     `daily` panel is refreshed by the forward marks, as the ETF panel is."""
@@ -43,7 +43,7 @@ def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
         mp.setattr(L, name, val)
     mp.setattr(L, "code_hash", lambda: "c" * 64)
     mp.setattr(C, "SEAL_SHA256", hashlib.sha256((r / "holdout.json").read_bytes()).hexdigest())
-    full = D.synthetic(rows=7500, seed=100, plant={"leadlag": 0.12})
+    full = full if full is not None else D.synthetic(rows=7500, seed=100, plant={"leadlag": 0.12})
     asked = {"loads": [], "feeds": [], "last": last}
 
     def loader(last):
@@ -59,9 +59,9 @@ def make_lab(root, mp, feed=None, last="2028-09-29", daily=True):
                                "moves_beyond_50pct": 0} for a in full.assets}}
         (data / "manifest.json").write_text(json.dumps(man))
         return man
-    mp.setitem(D.WINDOWS, "synthetic", W)
+    mp.setitem(D.WINDOWS, "synthetic", windows or W)
     mp.setitem(L.DATASETS, "syn", ("synthetic", loader, 5))
-    mp.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": 3, "daily": daily}})
+    mp.setattr(C, "CATALOG", {"syn": {"tag": "SYN", "feed": "syn_feed", "instruments": len(full.assets), "daily": daily}})
     mp.setattr(C, "FEEDS", {"syn_feed": feed or fake_feed})
     mp.setattr(C, "DUE", {})
     mp.setattr(C, "MIN_INSTRUMENTS", {"syn_feed": 3})
@@ -128,17 +128,18 @@ def status(snap, n):
 def test_data_first_then_a_registered_scan_then_its_validation_one_task_a_cycle(story):
     sn = story["snap"]
     assert [sn[i]["code"] for i in range(1, 6)] == [0] * 5
-    assert status(sn, 1) == {"data:syn_feed:2026-11": "DONE", "scan:syn:" + C.DLAB_VERSION + ":7": "QUEUED",
+    assert status(sn, 1) == {"data:syn_feed:2026-11": "DONE", "scan:syn:" + C.SCAN_VERSION + ":7": "QUEUED",
                              "sources:2026-W46": "QUEUED"}
     # the scan waited for its data. The data step looked at the discovery rows (is the panel usable?); nothing registered
-    assert sn[1]["registry"] == 0 and sn[1]["loads"] == [W["check"][1]]
-    scan = "scan:syn:" + C.DLAB_VERSION + ":7"
+    assert sn[1]["registry"] == 0 and set(sn[1]["loads"]) == {W["check"][1]}
+    scan = "scan:syn:" + C.SCAN_VERSION + ":7"
     assert status(sn, 2)[scan] == "DONE" and status(sn, 2)["validate:DLAB-SYN-1"] == "QUEUED"
-    assert sn[2]["registry"] == 2 and sn[2]["loads"] == [W["check"][1]] * 2  # a trial and its verdict; discovery rows only
+    assert sn[2]["registry"] == 2 and set(sn[2]["loads"]) == {W["check"][1]}  # a trial and its verdict; discovery rows only
     assert sn[2]["tasks"][scan]["result"]["verdict"] == "PASSED" and sn[2]["tasks"][scan]["result"]["batch"] >= 1
     assert status(sn, 3)["validate:DLAB-SYN-1"] == "DONE" and sn[3]["registry"] == 4
-    # the batch re-checked on the discovery rows, then the validation rows loaded once, after the registration
-    assert sn[3]["loads"] == [W["check"][1]] * 3 + [W["validation"][1]]
+    # the batch re-checked on the discovery rows; the validation rows loaded once, by the judge, in the cycle that
+    # registered the validation and in no cycle before it
+    assert sn[3]["loads"].count(W["validation"][1]) == 1 and set(sn[3]["loads"]) == {W["check"][1], W["validation"][1]}
     v = sn[3]["tasks"]["validate:DLAB-SYN-1"]["result"]
     assert v["verdict"] == "PASSED" and v["passed"] and v["threshold_t"] == 3.0
     reg = Registry.load(story["root"] / "research" / "registry.jsonl", Holdout.load(story["root"] / "research" / "holdout.json"))
@@ -239,10 +240,10 @@ def test_a_scan_whose_record_was_pushed_but_whose_queue_was_lost_is_resumed_not_
     state = tmp_path / "empty"  # the state of the cycle that ran the scan never reached lab-data
     assert C.cycle(state, NOW + timedelta(hours=7), max_tasks=2) == 0
     t = tasks(Store(state))
-    scan = t["scan:syn:" + C.DLAB_VERSION + ":7"]
+    scan = t["scan:syn:" + C.SCAN_VERSION + ":7"]
     assert scan["args"]["run"] == "DLAB-SYN-1" and scan["status"] == "DONE"  # the same run, not a DLAB-SYN-2
     # nothing registered again; the only read is the data step's look at the discovery rows
-    assert registry_lines(root) == before and asked["loads"] == [W["check"][1]]
+    assert registry_lines(root) == before and set(asked["loads"]) == {W["check"][1]}
     assert t["validate:DLAB-SYN-1"]["status"] == "QUEUED"  # and its validation is queued, as it was
 
 
@@ -255,13 +256,15 @@ def test_a_feed_that_keeps_failing_is_retried_three_times_then_reported_and_bloc
     root = tmp_path / "repo"
     root.mkdir()
     asked = make_lab(root, monkeypatch, feed=broken)
+    post(root, hypothesis())
     state = tmp_path / "state"
     for i in range(5):
         assert C.cycle(state, NOW + timedelta(hours=6 * i), max_tasks=2) == 0  # a failed task is not a failed cycle
     st = Store(state)
     t = tasks(st)
     assert len(calls) == 3 and t["data:syn_feed:2026-11"]["status"] == "FAILED" and t["data:syn_feed:2026-11"]["attempts"] == 3
-    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    assert t["directed:D-leadlag"]["attempts"] == 0  # a submitted hypothesis waits for whole data too
     problems = [a for a in st.read("alerts") if a["level"] == "PROBLEM"]
     assert len(problems) == 1 and "data:syn_feed:2026-11" in problems[0]["title"]  # raised once, not every cycle
     text = (state / "LAB_REPORT.md").read_text()
@@ -322,19 +325,19 @@ def test_a_scan_waits_for_a_complete_fetch_and_what_arrived_is_kept(tmp_path, mo
     t = tasks(Store(st))
     assert t["data:syn_feed:2026-11"]["status"] == "FAILED" and "did not answer for 3 files" in t["data:syn_feed:2026-11"]["result"]["error"]
     assert (st / "data" / "syn_feed" / "close.json").exists()  # kept for the next attempt
-    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and asked["loads"] == [] and registry_lines(root) == 0
     state["failed"] = 0  # the archive answers: the fetch completes, and only then may the panel be scanned
     assert C.cycle(st, NOW + timedelta(hours=6), max_tasks=1) == 0
     t = tasks(Store(st))
-    assert t["data:syn_feed:2026-11"]["status"] == "DONE" and t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0
-    assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st)) is None
+    assert t["data:syn_feed:2026-11"]["status"] == "DONE" and t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0
+    assert C.ready(t["scan:syn:" + C.SCAN_VERSION + ":7"], st, Store(st)) is None
     # a later fetch that is not complete leaves holes on file: the finished fetch of last month does not make them whole
     state["failed"] = 2
     partial(st / "data" / "syn_feed", NOW + timedelta(days=30))
-    why = C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], st, Store(st))
+    why = C.ready(t["scan:syn:" + C.SCAN_VERSION + ":7"], st, Store(st))
     assert "its data (syn_feed) are not completely on file yet" in why and "did not answer for 2 files" in why
     assert C.cycle(st, NOW + timedelta(hours=12), max_tasks=3) == 0
-    assert tasks(Store(st))["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0
+    assert tasks(Store(st))["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0
 
 
 def test_a_thin_panel_is_refused(tmp_path, monkeypatch):
@@ -369,8 +372,8 @@ def test_files_that_arrived_but_make_no_usable_panel_stop_the_scan_before_it_is_
     r = t["data:syn_feed:2026-11"]
     assert r["status"] == "FAILED" and "only 3 instruments of the syn panel have the fit rows" in r["result"]["error"]
     assert C.incomplete(state, "syn_feed") is None  # whole files on disk are not a finished fetch: the scan still waits
-    assert t["scan:syn:" + C.DLAB_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0  # nothing registered
-    assert C.ready(t["scan:syn:" + C.DLAB_VERSION + ":7"], state, Store(state)) == "its data (syn_feed) are not completely on file yet"
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and registry_lines(root) == 0  # nothing registered
+    assert C.ready(t["scan:syn:" + C.SCAN_VERSION + ":7"], state, Store(state)) == "its data (syn_feed) are not completely on file yet"
 
 
 def test_a_validation_waits_until_the_files_reach_the_end_of_its_window(story, tmp_path, monkeypatch):
@@ -502,6 +505,140 @@ def test_a_data_task_is_named_by_the_newest_period_its_feed_can_bring(tmp_path, 
     assert C.CATALOG["etf-daily"].get("daily") is True and not C.CATALOG["crypto-daily"].get("daily")
 
 
+PLANTED = {"kind": "sign", "target": "A1", "feat": {"f": "ret", "a": "A0", "k": 1}, "w": 250, "band": 0.5, "side": 1}
+
+
+def hypothesis(sid="D-leadlag", **more) -> dict:
+    return {"id": sid, "submitted": "2026-11-11", "dataset": "syn", "parents": [],
+            "author": {"role": "director", "model": "test-model", "interface": "a test"},
+            "title": "A0's move leads A1's next row",
+            "hypothesis": "A1's next row moves with the sign of A0's last move, beyond half a standard deviation.",
+            "mechanism": "A1 is slower to take in what moves A0: a lead-lag between two related instruments.",
+            "why_now": "Stated directly, as one rule, rather than found by a search.",
+            "refuted_by": "A check-row mean that is not positive in both halves.",
+            "rules": [{"family": "cross-asset lead-lag", "why": "the link as one rule", "orient": "fit", "spec": L.mirror(PLANTED)}],
+            **more}
+
+
+def post(root, body, name=None) -> None:
+    box = root / C.INBOX
+    box.mkdir(parents=True, exist_ok=True)
+    (box / f"{name or body['id']}.json").write_text(body if isinstance(body, str) else json.dumps(body))
+
+
+def test_a_hypothesis_in_the_inbox_becomes_a_registered_test_and_what_it_finds_is_validated(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    root.mkdir()
+    asked = make_lab(root, monkeypatch)
+    state = tmp_path / "state"
+    assert C.cycle(state, NOW, max_tasks=1) == 0  # the data
+    post(root, hypothesis())
+    post(root, "{not json", "broken")
+    post(root, hypothesis("another-name"), "misnamed")
+    post(root, hypothesis("elsewhere", dataset="energy"))
+    post(root, hypothesis("no-mechanism", mechanism=""))
+    assert C.cycle(state, NOW + timedelta(hours=6), max_tasks=1) == 0
+    st = Store(state)
+    subs = {r["id"]: r for r in st.read("submissions")}
+    assert subs["D-leadlag"]["event"] == "QUEUED" and subs["D-leadlag"]["run"] == "DLAB-SYN-D1"
+    assert subs["broken"]["why"] == ["it is not JSON"] and subs["misnamed"]["why"] == ["its id is not its file's name"]
+    assert "fetches no data for energy" in subs["elsewhere"]["why"][0] and "`mechanism`" in subs["no-mechanism"]["why"][0]
+    t = tasks(st)
+    d = t["directed:D-leadlag"]
+    # asked by the director, executed by the worker, before the scan (a stated hypothesis outranks a search)
+    assert d["status"] == "DONE" and d["origin"] == "director:test-model" and d["owner"] == "lab-worker" and d["attempts"] == 1
+    assert d["result"]["verdict"] == "PASSED" and d["result"]["registered"] and d["result"]["batch"] == 1
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["attempts"] == 0 and len(t) == 5  # no task for a refused submission
+    assert t["validate:DLAB-SYN-D1"]["status"] == "QUEUED" and t["validate:DLAB-SYN-D1"]["origin"] == "director:test-model"
+    reg = Registry.load(root / "research" / "registry.jsonl", Holdout.load(root / "research" / "holdout.json"))
+    assert [x.id for x in reg.trials] == ["DLAB-SYN-D1"] and reg.get("DLAB-SYN-D1").tests == 1
+    assert W["validation"][1] not in asked["loads"]  # found on the discovery rows; nothing has read the validation rows
+    report, brief = (state / "LAB_REPORT.md").read_text(), (state / "DIRECTOR_BRIEFING.md").read_text()
+    assert "| `DLAB-SYN-D1` | director (test-model) | A0's move leads A1's next row | 1 | 0 | 1 | PASSED |" in report
+    assert "`broken`: it is not JSON" in report and "`no-mechanism`: `mechanism` must say something" in report
+    assert "| `DLAB-SYN-D1` | directed_test | PASSED |" in brief and "refused: `misnamed`" in brief
+    assert "How a hypothesis is submitted" in brief and "It approves nothing" in brief
+    assert C.cycle(state, NOW + timedelta(hours=12), max_tasks=1) == 0  # its validation: the judge, on unread rows
+    v = tasks(Store(state))["validate:DLAB-SYN-D1"]
+    assert v["status"] == "DONE" and v["result"]["verdict"] == "PASSED" and asked["loads"].count(W["validation"][1]) == 1
+    assert [a["level"] for a in Store(state).read("alerts") if a["event"] == "RAISED"] == ["DISCOVERY"]
+    assert C.cycle(state, NOW + timedelta(hours=18), max_tasks=4) == 0  # the scan and the rest; nothing runs twice
+    t = tasks(Store(state))
+    # the test and its validation, then the scan and the validation of the scan's own batch: two lines each
+    assert all(x["attempts"] == 1 for x in t.values()) and registry_lines(root) == 8
+    assert len(Store(state).read("submissions")) == 5  # a submission is looked at once, the refused ones too
+    # the director reviews it: it is no longer waiting. A review is a record, never an approval
+    assert C.reviewed() == set() and "| `DLAB-SYN-D1-V` | discovery_validation | PASSED |" in (state / "DIRECTOR_BRIEFING.md").read_text()
+    log = root / "research" / "director" / "log.jsonl"
+    log.write_text(json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"]}) + "\n"
+                   + json.dumps({"action": "PLAN", "of": ["DLAB-OTHER"]}) + "\n")
+    assert C.reviewed() == {"DLAB-SYN-D1", "DLAB-SYN-D1-V", "DLAB-SYN-1"}  # a plan is not a review
+    late = C.briefing(Store(state), state, NOW + timedelta(days=1), [])
+    assert "| `DLAB-SYN-1-V` | discovery_validation |" in late and "| `DLAB-SYN-D1` |" not in late  # one run still waits
+    with open(log, "a") as fh:  # a line that is not JSON, or not a review, reviews nothing and stops nothing
+        fh.write("not json\n" + json.dumps(["REVIEW"]) + "\n" + json.dumps({"action": "REVIEW", "of": "DLAB-X"}) + "\n"
+                 + json.dumps({"action": "REVIEW", "of": ["DLAB-SYN-1-V"]}) + "\n")
+    assert "None: every judged run is named in a REVIEW entry" in C.briefing(Store(state), state, NOW + timedelta(days=1), [])
+    # a submission with nothing left to test is answered once: it is not a failure, and it is not retried
+    post(root, hypothesis("D-again", rules=[{"family": "cross-asset lead-lag", "why": "the same rule again", "spec": PLANTED}]))
+    assert C.cycle(state, NOW + timedelta(days=1, hours=6), max_tasks=4) == 0
+    r = tasks(Store(state))["directed:D-again"]
+    assert r["status"] == "DONE" and r["attempts"] == 1 and r["result"]["verdict"] == "REFUSED" and not r["result"]["registered"]
+    assert "not looked at twice" in r["result"]["refused"][0]["why"] and registry_lines(root) == 8
+    assert "`D-again`: no rule of the submission can be tested" in (state / "LAB_REPORT.md").read_text()
+    # a fresh machine with no memory: the test's record is in the repository, so it is resumed under its name
+    again = tmp_path / "fresh"
+    assert C.cycle(again, NOW + timedelta(days=2), max_tasks=4) == 0
+    t2 = tasks(Store(again))
+    assert t2["directed:D-leadlag"]["args"]["run"] == "DLAB-SYN-D1" and t2["directed:D-leadlag"]["status"] == "DONE"
+    assert registry_lines(root) == 8  # no second registration, no second look
+
+
+def test_the_lab_fills_the_holes_in_its_own_map_once_and_then_says_why_it_is_idle(tmp_path, monkeypatch):
+    full = D.synthetic(rows=1700, assets=8, seed=11, plant={"xs": 0.06}, cost=0.00005)
+    win = {"fit": (full.times[250], full.times[900]), "check": (full.times[900], full.times[1350]),
+           "validation": (full.times[1350], full.times[-1] + timedelta(days=1))}
+    root = tmp_path / "repo"
+    root.mkdir()
+    make_lab(root, monkeypatch, full=full, windows=win)
+    state = tmp_path / "state"
+    assert C.cycle(state, NOW, max_tasks=1) == 0  # the data
+    assert not [k for k in tasks(Store(state)) if k.startswith("directed:lab-coverage")]  # no map before a scan
+    assert C.cycle(state, NOW + timedelta(hours=1), max_tasks=1) == 0  # the scan
+    st = Store(state)
+    t = tasks(st)
+    cover = [k for k in t if k.startswith("directed:lab-coverage-syn-")]
+    # the scan's own places left holes: the next task is queued by the cycle that ran the scan, with no one asking
+    assert t["scan:syn:" + C.SCAN_VERSION + ":7"]["status"] == "DONE" and len(cover) == 1
+    task = t[cover[0]]
+    holes = C.coverage_of("syn", st)["holes"]
+    assert task["status"] == "QUEUED" and task["origin"] == "lab:coverage" and task["args"]["run"] == "DLAB-SYN-D1"
+    assert 0 < len(holes) == len(task["args"]["submission"]["rules"]) < 27
+    assert {r["cell"] for r in task["args"]["submission"]["rules"]} == {C.V.cell(f, h) for f, h in holes}
+    for i in range(1, 6):
+        assert C.cycle(state, NOW + timedelta(hours=6 * i), max_tasks=4) == 0
+    st = Store(state)
+    t = tasks(st)
+    done = t[cover[0]]
+    assert done["status"] == "DONE" and done["attempts"] == 1 and done["result"]["registered"]
+    cov = C.coverage_of("syn", st)
+    assert cov["holes"] == [] and cov["cells"] == 27 and cov["looked_at"] + len(cov["set_aside"]) == 27
+    assert [k for k in t if k.startswith("directed:lab-coverage")] == cover  # the map is whole: no second task, ever
+    art = json.loads((root / "research" / "knowledge" / "DLAB-SYN-D1.json").read_text())
+    assert art["submission"]["author"]["role"] == "lab" and len(art["records"]) + len(art["refused_before_registration"]) == len(holes)
+    assert set(status_of(t).values()) == {"DONE"}
+    report, brief = (state / "LAB_REPORT.md").read_text(), (state / "DIRECTOR_BRIEFING.md").read_text()
+    assert "**Why nothing is queued.** The lab does not invent work." in report
+    assert "of its 27 ranking-and-holding-period cells" in report and "0 are holes" in report
+    assert "no submission is waiting in `research/director/inbox`" in report and "| `syn` | 27 |" in brief
+    assert "- The queue is empty." in brief and "lab (none (deterministic code))" in report
+    assert C.integrity() == []
+
+
+def status_of(t: dict) -> dict:
+    return {k: v["status"] for k, v in t.items()}
+
+
 def test_a_task_is_not_started_without_the_time_it_may_need(tmp_path, monkeypatch):
     root = tmp_path / "repo"
     root.mkdir()
@@ -530,7 +667,7 @@ def test_a_scan_registered_under_code_that_then_changed_is_abandoned_and_queued_
     reg = Registry.load(root / "research" / "registry.jsonl", Holdout.load(root / "research" / "holdout.json"))
     assert reg.verdict_of("DLAB-SYN-1").status == "ABANDONED" and not (root / "research" / "knowledge" / "DLAB-SYN-1.json").exists()
     t = tasks(Store(state))
-    nxt = t["scan:syn:" + C.DLAB_VERSION + ":7:after-DLAB-SYN-1"]
+    nxt = t["scan:syn:" + C.SCAN_VERSION + ":7:after-DLAB-SYN-1"]
     assert nxt["args"]["run"] == "DLAB-SYN-2" and nxt["status"] == "QUEUED"
     assert C.integrity() == []  # an abandoned scan is part of the record, not a hole in it
 

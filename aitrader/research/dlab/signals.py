@@ -11,7 +11,8 @@ A spec carries everything needed to recompute the rule on data it has never seen
     level     a raw feature above or below a fixed level (used to state earlier, closed families exactly)
     const     always one side (the instrument's own return: the baseline, never a discovery)
     combo     several rules on one instrument: all agree (and), or the majority (vote)
-    book      several rules, equal capital each: the pooled test of one mechanism across instruments
+    book      several rules, equal capital each: the pooled test of one mechanism across instruments. A part may
+              carry a `share` of the book's capital: then the book is the weighted mean (an aggregate of rules)
     xsleg     one instrument's weight in a cross-sectional book (the top of a ranking held against its bottom); a
               cross-sectional rule is the book of every instrument's leg
 
@@ -232,14 +233,32 @@ def targets(spec: dict) -> tuple:
     return tuple(sorted({x["target"] for x in parts_of(spec)}))
 
 
+def weights(spec: dict) -> list[float] | None:
+    """A book's weights, summing to one, if any part carries a `share` (a part without one counts 1); None for the
+    ordinary book of equal parts. A share must be a positive, finite number. (`w` is a rule's trailing window, never
+    a weight.)"""
+    if spec["kind"] != "book" or not any("share" in x for x in spec["parts"]):
+        return None
+    w = [float(x.get("share", 1.0)) for x in spec["parts"]]
+    if not all(math.isfinite(v) and v > 0 for v in w):
+        raise ValueError("a book's shares must be positive and finite")
+    total = sum(w)
+    return [v / total for v in w]
+
+
 def pnl(spec: dict, p: Panel, k: float = 1.0, delay: int = 0) -> dict:
     """The rule's net and gross return at every row ([T], NaN where no decision could be made) and its position.
     `k` scales every cost; `delay` enters that many of the instrument's priced rows late."""
     if spec["kind"] == "book":
         each = [pnl(x, p, k, delay) for x in spec["parts"]]
         any_row = np.any([np.isfinite(e["net"]) for e in each], axis=0)
-        out = {f: np.where(any_row, np.mean([_b(e[f]) for e in each], axis=0), np.nan) for f in ("net", "gross")}
-        out["pos"] = np.mean([np.abs(_b(e["pos"])) for e in each], axis=0)
+        w = weights(spec)
+        if w is None:
+            out = {f: np.where(any_row, np.mean([_b(e[f]) for e in each], axis=0), np.nan) for f in ("net", "gross")}
+            out["pos"] = np.mean([np.abs(_b(e["pos"])) for e in each], axis=0)
+            return out
+        out = {f: np.where(any_row, sum(wi * _b(e[f]) for wi, e in zip(w, each)), np.nan) for f in ("net", "gross")}
+        out["pos"] = sum(wi * np.abs(_b(e["pos"])) for wi, e in zip(w, each))
         return out
     j = p.col(spec["target"])
     fwd = p.fwd()[:, j]
@@ -322,6 +341,9 @@ def describe(spec: dict) -> str:
         return (f"across {len(spec['parts'])} instruments: {top} the top {x['q']:.0%} and {bottom} the bottom "
                 f"{x['q']:.0%} by {f_(x['feat'])}, equal weights, no net exposure; each row's book is held "
                 f"{x.get('hold', 1)} rows")
+    if k == "book" and weights(spec) is not None:
+        return (f"aggregate of {len(spec['parts'])} weighted parts on {len(targets(spec))} instruments: "
+                + "; ".join(describe(x) for x in spec["parts"][:3])[:300] + "; ...")
     if k == "book":
         return "book of " + str(len(spec["parts"])) + ": " + "; ".join(describe(x) for x in spec["parts"])[:400]
     t = spec["target"]
@@ -355,4 +377,4 @@ def dumps(spec: dict) -> str:
 
 __all__ = ["KINDS", "causal", "cond", "describe", "dumps", "held", "leaves", "node", "nw_t", "ordinal_code",
            "parts_of", "pnl", "positions", "regime_state", "shock", "shock_d2", "spec_id", "stats", "targets",
-           "xs_book", "xs_weights"]
+           "weights", "xs_book", "xs_weights"]
