@@ -2,13 +2,23 @@
 
 **RESEARCH ONLY · NOT TRADING · NOTHING HERE IS A PROFIT CLAIM.** Written by the lab's own worker on GitHub's runner, with no person and no open conversation in the loop. A rule is validated only by a preregistered test on rows no scan has read, at the registry's bar; everything short of that is a candidate.
 
-**بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 634 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
+**بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 660 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-13 17:41 UTC · lab-cycle-1.0.2 · dlab-1.1.0 · cycles so far: 6
+Updated 2026-11-13 21:36 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 7
 
 ## This cycle
 
-No task ran: nothing was due, or nothing could run yet (see the queue).
+| Task | Result |
+|---|---|
+| `directed:lab-coverage-crypto-daily-2026-11-13` | **DONE** · {"run": "DLAB-CRD-D1", "verdict": "FAILED", "registered": true, "submission": "lab-coverage-crypto-daily-2026-11-13", "asked_by": "lab:none (deterministic code)", "universe": "crypto-perp-daily", "rules": 14, "by_class": {"INSUFFICIENT_POWER": 3, "NEGATIVE_EXPECTANCY": 11}, "refused_before_registrat |
+| `directed:lab-coverage-etf-daily-2026-11-13` | **DONE** · {"run": "DLAB-ETF-D1", "verdict": "FAILED", "registered": true, "submission": "lab-coverage-etf-daily-2026-11-13", "asked_by": "lab:none (deterministic code)", "universe": "us-etf-broad-daily", "rules": 12, "by_class": {"DUPLICATE": 3, "INSUFFICIENT_POWER": 2, "NEGATIVE_EXPECTANCY": 7}, "refused_bef |
+
+**Why nothing is queued.** The lab does not invent work. As things stand:
+
+- `crypto-daily`: scanned once under dlab-1.1.0; of its 39 ranking-and-holding-period cells, 27 have a classed rule, 12 are set aside as closed families, and 0 are holes
+- `etf-daily`: scanned once under dlab-1.1.0; of its 27 ranking-and-holding-period cells, 25 have a classed rule, 2 are set aside as closed families, and 0 are holes
+- no submission is waiting in `research/director/inbox`
+- the next experiment starts with a submission (the research director's, or the idea engine's), a new panel or method (a new version of the lab), or a new month of data
 
 ## The queue
 
@@ -16,7 +26,7 @@ No task ran: nothing was due, or nothing could run yet (see the queue).
 |---|---|---|---|---|
 | (empty) | | | | |
 
-Done so far: 5 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
+Done so far: 7 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
 
 ## Discovery scans
 
@@ -26,7 +36,14 @@ Done so far: 5 tasks. A task is known by its id and never runs twice. A failed t
 | `DLAB-ENG-1` | energy-futures-eia | 2 | 102 | 2015 | 0 | FAILED |
 | `DLAB-ETF-1` | us-etf-broad-daily | 31 | 266 | 15349 | 0 | FAILED |
 
-A scan's verdict says only whether it proposed rules for validation. It validates and disproves nothing.
+## Directed tests: hypotheses submitted as rules
+
+| Test | Asked by | Hypothesis | Rules tested | Refused before the test | Promising | Verdict |
+|---|---|---|---|---|---|---|
+| `DLAB-CRD-D1` | lab (none (deterministic code)) | The cross-sectional rankings of crypto-daily no scan has looked at out of sample | 14 | 12 | 0 | FAILED |
+| `DLAB-ETF-D1` | lab (none (deterministic code)) | The cross-sectional rankings of etf-daily no scan has looked at out of sample | 12 | 2 | 0 | FAILED |
+
+A scan's or a test's verdict says only whether it proposed rules for validation. It validates and disproves nothing.
 
 ## Every candidate, by class (cumulative)
 
@@ -35,10 +52,10 @@ A scan's verdict says only whether it proposed rules for validation. It validate
 | SCIENTIFICALLY_INVALID | 0 |
 | REPEATS_CLOSED_FAMILY | 18 |
 | INSUFFICIENT_DATA | 58 |
-| NEGATIVE_EXPECTANCY | 217 |
+| NEGATIVE_EXPECTANCY | 235 |
 | OVERFIT | 159 |
-| DUPLICATE | 39 |
-| INSUFFICIENT_POWER | 143 |
+| DUPLICATE | 42 |
+| INSUFFICIENT_POWER | 148 |
 | PROMISING_UNCONFIRMED | 0 |
 
 | Family | Rules | Positive out of sample | Promising |
@@ -46,7 +63,7 @@ A scan's verdict says only whether it proposed rules for validation. It validate
 | anomaly | 56 | 8 | 0 |
 | combination | 97 | 18 | 0 |
 | cross-asset lead-lag | 58 | 17 | 0 |
-| cross-sectional | 48 | 2 | 0 |
+| cross-sectional | 74 | 7 | 0 |
 | evolved rule | 72 | 19 | 0 |
 | information (non-linear) | 107 | 31 | 0 |
 | ordinal pattern | 53 | 9 | 0 |
@@ -80,11 +97,11 @@ None: no rule has passed its validation. Nothing is traded, on paper or otherwis
 
 ## What the record has taught so far
 
-- crypto-perp-daily: 266 rules from data-driven discovery; 0 promising; 69 positive out of sample but not told from noise; 72 lost out of sample (48 of them only after costs); 60 overfit; 0 passed validation and 0 failed it
+- crypto-perp-daily: 280 rules from data-driven discovery; 0 promising; 72 positive out of sample but not told from noise; 83 lost out of sample (52 of them only after costs); 60 overfit; 0 passed validation and 0 failed it
 - crypto-perp-daily: combination rules overfit most often (14 of 36)
 - crypto-perp-daily: 6 combination rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - crypto-perp-daily: 5 cross-asset lead-lag rules were positive before costs and negative after: this market's costs, not its information, stopped them
-- crypto-perp-daily: 8 cross-sectional rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- crypto-perp-daily: 12 cross-sectional rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - crypto-perp-daily: 11 information (non-linear) rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - crypto-perp-daily: 6 ordinal pattern rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - crypto-perp-daily: 4 own-lag rules were positive before costs and negative after: this market's costs, not its information, stopped them
@@ -93,11 +110,11 @@ None: no rule has passed its validation. Nothing is traded, on paper or otherwis
 - energy-futures-eia: 102 rules from data-driven discovery; 0 promising; 25 positive out of sample but not told from noise; 43 lost out of sample (10 of them only after costs); 21 overfit; 0 passed validation and 0 failed it
 - energy-futures-eia: 3 evolved rule rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - energy-futures-eia: the information audit found 3 of 46 feature-instrument pairs with z >= 2 about the next return (1 of them with no linear trace); chance alone gives about 1.1
-- us-etf-broad-daily: 266 rules from data-driven discovery; 0 promising; 49 positive out of sample but not told from noise; 102 lost out of sample (55 of them only after costs); 78 overfit; 0 passed validation and 0 failed it
+- us-etf-broad-daily: 278 rules from data-driven discovery; 0 promising; 51 positive out of sample but not told from noise; 109 lost out of sample (56 of them only after costs); 78 overfit; 0 passed validation and 0 failed it
 - us-etf-broad-daily: own-lag rules overfit most often (7 of 8)
 - us-etf-broad-daily: 9 combination rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - us-etf-broad-daily: 4 cross-asset lead-lag rules were positive before costs and negative after: this market's costs, not its information, stopped them
-- us-etf-broad-daily: 14 cross-sectional rules were positive before costs and negative after: this market's costs, not its information, stopped them
+- us-etf-broad-daily: 15 cross-sectional rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - us-etf-broad-daily: 4 evolved rule rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - us-etf-broad-daily: 8 information (non-linear) rules were positive before costs and negative after: this market's costs, not its information, stopped them
 - us-etf-broad-daily: 7 ordinal pattern rules were positive before costs and negative after: this market's costs, not its information, stopped them
@@ -134,11 +151,11 @@ None.
 
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
-| 2026-11-12T15:47 | 639.6 | 4 | 1 |
 | 2026-11-12T23:38 | 57.9 | 2 | 0 |
 | 2026-11-12T23:51 | 0.2 | 0 | 0 |
 | 2026-11-13T01:48 | 0.3 | 0 | 0 |
 | 2026-11-13T11:31 | 0.2 | 0 | 0 |
 | 2026-11-13T17:41 | 0.2 | 0 | 0 |
+| 2026-11-13T21:36 | 5.6 | 2 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.
