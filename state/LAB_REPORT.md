@@ -4,14 +4,11 @@
 
 **بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 660 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-13 21:36 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 7
+Updated 2026-11-14 01:25 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 8
 
 ## This cycle
 
-| Task | Result |
-|---|---|
-| `directed:lab-coverage-crypto-daily-2026-11-13` | **DONE** · {"run": "DLAB-CRD-D1", "verdict": "FAILED", "registered": true, "submission": "lab-coverage-crypto-daily-2026-11-13", "asked_by": "lab:none (deterministic code)", "universe": "crypto-perp-daily", "rules": 14, "by_class": {"INSUFFICIENT_POWER": 3, "NEGATIVE_EXPECTANCY": 11}, "refused_before_registrat |
-| `directed:lab-coverage-etf-daily-2026-11-13` | **DONE** · {"run": "DLAB-ETF-D1", "verdict": "FAILED", "registered": true, "submission": "lab-coverage-etf-daily-2026-11-13", "asked_by": "lab:none (deterministic code)", "universe": "us-etf-broad-daily", "rules": 12, "by_class": {"DUPLICATE": 3, "INSUFFICIENT_POWER": 2, "NEGATIVE_EXPECTANCY": 7}, "refused_bef |
+No task ran: nothing was due, or nothing could run yet (see the queue).
 
 **Why nothing is queued.** The lab does not invent work. As things stand:
 
@@ -151,11 +148,11 @@ None.
 
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
-| 2026-11-12T23:38 | 57.9 | 2 | 0 |
 | 2026-11-12T23:51 | 0.2 | 0 | 0 |
 | 2026-11-13T01:48 | 0.3 | 0 | 0 |
 | 2026-11-13T11:31 | 0.2 | 0 | 0 |
 | 2026-11-13T17:41 | 0.2 | 0 | 0 |
 | 2026-11-13T21:36 | 5.6 | 2 | 0 |
+| 2026-11-14T01:25 | 0.9 | 0 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.

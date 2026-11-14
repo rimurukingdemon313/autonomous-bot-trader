@@ -1,6 +1,6 @@
 # The research director's briefing
 
-Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-13 21:36 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
+Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-14 01:25 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
 
 ## 1. Results waiting for a review
 
