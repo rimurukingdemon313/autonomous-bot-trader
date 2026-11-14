@@ -317,24 +317,24 @@
   "trials": 87,
   "verdicts": 77
  },
- "day": "2026-11-13",
+ "day": "2026-11-14",
  "engine": {
   "built": [],
   "by_decision": {
-   "DROPPED_POWER": 1,
-   "REJECTED_BY_CRITIC": 11
+   "DROPPED_POWER": 2,
+   "REJECTED_BY_CRITIC": 13
   },
   "integrity": {
-   "at": "2026-11-13T22:00:05.277904+00:00",
-   "cycle": "2026-11-13",
+   "at": "2026-11-14T11:47:20.734790+00:00",
+   "cycle": "2026-11-14",
    "detail": null,
    "status": "OK",
    "step": "integrity",
    "version": "research-engine-1.2.0"
   },
   "last": {
-   "at": "2026-11-13T11:15:33.567814+00:00",
-   "cycle": "2026-11-13",
+   "at": "2026-11-14T11:47:20.734790+00:00",
+   "cycle": "2026-11-14",
    "detail": {
     "attempts": [
      {
@@ -349,112 +349,126 @@
      }
     ],
     "ideas": [
-     "ec15562eb2f2e1f8735d",
-     "85d33919fbd5ed78b1d8",
-     "9e5460a9bd4936ccb297"
+     "10c33de5a1af4ea55fb6",
+     "488d31a89c37f1bb59f2",
+     "d12c8835f5e0a1956ee2"
     ]
    },
    "status": "OK",
    "step": "ideas",
    "version": "research-engine-1.2.0"
   },
-  "last_ok": "2026-11-13T11:15:33.567814+00:00",
+  "last_ok": "2026-11-14T11:47:20.734790+00:00",
   "queued": [],
   "today": [
    {
-    "at": "2026-11-13T11:15:33.567814+00:00",
-    "claimed_sharpe_annual": 0.85,
+    "at": "2026-11-14T11:47:20.734790+00:00",
+    "claimed_sharpe_annual": 0.7,
     "conditions_flag": null,
     "critic": "nvidia/nemotron-3.5-super-vl:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "Intraday energy-futures CFD rule claiming a net Sharpe of 0.85 that survives retail CFD costs. The lab's cost lesson shows spread/slippage took the whole gross edge of every intraday CFD family, and forced-liquidation cascades in CFDs are not observable in the cited data; three contracts are not the 'many instruments as one book' breadth needed to reach a bar of 3.000. It claims an edge and power its evidence cannot support.",
+    "critic_category": "data_cannot_be_had",
+    "critic_reason": "The rule requires 5-minute bars, a 5-minute funding rate, and 5-minute order-book spreads, but the cited source is Binance crypto-perp daily data (2022-2026); Binance does not publish 5-minute funding rates and intraday order-book depth at that frequency is not available in a daily dataset.",
     "critic_verdict": "REJECT",
-    "cycle": "2026-11-13",
-    "data_source": "U.S. Energy Information Administration inventory reports (2020\u20112025) and minute\u2011level energy futures CFD prices from a swap\u2011free broker (2020\u20112025); measured price impact and forced\u2011liquidation frequency.",
+    "cycle": "2026-11-14",
+    "data_source": "Binance crypto\u2011perp daily data (2022\u20112026) \u2013 funding rate and order\u2011book depth",
     "decision": "REJECTED_BY_CRITIC",
     "duplicate_of": null,
-    "evidence": "EIA inventory change data and Binance energy futures CFD minute data (2020\u20112025); observed price moves and margin\u2011call cascades.",
-    "fingerprint": "ec15562eb2f2e1f8735d",
+    "evidence": "None: a new idea",
+    "fingerprint": "10c33de5a1af4ea55fb6",
     "horizon": "intraday",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "forced liquidation cascades triggered by EIA inventory surprise",
-    "mechanism_class": "forced flows",
-    "needs_short_or_leverage": "yes",
+    "idea_class": "INSUFFICIENT_DATA",
+    "mechanism": "Liquidity provision",
+    "mechanism_class": "liquidity provision",
+    "needs_short_or_leverage": "true",
     "power": null,
     "proposer": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "rule": "Enter a market order on the energy futures CFD (WTI, Brent or natural gas) in the direction of the price move that exceeds 0.3% within the first 10\u202fminutes after an EIA inventory change greater than 2\u202f\u03c3; size the position as 1\u202f% of equity divided by the 14\u2011day ATR; close the position after 30\u202fminutes or when price reverts to within 0.1\u202f% of entry.",
+    "rule": "Enter a short position of fixed size 0.01 contract at the market price at the start of the next 5\u2011minute bar if the 5\u2011minute funding rate (annualized %) exceeds 0.10 and the absolute spread (best bid\u2011ask) over the previous 5\u202fminutes is greater than 0.20\u202f% of the mid\u2011price; exit the position when the price has moved 0.20\u202f% in your favor or 0.10\u202f% against you, whichever occurs first.",
     "source": "engine",
-    "title": "EIA\u2011driven forced\u2011liquidation cascade in energy futures CFDs",
-    "universe": "energy-futures-eia",
+    "title": "Funding\u2011rate liquidity squeeze",
+    "universe": "crypto-perp-daily",
     "version": "research-engine-1.2.0",
-    "why": "Intraday energy-futures CFD rule claiming a net Sharpe of 0.85 that survives retail CFD costs. The lab's cost lesson shows spread/slippage took the whole gross edge of every intraday CFD family, and forced-liquidation cascades in CFDs are not observable in the cited data; three contracts are not the 'many instruments as one book' breadth needed to reach a bar of 3.000. It claims an edge and power its evidence cannot support.",
-    "why_new": "Prior EIA\u2011related studies examined term\u2011structure premiums but did not test forced\u2011liquidation cascades; using three energy futures contracts multiplies the effective sample size, providing enough power to detect the sub\u2011percent edge that survives retail CFD costs.",
+    "why": "The rule requires 5-minute bars, a 5-minute funding rate, and 5-minute order-book spreads, but the cited source is Binance crypto-perp daily data (2022-2026); Binance does not publish 5-minute funding rates and intraday order-book depth at that frequency is not available in a daily dataset.",
+    "why_new": "The rule spans 10 major crypto perpetual contracts, multiplying the effective sample size and allowing the high\u2011t\u2011stat requirement (>3) to be met despite high retail spread and slippage; it uses a fresh 5\u2011year intraday dataset not previously exploited for a liquidity\u2011squeeze signal.",
     "years_of_fresh_data": 5
    },
    {
-    "at": "2026-11-13T11:15:33.567814+00:00",
-    "claimed_sharpe_annual": 0.78,
+    "at": "2026-11-14T11:47:20.734790+00:00",
+    "claimed_sharpe_annual": 0.9,
     "conditions_flag": null,
     "critic": "nvidia/nemotron-3.5-super-vl:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "Daily swing gold/silver CFD claiming net Sharpe 0.78 against a bar of 3.000 from seven years of daily data; the power lesson puts a net Sharpe below about 1 out of reach of a bar near 3, and two instruments are not the 'many instruments as one book' breadth that would multiply data. The storage/insurance carry mechanism is also not earned by a swap-free account and is not harvested by the rule. It claims power and a mechanism the evidence/account cannot support.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-13",
-    "data_source": "Swap\u2011free gold and silver futures CFD price data (2018\u20112025) from a broker; measured 5\u2011day returns and risk\u2011premium drift.",
-    "decision": "REJECTED_BY_CRITIC",
+    "critic_category": null,
+    "critic_reason": "It does not repeat a tested or dropped family, states a behavioural mechanism, can be tested on daily ETF data without look-ahead, and the us-equity-etf daily data exists; no overnight financing or interest-bearing instrument is required.",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-14",
+    "data_source": "CME CFD daily data for US equity ETFs (e.g., SPY, QQQ) 2022\u20112026",
+    "decision": "DROPPED_POWER",
     "duplicate_of": null,
-    "evidence": "COMEX gold and silver futures CFD data (2018\u20112025); identified statistically significant 5\u2011day risk\u2011premium drifts.",
-    "fingerprint": "85d33919fbd5ed78b1d8",
+    "evidence": "None: a new idea",
+    "fingerprint": "488d31a89c37f1bb59f2",
     "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "risk premium from storage and insurance costs creating a persistent price drift",
-    "mechanism_class": "risk premium",
-    "needs_short_or_leverage": "yes",
-    "power": null,
+    "idea_class": "INSUFFICIENT_POWER",
+    "mechanism": "Behavioural bias",
+    "mechanism_class": "behavioural bias",
+    "needs_short_or_leverage": "false",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 0.9,
+     "expected_t": 1.8,
+     "p_pass": 0.115,
+     "plan": {
+      "independent_instruments_needed": 3,
+      "ways": [
+       "about 11 years of fresh data at the claimed strength, against the 4 it has",
+       "or the same mechanism on about 3 independent instruments over those 4 years, tested as one book"
+      ],
+      "years_of_fresh_data_needed": 11.1
+     },
+     "years": 4
+    },
     "proposer": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "rule": "Enter a long (resp. short) CFD position in gold (resp. silver) when the 5\u2011day cumulative return exceeds 0.6\u202f% (resp. \u20130.6\u202f%) and the z\u2011score of that return is >2 (resp. < \u20132); size the position as 0.5\u202f% of equity divided by the 10\u2011day ATR; close after 7\u202fdays regardless of intraday movement.",
+    "rule": "Enter a long position of fixed size equal to 0.5\u202f% of account equity at the market price of the next bar if the daily close is more than 0.5\u202f% above the previous day\u2019s close (a gap) and the 5\u2011day average true range is below 0.4\u202f% of the price; exit the position after 3\u202fdays or when the price falls 0.3\u202f% from entry, whichever occurs first.",
     "source": "engine",
-    "title": "Metal\u2011futures risk\u2011premium drift in gold and silver CFDs",
-    "universe": "metals-futures-daily",
+    "title": "Post\u2011gap continuation bias",
+    "universe": "us-equity-etf",
     "version": "research-engine-1.2.0",
-    "why": "Daily swing gold/silver CFD claiming net Sharpe 0.78 against a bar of 3.000 from seven years of daily data; the power lesson puts a net Sharpe below about 1 out of reach of a bar near 3, and two instruments are not the 'many instruments as one book' breadth that would multiply data. The storage/insurance carry mechanism is also not earned by a swap-free account and is not harvested by the rule. It claims power and a mechanism the evidence/account cannot support.",
-    "why_new": "Risk\u2011premium drift in metal futures has not been examined in a swap\u2011free CFD environment; applying the same rule to gold and silver doubles the data, overcoming the low\u2011power limitation that prevented detection of modest edges in single\u2011contract analyses.",
-    "years_of_fresh_data": 7
+    "why": "even at its claimed strength it expects t 1.8 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 11 years of fresh data at the claimed strength, against the 4 it has; or the same mechanism on about 3 independent instruments over those 4 years, tested as one book",
+    "why_new": "By focusing on large price gaps together with low recent volatility, the rule captures the herding continuation effect that is invisible in single\u2011instrument analyses; it uses the previously untested US equity\u2011ETF daily series, providing several years of fresh data.",
+    "years_of_fresh_data": 4
    },
    {
-    "at": "2026-11-13T11:15:33.567814+00:00",
-    "claimed_sharpe_annual": 0.92,
+    "at": "2026-11-14T11:47:20.734790+00:00",
+    "claimed_sharpe_annual": 0.8,
     "conditions_flag": null,
     "critic": "nvidia/nemotron-3.5-super-vl:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "Cross-exchange crypto-perp lead-lag after news claiming net Sharpe 0.92 against a bar of 3.935 (crypto-perp-daily) from five years of minute data; the lab's cross-asset lead-lag rules were positive before costs and negative after (costs stopped them), and a net Sharpe below about 1 cannot reach a bar near 3, let alone 3.935. The claimed post-cost edge is implausible at retail costs and claims more than the evidence supports.",
+    "critic_category": "data_cannot_be_had",
+    "critic_reason": "The trigger is the daily S&P 500 CFD close but the entry and exit are intraday BTC perpetual price moves; the cited data source is daily only, so intraday BTC bars and the required intraday exit prices cannot be obtained from it.",
     "critic_verdict": "REJECT",
-    "cycle": "2026-11-13",
-    "data_source": "Minute\u2011level perpetual contract data for BTC, ETH, BNB on Binance USDT\u2011M (2021\u20112025) and real\u2011time news timestamps from Reuters; measured cross\u2011exchange price lead after news releases.",
+    "cycle": "2026-11-14",
+    "data_source": "CME CFD daily data for S&P\u202f500 CFD and Binance crypto\u2011perp daily data 2022\u20112026",
     "decision": "REJECTED_BY_CRITIC",
     "duplicate_of": null,
-    "evidence": "Binance USDT\u2011M perpetual minute data (2021\u20112025) and Reuters news feed; observed price leads following high\u2011impact news.",
-    "fingerprint": "9e5460a9bd4936ccb297",
+    "evidence": "None: a new idea",
+    "fingerprint": "d12c8835f5e0a1956ee2",
     "horizon": "intraday",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "information diffusion causing short\u2011term price lead across exchanges",
-    "mechanism_class": "information diffusion",
-    "needs_short_or_leverage": "yes",
+    "idea_class": "INSUFFICIENT_DATA",
+    "mechanism": "Cross-asset linkage",
+    "mechanism_class": "cross-asset linkage",
+    "needs_short_or_leverage": "true",
     "power": null,
     "proposer": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "rule": "Upon release of a high\u2011impact news item on Exchange\u202fA, if the perpetual price on Exchange\u202fB moves >0.2\u202f% in the news\u2011implied direction within 5\u202fminutes while the price on Exchange\u202fA moves <0.1\u202f% in the same period, place a market order on Exchange\u202fB with size 0.5\u202f% of equity divided by the 5\u2011minute ATR; close the position after 30\u202fminutes or when the price difference shrinks to <0.05\u202f%.",
+    "rule": "Enter a short position of fixed size 0.01 contract on the BTC perpetual at the market price at the next available bar if the daily close of the S&P\u202f500 CFD is down more than 0.6\u202f% relative to the previous day; exit the position when the BTC price has risen 0.4\u202f% from entry (profit) or fallen 0.2\u202f% from entry (stop), whichever occurs first.",
     "source": "engine",
-    "title": "Cross\u2011exchange information diffusion in crypto perpetuals",
+    "title": "Equity\u2011crypto contagion during index drawdowns",
     "universe": "crypto-perp-daily",
     "version": "research-engine-1.2.0",
-    "why": "Cross-exchange crypto-perp lead-lag after news claiming net Sharpe 0.92 against a bar of 3.935 (crypto-perp-daily) from five years of minute data; the lab's cross-asset lead-lag rules were positive before costs and negative after (costs stopped them), and a net Sharpe below about 1 cannot reach a bar near 3, let alone 3.935. The claimed post-cost edge is implausible at retail costs and claims more than the evidence supports.",
-    "why_new": "Cross\u2011exchange information diffusion has only been observed anecdotally; by aggregating three perpetual contracts and using five years of fresh minute data, the hypothesis gains sufficient statistical power to capture the small but persistent price lead that survives transaction costs.",
+    "why": "The trigger is the daily S&P 500 CFD close but the entry and exit are intraday BTC perpetual price moves; the cited data source is daily only, so intraday BTC bars and the required intraday exit prices cannot be obtained from it.",
+    "why_new": "The cross\u2011asset signal exploits the documented reallocation of capital between equity and crypto markets during equity drawdowns, a mechanism never tested; combining equity\u2011index data with crypto\u2011perp data increases the observable sample and yields a net Sharpe above the required threshold.",
     "years_of_fresh_data": 5
    }
   ],
-  "total": 12
+  "total": 15
  },
- "generated": "2026-11-13T22:00:05.277904+00:00",
+ "generated": "2026-11-14T11:47:20.734790+00:00",
  "recent_verdicts": [
   {
    "evidence": {
@@ -771,74 +785,8 @@
  },
  "today": {
   "dropped_before_building": [],
-  "registered": [
-   {
-    "hypothesis": "Among the instruments of this panel, a ranking on one of the features below separates the next rows' returns after costs. Each ranking is a separate, simple claim; none was chosen because it looked strong: they are the rankings the scans' places did not reach.",
-    "id": "DLAB-CRD-D1",
-    "preregistration": "research/preregistrations/DLAB-CRD-D1.md",
-    "tests": 14,
-    "title": "DLAB-CRD-D1: a directed test of 14 rules on crypto-perp-daily (select)",
-    "uses": [
-     {
-      "end": "2024-07-01",
-      "role": "select",
-      "start": "2020-05-01",
-      "universe": "crypto-perp-daily"
-     }
-    ]
-   },
-   {
-    "hypothesis": "Among the instruments of this panel, a ranking on one of the features below separates the next rows' returns after costs. Each ranking is a separate, simple claim; none was chosen because it looked strong: they are the rankings the scans' places did not reach.",
-    "id": "DLAB-ETF-D1",
-    "preregistration": "research/preregistrations/DLAB-ETF-D1.md",
-    "tests": 12,
-    "title": "DLAB-ETF-D1: a directed test of 12 rules on us-etf-broad-daily (select)",
-    "uses": [
-     {
-      "end": "2020-01-01",
-      "role": "select",
-      "start": "2007-01-01",
-      "universe": "us-etf-broad-daily"
-     }
-    ]
-   }
-  ],
-  "verdicts": [
-   {
-    "evidence": {
-     "artifact": "research/knowledge/DLAB-CRD-D1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/DLAB-CRD-D1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "DLAB-CRD-D1",
-    "result": {
-     "artifact": "research/knowledge/DLAB-CRD-D1.json",
-     "artifact_sha256": "1527048c3d82d198054b2e8ee6c2b0761a7d233a5a65b6985ba4efe718f3eefb",
-     "batch": [],
-     "rules": 14
-    },
-    "status": "FAILED"
-   },
-   {
-    "evidence": {
-     "artifact": "research/knowledge/DLAB-ETF-D1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/DLAB-ETF-D1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "DLAB-ETF-D1",
-    "result": {
-     "artifact": "research/knowledge/DLAB-ETF-D1.json",
-     "artifact_sha256": "ba1b447dbf994b4a5d2fa0631988f4d63ae642ed2a8598bfea6df665e3309f39",
-     "batch": [],
-     "rules": 12
-    },
-    "status": "FAILED"
-   }
-  ]
+  "registered": [],
+  "verdicts": []
  },
  "version": "research-report-1.1.0"
 }

@@ -2,21 +2,21 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 2 فرضية جديدة انسجلت، 2 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 87 فرضية مسجلة، 65 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 87 فرضية مسجلة، 65 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-13 22:00 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-14 11:47 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-13, UTC)
+## Today (2026-11-14, UTC)
+
+Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **DLAB-CRD-D1**: DLAB-CRD-D1: a directed test of 14 rules on crypto-perp-daily (select). Among the instruments of this panel, a ranking on one of the features below separates the next rows' returns after costs. Each ranking is a separate, simple claim; none was chosen because it looked strong: they are the rankings the scans' places did not reach. (`research/preregistrations/DLAB-CRD-D1.md`, 14 tests counted)
-- **DLAB-ETF-D1**: DLAB-ETF-D1: a directed test of 12 rules on us-etf-broad-daily (select). Among the instruments of this panel, a ranking on one of the features below separates the next rows' returns after costs. Each ranking is a separate, simple claim; none was chosen because it looked strong: they are the rankings the scans' places did not reach. (`research/preregistrations/DLAB-ETF-D1.md`, 12 tests counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **DLAB-CRD-D1: FAILED**. Evidence: `research/knowledge/DLAB-CRD-D1.json`; matches its verdict: yes
-- **DLAB-ETF-D1: FAILED**. Evidence: `research/knowledge/DLAB-ETF-D1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
@@ -37,16 +37,16 @@ Generated 2026-11-13 22:00 UTC from the committed record · research-report-1.1.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-13 11:15 UTC, OK
-- Last successful idea step: 2026-11-13 11:15 UTC
+- Last cycle: 2026-11-14 11:47 UTC, OK
+- Last successful idea step: 2026-11-14 11:47 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 12 ideas: DROPPED_POWER 1, REJECTED_BY_CRITIC 11
+- All time: 15 ideas: DROPPED_POWER 2, REJECTED_BY_CRITIC 13
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: EIA‑driven forced‑liquidation cascade in energy futures CFDs (energy-futures-eia, intraday). Intraday energy-futures CFD rule claiming a net Sharpe of 0.85 that survives retail CFD costs. The lab's cost lesson shows spread/slippage took the whole gross edge of every intraday CFD family, and forced-liquidation cascades in CFDs are not observable in the cited data; three contracts are not the 'many instruments as one book' breadth needed to reach a bar of 3.000. It claims an edge and power its evidence cannot support. (critic: nvidia/nemotron-3.5-super-vl:free) Class: IMPLAUSIBLE_CLAIM.
-- **REJECTED_BY_CRITIC**: Metal‑futures risk‑premium drift in gold and silver CFDs (metals-futures-daily, swing). Daily swing gold/silver CFD claiming net Sharpe 0.78 against a bar of 3.000 from seven years of daily data; the power lesson puts a net Sharpe below about 1 out of reach of a bar near 3, and two instruments are not the 'many instruments as one book' breadth that would multiply data. The storage/insurance carry mechanism is also not earned by a swap-free account and is not harvested by the rule. It claims power and a mechanism the evidence/account cannot support. (critic: nvidia/nemotron-3.5-super-vl:free) Class: IMPLAUSIBLE_CLAIM.
-- **REJECTED_BY_CRITIC**: Cross‑exchange information diffusion in crypto perpetuals (crypto-perp-daily, intraday). Cross-exchange crypto-perp lead-lag after news claiming net Sharpe 0.92 against a bar of 3.935 (crypto-perp-daily) from five years of minute data; the lab's cross-asset lead-lag rules were positive before costs and negative after (costs stopped them), and a net Sharpe below about 1 cannot reach a bar near 3, let alone 3.935. The claimed post-cost edge is implausible at retail costs and claims more than the evidence supports. (critic: nvidia/nemotron-3.5-super-vl:free) Class: IMPLAUSIBLE_CLAIM.
+- **REJECTED_BY_CRITIC**: Funding‑rate liquidity squeeze (crypto-perp-daily, intraday). The rule requires 5-minute bars, a 5-minute funding rate, and 5-minute order-book spreads, but the cited source is Binance crypto-perp daily data (2022-2026); Binance does not publish 5-minute funding rates and intraday order-book depth at that frequency is not available in a daily dataset. (critic: nvidia/nemotron-3.5-super-vl:free) Class: INSUFFICIENT_DATA.
+- **DROPPED_POWER**: Post‑gap continuation bias (us-equity-etf, swing). even at its claimed strength it expects t 1.8 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 11 years of fresh data at the claimed strength, against the 4 it has; or the same mechanism on about 3 independent instruments over those 4 years, tested as one book Class: INSUFFICIENT_POWER.
+- **REJECTED_BY_CRITIC**: Equity‑crypto contagion during index drawdowns (crypto-perp-daily, intraday). The trigger is the daily S&P 500 CFD close but the entry and exit are intraday BTC perpetual price moves; the cited data source is daily only, so intraday BTC bars and the required intraday exit prices cannot be obtained from it. (critic: nvidia/nemotron-3.5-super-vl:free) Class: INSUFFICIENT_DATA.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
