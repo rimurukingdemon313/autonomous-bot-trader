@@ -2,9 +2,9 @@
 
 **PAPER TRADING · NOT REAL MONEY · NOT A BACKTEST.** TRND-1 traded by the system itself, forward from 2026-11-09, with simulated fills on each index's real daily close. Backtest and validated out-of-sample results are listed at the end and are never added to these figures.
 
-**بالعربي:** هذا تقرير التداول الورقي وحده: فلوس مو حقيقية، ومو باكتيست، وما بيه ولا رقم من البحث. الرصيد هسه $201,125.70، يعني من البداية +$1,125.70. آخر يوم (2026-11-12) طلع -$0.99. الصفقات المسكّرة: 0 (ربحت 0، خسرت 0). أكبر نزول من القمة: $741.41. الـ$4,000 بالشهر هدف مو إلزام: النظام ما يزيد المخاطرة ولا يفتح صفقة حتى يوصله.
+**بالعربي:** هذا تقرير التداول الورقي وحده: فلوس مو حقيقية، ومو باكتيست، وما بيه ولا رقم من البحث. الرصيد هسه $200,783.01، يعني من البداية +$783.01. آخر يوم (2026-11-13) طلع -$342.69. الصفقات المسكّرة: 0 (ربحت 0، خسرت 0). أكبر نزول من القمة: $1,052.51. الـ$4,000 بالشهر هدف مو إلزام: النظام ما يزيد المخاطرة ولا يفتح صفقة حتى يوصله.
 
-Updated 2026-11-13 14:53 UTC · sessions run: 8 · recorded: 8 · last: 2026-11-12 · desk-ledger-1.0.1
+Updated 2026-11-14 02:40 UTC · sessions run: 10 · recorded: 10 · last: 2026-11-13 · desk-ledger-1.0.1
 
 ## Daily
 
@@ -12,6 +12,7 @@ Each session day's closing equity less the day before's. The newest is first; ev
 
 | Day | Equity at the close | Net | Return | Worst fall in the day | Trades opened | Closed: won / lost |
 |---|---|---|---|---|---|---|
+| 2026-11-13 | $200,783.01 | -$342.69 | -0.17% | $953.75 | 0 | 0 / 0 |
 | 2026-11-12 | $201,125.70 | -$0.99 | -0.00% | $655.48 | 0 | 0 / 0 |
 | 2026-11-11 | $201,126.69 | +$1,372.76 | +0.69% | $0.00 | 0 | 0 / 0 |
 | 2026-11-10 | $199,753.93 | -$238.67 | -0.12% | $738.11 | 0 | 0 / 0 |
@@ -22,16 +23,16 @@ Each session day's closing equity less the day before's. The newest is first; ev
 | | |
 |---|---|
 | Starting equity | $200,000.00 |
-| Equity now | $201,125.70: +$1,125.70 (+0.56%) |
+| Equity now | $200,783.01: +$783.01 (+0.39%) |
 | Realized net P&L (closed trades) | $0.00, from $0.00 gross |
-| Unrealized P&L (open trades, at the last close) | +$1,125.70 |
+| Unrealized P&L (open trades, at the last close) | +$783.01 |
 | Closed trades | 0: 0 won, 0 lost |
 | Open trades | 4 |
 | Costs paid on closed trades | spread $0.00 · commission $0.00 · slippage $0.00 · financing $0.00 (swap-free) |
-| Open exposure | $99,617.80 notional, 0.50x the equity |
-| Maximum drawdown (intraday lows included) | $741.41 (0.37% of the peak) |
-| Below the peak now | $163.40 |
-| Losing days / weeks / months | 3 of 4 · 0 of 1 · 0 of 1 |
+| Open exposure | $98,980.50 notional, 0.49x the equity |
+| Maximum drawdown (intraday lows included) | $1,052.51 (0.52% of the peak) |
+| Below the peak now | $506.09 |
+| Losing days / weeks / months | 4 of 5 · 0 of 1 · 0 of 1 |
 
 ## Monthly dashboard
 
@@ -39,11 +40,11 @@ The $4,000 a month is a target, never a quota: the desk does not trade more, or 
 
 | Month | Starting equity | Ending equity | Net | Return | Max drawdown | Trades won / lost | Of $4,000 |
 |---|---|---|---|---|---|---|---|
-| 2026-11 (in progress) | $200,000.00 | $201,125.70 | +$1,125.70 | +0.56% | $741.41 (0.37%) | 0 / 0 | 28.1% |
+| 2026-11 (in progress) | $200,000.00 | $200,783.01 | +$783.01 | +0.39% | $1,052.51 (0.52%) | 0 / 0 | 19.6% |
 
 ## Every losing day, week and month
 
-- **Days:** 2026-11-09 -$7.40, 2026-11-10 -$238.67, 2026-11-12 -$0.99
+- **Days:** 2026-11-09 -$7.40, 2026-11-10 -$238.67, 2026-11-12 -$0.99, 2026-11-13 -$342.69
 - **Weeks:** none yet
 - **Months:** none yet
 
@@ -51,10 +52,10 @@ The $4,000 a month is a target, never a quota: the desk does not trade more, or 
 
 | # | Status | Instrument | Side | Opened | Closed | Entry | Exit or mark | Lots | Notional at entry | Leverage at entry | Gross | Spread | Commission | Slippage | Financing | Net | Exit | Signal |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | OPEN | GER40 | LONG | 2026-11-09 16:30 UTC | — | 26,268.04 | 26,771.13 | 0.84 | $24,773.82 | 0.124x | open +$472.00 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 25,818.21 was above the mean of its last ten month-end closes, 24,980.08 |
-| 2 | OPEN | UK100 | LONG | 2026-11-09 16:30 UTC | — | 10,783.50 | 10,862.60 | 1.70 | $24,665.05 | 0.123x | open +$179.50 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 10,729.80 was above the mean of its last ten month-end closes, 10,562.40 |
-| 3 | OPEN | US500 | LONG | 2026-11-09 21:00 UTC | — | 7,550.29 | 7,592.15 | 3.25 | $24,536.49 | 0.123x | open +$136.04 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 7,580.07 was above the mean of its last ten month-end closes, 7,304.23 |
-| 4 | OPEN | NAS100 | LONG | 2026-11-09 21:00 UTC | — | 27,908.47 | 28,288.44 | 0.89 | $24,837.12 | 0.124x | open +$338.17 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 28,384.85 was above the mean of its last ten month-end closes, 27,883.88 |
+| 1 | OPEN | GER40 | LONG | 2026-11-09 16:30 UTC | — | 26,268.04 | 26,749.20 | 0.84 | $24,773.82 | 0.124x | open +$448.44 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 25,818.21 was above the mean of its last ten month-end closes, 24,980.08 |
+| 2 | OPEN | UK100 | LONG | 2026-11-09 16:30 UTC | — | 10,783.50 | 10,902.10 | 1.70 | $24,665.05 | 0.123x | open +$267.68 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 10,729.80 was above the mean of its last ten month-end closes, 10,562.40 |
+| 3 | OPEN | US500 | LONG | 2026-11-09 21:00 UTC | — | 7,550.29 | 7,561.42 | 3.25 | $24,536.49 | 0.123x | open +$36.17 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 7,580.07 was above the mean of its last ten month-end closes, 7,304.23 |
+| 4 | OPEN | NAS100 | LONG | 2026-11-09 21:00 UTC | — | 27,908.47 | 27,942.99 | 0.89 | $24,837.12 | 0.124x | open +$30.72 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 28,384.85 was above the mean of its last ten month-end closes, 27,883.88 |
 
 An open trade is marked at the last close's bid, so the spread and the slippage at its entry are already in its P&L; its commission is charged, and its costs itemized, when it closes. Each closed trade's gross less its costs equals its net, as the paper broker booked it.
 
