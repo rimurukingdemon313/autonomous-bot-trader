@@ -1,6 +1,6 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-14 02:29 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-14 07:40 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
@@ -15,7 +15,7 @@ Updated 2026-11-14 02:29 UTC · funded-paper-1.1.2 · started 2026-11-09 · publ
 | Track | Status | Equity | Phase P&L | Target | Trading days | Held | Last close |
 |---|---|---|---|---|---|---|---|
 | HALF (50% of the balance when all four are held, stop 6% a day) | **PHASE 1** | $200,747.18 | +747.18 | $220,000 | 4 | US500, NAS100, GER40, UK100 | 2026-11-13 |
-| FULL (100% of the balance when all four are held, no stop) | **PHASE 1** | $201,514.35 | +1,514.35 | $220,000 | 4 | US500, NAS100, GER40, UK100 | 2026-11-13 |
+| FULL (100% of the balance when all four are held, no stop) | **PHASE 1** | $201,514.36 | +1,514.36 | $220,000 | 4 | US500, NAS100, GER40, UK100 | 2026-11-13 |
 
 ### HALF: events
 
@@ -39,7 +39,7 @@ Updated 2026-11-14 02:29 UTC · funded-paper-1.1.2 · started 2026-11-09 · publ
 | 2026-11-10 | 1 | $199,406.60 | -488.40 |
 | 2026-11-11 | 1 | $202,186.42 | +2,779.82 |
 | 2026-11-12 | 1 | $202,186.45 | +0.03 |
-| 2026-11-13 | 1 | $201,514.35 | -672.10 |
+| 2026-11-13 | 1 | $201,514.36 | -672.09 |
 
 ## This month's decisions (November 2026)
 
@@ -48,7 +48,7 @@ What the rule holds now, and at the latest close what a HALF position ($25,000) 
 | Index | This month | Month-end close | Mean of ten month-ends | Latest close | HALF units | HALF stop |
 |---|---|---|---|---|---|---|
 | US500 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 7,561.67 (2026-11-13) | 3.31 | 7,107.97 |
-| NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 27,943.74 (2026-11-13) | 0.89 | 26,267.11 |
+| NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 27,943.74 (2026-11-13) | 0.89 | 26,267.12 |
 | GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 26,749.95 (2026-11-13) | 0.85 at 1.1050 | 25,144.95 |
 | UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,902.60 (2026-11-13) | 1.73 at 1.3231 | 10,248.44 |
 
