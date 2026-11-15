@@ -37,7 +37,7 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.11.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.11.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
@@ -52,6 +52,9 @@ EDGES_VERSION = "edges-1.11.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0
 #                                bar ALONE, every other preregistered gate held, with its own t >= 2, is PROMISING
 #                                (a near miss: DAY-1, FXT-1, TME-1), as every other kind of program already was. It
 #                                had been recorded exactly as a rule that lost money is
+#                                1.11.1: an artifact is read as a set of judged hypotheses only when its `judged` IS a
+#                                list of them. RADX-1, a diagnosis of a paper ledger, records the hour it was judged
+#                                under that name and is no trading edge: it stopped the whole registry from building
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -444,8 +447,8 @@ def build(root: Path | str) -> dict:
                                         "validated": list(art.get("validated") or []),
                                         "threshold_t": art.get("threshold_t")}
             continue
-        if not isinstance(art, dict) or "program" not in art or "judged" not in art:
-            continue
+        if not isinstance(art, dict) or "program" not in art or not isinstance(art.get("judged"), list):
+            continue  # no list of judged hypotheses: another kind of record (a diagnosis keeps the hour it was judged)
         recs = from_confirmatory(art, drafts)
         if art.get("holdout_of"):
             superseded = {r.edge_id for r in recs}

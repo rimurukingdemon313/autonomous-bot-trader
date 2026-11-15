@@ -337,6 +337,9 @@ Only what was confirmed is written here.
 | 2026-11-12 23:38 | The worker's second run (`workflow_dispatch`), on lab-cycle-1.0.1: every step green, 2 minutes | It restored its memory and data from `lab-data` (nothing was fetched or run twice: five tasks done in all), completed the perpetuals' data on its second attempt, registered, ran and recorded **DLAB-CRD-1**, and pushed commit `d851d10` to `main` and `af6202f` to `lab-data` by itself. Its queue is empty |
 | 2026-11-12 23:51 | The worker's third run (`workflow_dispatch`), on lab-cycle-1.0.2 | Nothing was due: it restored its memory, checked the record, and said so |
 | 2026-11-13 01:47 | **A run started by GitHub's own schedule**: run 4 of `lab-cycle.yml`, id 43347545811, event `schedule` (the 21:11 slot, four and a half hours late), every step green | Nothing was due: it restored its memory, checked the record and published its report. No person started it. The 03:41 and 10:11 slots of that day had not fired by 18:30 UTC: GitHub drops and delays slots, which is why there are four |
+| 2026-11-13 11:31 and 17:41 | Runs 5 and 6, ids 43417768286 and 43475260616, both event `schedule`, both green | Nothing was due |
+| 2026-11-13 21:35 | **Run 7, id 43512116913, event `schedule`: the first run of lab-cycle-1.1.0**, two hours after commit `5bb877b` reached `main`. Every step green. No person started it and none was watching | The whole pipeline of `docs/RESEARCH_INSTITUTION.md`, by itself: the lab read its coverage map, wrote its own submission for each panel, refused 14 rules on the fit rows before any test (12 as cross-coin momentum XSM-1, 2 as the funds' momentum SEC-1), registered **DLAB-CRD-D1** (14 rules) and **DLAB-ETF-D1** (12 rules), looked at each rule once, classed them against every earlier look, and pushed commit `a286851` to `main` (four registry lines, two specs, two preregistrations, two evidence files, 26 candidates) and its briefing to `lab-data`. Neither test proposed a rule, so no validation was registered |
+| 2026-11-14 01:25, 10:55 and 16:35 | Runs 8, 9 and 10, ids 43540509159, 43587539552 and 43616430382, all event `schedule`, all green | Nothing was due. The report says why: both maps have no hole, the inbox is empty, and the next experiment starts with a submission, a new method or a new month of data |
 
 ### Results so far
 
@@ -345,8 +348,23 @@ Only what was confirmed is written here.
 | DLAB-ENG-1 | WTI and natural gas, 1994-2011 | 2,015 | 102 | 0 | 1.43 | proposed nothing |
 | DLAB-ETF-1 | 31 US-listed funds, 2007-2019 | 15,349 | 266 | 0 | 1.70 | proposed nothing |
 | DLAB-CRD-1 | 55 Binance perpetuals, 2020-05 to 2024-06 | 29,218 | 266 | 0 | 2.76 | proposed nothing |
+| DLAB-CRD-D1 (directed) | the same perpetuals: the rankings no scan reached | 14 (one a rule) | 14 | 0 | 1.38 | proposed nothing |
+| DLAB-ETF-D1 (directed) | the same funds: the rankings no scan reached | 12 (one a rule) | 12 | 0 | 1.19 | proposed nothing |
 
-No rule has reached a validation. No validation window has been loaded: all three stay unread.
+660 rules are classed. No rule has reached a validation. No validation window has been loaded: all stay unread.
+
+- **The two directed tests** closed the hole section 11 named. On the perpetuals, rankings on past returns of one
+  and two days, on volatility, on the ratio of short to long volatility and on the size of the last move were looked
+  at for the first time: three were positive and not told from noise (the best at t 1.38), eleven lost, and four of
+  those eleven were positive before costs. A one-day ranking turns its book over daily and pays 14 to 20 basis points
+  a day for 1 to 4 of gross. On the funds nothing is larger than about one basis point a day either way. Both maps
+  now have no hole (27 and 25 cells with a classed rule; 12 and 2 set aside as closed families).
+- **What the 660 rules say together** (`research/director/log.jsonl`, the decision of 2026-11-14). On the funds a
+  rule's strength on the fit rows says nothing about its check rows: the correlation between the two t-statistics
+  is -0.03 over 259 rules, and the strongest quarter on the fit rows was the worst afterwards. On the perpetuals it is
+  +0.24: before costs the check-row t are centred at +0.43 and 68% are positive; after costs they are centred at
+  -0.22. So the planned aggregate of the weak positives was **withdrawn** before it was submitted: shrunk for having
+  been chosen on the check rows, its expected t on new rows is about 0.5 against a bar of 3.0.
 
 - **The funds.** 102 rules lost on the check rows, 55 of them only after costs, and the rules' check-row t are centred
   at -0.56: on that panel the average rule the methods find loses after a 3 basis point cost. Rankings of the funds

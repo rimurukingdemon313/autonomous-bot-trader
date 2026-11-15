@@ -61,7 +61,7 @@ Each finding the owner listed was checked against the repository before anything
 | Question | Answer | Evidence |
 |---|---|---|
 | Which model directs? | Fable 5.2 (`claude-fable-5-2`) | `get_session` on 2026-11-13: `session_context.model` and `last_served_model` are both `claude-fable-5-2` |
-| Through what interface? | A persistent Claude Code session with a scheduled routine (11:26 and 23:26 UTC). It fires without the owner opening anything | The routine fired on 2026-11-12 at 11:26 and 23:26 and on 2026-11-13 at 11:26 |
+| Through what interface? | A persistent Claude Code session with a scheduled routine (11:26 and 23:26 UTC). It fires without the owner opening anything | The routine fired on 2026-11-12 at 11:26 and 23:26, on 2026-11-13 at 11:26 and 23:26, and on 2026-11-14 at 11:26 and 23:26. A firing waits when the session's machine is restarting: those of 2026-11-13 23:26 and 2026-11-14 11:26 were read 19 and 7 hours late. The lab's worker does not depend on it |
 | What does it do? | Reads the briefing and the record, reviews results, finds what was missed, writes hypotheses as rules into the inbox, and records each decision in `research/director/log.jsonl` | The first entries are in that file |
 | Is the model called by the GitHub workflows? | **No.** There is no API key in the repository, and the owner's rule is that no money is spent without their word. A workflow cannot call Fable 5.2 today | A key as a repository secret and the owner's approval of the cost would change this; the inbox is already the interface such a caller would write to |
 | What does the model never do? | Compute a statistic, change a registered spec, or approve a rule | Statistics are code; approval is a registered test on unread rows |
@@ -80,9 +80,32 @@ Each finding the owner listed was checked against the repository before anything
 | Experiment generation and execution | `ingest`, `coverage_tasks`, `do_directed` | running |
 | Adversarial review | the triage (noise of every earlier look, duplicates, closed families), then the validation's gates | running |
 | Independent validation | `auto_validate`: unread rows, the registry's bar | built and tested; no real rule has reached it yet |
+| The same loop for the paper systems | `scripts/perf_cycle.py`: reconcile, attribute, name the weakness, replay the declared variants, judge on later hours | running from perf-1.0.0 (`docs/PERFORMANCE_ENGINEERING.md`) |
 | Knowledge update | ledger, lessons, coverage map, the director's log | running |
 
-## 5. What is not done
+## 5. The first cycle that ran by itself
+
+Everything in section 2 ran on GitHub's schedule two hours after it was pushed, with no dispatch and nobody watching:
+run 7 of `lab-cycle.yml`, id 43512116913, event `schedule`, 2026-11-13 21:35 UTC
+(<https://github.com/rimurukingdemon313/autonomous-bot-trader/actions/runs/43512116913>).
+
+| Step | What happened in that run | Record |
+|---|---|---|
+| Gap detection | the coverage map of each panel: 14 and 12 cells with no classed rule | `DIRECTOR_BRIEFING.md` on `lab-data` |
+| Hypothesis | the lab's own submission for each panel, one rule a hole | `research/specs/DLAB-CRD-D1.json`, `DLAB-ETF-D1.json` |
+| Data validation, on the fit rows only | 14 rules refused before any test: 12 behave as cross-coin momentum (XSM-1), 2 as the funds' momentum (SEC-1). No test was charged for them | `refused_before_registration` in each evidence file |
+| Registration | DLAB-CRD-D1 (14 tests) and DLAB-ETF-D1 (12 tests), each with its preregistration written before a check row was read | `research/registry.jsonl`, `research/preregistrations/` |
+| Execution | each rule looked at once on the check rows | `research/knowledge/DLAB-CRD-D1.json`, `DLAB-ETF-D1.json` |
+| Adversarial review | classed against 174 and 148 earlier distinct behaviours: 0 promising, 5 positive and not told from noise, 18 lost, 3 duplicates | the same files; `research/dlab/candidates.jsonl` |
+| Independent validation | not reached: neither test proposed a rule, and a validation is never run for its own sake | |
+| Knowledge update | 26 candidates added to the ledger (660 in all), the lessons and the map updated: no hole left | commit `a286851`, pushed by the worker |
+| Next research | none queued, with the reasons written in the report. The three scheduled runs after it (8, 9, 10) did nothing and said why | `LAB_REPORT.md` on `lab-data` |
+| The director's review | read on 2026-11-14: a review of both tests, and a decision **not** to submit the aggregate planned the day before, with its arithmetic | `research/director/log.jsonl` |
+
+What this cycle did not show, because nothing earned it: a validation on unread rows. That code has run on built
+markets (`tests/unit/test_dlab_directed.py`, `test_lab_cycle.py`) and in rehearsal, and on no real rule.
+
+## 6. What is not done
 
 - The idea engine still writes text. Its ideas must arrive as rules in the inbox, or be recorded as needing new code.
 - No finding is extracted from a source's text. Titles and abstracts are filed, and nothing is claimed from them.

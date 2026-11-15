@@ -2,11 +2,11 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 85 فرضية مسجلة، 63 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 88 فرضية مسجلة، 66 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-13 18:34 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-15 01:43 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-13, UTC)
+## Today (2026-11-15, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -26,11 +26,11 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 | | |
 |---|---|
-| Hypotheses registered | 85 |
-| Verdicts | 75: ABANDONED 2, FAILED 63, INCONCLUSIVE 1, PASSED 9 |
+| Hypotheses registered | 88 |
+| Verdicts | 78: ABANDONED 2, FAILED 66, INCONCLUSIVE 1, PASSED 9 |
 | Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
-| Evidence files that still match their verdict | 56 of 56 checked |
+| Evidence files that still match their verdict | 58 of 58 checked |
 | Specs whose hash is missing from their preregistration | none |
 
 ## Validation status
@@ -59,8 +59,8 @@ Bonferroni over every test already counted on the rows a new test would read, an
 
 | Market data | Judged tests | Discovery charges | Bar over its whole history (t) | Tests on its last five years | Bar there (t) |
 |---|---|---|---|---|---|
-| crypto-perp-daily | 0 | 600 | 3.935 | 600 | 3.935 |
-| us-etf-broad-daily | 0 | 600 | 3.935 | 0 | 3.000 |
+| crypto-perp-daily | 0 | 614 | 3.941 | 614 | 3.941 |
+| us-etf-broad-daily | 0 | 612 | 3.940 | 0 | 3.000 |
 | energy-futures-eia | 1 | 400 | 3.837 | 0 | 3.000 |
 | fx-majors | 151 | 25 | 3.631 | 16 | 3.000 |
 | index-cfd-intraday | 10 | 22 | 3.172 | 6 | 3.000 |
@@ -71,12 +71,12 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | crypto-binance-spot | 7 | 0 | 2.734 | 7 | 3.000 |
 | us-equity-etf | 6 | 0 | 2.690 | 3 | 3.000 |
 | crypto-binance-usdtm-all | 0 | 5 | 2.638 | 5 | 3.000 |
+| crypto-perp-live-xvenue | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-forward | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-monthly | 3 | 0 | 2.498 | 2 | 3.000 |
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |
 | us-treasury-daily | 2 | 0 | 2.394 | 0 | 3.000 |
 | us-vol-etp | 2 | 0 | 2.394 | 2 | 3.000 |
-| crypto-perp-live-xvenue | 1 | 0 | 2.241 | 1 | 3.000 |
 | em-fx-daily | 1 | 0 | 2.241 | 0 | 3.000 |
 | equity-index-daily | 1 | 0 | 2.241 | 0 | 3.000 |
 | metals-futures-daily | 1 | 0 | 2.241 | 0 | 3.000 |
@@ -87,6 +87,9 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 
 | Recorded | Hypothesis | Verdict | Preregistration | Spec hash quoted | Evidence file | Matches |
 |---|---|---|---|---|---|---|
+| 2026-11-14 | RADX-1 | FAILED | `research/preregistrations/RADX-1.md` | — | `research/knowledge/RADX-1.json` | — |
+| 2026-11-13 | DLAB-CRD-D1 | FAILED | `research/preregistrations/DLAB-CRD-D1.md` | yes | `research/knowledge/DLAB-CRD-D1.json` | yes |
+| 2026-11-13 | DLAB-ETF-D1 | FAILED | `research/preregistrations/DLAB-ETF-D1.md` | yes | `research/knowledge/DLAB-ETF-D1.json` | yes |
 | 2026-11-12 | DLAB-CRD-1 | FAILED | `research/preregistrations/DLAB-CRD-1.md` | yes | `research/knowledge/DLAB-CRD-1.json` | yes |
 | 2026-11-12 | DLAB-ETF-1 | FAILED | `research/preregistrations/DLAB-ETF-1.md` | yes | `research/knowledge/DLAB-ETF-1.json` | yes |
 | 2026-11-10 | DLAB-ENG-1 | FAILED | `research/preregistrations/DLAB-ENG-1.md` | yes | `research/knowledge/DLAB-ENG-1.json` | yes |
@@ -109,8 +112,5 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 | 2026-11-05 | XSM-1 | FAILED | `research/preregistrations/XSM-1.md` | yes | `research/knowledge/XSM-1.json` | yes |
 | 2026-11-05 | FOMC-1A | FAILED | `research/preregistrations/FOMC-1A.md` | yes | `research/knowledge/FOMC-1A.json` | yes |
 | 2026-11-05 | FOMC-1 | ABANDONED | `research/preregistrations/FOMC-1.md` | yes | — | — |
-| 2026-11-05 | VRP-1 | FAILED | `research/preregistrations/VRP-1.md` | yes | `research/knowledge/VRP-1.json` | yes |
-| 2026-11-04 | FND-1A | FAILED | `research/preregistrations/FND-1A.md` | yes | `research/knowledge/FND-1A.json` | yes |
-| 2026-11-04 | FND-1 | ABANDONED | `research/preregistrations/FND-1.md` | yes | — | — |
 
 **Matches**: the evidence file's own hash equals the one recorded with its verdict; where none was recorded, the file names the spec (and code) hashes registered before the test. Every verdict is in `research/registry.jsonl`. Each program's command and frozen spec are in its preregistration, and the program refuses to judge if its spec or code no longer match the hashes recorded at registration.
