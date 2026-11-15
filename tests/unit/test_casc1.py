@@ -27,7 +27,7 @@ def _ms(d):
 
 
 def market(coins=10, start="2023-06-01", end="2025-03-05", rebound=0.06, every=60, spot_led=4, spot_rebound=0.0,
-           only=None, seed=5):
+           only=None, seed=5, drift=0.0):
     """Hourly spot and perpetual closes. Every `every` hours (staggered by coin) a coin's spot falls 12% over four
     hours, then recovers `rebound` over the next 24. On the first `coins` contracts the perpetual is 1% below spot
     through the fall (liquidations); on `spot_led` more it is 1% above (spot leads), and they recover `spot_rebound`."""
@@ -47,7 +47,7 @@ def market(coins=10, start="2023-06-01", end="2025-03-05", rebound=0.06, every=6
                 step[h0 + j] = (1 + reb) ** (1 / 24) - 1
         lvl, s, p = 100.0, {}, {}
         for i in range(n):
-            lvl *= 1 + rng.gauss(0, 0.002) + step.get(i, 0.0)
+            lvl *= 1 + rng.gauss(0, 0.002) + step.get(i, 0.0) + drift
             s[t0 + i * H] = lvl
             p[t0 + i * H] = lvl * (1 + (prem if i in fall else 0.0))
         spot[name], perp[name] = s, p
@@ -92,6 +92,13 @@ def test_a_fall_led_by_spot_is_not_bought():
 def test_when_spot_led_falls_are_bought_back_as_much_the_mechanism_gate_refuses():
     r, _ = judged(*market(spot_rebound=0.09))  # falls led by spot are bought back even more
     assert r["spot_led_falls"] > 0 and not r["gates"]["beats_spot_led_falls"]
+
+
+def test_a_market_that_rises_at_every_hour_is_no_rebound():
+    # rare falls (a placebo window never holds one), then only the market's own drift: it earns at every hour
+    r, _ = judged(*market(rebound=0.0, drift=0.001, spot_rebound=-0.03, every=400), drop=0.10)
+    assert r["mean_net"] > 0 and r["gates"]["beats_spot_led_falls"] and not r["gates"]["beats_placebo"]
+    assert r["verdict"] == "FAILED"
 
 
 def test_an_edge_on_one_coin_alone_does_not_pass_and_too_few_is_inconclusive():

@@ -12,7 +12,7 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| 1 | Cascade rebound on spot | A leveraged long cascade in a coin's perpetual drags its spot below value; spot-only buyers are paid for absorbing it | spot, long only | LIQ-1 (BTC and ETH) failed: must say what differs (the cross-section, the size of the cascade relative to spot volume) |
+| 1 | Cascade rebound on spot (registered 2026-11-15 as CASC-1) | A leveraged long cascade in a coin's perpetual drags its spot below value; spot-only buyers are paid for absorbing it | spot, long only | LIQ-1 (BTC and ETH) failed: must say what differs (the cross-section, the size of the cascade relative to spot volume) |
 | 2 | US-hours clientele in BTC, with the US-holiday control | US institutions buy in US hours; on US exchange holidays and weekends the same clock hours should show nothing | BTC CFD or spot, long only | power: BTC's volatility needs about 19 bp a day for t 3 over nine years |
 | 3 | Post-FOMC drift into gold | Treasury yields drift for days after FOMC surprises (slow-moving capital); gold, priced off real yields, should follow its own first reaction | gold CFD, long and short | about 140 meetings since 2009: power is the problem |
 | 4 | BTC's weekend move and Monday's index session | News of the weekend is priced first in crypto; equities reopen thin on Sunday night and may under-react | index CFDs, long and short | the Sunday open may price it fully; power |

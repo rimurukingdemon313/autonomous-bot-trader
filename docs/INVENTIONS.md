@@ -31,3 +31,4 @@ with the same bar, stages and seals as every other hypothesis.
 | Strike pinning by 0DTE index options | REJECTED_BEFORE_TEST |  | An independent 2026 study (Elms, SSRN; seen as a search result) tested 2,294 S&P 500 days of 2016-2025 and found no pinning, and the hourly index data here would need the cash level the CFD does not quote. |
 | TRND-1's rule on metals, oil and crypto funds | REJECTED_BEFORE_TEST |  | DIV-1 already judged trend rules on the same funds over 2008-2021 and failed; the test would reuse exposed data. |
 | Swap-free shorting of high-yield currencies | REJECTED_BEFORE_TEST |  | It would profit from the interest differential through the broker's swap-free terms, which brokers forbid as swap abuse and which goes against the purpose of an Islamic account; FX majors are sealed besides. |
+| CASC-1 liquidation-led falls and the spot buyer | REGISTERED | forced-deleveraging rebound | CASC-1 |
