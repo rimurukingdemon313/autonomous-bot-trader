@@ -72,7 +72,7 @@ Each finding the owner listed was checked against the repository before anything
 | Step | Where | State |
 |---|---|---|
 | Global research | `feeds.papers` (arXiv, OpenAlex), weekly, by the worker | running: 85 sources filed |
-| Knowledge extraction | not built: sources are UNREAD until a finding is extracted from the text | **missing** |
+| Knowledge extraction | not possible today: the director's session cannot reach the sources' full text (section 6). Sources are UNREAD until a finding is extracted from the text | **missing** |
 | Gap detection | `coverage.py`; the briefing | running from lab-cycle-1.1.0 |
 | Hypothesis generation | the director (inbox); the lab's coverage test; the idea engine (text only, for now) | the first two run |
 | Mathematical specification | the rule language; the frozen spec of each directed test | running |
@@ -109,7 +109,14 @@ markets (`tests/unit/test_dlab_directed.py`, `test_lab_cycle.py`) and in rehears
 ## 6. What is not done
 
 - The idea engine still writes text. Its ideas must arrive as rules in the inbox, or be recorded as needing new code.
-- No finding is extracted from a source's text. Titles and abstracts are filed, and nothing is claimed from them.
+- No finding is extracted from a source's text, and for a stated reason. The lab's worker files each source's title
+  and abstract from GitHub's runner (85 so far), and all of them stay UNREAD: nothing is claimed from an abstract. The
+  director's session cannot read a paper: its network refuses arXiv (checked on 2026-11-15: the address does not
+  resolve from it). A relay that would have fetched full texts on the runner and passed them to the session through a
+  branch was written the same day and **refused by the session's permission system before any file was created**,
+  and rightly: it would have gone around a restriction that belongs to the owner. It is not attempted another way.
+  Reading sources in full needs the owner to allow that host for this environment; until then this step of the loop
+  is missing, and the table above says so.
 - The one experiment the collective reading of the record supports (costs charged on net trades, on the perpetuals:
   `docs/RESEARCH_META_ANALYSIS.md`, section 5) needs new code in the lab and is not built.
 - No workflow calls Fable 5.2 (section 3). The director runs as a scheduled session, twice a day.
