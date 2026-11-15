@@ -39,6 +39,10 @@ computed; everything below is a reading of it, and is dated so that it can be wr
   12 in the directed test before any test was spent on them.
   The live radar (RADAR-1) is the same carry measured where it is new, and its paper ledger says the round trip
   costs more than the carry lasts (`docs/PERFORMANCE_ENGINEERING.md`).
+  New listings (NEWL-1, 2026-11-15) failed in a different way from the rest: the typical new perpetual did fall
+  against seasoned ones (median +15.7% for the short, 71% of 812 events positive), but a short with no stop is
+  exposed to squeezes on thin new floats: 29 events lost more than their notional, and one outweighed every gain.
+  The mean was -0.1% at t -0.01 (`research/results/NEWL-1-verdict.md`).
 - **Calendar and flow effects** (month-end, the turn of the month, auctions, pre-FOMC, holidays, sessions: MEH-1,
   TME-1, RBL-1, TSY-1, FOMC-1A, PHD-1 and FXS-1 among them): one answer. Each is small, most are visible before
   costs, and none clears a bar that counts the others.

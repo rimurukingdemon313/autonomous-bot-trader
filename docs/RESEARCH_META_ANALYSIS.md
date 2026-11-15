@@ -2,11 +2,11 @@
 
 **RESEARCH ONLY · NOTHING HERE IS A PROFIT CLAIM.** Written by `scripts/research_meta.py` from the committed record alone: the registry, the edge registry and the discovery lab's ledger of classed rules. No market data is read, so nothing is looked at that was not already looked at, and no test is charged. It describes the record; it validates nothing.
 
-Generated 2026-11-15 18:05 UTC · meta-1.0.0
+Generated 2026-11-15 18:50 UTC · meta-1.0.0
 
 ## 1. What was read
 
-- 89 registered hypotheses with 1,905 counted tests; 78 verdicts: 66 FAILED, 11 PENDING, 9 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
+- 89 registered hypotheses with 1,905 counted tests; 79 verdicts: 67 FAILED, 10 PENDING, 9 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
 - 143 judged trading edges: 138 REJECTED, 4 PROMISING, 1 VALIDATED.
 - 660 rules found in data by the discovery lab and classed, each kept with its reason: 235 NEGATIVE_EXPECTANCY, 159 OVERFIT, 148 INSUFFICIENT_POWER, 58 INSUFFICIENT_DATA, 42 DUPLICATE, 18 REPEATS_CLOSED_FAMILY.
 
@@ -35,11 +35,11 @@ Generated 2026-11-15 18:05 UTC · meta-1.0.0
 | `metals-futures-daily` | 1 | 1 | 1 | 0 | 0 |
 | `em-fx-daily` | 1 | 1 | 1 | 0 | 0 |
 | `equity-index-daily` | 1 | 1 | 1 | 0 | 0 |
-| `crypto-perp-new-listings` | 1 | 1 | 0 | 0 | 1 |
+| `crypto-perp-new-listings` | 1 | 1 | 1 | 0 | 0 |
 
 A PASSED line is a stage, not an edge: RV-1, DIV-2, DIV-2-H, RC-EQ2-H, CR-1, CR-4, CR-5, TRND-1, TRND-1-H. The edge registry below says which of them is a validated edge: TRND-1.
 
-Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, archive-smc-utc-rerun, archive-edge-program-8, TOM-D, TOM-F, RADAR-1, TRND-F, NEWL-1.
+Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, archive-smc-utc-rerun, archive-edge-program-8, TOM-D, TOM-F, RADAR-1, TRND-F.
 
 ## 3. Why the judged edges failed
 
@@ -221,6 +221,10 @@ computed; everything below is a reading of it, and is dated so that it can be wr
   12 in the directed test before any test was spent on them.
   The live radar (RADAR-1) is the same carry measured where it is new, and its paper ledger says the round trip
   costs more than the carry lasts (`docs/PERFORMANCE_ENGINEERING.md`).
+  New listings (NEWL-1, 2026-11-15) failed in a different way from the rest: the typical new perpetual did fall
+  against seasoned ones (median +15.7% for the short, 71% of 812 events positive), but a short with no stop is
+  exposed to squeezes on thin new floats: 29 events lost more than their notional, and one outweighed every gain.
+  The mean was -0.1% at t -0.01 (`research/results/NEWL-1-verdict.md`).
 - **Calendar and flow effects** (month-end, the turn of the month, auctions, pre-FOMC, holidays, sessions: MEH-1,
   TME-1, RBL-1, TSY-1, FOMC-1A, PHD-1 and FXS-1 among them): one answer. Each is small, most are visible before
   costs, and none clears a bar that counts the others.
