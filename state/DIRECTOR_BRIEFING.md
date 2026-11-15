@@ -1,13 +1,10 @@
 # The research director's briefing
 
-Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-15 00:59 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
+Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-15 11:29 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
 
 ## 1. Results waiting for a review
 
-| Run | Kind | Verdict | In short |
-|---|---|---|---|
-| `DLAB-CRD-D1` | directed_test | FAILED | 14 rules; 0 promising, 3 positive and not told from noise, 11 lost, 0 overfit; best check-row t 1.383 |
-| `DLAB-ETF-D1` | directed_test | FAILED | 12 rules; 0 promising, 2 positive and not told from noise, 7 lost, 0 overfit; best check-row t 1.19 |
+None: every judged run is named in a REVIEW entry of the director's log.
 
 ## 2. The coverage map
 
