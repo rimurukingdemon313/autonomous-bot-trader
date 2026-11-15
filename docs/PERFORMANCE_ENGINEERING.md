@@ -250,8 +250,10 @@ on the same hours. If it does not reproduce it, the report says the table means 
 
 ## 8. The cycle
 
-`.github/workflows/perf-cycle.yml`: every three hours at :23, on GitHub's schedule (best-effort: runs start late or
-are dropped). No person, no model, no key, no order.
+`.github/workflows/perf-cycle.yml`. Two things start it, and neither is a person: GitHub's schedule, every three
+hours at :23 (best-effort: runs start late or are dropped), and the end of each shift of the radar, about every six
+hours, which is the moment the radar has just saved the quotes the cycle archives. The second does not change the
+radar's workflow: GitHub starts this one when that one completes. No model, no key, no order.
 
 1. reads `trend-desk-data` and `radar-data` (read only), and restores the radar's cache (restore only: the job
    contains no cache save and pushes to no branch but `perf-data`; both are pinned by tests);

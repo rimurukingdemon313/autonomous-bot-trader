@@ -1430,6 +1430,7 @@ MUTANTS = [
     ('perf-workflow-own-branch', 'the performance workflow pushes to perf-data and nowhere else', '.github/workflows/perf-cycle.yml', 'git push -q origin HEAD:refs/heads/perf-data', 'git push -q origin HEAD:refs/heads/radar-data', ['tests/unit/test_perf_cycle.py']),
     ('edges-judged-is-a-list', 'an artifact is read as judged hypotheses only when it holds a list of them', 'aitrader/research/discovery/edges.py', 'if not isinstance(art, dict) or "program" not in art or not isinstance(art.get("judged"), list):', 'if not isinstance(art, dict) or "program" not in art or "judged" not in art:', ['tests/unit/test_discovery_edges.py']),
     ('perf-weakness-loses-reliably', 'a class is a weakness only when its own loss is told from zero', 'aitrader/perf/radar.py', '                 and x["t"] is not None and x["t"] <= -WEAK_OWN_T\n', '', ['tests/unit/test_perf_audit.py']),
+    ('perf-workflow-after-radar', "the performance cycle also starts when a shift of the radar ends, by that workflow's exact name", '.github/workflows/perf-cycle.yml', 'workflows: ["Funding radar (hourly, paper)"]', 'workflows: ["Funding radar"]', ['tests/unit/test_perf_cycle.py']),
 ]
 
 
