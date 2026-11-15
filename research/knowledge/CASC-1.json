@@ -1,0 +1,143 @@
+{
+ "bar": 3.0,
+ "chosen_drop": null,
+ "code_sha256": "dfc687fd990236224315109af391193839d87e59dc78128fa1dc10d96050c43c",
+ "data": {
+  "absent": 0,
+  "coins": 480,
+  "files": 12558,
+  "source": "https://data.binance.vision/"
+ },
+ "decisions": [
+  "2023-07-01",
+  "2025-02-28"
+ ],
+ "judged": "2026-11-15T22:24:11.497214+00:00",
+ "kind": "spot_event_study",
+ "last_moment_read": "2025-03-02T01:00:00+00:00",
+ "program": "CASC-1",
+ "results": {
+  "0.08": {
+   "bar": 3.0,
+   "best_coin": "RAYUSDT",
+   "best_day": "2024-03-05",
+   "best_net": 0.8097988814798881,
+   "coins": 89,
+   "costs_x2_mean": -0.02348100186472832,
+   "days": 183,
+   "entries": 328,
+   "first_half": -0.021284632762743984,
+   "gates": {
+    "beats_placebo": false,
+    "beats_spot_led_falls": false,
+    "costs_x2": false,
+    "halves": false,
+    "late_entry": false,
+    "t": false,
+    "top5_removed": false,
+    "without_best_coin": false,
+    "without_best_day": false
+   },
+   "gross_mean": -0.013481001864728316,
+   "late_mean": -0.01844678067161834,
+   "mean_excess_vs_market": -0.026037246665656735,
+   "mean_net": -0.018481001864728324,
+   "median_net": -0.011541190990435043,
+   "missing": 2,
+   "placebo_p95": 0.026414193378808088,
+   "placebo_share_at_or_above": 1.0,
+   "positive_share": 0.4570552147239264,
+   "second_half": -0.015707845215604158,
+   "spot_led_falls": 4953,
+   "spot_led_mean_net": 0.00011820366942934673,
+   "t": -2.0689680638374286,
+   "traded": 326,
+   "verdict": "FAILED",
+   "without_best_coin_mean": -0.02117044970551414,
+   "without_best_day_mean": -0.019336402071453897,
+   "without_top5_mean": -0.027787965209399173,
+   "worst_net": -0.4658260894267371
+  },
+  "0.15": {
+   "bar": 3.0,
+   "days": 54,
+   "entries": 73,
+   "mean_net": -0.007337169494454199,
+   "missing": 0,
+   "t": -0.2767235138571872,
+   "traded": 73,
+   "verdict": "INCONCLUSIVE",
+   "why": "73 entries on 54 days: 150 and 40 are needed"
+  }
+ },
+ "spec": {
+  "bar_floor": 3.0,
+  "cost_per_side": 0.0025,
+  "drops": [
+   0.08,
+   0.15
+  ],
+  "gates": [
+   "t",
+   "costs_x2",
+   "halves",
+   "top5_removed",
+   "late_entry",
+   "beats_placebo",
+   "without_best_day",
+   "without_best_coin",
+   "beats_spot_led_falls"
+  ],
+  "hold_hours": 24,
+  "instrument": "spot, bought outright",
+  "late_hours": 1,
+  "look_hours": 4,
+  "nw_lag": 1,
+  "perp_discount": 0.005,
+  "placebo_draws_per_entry": 40,
+  "placebo_span_hours": 168,
+  "placebos": 1000,
+  "program": "CASC-1",
+  "seed": 20261115,
+  "stages": {
+   "dev": {
+    "decisions": [
+     "2023-07-01",
+     "2025-02-28"
+    ],
+    "min_days": 40,
+    "min_events": 150,
+    "tests": 2,
+    "trial": "CASC-1"
+   },
+   "forward": {
+    "after": "CASC-1-V",
+    "decisions": [
+     "2026-12-01",
+     "2027-05-29"
+    ],
+    "min_days": 10,
+    "min_events": 40,
+    "not_before": "2027-06-10",
+    "tests": 1,
+    "trial": "CASC-1-F"
+   },
+   "validation": {
+    "after": "CASC-1",
+    "decisions": [
+     "2025-03-08",
+     "2026-10-29"
+    ],
+    "min_days": 40,
+    "min_events": 150,
+    "tests": 1,
+    "trial": "CASC-1-V"
+   }
+  },
+  "universe": "crypto-spot-liquidation-falls",
+  "version": "casc-1.0.0"
+ },
+ "spec_sha256": "970a58518a60f4afea3a167f6c6f0d2304be0fab436effe2cf9ff8306de04da3",
+ "stage": "dev",
+ "verdict": "FAILED"
+}
