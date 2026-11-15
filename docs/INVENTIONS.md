@@ -20,7 +20,7 @@ with the same bar, stages and seals as every other hypothesis.
 
 | Invention | Status | Families | Trial or reason |
 |---|---|---|---|
-| EXF-1 ex-funding pass-through | REGISTERED | settlement microstructure, funding carry | EXF-1 |
+| EXF-1 ex-funding pass-through | FAILED | settlement microstructure, funding carry | EXF-1 |
 | Liquidation-price magnets | REJECTED_BEFORE_TEST |  | No public data locates leveraged positions or their liquidation prices, and the idea is sold by data vendors as liquidation heatmaps: it can be neither tested without paid data nor called new. |
 | Spot-listing demand of derivative-restricted holders | REJECTED_BEFORE_TEST |  | Its events are the new listings NEWL-1 read and spent (2021-01 to 2026-10): a test there would reuse exposed data. |
 | Coin-margined hedgers' pressure on inverse perpetuals | REJECTED_BEFORE_TEST |  | A funding spread between two contracts on one index, arbitraged by the largest market makers: the carry family, which failed here five times, and small. |
