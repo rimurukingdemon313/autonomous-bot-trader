@@ -85,6 +85,13 @@ def test_a_payment_the_market_ignores_is_earned_by_the_receiving_side_and_nowher
     assert not judged(evs_of(beta=0.0))["gates"]["costs_x2"]  # 30 bp does not: 30 - 40 < 0
 
 
+def test_an_edge_on_one_contract_alone_does_not_pass():
+    s, p, i = market(420, F=0.0045, beta=0.0)
+    one = X.events("AAAUSDT", s, p, i, _t("2021-01-01"), _t("2021-01-01") + 420 * 86_400_000 - 1)
+    r = judged(one)
+    assert r["mean"] > 0 and not r["gates"]["without_best_symbol"] and r["verdict"] == "FAILED"
+
+
 def test_the_pass_through_is_measured_where_it_lies_between():
     b = bucket(X.mechanism(evs_of(days=60, beta=0.5)))
     assert 0.4 < b["pass_through"] < 0.55 and b["post"] > b["pre"]
