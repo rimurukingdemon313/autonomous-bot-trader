@@ -1,0 +1,79 @@
+# The performance cycle of the paper systems (docs/PERFORMANCE_ENGINEERING.md): several times a day on GitHub's runner,
+# with no person and no open conversation in the loop. RESEARCH AND PRESENTATION ONLY: no broker, no account, no order,
+# no model call, no paid service, and no change to either paper system. Each cycle (scripts/perf_cycle.py):
+# - reads the trend desk's and the funding radar's own published ledgers (their data branches, read only);
+# - recomputes every account figure by a second route and reconciles it, realized apart from unrealized;
+# - says where the profit and the loss came from and names the largest weakness;
+# - copies the radar's stored hourly quotes into an archive (the radar forgets them after 240 hours);
+# - replays the radar's frozen rules and every declared variant on those quotes: the best on the earlier half is judged
+#   on the later half only; a registered challenger is judged forward, once;
+# - writes PERF_REPORT.md and its records to the perf-data branch.
+# The radar's cache is RESTORED and never saved here, and nothing is pushed to any branch but perf-data: RADAR-1's
+# preregistered forward test cannot be touched by this job (tests/unit/test_perf_cycle.py pins both).
+name: Performance cycle (paper audit and replay, research only)
+on:
+  schedule:
+    # GitHub's cron is best-effort: a run may start hours late or not at all. A cycle whose inputs have not changed
+    # recomputes the audit (seconds) and reuses the replay.
+    - cron: "23 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write  # to keep this schedule enabled through GitHub's 60-day inactivity rule
+concurrency:
+  group: perf-cycle
+  cancel-in-progress: false
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore this cycle's records from perf-data, and read the paper systems' branches
+        run: |
+          git config user.name "perf-cycle"; git config user.email "perf-cycle@users.noreply.github.com"
+          if git fetch -q origin perf-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan perf-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          for b in trend-desk-data radar-data; do
+            mkdir -p "in/$b"
+            git fetch -q --depth 1 origin "$b" && git archive FETCH_HEAD | tar -x -C "in/$b" || echo "$b is not available"
+          done
+      - name: The radar's stored quotes (restore only)
+        uses: actions/cache/restore@v4
+        with:
+          path: radar-state
+          key: radar-state-read-only
+          restore-keys: radar-state-
+      - name: Run one cycle
+        id: cycle
+        run: |
+          set +e
+          python scripts/perf_cycle.py --trend in/trend-desk-data --radar in/radar-data --radar-state radar-state --out pub 2>&1 | tee cycle.log
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+      - name: Publish to perf-data
+        if: always()
+        run: |
+          cd pub
+          git add -A .
+          git commit -qm "perf cycle $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/perf-data && exit 0; sleep $((i * 20)); done
+          exit 1
+      - name: Keep the schedule enabled
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/perf-cycle.yml/enable" || true
+      - name: Fail visibly when an account does not reconcile
+        run: |
+          code="${{ steps.cycle.outputs.code }}"
+          if [ "$code" != "0" ]; then echo "the cycle exited $code: see PERF_REPORT.md on perf-data"; exit 1; fi
