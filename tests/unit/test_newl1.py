@@ -10,6 +10,7 @@ import math
 import random
 import zipfile
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
@@ -168,6 +169,25 @@ def test_an_s3_listing_is_read_page_by_page():
     p, k = N.listing("data/x/", fetch)
     assert p == ["data/x/AAA/", "data/x/BBB/", "data/x/CCC/"] and k == ["data/x/f.zip"]
     assert asked[1].endswith("&marker=data/x/BBB/")
+
+
+def test_a_contract_named_outside_ascii_is_asked_for_by_an_encoded_address():
+    asked = []
+
+    def fetch(url):
+        asked.append(url)
+        url.encode("ascii")  # what the runner's HTTP client requires
+        return b'<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><IsTruncated>false</IsTruncated></ListBucketResult>'
+    N.listing("data/futures/um/monthly/klines/\u54c8\u57fa\u7c73USDT/1d/", fetch)
+    assert "%E5%93%88%E5%9F%BA%E7%B1%B3USDT/1d/" in asked[0]
+    got = []
+    N.fetch_stage(Path(tmp_dir()) / "d", {"\u54c8\u57fa\u7c73USDT": ["2025-06"]}, fetch=lambda u: (got.append(u.encode("ascii")), None)[1])
+    assert got and all(b"%E5%93%88" in u for u in got)
+
+
+def tmp_dir():
+    import tempfile
+    return tempfile.mkdtemp()
 
 
 def test_a_stage_fetches_nothing_past_its_last_day():

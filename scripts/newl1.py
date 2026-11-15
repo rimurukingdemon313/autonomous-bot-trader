@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -80,7 +81,8 @@ def parse_listing(body: bytes) -> tuple[list[str], list[str], str | None]:
 def listing(prefix: str, fetch=get) -> tuple[list[str], list[str]]:
     prefixes, keys, marker = [], [], ""
     while True:
-        body = fetch(LISTING.format(prefix=prefix, marker=f"&marker={marker}" if marker else ""))
+        # contract names are not all ASCII (a contract on a coin named in Chinese exists): every address is encoded
+        body = fetch(LISTING.format(prefix=quote(prefix, safe="/"), marker=f"&marker={quote(marker, safe='/')}" if marker else ""))
         if body is None:
             raise RuntimeError(f"no listing for {prefix}")
         p, k, nxt = parse_listing(body)
@@ -161,7 +163,8 @@ def fetch_stage(data: Path, want: dict[str, list[str]], fetch=checked, workers: 
 
     def one(job):
         s, m, k = job
-        url = f"{VISION}{k}/{s}/" + (f"1d/{s}-1d-{m}.zip" if k == "klines" else f"{s}-fundingRate-{m}.zip")
+        q = quote(s, safe="")
+        url = f"{VISION}{k}/{q}/" + (f"1d/{q}-1d-{m}.zip" if k == "klines" else f"{q}-fundingRate-{m}.zip")
         try:
             return job, fetch(url), None
         except RuntimeError as e:
