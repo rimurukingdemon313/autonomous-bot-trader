@@ -1,0 +1,155 @@
+{
+ "bar": 3.0,
+ "chosen_threshold": null,
+ "code_sha256": "3daad78fc56ab66890df96f5951eb1ea551fed99d43aee7014962d7e5f010c52",
+ "data": {
+  "absent": 0,
+  "coins_with_spot": 384,
+  "files": 23322
+ },
+ "entries": [
+  "2021-01-01",
+  "2025-02-28"
+ ],
+ "judged": "2026-11-15T22:43:05.233147+00:00",
+ "kind": "spot_event_study",
+ "last_day_read": "2025-03-08",
+ "program": "BAS-1",
+ "results": {
+  "0.0003": {
+   "bar": 3.0,
+   "best_coin": "MANAUSDT",
+   "best_excess": 3.438847480926071,
+   "best_year": "2023",
+   "by_year_sum": {
+    "2021": -5.446162346325203,
+    "2022": -0.12199761420127539,
+    "2023": 0.5114361378748586,
+    "2024": -12.065014681199902,
+    "2025": 0.016490720706669973
+   },
+   "coins": 266,
+   "costs_x2_mean": -0.013373912143252006,
+   "entries": 3447,
+   "first_half": -0.006051735703530047,
+   "gates": {
+    "beats_placebo": false,
+    "costs_x2": false,
+    "halves": false,
+    "late_entry": false,
+    "t": false,
+    "top5_removed": false,
+    "without_best_coin": false,
+    "without_best_year": false
+   },
+   "gross_mean_excess": -0.00737391214325201,
+   "late_mean": -0.011818925212372372,
+   "mean_excess": -0.010373912143252015,
+   "mean_net_long_only": 0.015037415945320995,
+   "median_excess": -0.03867362490106861,
+   "missing": 75,
+   "placebo_p95": 0.0141867880794144,
+   "placebo_share_at_or_above": 0.834,
+   "placebo_usable": 3324,
+   "positive_share": 0.33807829181494664,
+   "second_half": -0.014696088582973981,
+   "t": -2.237082241283644,
+   "traded": 3372,
+   "verdict": "FAILED",
+   "weeks": 76,
+   "without_best_coin_mean": -0.010913569012199855,
+   "without_best_year_mean": -0.010817474776057321,
+   "without_top5_mean": -0.012453335393265194,
+   "worst_excess": -0.5186742108247702
+  },
+  "0.0005": {
+   "bar": 3.0,
+   "entries": 1824,
+   "mean_excess": -0.005105606474853861,
+   "missing": 53,
+   "t": -0.6333694581983137,
+   "traded": 1771,
+   "verdict": "INCONCLUSIVE",
+   "weeks": 50,
+   "why": "1771 entries in 50 weeks: 300 and 52 are needed"
+  },
+  "0.001": {
+   "bar": 3.0,
+   "entries": 438,
+   "mean_excess": -0.005095992046711422,
+   "missing": 19,
+   "t": -0.21530412774627006,
+   "traded": 419,
+   "verdict": "INCONCLUSIVE",
+   "weeks": 23,
+   "why": "419 entries in 23 weeks: 300 and 52 are needed"
+  }
+ },
+ "spec": {
+  "bar_floor": 3.0,
+  "cost_per_side": 0.0015,
+  "gates": [
+   "t",
+   "costs_x2",
+   "halves",
+   "top5_removed",
+   "late_entry",
+   "beats_placebo",
+   "without_best_year",
+   "without_best_coin"
+  ],
+  "hold_days": 7,
+  "instrument": "spot, bought outright",
+  "late_lag_days": 1,
+  "nw_lag": 2,
+  "placebo_span_days": 30,
+  "placebos": 1000,
+  "program": "BAS-1",
+  "seed": 20261115,
+  "stages": {
+   "dev": {
+    "entries": [
+     "2021-01-01",
+     "2025-02-28"
+    ],
+    "min_events": 300,
+    "min_weeks": 52,
+    "tests": 3,
+    "trial": "BAS-1"
+   },
+   "forward": {
+    "after": "BAS-1-V",
+    "entries": [
+     "2026-12-01",
+     "2027-05-24"
+    ],
+    "min_events": 60,
+    "min_weeks": 10,
+    "not_before": "2027-06-10",
+    "tests": 1,
+    "trial": "BAS-1-F"
+   },
+   "validation": {
+    "after": "BAS-1",
+    "entries": [
+     "2025-03-08",
+     "2026-10-24"
+    ],
+    "min_events": 150,
+    "min_weeks": 40,
+    "tests": 1,
+    "trial": "BAS-1-V"
+   }
+  },
+  "thresholds": [
+   0.0003,
+   0.0005,
+   0.001
+  ],
+  "universe": "crypto-spot-high-funding",
+  "version": "bas-1.0.0"
+ },
+ "spec_sha256": "47def52bde2a79d0ee551a777f8b499437b5da29f05d23678b1a9a1c74d21100",
+ "stage": "dev",
+ "verdict": "FAILED"
+}
