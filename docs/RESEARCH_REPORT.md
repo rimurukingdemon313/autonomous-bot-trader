@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 2 فرضية جديدة انسجلت، 2 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 90 فرضية مسجلة، 68 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 2 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 91 فرضية مسجلة، 68 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-15 20:25 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-15 21:15 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-15, UTC)
 
@@ -12,6 +12,7 @@ Generated 2026-11-15 20:25 UTC from the committed record · research-report-1.1.
 
 - **NEWL-1**: NEWL-1: newly listed Binance perpetuals against seasoned listings, history stage. A perpetual entered short at the close of its first full day and held 30 days, hedged with an equal-weight long basket of perpetuals listed 181 to 365 days earlier, earns a positive return after funding and 15 bp a fill on both legs, averaged over monthly cohorts of entries. (`research/preregistrations/NEWL-1.md`, 1 test counted)
 - **EXF-1**: EXF-1: the ex-funding pass-through of perpetual futures, dev stage. Across a funding settlement, a perpetual's premium over its index moves by less than the funding paid, so that the side the previous rate says receives the funding, held from five minutes before the settlement to five minutes after, earns a positive return after two fills of 10 bp, averaged over weekly cohorts; nothing comparable is earned at the same distance from no settlement. (`research/preregistrations/EXF-1.md`, 4 tests counted)
+- **SQZ-1**: SQZ-1: crowded shorts and the spot buyer, dev stage. A coin whose USDT-M perpetual paid its longs at least theta per 8 hours over the last 72 hours (crowded shorts), bought on spot and held seven days, beats the equal-weight spot return of every seasoned coin over the same days after 0.15% a side, averaged over weekly cohorts. (`research/preregistrations/SQZ-1.md`, 3 tests counted)
 
 **Verdicts recorded** (each judged once):
 
@@ -26,7 +27,7 @@ Generated 2026-11-15 20:25 UTC from the committed record · research-report-1.1.
 
 | | |
 |---|---|
-| Hypotheses registered | 90 |
+| Hypotheses registered | 91 |
 | Verdicts | 80: ABANDONED 2, FAILED 68, INCONCLUSIVE 1, PASSED 9 |
 | Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
@@ -51,7 +52,7 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 - RADAR-1 (registered 2026-10-07; data to 2027-02-15): RADAR-1: live cross-venue funding radar, paper forward test
 - TRND-F (registered 2026-11-06; data to 2029-12-01): TRND-F: TRND-1's rule forward, 2026-12..2029-11
 
-Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only).
+Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only); SQZ-1 (due).
 
 ## The bar each market's next test must clear
 
@@ -73,6 +74,7 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | crypto-binance-usdtm-all | 0 | 5 | 2.638 | 5 | 3.000 |
 | crypto-perp-funding-settlements | 4 | 0 | 2.576 | 4 | 3.000 |
 | crypto-perp-live-xvenue | 3 | 0 | 2.498 | 3 | 3.000 |
+| crypto-spot-crowded-shorts | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-forward | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-monthly | 3 | 0 | 2.498 | 2 | 3.000 |
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |

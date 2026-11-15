@@ -144,6 +144,13 @@ def test_every_stage_can_reach_its_own_minimum_and_follows_the_one_before():
     assert S.SPEC["bar_floor"] >= 3.0 and S.SPEC["instrument"].startswith("spot")
 
 
+def test_no_close_after_the_last_exit_and_no_funding_after_the_last_entry_is_read():
+    settle = {"A": [(Q.day_ms("2023-06-30") + 16 * Q.HOUR, -0.01), (Q.day_ms("2023-07-01"), -0.01)]}
+    spot = {"A": {"2023-07-08": 1.0, "2023-07-09": 99.0}}
+    f, s = S.firewall(settle, spot, "2023-06-30", "2023-07-08")
+    assert f["A"] == [(Q.day_ms("2023-06-30") + 16 * Q.HOUR, -0.01)] and s["A"] == {"2023-07-08": 1.0}
+
+
 def _zip(rows):
     b = io.BytesIO()
     with zipfile.ZipFile(b, "w") as z:

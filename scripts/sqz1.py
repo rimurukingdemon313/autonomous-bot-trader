@@ -229,6 +229,13 @@ def probe(fetch=get, fetch_checked=checked, now: datetime | None = None, perps: 
 
 # ── a stage ─────────────────────────────────────────────────────────────────
 
+def firewall(settle: dict, spot: dict, last_entry: str, last_exit: str) -> tuple[dict, dict]:
+    """Nothing settled after the last entry day and no close after the last exit reaches the computation."""
+    cut = Q.day_ms(last_entry) + Q.DAY
+    return ({s: [(t, f) for t, f in xs if t < cut] for s, xs in settle.items()},
+            {s: {d: v for d, v in xs.items() if d <= last_exit} for s, xs in spot.items()})
+
+
 def chosen_threshold(out_dir: Path) -> float:
     art = json.loads((out_dir / "SQZ-1.json").read_text())
     if art.get("verdict") != "PASSED" or art.get("chosen_threshold") is None:
@@ -260,9 +267,7 @@ def run(stage: str, data: Path, now: datetime, fetch=checked, reg: Registry | No
     if man["failed"]:
         raise SystemExit(f"{len(man['failed'])} archive files did not arrive (the first: {man['failed'][:3]}): "
                          "nothing is judged on a partial panel")
-    cut = Q.day_ms(b) + Q.DAY  # no funding settled after the last entry day, no close after the last exit
-    settle = {s: [(t, f) for t, f in xs if t < cut] for s, xs in settle.items()}
-    spot = {s: {d: v for d, v in xs.items() if d <= last_exit} for s, xs in spot.items()}
+    settle, spot = firewall(settle, spot, b, last_exit)
     fund = {s: Q.Funding(xs) for s, xs in settle.items()}
     seasoned = {s: v["seasoned"] for s, v in coins.items()}
     bench = Q.Bench(spot, seasoned)
