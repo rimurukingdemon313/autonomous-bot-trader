@@ -15,6 +15,8 @@ from aitrader.perf import radar, trend
 from aitrader.radar import core as R
 from aitrader.radar import venues as Vn
 
+ROOT = __import__("pathlib").Path(__file__).resolve().parents[2]
+
 # ── the trend desk ──────────────────────────────────────────────────────────
 
 COLS = ("position,status,strategy,signal,decision_id,instrument,direction,opened,closed,exit_reason,entry,exit,mark,qty,"
@@ -248,11 +250,55 @@ def test_no_weakness_is_named_when_no_class_does_worse_than_the_rest_by_more_tha
     at = radar.audit(led, rf_apr=RF)["attribution"]
     thin = next(x for x in at["known_at_entry"]["entry spread"] if x["class"] == "under 50%/yr")
     # the thin entries are a hair below the rest (a seventh of a basis point): a difference, and not a weakness
-    assert thin["excess_loss_bp"] < 0 and -radar.WEAK_T < thin["t_against_the_rest"] < 0
+    assert thin["excess_loss_bp"] < 0 and -radar.WEAK_DIFF_T < thin["t_against_the_rest"] < 0
     assert at["largest_weakness"] is None
     # and nine positions against the rest are too few to call, however badly they did
     few, _ = many(n_thin=9, n_thick=19)
     assert radar.audit(few, rf_apr=RF)["attribution"]["largest_weakness"] is None
+
+
+def test_a_class_that_loses_like_the_rest_of_the_book_is_no_weakness():
+    """Every position loses about 28 bp. The thin entries lose reliably, and no more than the others: removing them
+    would not mend the book, so they are not named."""
+    led, _ = many(thin=-28.0, thick=-27.6)
+    at = radar.audit(led, rf_apr=RF)["attribution"]
+    thin = next(x for x in at["known_at_entry"]["entry spread"] if x["class"] == "under 50%/yr")
+    assert thin["t"] <= -radar.WEAK_OWN_T and thin["t_against_the_rest"] > -radar.WEAK_DIFF_T
+    assert at["largest_weakness"] is None
+
+
+def test_a_class_whose_loss_is_not_told_from_zero_is_no_weakness():
+    """Thin entries that lose 25 bp on average with wins and losses of 45 around it, beside a rest that earns 60: they
+    do worse than the rest beyond doubt, and their own loss is at t -2, short of the floor. Only the first rule of
+    the two can refuse them, so this is the case that rule is for."""
+    led, _ = many(thin=-25.0, thick=60.0)
+    for i, p in enumerate(led["closed"][:14]):
+        p["funding_bp"] += (45.0, -45.0)[i % 2]
+    run, by_close = 0.0, {p["closed"]: p for p in led["closed"]}
+    for m in led["marks"][1:]:
+        if m["t"] in by_close:
+            run += radar.net_bp(by_close[m["t"]])
+        m["pnl_bp_total"] = round(run, 4)
+    a = radar.audit(led, rf_apr=RF)
+    assert a["reconciled"], a["failed_checks"]
+    thin = next(x for x in a["attribution"]["known_at_entry"]["entry spread"] if x["class"] == "under 50%/yr")
+    assert thin["mean_bp"] == pytest.approx(-25.0, abs=0.5) and -radar.WEAK_OWN_T < thin["t"] < -1.5
+    assert thin["t_against_the_rest"] <= -radar.WEAK_DIFF_T and thin["rest_mean_bp"] > 50
+    assert a["attribution"]["largest_weakness"] is None
+
+
+def test_on_the_radars_real_ledger_of_2026_11_14_the_thin_entries_are_the_weakness():
+    """The figures of the audited snapshot (docs/PERFORMANCE_ENGINEERING.md), as recorded by RADX-1: every closed
+    position with what was known at its entry and its net."""
+    rows = json.loads((ROOT / "research" / "knowledge" / "RADX-1.json").read_text())["positions"]
+    thin = [r["net_bp"] for r in rows if r["thin"]]
+    rest = [r["net_bp"] for r in rows if not r["thin"]]
+    assert (len(thin), len(rest)) == (122, 88)
+    from aitrader.perf.stats import mean_t
+    m, t = mean_t(thin)
+    assert m == pytest.approx(-27.6, abs=0.05) and t == pytest.approx(-6.58, abs=0.01) and t <= -radar.WEAK_OWN_T
+    d = radar._welch(thin, rest)
+    assert d == pytest.approx(-1.75, abs=0.02) and d <= -radar.WEAK_DIFF_T  # and it would not have reached 2.0
 
 
 @pytest.mark.parametrize("change, broken", [

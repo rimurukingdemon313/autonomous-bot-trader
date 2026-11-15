@@ -140,7 +140,7 @@ def hypothesis(a_radar: dict | None, eng: dict) -> dict:
         return {"weakness": None, "why": "the radar's ledger was not available"}
     w = a_radar["attribution"]["largest_weakness"]
     if w is None:
-        return {"weakness": None, "why": "no class of at least ten positions did worse than the rest of the book by a difference told from noise"}
+        return {"weakness": None, "why": "no class of at least ten positions both loses reliably and loses more than the rest of the book"}
     lever = LEVERS.get((w["dimension"], w["class"]))
     out = {"weakness": {k: w[k] for k in ("dimension", "class", "positions", "sum_bp", "mean_bp", "t", "rest_mean_bp", "excess_loss_bp",
                                           "t_against_the_rest")}}

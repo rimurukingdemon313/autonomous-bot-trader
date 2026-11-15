@@ -82,6 +82,7 @@ Each finding the owner listed was checked against the repository before anything
 | Independent validation | `auto_validate`: unread rows, the registry's bar | built and tested; no real rule has reached it yet |
 | The same loop for the paper systems | `scripts/perf_cycle.py`: reconcile, attribute, name the weakness, replay the declared variants, judge on later hours | running from perf-1.0.0 (`docs/PERFORMANCE_ENGINEERING.md`) |
 | Knowledge update | ledger, lessons, coverage map, the director's log | running |
+| The record read together | `scripts/research_meta.py`: the 88 hypotheses, the 143 judged edges and the 660 classed rules, from the committed record alone; the director's reading beside it | `docs/RESEARCH_META_ANALYSIS.md` |
 
 ## 5. The first cycle that ran by itself
 
@@ -109,5 +110,7 @@ markets (`tests/unit/test_dlab_directed.py`, `test_lab_cycle.py`) and in rehears
 
 - The idea engine still writes text. Its ideas must arrive as rules in the inbox, or be recorded as needing new code.
 - No finding is extracted from a source's text. Titles and abstracts are filed, and nothing is claimed from them.
+- The one experiment the collective reading of the record supports (costs charged on net trades, on the perpetuals:
+  `docs/RESEARCH_META_ANALYSIS.md`, section 5) needs new code in the lab and is not built.
 - No workflow calls Fable 5.2 (section 3). The director runs as a scheduled session, twice a day.
 - No rule has passed a validation. Nothing here is a trading system.

@@ -10,7 +10,7 @@ that had a few good trades.
 رأس ماله الورقي، والسبب واضح بالأرقام: الصفقة تكسب بالمعدل 15.6 نقطة أساس وتدفع 34.4 نقطة عمولات. التجربة
 المسجّلة RADX-1 فشلت بقاعدتها (جزء منها ثبت وجزء ما ثبت)، فما انسجّل أي منافس. ماكو أي نظام انتغيّر.
 
-Code: `aitrader/perf/` (`perf-1.0.0`), `scripts/perf_cycle.py`, `scripts/radx1.py`. Workflow:
+Code: `aitrader/perf/` (`perf-1.0.1`), `scripts/perf_cycle.py`, `scripts/radx1.py`. Workflow:
 `.github/workflows/perf-cycle.yml`. Living report: `PERF_REPORT.md` on the `perf-data` branch. Tests:
 `tests/unit/test_perf_*.py`, `tests/unit/test_radx1.py`.
 
@@ -19,7 +19,7 @@ Code: `aitrader/perf/` (`perf-1.0.0`), `scripts/perf_cycle.py`, `scripts/radx1.p
 | Asked for | What exists | Where |
 |---|---|---|
 | Both systems audited independently, every number reconciled against the ledger and the equity history | An audit that recomputes each figure by a second route and compares: 40 checks on the trend desk, 24 on the radar. Realized and unrealized are never added into one "profit" | `aitrader/perf/trend.py`, `radar.py` |
-| Sources of profit and loss | Attribution of the radar's closed positions by source (funding, price, costs), by holding time, by exit reason, and by three classes known when a position is opened. The largest weakness is named only when it is told from noise | `radar.attribution` |
+| Sources of profit and loss | Attribution of the radar's closed positions by source (funding, price, costs), by holding time, by exit reason, and by three classes known when a position is opened. A weakness is named only when a class loses reliably and loses more than the rest | `radar.attribution` |
 | An optimization engine that does not optimize history blindly | A replay of the radar's **frozen** decision code on the radar's own stored quotes under declared parameters; the best variant on the earlier half is judged on the later half only | `aitrader/perf/replay.py` |
 | A challenger beside the original, never instead of it | A registered challenger starts empty at its registration hour, on the same quotes, fees and slots as the original, and is judged once at a date fixed with it | `replay.forward`, `replay.freeze`, `research/perf/challengers.json` |
 | Each cycle: data, reconciliation, analysis, weakness, hypothesis, experiment, validation, challenger, report | One script, run by GitHub's schedule | `scripts/perf_cycle.py`, `perf-cycle.yml` |
@@ -264,7 +264,45 @@ are dropped). No person, no model, no key, no order.
 A cycle exits 1 after publishing when an account does not reconcile, a system's files are missing, the desk's
 database cannot be read, or an archived day has changed. The run is red and the report says why.
 
-## 9. What is not done, and what is not claimed
+## 9. The first cycle on GitHub's runner
+
+Run 1 of `perf-cycle.yml`, id 43665245073, started by hand (`workflow_dispatch`) on 2026-11-15 at 01:54 UTC, three
+and a half minutes, every step green
+(<https://github.com/rimurukingdemon313/autonomous-bot-trader/actions/runs/43665245073>). It created the `perf-data`
+branch (commit `5dafc78`). A run started by GitHub's own schedule is added to this section once one has been seen,
+and not before.
+
+- **Both accounts reconciled** on the runner as they had here: 40 of 40 and 24 of 24.
+- **The archive** took ten finished days of the radar's quotes (2026-11-04 to 2026-11-13), each with its hash; 236
+  stored hours were in hand.
+- **Fidelity.** The replay of the original rules reproduced **29 of the radar's 31 real positions** opened in those
+  hours to the hundredth of a basis point, and matched all 31 by entry. Nothing was in the real ledger and missing
+  from the replay. Two positions were only in the replay, both on coins the radar already held when the replay began
+  with its empty book. The replay does what the radar did.
+- **The experiment**, excess over cash in % of the book:
+
+| Variant | Earlier part (2026-11-07 22:00 to 11-11 00:00) | Positions | Later part (to 11-14 23:00) | Positions | Closed | Later, less the original |
+|---|---|---|---|---|---|---|
+| `original` | +0.024% | 12 | +0.153% | 21 | 20 | |
+| `same-window` | -0.117% | 21 | +0.154% | 27 | 24 | +0.001% |
+| `thick-entry` | +0.020% | 11 | +0.296% | 12 | 11 | +0.143% |
+| `patient-exit` | **+0.064%** | 11 | +0.264% | 17 | 15 | +0.111% |
+| `all-three` | -0.027% | 15 | +0.415% | 10 | 8 | +0.262% |
+
+  The candidate, chosen on the earlier part alone, is `patient-exit`. **INCONCLUSIVE**: the later part holds 4 days and
+  15 closed positions, and 30 and 30 are needed before anything is judged. Nothing is proposed.
+- **What the table must not be read as.** `all-three` leads on the later part and was the second worst on the
+  earlier one: chosen on the part that judges it, it would look like a discovery. Four days are four observations.
+  In these seven days the original itself was above cash, which it has not been over its 38: one coin's +573 bp is
+  inside the window.
+- **A fault the first cycle showed.** It named no weakness, although the thin entries lost 27.6 bp at t -6.58. The
+  rule asked only that a class's mean differ from the rest's at t 2.0, and the rest (-6.7 bp) is too noisy for that:
+  the difference stands at t -1.75. From perf-1.0.1 a weakness is a class that loses reliably by its own account
+  (t <= -3.0) **and** loses more than the rest (the difference at t <= -1.645). Naming a weakness decides nothing:
+  it says which declared variant the report is asked about. The change was made after seeing the figure, which is
+  why it is written here.
+
+## 10. What is not done, and what is not claimed
 
 - No variant has been judged: the first replays are on about ten days of stored quotes, and the gates ask for thirty
   days on the later part alone. Until then the status is INCONCLUSIVE and nothing is proposed.

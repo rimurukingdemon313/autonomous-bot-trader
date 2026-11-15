@@ -26,8 +26,13 @@ TAKER_BP = {"hyperliquid": 4.5, "gate": 5.0, "mexc": 2.0, "dydx": 5.0}
 SLIP_BP = 5.0
 SLOTS = 10
 YEAR_S = 8760 * 3600
-#: A class is a weakness only with at least this many positions on each side, and a mean below the rest's at this t.
-WEAK_MIN, WEAK_T = 10, 2.0
+#: A class is a weakness only when it holds at least WEAK_MIN positions and leaves as many outside it, when it loses
+#: reliably by its own account (its mean at t <= -WEAK_OWN_T, the registry's floor), and when it loses more than the
+#: rest (the difference of the two means at t <= -WEAK_DIFF_T, one-sided 5%). Naming a weakness decides nothing: it
+#: only says which declared variant the report is asked about. (perf-1.0.0 asked the difference alone for t 2.0. On
+#: the radar's real ledger the thin entries lost 27.6 bp at t -6.58 against 6.7 bp for a noisy rest, a difference at
+#: t -1.75, and the first cycle on GitHub named nothing. The rule above is perf-1.0.1.)
+WEAK_MIN, WEAK_OWN_T, WEAK_DIFF_T = 10, 3.0, 1.645
 
 
 def fills_bp(p: dict) -> float:
@@ -159,8 +164,8 @@ def attribution(ledger: dict) -> dict:
                       "venue pair": _bucket(rows, lambda r: r["pair"]),
                       "time since the coin's previous position": _bucket(
                           rows, lambda r: "within 6 hours of the coin's previous exit" if r["reentry"] else "a first entry, or later")}
-    # The largest weakness is not the largest class: it is the class that did worst against the rest of the book, by
-    # a difference that is told from noise. Without that, every cycle would name one and propose a remedy for nothing.
+    # The largest weakness is not the largest class: it is the class that loses reliably AND loses more than the rest
+    # of the book. Without both, every cycle would name one and propose a remedy for nothing.
     keys = {"entry spread": lambda r: _spread(r["entry_spread_apr"]), "venue pair": lambda r: r["pair"],
             "time since the coin's previous position": lambda r: "within 6 hours of the coin's previous exit" if r["reentry"] else "a first entry, or later"}
     for dim, xs in known_at_entry.items():
@@ -172,7 +177,8 @@ def attribution(ledger: dict) -> dict:
             x["t_against_the_rest"] = _welch(mine, rest)
     worst = min(((dim, x) for dim, xs in known_at_entry.items() for x in xs
                  if x["positions"] >= WEAK_MIN and len(rows) - x["positions"] >= WEAK_MIN
-                 and x["t_against_the_rest"] is not None and x["t_against_the_rest"] <= -WEAK_T),
+                 and x["t"] is not None and x["t"] <= -WEAK_OWN_T
+                 and x["t_against_the_rest"] is not None and x["t_against_the_rest"] <= -WEAK_DIFF_T),
                 key=lambda dx: dx[1]["excess_loss_bp"], default=None)
     return {"sources": {"funding_bp": round(f, 1), "price_bp": round(b, 1), "gross_bp": round(f + b, 1), "cost_bp": round(c, 1),
                         "net_bp": round(f + b - c, 1), "cost_over_gross": round(c / (f + b), 2) if f + b > 0 else None,
