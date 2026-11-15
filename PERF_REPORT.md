@@ -4,7 +4,7 @@
 
 **بالعربي:** مكتب TRND-1: الرصيد $200,783.01، المحقّق $0.00، غير المحقّق +$783.01، الصفقات المسكّرة 0. رادار RADAR-1: دفتره -1.98% من رأس ماله الورقي، 210 صفقة مسكّرة، الرابح منها 40. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
 
-Updated 2026-11-15 01:54 UTC · perf-1.0.0 · cycles so far: 1
+Updated 2026-11-15 02:10 UTC · perf-1.0.1 · cycles so far: 2
 
 ## 1. TRND-1: the trend desk's paper account
 
@@ -152,11 +152,15 @@ Concentration: the most traded coin (AKE) is 10.4% of the positions; by count th
 
 ## 3. The weakness, the hypothesis and the experiment
 
-No weakness is named this cycle: no class of at least ten positions did worse than the rest of the book by a difference told from noise.
+**Largest weakness** (a class known when a position is opened, measured against the rest of the book): entry spread, *under 50%/yr*: 122 positions, mean -27.6 bp (t -6.58) against -6.7 bp for the rest (t of the difference -1.74); 2,543 bp lost beyond what the rest would have.
+
+**Hypothesis.** Positions opened on a trailing spread under 50%/yr do not earn their round trip. Asking twice the spread at the entry removes them; whether the entries that remain earn more than cash is what the replay measures.
+
+**Tested by** the declared variant `thick-entry` in the replay below.
 
 ### The replay: the radar's frozen rules and the declared variants on the same stored quotes
 
-Stored hours in hand: 236 (2026-11-04 23:00 UTC to 2026-11-14 22:00 UTC); days archived: 10; added this cycle: 2026-11-04, 2026-11-05, 2026-11-06, 2026-11-07, 2026-11-08, 2026-11-09, 2026-11-10, 2026-11-11, 2026-11-12, 2026-11-13.
+Stored hours in hand: 236 (2026-11-04 23:00 UTC to 2026-11-14 22:00 UTC); days archived: 10; added this cycle: none.
 
 Fidelity: the replay of the original rules reproduces 29 of the radar's 31 real positions opened in these hours to the hundredth of a basis point (31 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
 
