@@ -94,11 +94,11 @@
    },
    "crypto-perp-live-xvenue": {
     "discovery_tests": 0,
-    "judged_tests": 1,
-    "next_bar_t": 2.2414,
+    "judged_tests": 3,
+    "next_bar_t": 2.4977,
     "recent_bar_t": 3.0,
-    "recent_tests": 1,
-    "tests": 1
+    "recent_tests": 3,
+    "tests": 3
    },
    "crypto-xvenue-hl-binance": {
     "discovery_tests": 6,
@@ -231,7 +231,7 @@
   },
   "by_verdict": {
    "ABANDONED": 2,
-   "FAILED": 65,
+   "FAILED": 66,
    "INCONCLUSIVE": 1,
    "PASSED": 9
   },
@@ -314,162 +314,227 @@
    }
   ],
   "spec_not_quoted": [],
-  "trials": 87,
-  "verdicts": 77
+  "trials": 88,
+  "verdicts": 78
  },
- "day": "2026-11-14",
+ "day": "2026-11-15",
  "engine": {
   "built": [],
   "by_decision": {
-   "DROPPED_POWER": 2,
+   "DROPPED_POWER": 5,
    "REJECTED_BY_CRITIC": 13
   },
   "integrity": {
-   "at": "2026-11-14T20:45:35.673298+00:00",
-   "cycle": "2026-11-14",
+   "at": "2026-11-15T12:19:40.002314+00:00",
+   "cycle": "2026-11-15",
    "detail": null,
    "status": "OK",
    "step": "integrity",
    "version": "research-engine-1.2.0"
   },
   "last": {
-   "at": "2026-11-14T11:47:20.734790+00:00",
-   "cycle": "2026-11-14",
+   "at": "2026-11-15T12:19:40.002314+00:00",
+   "cycle": "2026-11-15",
    "detail": {
     "attempts": [
      {
       "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "role": "researcher",
-      "status": "OK"
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "dots-studio/dots-3-note-preview:free",
+      "role": "researcher",
+      "status": "TIMEOUT"
      },
      {
       "model": "nvidia/nemotron-3.5-super-vl:free",
+      "role": "researcher",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "inclusionai/ling-3.2-flash:free",
+      "role": "researcher",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "particle-ai/particle-1:free",
+      "role": "researcher",
+      "status": "OK"
+     },
+     {
+      "model": "dots-studio/dots-3-note-preview:free",
+      "role": "critic",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "role": "critic",
       "status": "OK"
      }
     ],
     "ideas": [
-     "10c33de5a1af4ea55fb6",
-     "488d31a89c37f1bb59f2",
-     "d12c8835f5e0a1956ee2"
+     "2553868b6fe7e0d0bddf",
+     "429e815610302aad0b05",
+     "cc96d49d54f4dd62e66c"
     ]
    },
    "status": "OK",
    "step": "ideas",
    "version": "research-engine-1.2.0"
   },
-  "last_ok": "2026-11-14T11:47:20.734790+00:00",
+  "last_ok": "2026-11-15T12:19:40.002314+00:00",
   "queued": [],
   "today": [
    {
-    "at": "2026-11-14T11:47:20.734790+00:00",
-    "claimed_sharpe_annual": 0.7,
+    "at": "2026-11-15T12:19:40.002314+00:00",
+    "claimed_sharpe_annual": 0.8,
     "conditions_flag": null,
-    "critic": "nvidia/nemotron-3.5-super-vl:free",
-    "critic_category": "data_cannot_be_had",
-    "critic_reason": "The rule requires 5-minute bars, a 5-minute funding rate, and 5-minute order-book spreads, but the cited source is Binance crypto-perp daily data (2022-2026); Binance does not publish 5-minute funding rates and intraday order-book depth at that frequency is not available in a daily dataset.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-14",
-    "data_source": "Binance crypto\u2011perp daily data (2022\u20112026) \u2013 funding rate and order\u2011book depth",
-    "decision": "REJECTED_BY_CRITIC",
-    "duplicate_of": null,
-    "evidence": "None: a new idea",
-    "fingerprint": "10c33de5a1af4ea55fb6",
-    "horizon": "intraday",
-    "idea_class": "INSUFFICIENT_DATA",
-    "mechanism": "Liquidity provision",
-    "mechanism_class": "liquidity provision",
-    "needs_short_or_leverage": "true",
-    "power": null,
-    "proposer": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "rule": "Enter a short position of fixed size 0.01 contract at the market price at the start of the next 5\u2011minute bar if the 5\u2011minute funding rate (annualized %) exceeds 0.10 and the absolute spread (best bid\u2011ask) over the previous 5\u202fminutes is greater than 0.20\u202f% of the mid\u2011price; exit the position when the price has moved 0.20\u202f% in your favor or 0.10\u202f% against you, whichever occurs first.",
-    "source": "engine",
-    "title": "Funding\u2011rate liquidity squeeze",
-    "universe": "crypto-perp-daily",
-    "version": "research-engine-1.2.0",
-    "why": "The rule requires 5-minute bars, a 5-minute funding rate, and 5-minute order-book spreads, but the cited source is Binance crypto-perp daily data (2022-2026); Binance does not publish 5-minute funding rates and intraday order-book depth at that frequency is not available in a daily dataset.",
-    "why_new": "The rule spans 10 major crypto perpetual contracts, multiplying the effective sample size and allowing the high\u2011t\u2011stat requirement (>3) to be met despite high retail spread and slippage; it uses a fresh 5\u2011year intraday dataset not previously exploited for a liquidity\u2011squeeze signal.",
-    "years_of_fresh_data": 5
-   },
-   {
-    "at": "2026-11-14T11:47:20.734790+00:00",
-    "claimed_sharpe_annual": 0.9,
-    "conditions_flag": null,
-    "critic": "nvidia/nemotron-3.5-super-vl:free",
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
     "critic_category": null,
-    "critic_reason": "It does not repeat a tested or dropped family, states a behavioural mechanism, can be tested on daily ETF data without look-ahead, and the us-equity-etf daily data exists; no overnight financing or interest-bearing instrument is required.",
+    "critic_reason": "mechanism structural/regulatory, testable with known lockup dates, data from SEC filings and CRSP, no repeat family, claim Sharpe 0.8 plausible, no financing needed",
     "critic_verdict": "PASS",
-    "cycle": "2026-11-14",
-    "data_source": "CME CFD daily data for US equity ETFs (e.g., SPY, QQQ) 2022\u20112026",
+    "cycle": "2026-11-15",
+    "data_source": "SEC EDGAR S-1/424B filings for lockup dates; CRSP/Compustat daily stock returns; IPO calendars.",
     "decision": "DROPPED_POWER",
     "duplicate_of": null,
-    "evidence": "None: a new idea",
-    "fingerprint": "488d31a89c37f1bb59f2",
+    "evidence": "Field & Hanka (2001, Journal of Finance), 'The expiration of IPO share lockups', find significant negative abnormal returns around lockup expiration, about -1.5% over the 5-day window; Bradley, Jordan, Roten & Yi (2001, Journal of Finance) report similar forced-selling pressure.",
+    "fingerprint": "2553868b6fe7e0d0bddf",
     "horizon": "swing",
     "idea_class": "INSUFFICIENT_POWER",
-    "mechanism": "Behavioural bias",
-    "mechanism_class": "behavioural bias",
-    "needs_short_or_leverage": "false",
+    "mechanism": "At the end of an IPO lockup, pre-IPO insiders and venture funds become free to sell. Many are forced by fund mandates, diversification or redemption pressure to liquidate, creating temporary downward price pressure that reverses after a few days. The expiry date is fixed in the IPO filing, so the event is known in advance and the forced selling persists because lockup contracts are regulatory/SEC-defined.",
+    "mechanism_class": "structural or regulatory",
+    "needs_short_or_leverage": "short: yes; leverage: no",
     "power": {
      "bar": 3.0,
+     "claimed_sharpe": 0.8,
+     "expected_t": 2.4,
+     "p_pass": 0.274,
+     "plan": {
+      "independent_instruments_needed": 2,
+      "ways": [
+       "about 14 years of fresh data at the claimed strength, against the 9 it has",
+       "or the same mechanism on about 2 independent instruments over those 9 years, tested as one book"
+      ],
+      "years_of_fresh_data_needed": 14.1
+     },
+     "years": 9
+    },
+    "proposer": "particle-ai/particle-1:free",
+    "rule": "For each US IPO with a lockup expiry date, short the stock at the close of the trading day before expiry and cover at the close 5 trading days after expiry. Equal-weight all IPOs whose expiry falls in the same week. No position if the stock cannot be shorted. Sizing-free. No look-ahead: the lockup expiry is known from the SEC 424B filing at IPO.",
+    "source": "engine",
+    "title": "IPO lockup-expiry forced selling",
+    "universe": "new:us-ipo-lockup",
+    "version": "research-engine-1.2.0",
+    "why": "even at its claimed strength it expects t 2.4 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book",
+    "why_new": "This lab has not tested IPO lockup expiries. It uses a regulatory contract date, not a chart pattern, and pools many IPOs as one book so the small per-event effect can be tested with enough breadth.",
+    "years_of_fresh_data": 9
+   },
+   {
+    "at": "2026-11-15T12:19:40.002314+00:00",
+    "claimed_sharpe_annual": 0.9,
+    "conditions_flag": null,
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "critic_category": null,
+    "critic_reason": "mechanism market microstructure, testable using NAV and price data, no repeat family, claim Sharpe 0.9 plausible, short selling allowed, no financing needed",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-15",
+    "data_source": "ETF closing prices and NAV from CRSP/Bloomberg/issuer websites.",
+    "decision": "DROPPED_POWER",
+    "duplicate_of": null,
+    "evidence": "Petajisto (2017, Financial Analysts Journal), 'Inefficiencies in the Pricing of Exchange-Traded Funds', finds ETF premiums mean-revert, especially for international and fixed-income ETFs; Marshall, Nguyen & Visaltanachoti (2013, Journal of Banking & Finance) document ETF mispricing and arbitrage limits.",
+    "fingerprint": "429e815610302aad0b05",
+    "horizon": "swing",
+    "idea_class": "INSUFFICIENT_POWER",
+    "mechanism": "ETF prices can deviate from NAV when creation/redemption is costly or constrained, especially in international, fixed-income and smaller ETFs. Authorized participants arbitrage only when the premium exceeds their costs; retail flow pushes prices away, then APs and liquidity providers bring them back. The premium is observable at the close, so the rule has no look-ahead.",
+    "mechanism_class": "market microstructure",
+    "needs_short_or_leverage": "short: yes for the premium side; leverage: no",
+    "power": {
+     "bar": 3.9398,
      "claimed_sharpe": 0.9,
-     "expected_t": 1.8,
-     "p_pass": 0.115,
+     "expected_t": 2.546,
+     "p_pass": 0.082,
      "plan": {
       "independent_instruments_needed": 3,
       "ways": [
-       "about 11 years of fresh data at the claimed strength, against the 4 it has",
-       "or the same mechanism on about 3 independent instruments over those 4 years, tested as one book"
+       "about 19 years of fresh data at the claimed strength, against the 8 it has",
+       "or the same mechanism on about 3 independent instruments over those 8 years, tested as one book"
       ],
-      "years_of_fresh_data_needed": 11.1
+      "years_of_fresh_data_needed": 19.2
      },
-     "years": 4
+     "years": 8
     },
-    "proposer": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "rule": "Enter a long position of fixed size equal to 0.5\u202f% of account equity at the market price of the next bar if the daily close is more than 0.5\u202f% above the previous day\u2019s close (a gap) and the 5\u2011day average true range is below 0.4\u202f% of the price; exit the position after 3\u202fdays or when the price falls 0.3\u202f% from entry, whichever occurs first.",
+    "proposer": "particle-ai/particle-1:free",
+    "rule": "At each close, compute premium = (ETF close - NAV) / NAV. If premium <= -0.5%, buy at the next open; exit at the close when premium >= 0 or after 5 trading days. If premium >= +0.5%, short at the next open; exit when premium <= 0 or after 5 trading days. Equal-weight all qualifying ETFs. Sizing-free. No look-ahead: NAV and close are known at the close; trade next open.",
     "source": "engine",
-    "title": "Post\u2011gap continuation bias",
-    "universe": "us-equity-etf",
+    "title": "ETF NAV premium/discount mean reversion",
+    "universe": "us-etf-broad-daily",
     "version": "research-engine-1.2.0",
-    "why": "even at its claimed strength it expects t 1.8 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 11 years of fresh data at the claimed strength, against the 4 it has; or the same mechanism on about 3 independent instruments over those 4 years, tested as one book",
-    "why_new": "By focusing on large price gaps together with low recent volatility, the rule captures the herding continuation effect that is invisible in single\u2011instrument analyses; it uses the previously untested US equity\u2011ETF daily series, providing several years of fresh data.",
-    "years_of_fresh_data": 4
+    "why": "even at its claimed strength it expects t 2.546 against a bar of 3.9398: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 19 years of fresh data at the claimed strength, against the 8 it has; or the same mechanism on about 3 independent instruments over those 8 years, tested as one book",
+    "why_new": "DLAB-ETF-1 scanned price and volume features, not NAV premium/discount. This uses the creation/redemption arbitrage mechanism and tests many ETFs as one book, which the lab has not done.",
+    "years_of_fresh_data": 8
    },
    {
-    "at": "2026-11-14T11:47:20.734790+00:00",
+    "at": "2026-11-15T12:19:40.002314+00:00",
     "claimed_sharpe_annual": 0.8,
     "conditions_flag": null,
-    "critic": "nvidia/nemotron-3.5-super-vl:free",
-    "critic_category": "data_cannot_be_had",
-    "critic_reason": "The trigger is the daily S&P 500 CFD close but the entry and exit are intraday BTC perpetual price moves; the cited data source is daily only, so intraday BTC bars and the required intraday exit prices cannot be obtained from it.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-14",
-    "data_source": "CME CFD daily data for S&P\u202f500 CFD and Binance crypto\u2011perp daily data 2022\u20112026",
-    "decision": "REJECTED_BY_CRITIC",
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "critic_category": null,
+    "critic_reason": "mechanism volatility, testable using monthly realized volatility, data from CRSP/Yahoo, no repeat family, claim Sharpe 0.8 plausible, leverage allowed, no financing needed",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-15",
+    "data_source": "Daily ETF prices from CRSP/Yahoo Finance for 20+ single-country equity ETFs.",
+    "decision": "DROPPED_POWER",
     "duplicate_of": null,
-    "evidence": "None: a new idea",
-    "fingerprint": "d12c8835f5e0a1956ee2",
-    "horizon": "intraday",
-    "idea_class": "INSUFFICIENT_DATA",
-    "mechanism": "Cross-asset linkage",
-    "mechanism_class": "cross-asset linkage",
-    "needs_short_or_leverage": "true",
-    "power": null,
-    "proposer": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "rule": "Enter a short position of fixed size 0.01 contract on the BTC perpetual at the market price at the next available bar if the daily close of the S&P\u202f500 CFD is down more than 0.6\u202f% relative to the previous day; exit the position when the BTC price has risen 0.4\u202f% from entry (profit) or fallen 0.2\u202f% from entry (stop), whichever occurs first.",
+    "evidence": "Moreira & Muir (2017, Journal of Finance), 'Volatility-managed portfolios', show that scaling market exposure by inverse variance raises Sharpe ratios and alphas.",
+    "fingerprint": "cc96d49d54f4dd62e66c",
+    "horizon": "position",
+    "idea_class": "INSUFFICIENT_POWER",
+    "mechanism": "Volatility clusters, and when recent realized volatility is high, expected returns are not proportionally higher. Scaling exposure inversely to volatility improves risk-adjusted returns because leverage-constrained investors and risk-averse allocators overreact to volatility. The effect persists across countries and is tested as one book.",
+    "mechanism_class": "volatility",
+    "needs_short_or_leverage": "short: no; leverage: yes, up to 1.5x",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 0.8,
+     "expected_t": 2.4,
+     "p_pass": 0.274,
+     "plan": {
+      "independent_instruments_needed": 2,
+      "ways": [
+       "about 14 years of fresh data at the claimed strength, against the 9 it has",
+       "or the same mechanism on about 2 independent instruments over those 9 years, tested as one book"
+      ],
+      "years_of_fresh_data_needed": 14.1
+     },
+     "years": 9
+    },
+    "proposer": "particle-ai/particle-1:free",
+    "rule": "At each month-end, for each single-country equity ETF, compute trailing 20-day realized volatility of daily returns. Set target exposure = min(1.5, 10% / realized volatility). Go long that fraction of the ETF, rebalance monthly. Equal-weight across all country ETFs. Sizing-free. No look-ahead: use data up to the month-end close; trade at the next open.",
     "source": "engine",
-    "title": "Equity\u2011crypto contagion during index drawdowns",
-    "universe": "crypto-perp-daily",
+    "title": "Volatility-managed country equity ETFs",
+    "universe": "new:country-equity-etfs",
     "version": "research-engine-1.2.0",
-    "why": "The trigger is the daily S&P 500 CFD close but the entry and exit are intraday BTC perpetual price moves; the cited data source is daily only, so intraday BTC bars and the required intraday exit prices cannot be obtained from it.",
-    "why_new": "The cross\u2011asset signal exploits the documented reallocation of capital between equity and crypto markets during equity drawdowns, a mechanism never tested; combining equity\u2011index data with crypto\u2011perp data increases the observable sample and yields a net Sharpe above the required threshold.",
-    "years_of_fresh_data": 5
+    "why": "even at its claimed strength it expects t 2.4 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book",
+    "why_new": "VOLM-1 tested volatility management only on the S&P 500. This tests the same mechanism on 20+ country equity ETFs as one book, answering the power lack and adding international breadth the lab has not used.",
+    "years_of_fresh_data": 9
    }
   ],
-  "total": 15
+  "total": 18
  },
- "generated": "2026-11-14T20:45:35.673298+00:00",
+ "generated": "2026-11-15T12:19:40.002314+00:00",
  "recent_verdicts": [
+  {
+   "evidence": {
+    "artifact": "research/knowledge/RADX-1.json",
+    "artifact_unchanged": null,
+    "preregistration": "research/preregistrations/RADX-1.md",
+    "preregistration_exists": true,
+    "spec_quoted": null
+   },
+   "id": "RADX-1",
+   "recorded": "2026-11-14T19:17:34.420150+00:00",
+   "status": "FAILED"
+  },
   {
    "evidence": {
     "artifact": "research/knowledge/DLAB-CRD-D1.json",
@@ -757,18 +822,6 @@
    "id": "FOMC-1",
    "recorded": "2026-11-05T09:20:04.497291+00:00",
    "status": "ABANDONED"
-  },
-  {
-   "evidence": {
-    "artifact": "research/knowledge/VRP-1.json",
-    "artifact_unchanged": true,
-    "preregistration": "research/preregistrations/VRP-1.md",
-    "preregistration_exists": true,
-    "spec_quoted": true
-   },
-   "id": "VRP-1",
-   "recorded": "2026-11-05T07:39:48.751184+00:00",
-   "status": "FAILED"
   }
  ],
  "seal": {
