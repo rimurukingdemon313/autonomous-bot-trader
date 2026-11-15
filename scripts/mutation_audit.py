@@ -1495,6 +1495,17 @@ MUTANTS = [
     ('casc-placebo-gate', 'the fall must beat the same coin at hours it had not fallen', 'aitrader/research/events/cascade.py', '"beats_placebo": p95 is not None and m is not None and m > p95,', '"beats_placebo": True,', ['tests/unit/test_casc1.py']),
     ('casc-mechanism-gate', 'liquidation-led falls must beat spot-led ones', 'aitrader/research/events/cascade.py', '"beats_spot_led_falls": cm is not None and m is not None and m > cm}', '"beats_spot_led_falls": True}', ['tests/unit/test_casc1.py']),
     ('casc-one-coin', 'an edge on one coin alone does not pass', 'aitrader/research/events/cascade.py', '"without_best_coin": no_coin is not None and no_coin > 0,', '"without_best_coin": True,', ['tests/unit/test_casc1.py']),
+    ('bas-registered-only', 'BAS-1 fetches and judges nothing before its stage is registered', 'scripts/bas1.py', '    if not any(t.id == pid for t in reg.trials):\n        raise SystemExit(f"{pid} is not registered', '    if False:\n        raise SystemExit(f"{pid} is not registered', ['tests/unit/test_bas1.py']),
+    ('bas-once', 'a BAS-1 stage is judged once', 'scripts/bas1.py', '    if reg.status_of(pid) != "PENDING":\n        raise SystemExit(f"{pid} already has a verdict', '    if False:\n        raise SystemExit(f"{pid} already has a verdict', ['tests/unit/test_bas1.py']),
+    ('bas-after', 'a later BAS-1 stage is judged only after the one before it passed', 'scripts/bas1.py', '    if "after" in st and _status(reg, st["after"]) != "PASSED":\n        raise SystemExit(f"{pid} is judged only after', '    if False:\n        raise SystemExit(f"{pid} is judged only after', ['tests/unit/test_bas1.py']),
+    ('bas-not-before', 'the forward stage waits until its archive is whole', 'scripts/bas1.py', '    if now.date().isoformat() < st.get("not_before", ""):', '    if False:', ['tests/unit/test_bas1.py']),
+    ('bas-code-frozen', 'a BAS-1 stage runs only with the code and spec it was registered with', 'scripts/bas1.py', '    if design.get("code_sha256") != code_hash() or design.get("spec_sha256") != spec_sha():', '    if False:', ['tests/unit/test_bas1.py']),
+    ('bas-partial', 'nothing is judged on a partial archive', 'scripts/bas1.py', '    if man["failed"]:\n        raise SystemExit(f"{len(man', '    if False:\n        raise SystemExit(f"{len(man', ['tests/unit/test_bas1.py']),
+    ('bas-firewall', 'no close after the last exit reaches the computation', 'scripts/bas1.py', '    settle, spot = Z.firewall(settle, spot, b, last_exit)\n', '', ['tests/unit/test_bas1.py']),
+    ('bas-high-tail', 'only high funding is bought', 'aitrader/research/events/basis.py', '                if f is not None and f >= theta:', '                if f is not None and abs(f) >= theta:', ['tests/unit/test_bas1.py']),
+    ('bas-placebo-days', 'the placebo days are days whose funding was not high', 'aitrader/research/events/basis.py', '            if f is None or f >= theta / 2:', '            if f is None:', ['tests/unit/test_bas1.py']),
+    ('bas-one-at-a-time', 'a coin is held once at a time', 'aitrader/research/events/basis.py', '            if d >= seasoned[c] and d > busy_until:', '            if d >= seasoned[c]:', ['tests/unit/test_bas1.py']),
+    ('bas-bar-floor', 'the bar is never below 3.0', 'scripts/bas1.py', '    bar = max(SPEC["bar_floor"], bonferroni_t(', '    bar = (lambda x: x)(bonferroni_t(', ['tests/unit/test_bas1.py']),
 ]
 
 

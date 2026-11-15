@@ -23,4 +23,4 @@ spot-listing demand, coin-margined hedgers' pressure, quarterly delivery roll, w
 the dead-zone transfer, strike pinning by 0DTE options (an independent 2026 study of 2,294 S&P 500 days found
 none), and the TRND-1 rule on metals, oil and crypto ETFs (DIV-1 already failed on those funds in 2008-2021).
 
-Judged so far by the edge hunt: EXF-1 (FAILED), SQZ-1 (FAILED: crowded shorts were mostly right; a cascade rebound must now say why buying weakness would differ).
+Judged so far by the edge hunt: EXF-1, SQZ-1 and CASC-1 (all FAILED: pressure in crypto continued rather than reverted). BAS-1, the long side of that, is registered.
