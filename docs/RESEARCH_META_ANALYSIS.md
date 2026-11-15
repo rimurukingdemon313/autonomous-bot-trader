@@ -2,7 +2,7 @@
 
 **RESEARCH ONLY · NOTHING HERE IS A PROFIT CLAIM.** Written by `scripts/research_meta.py` from the committed record alone: the registry, the edge registry and the discovery lab's ledger of classed rules. No market data is read, so nothing is looked at that was not already looked at, and no test is charged. It describes the record; it validates nothing.
 
-Generated 2026-11-15 02:10 UTC · meta-1.0.0
+Generated 2026-11-15 09:10 UTC · meta-1.0.0
 
 ## 1. What was read
 
@@ -232,7 +232,7 @@ computed; everything below is a reading of it, and is dated so that it can be wr
 
 | Direction | Why not yet | What it would need |
 |---|---|---|
-| **Costs charged on net trades.** The lab charges every part of a book its own costs. A book of many rules on the same instruments pays for trades that would cancel | The lab cannot compute it | New code in the lab (a book whose positions are netted by instrument before costs), tests on built markets, a new lab version; then **one** submission on the perpetuals, the whole population the scan kept on the fit rows (no choice on the check rows), flagged as formed after seeing them and judged on the unread rows only |
+| **Costs charged on net trades.** The lab charges every part of a book its own costs. A book of many rules on the same instruments pays for trades that would cancel | Examined on 2026-11-15 from the recorded figures and **set aside** (below) | New code in the lab, and a reason to expect the rules' daily P&L to be nearly independent |
 | Maker fills instead of taker fills | Cannot be verified on daily bars or on a paper ledger: a maker fill is not guaranteed | A live recorder of the book at the venues. Not a backtest |
 | Hours inside the day on the perpetuals | Each new panel is charged 600 tests, and no mechanism has been proposed that the daily panel does not already hold | A hypothesis with a mechanism first, as a directed test: a few rules, not a scan |
 | Options and volatility surfaces | No free data of the quality a test needs | The owner's decision on paid data. Not asked for |
@@ -247,7 +247,33 @@ computed; everything below is a reading of it, and is dated so that it can be wr
 | Positive, not told from noise | 148 | Not one by one (a median of 45 to 226 more years of rows would be needed), and **not as a chosen aggregate** (withdrawn, `research/director/log.jsonl`) |
 | Too few rows | 58 | They wait for rows. Nothing is done to them |
 | Duplicates, closed families | 60 | None: they are already answered |
-| **The one experiment the record supports** | | The netted population book on the perpetuals. My estimate of its chance to reach the bar in a 2.3-year window is 5 to 10 in a hundred: it is worth a place that costs the bar nothing and no more. It is not built yet |
+| The one direction that was left | | The netted population book on the perpetuals: **set aside** after its arithmetic (below) |
 
-No experiment is proposed to keep the queue busy. An empty queue with its reasons is the honest state of this
-record today.
+### The last direction, and why it is set aside
+
+On the perpetuals the population of rules earns before costs and loses after them, and the lab charges every rule
+its own fills. Held as one book that trades only its net position in each coin, the 262 rules that are not closed
+families would pay less. From the recorded check-row figures, a day and per unit of capital, the capital shared by
+family and then by rule: **+3.83 bp before costs, 4.37 bp of costs, -0.53 bp after**.
+
+What decides it is not the cost. It is how the rules' daily P&L move together:
+
+| Average correlation between the rules | The book's t on the check rows before any cost | With costs halved | With costs divided by three |
+|---|---|---|---|
+| 0 (independent) | 6.0 | 2.6 | 3.8 |
+| 0.02 | 3.0 | 1.3 | 1.9 |
+| 0.05 | 2.0 | 0.9 | 1.3 |
+| 0.10 | 1.5 | 0.6 | 0.9 |
+
+These are 262 rules on 55 coins that rise and fall together. At a correlation of 0.05 the book stands near t 1.3
+with its costs divided by three, and about the same on the unread rows, against a bar of 3.0. It would reach the bar
+only if the rules were independent, and then it would reach it before costs too. My first estimate of its chance (5
+to 10 in a hundred, written on 2026-11-14) was too high: it is 1 to 5. The lab asks for three in a hundred before it
+spends even a place that costs the bar nothing, and this would also need a new kind of book in the lab's evaluator.
+It is recorded in `research/director/log.jsonl` so that it is not rediscovered as an idea.
+
+**So, as of 2026-11-15, no experiment on the data in hand is justified.** The panels that can be had for nothing
+have been searched by 88 registered hypotheses and 660 rules, and the one validated result is market exposure with a
+smaller drawdown. What could change this is new information, not another pass over the same bars: the two forward
+tests that are running (RADAR-1 on 2026-12-06, TRND-F in 2029), a recorder of what cannot be read off daily bars, or
+data the owner decides to buy. An empty queue with its reasons is the honest state of this record.

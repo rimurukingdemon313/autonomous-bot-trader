@@ -181,6 +181,9 @@ def test_the_workflow_pushes_to_perf_data_and_nowhere_else():
 
 def test_the_workflow_runs_on_a_schedule_and_fails_visibly():
     assert re.search(r'schedule:\s*\n(\s*#[^\n]*\n)*\s*- cron: "23 \*/3 \* \* \*"', WF)
+    # and after each shift of the radar, by the radar workflow's exact name: a renamed workflow would never start it
+    radar_name = re.search(r"^name: (.+)$", (ROOT / ".github" / "workflows" / "radar.yml").read_text(), flags=re.M).group(1)
+    assert re.search(r'workflow_run:\s*\n(\s*#[^\n]*\n)*\s*workflows: \["' + re.escape(radar_name) + r'"\]\s*\n\s*types: \[completed\]', WF)
     assert "scripts/perf_cycle.py --trend in/trend-desk-data --radar in/radar-data --radar-state radar-state --out pub" in WF
     assert "if: always()" in WF and 'if [ "$code" != "0" ]' in WF
 

@@ -16,6 +16,12 @@ on:
     # GitHub's cron is best-effort: a run may start hours late or not at all. A cycle whose inputs have not changed
     # recomputes the audit (seconds) and reuses the replay.
     - cron: "23 */3 * * *"
+  workflow_run:
+    # ...so the cycle does not depend on the cron alone: it also runs each time a shift of the radar ends (about every
+    # six hours), which is the moment the radar has just saved the quotes this cycle archives. The radar's workflow is
+    # not changed by this: GitHub starts this one when that one completes.
+    workflows: ["Funding radar (hourly, paper)"]
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: write
