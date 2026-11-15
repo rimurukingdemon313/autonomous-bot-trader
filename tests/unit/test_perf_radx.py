@@ -80,12 +80,16 @@ def test_the_verdict_reads_the_later_part_only_and_fails_when_a_class_does_not_l
 
 
 def test_a_loss_that_is_not_told_from_zero_does_not_hold():
-    led = build(n=3)  # three positions a class: a mean of -30 with a spread, but too few to reach the bar... unless tight
-    side = radx.evaluate(led)["later"]["P1_thin_entries"]
-    assert side["positions"] == 3
-    wide = ledger([pos("A", radx.CUT + i * 50 * H, 2, x) for i, x in enumerate((-200.0, 150.0, -60.0, 30.0, -90.0, 20.0))])
+    """Three coins, each losing on balance, so no single coin carries the class: only the bar can refuse it."""
+    nets = (("A", -200.0), ("A", 150.0), ("B", -60.0), ("B", 30.0), ("C", -90.0), ("C", 20.0))
+    wide = ledger([pos(c, radx.CUT + i * 50 * H, 2, x) for i, (c, x) in enumerate(nets)])
     s = radx.evaluate(wide)["later"]["P1_thin_entries"]
-    assert s["mean_bp"] < 0 and s["t"] > -radx.BAR and not radx.holds(s)
+    assert s["mean_bp"] == pytest.approx(-25.0) and s["coins_negative"] == 3
+    assert s["worst_coin"] == "C" and s["mean_bp_without_worst_coin"] == pytest.approx(-20.0)
+    assert -radx.BAR < s["t"] < 0 and not radx.holds(s)
+    # the same mean with no spread between the positions is told from zero
+    tight = ledger([pos(c, radx.CUT + i * 50 * H, 2, -25.0 + (i % 3 - 1)) for i, (c, _) in enumerate(nets)])
+    assert radx.holds(radx.evaluate(tight)["later"]["P1_thin_entries"])
 
 
 def test_one_coin_must_not_carry_a_class():

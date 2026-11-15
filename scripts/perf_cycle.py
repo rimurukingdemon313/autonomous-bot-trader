@@ -114,7 +114,7 @@ def engine(state_dir: Path | None, out: Path, real: dict | None, challengers: li
     prev = json.loads(prev_f.read_text()) if prev_f.exists() else {}
     unchanged = (prev.get("version") == PERF_VERSION and prev.get("variants") == replay.VARIANTS
                  and all(prev.get(k) == res[k] for k in ("hours", "first_hour", "last_hour"))
-                 and "variants" in (prev.get("validation") or {}) and (out / "books" / "original.json").exists())
+                 and "variants" in (prev.get("validation") or {}) and (out / "books" / "original.json.gz").exists())
     if unchanged:  # a replay is a pure function of the stored hours: the same hours give the same books
         v, res["replayed_this_cycle"] = prev["validation"], False
     else:
@@ -123,11 +123,11 @@ def engine(state_dir: Path | None, out: Path, real: dict | None, challengers: li
         books = v.pop("books", {})
         if books:
             (out / "books").mkdir(parents=True, exist_ok=True)
-            for name, led in books.items():
-                (out / "books" / f"{name}.json").write_text(json.dumps(led, indent=1) + "\n")
+            for name, led in books.items():  # every book of the replay, kept small: the branch is rewritten every cycle
+                (out / "books" / f"{name}.json.gz").write_bytes(gzip.compress(json.dumps(led, separators=(",", ":")).encode(), mtime=0))
     res["validation"] = v
     if "variants" in v and real is not None:
-        original = json.loads((out / "books" / "original.json").read_text())
+        original = json.loads(gzip.decompress((out / "books" / "original.json.gz").read_bytes()))
         res["fidelity"] = replay.fidelity(original, real, v["start"], v["end"])
     for ch in challengers:
         res["challengers"].append(replay.freeze(out, replay.forward(ch, rows, RF, now)))
@@ -140,7 +140,7 @@ def hypothesis(a_radar: dict | None, eng: dict) -> dict:
         return {"weakness": None, "why": "the radar's ledger was not available"}
     w = a_radar["attribution"]["largest_weakness"]
     if w is None:
-        return {"weakness": None, "why": "no class of at least ten positions did worse than the rest of the book by a difference told from noise"}
+        return {"weakness": None, "why": "no class of at least ten positions both loses reliably and loses more than the rest of the book"}
     lever = LEVERS.get((w["dimension"], w["class"]))
     out = {"weakness": {k: w[k] for k in ("dimension", "class", "positions", "sum_bp", "mean_bp", "t", "rest_mean_bp", "excess_loss_bp",
                                           "t_against_the_rest")}}

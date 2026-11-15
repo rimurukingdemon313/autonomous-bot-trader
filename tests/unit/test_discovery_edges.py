@@ -176,3 +176,20 @@ def test_an_intraday_gate_stored_as_the_string_false_is_a_failed_check():
     rec = E.from_intraday(art)[0]
     assert rec.status == "REJECTED"
     assert set(rec.failed_checks) == {"development:symbols_positive", "development:t_day"}
+
+
+def test_an_artifact_without_a_list_of_judged_hypotheses_is_not_read_as_edges(tmp_path):
+    """RADX-1 (a diagnosis of a paper ledger) keeps the hour it was judged under `judged`: it is no set of edges, and
+    it must not stop the registry from building."""
+    k = tmp_path / "knowledge"
+    k.mkdir()
+    (tmp_path / "discovery").mkdir()
+    (tmp_path / "discovery" / "ledger.jsonl").write_text("")
+    (k / "DIAG-1.json").write_text(json.dumps({"program": "DIAG-1", "kind": "diagnosis", "judged": "2026-11-14T19:19:22+00:00",
+                                               "verdict": "FAILED"}))
+    (k / "NULL-1.json").write_text(json.dumps({"program": "NULL-1", "judged": None}))
+    reg = build(tmp_path)
+    assert reg["edges"] == [] and reg["programs"] == {}
+    committed = build(ROOT / "research")
+    assert "RADX-1" not in committed["programs"] and not any(e["edge_id"].startswith("RADX") for e in committed["edges"])
+    assert json.loads((ROOT / "research" / "knowledge" / "RADX-1.json").read_text())["kind"] == "diagnosis"

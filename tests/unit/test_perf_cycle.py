@@ -63,7 +63,7 @@ def test_a_cycle_reconciles_both_accounts_archives_the_quotes_replays_and_report
     args = inputs(tmp_path)
     assert C.main(args) == 0
     pub = tmp_path / "pub"
-    for f in ("PERF_REPORT.md", "paper_audit.json", "replay.json", "cycles.jsonl", "quotes/manifest.json", "books/original.json"):
+    for f in ("PERF_REPORT.md", "paper_audit.json", "replay.json", "cycles.jsonl", "quotes/manifest.json", "books/original.json.gz", "books/all-three.json.gz"):
         assert (pub / f).exists(), f
     audit = json.loads((pub / "paper_audit.json").read_text())
     assert audit["trend"]["reconciled"] and audit["radar"]["reconciled"]
@@ -73,6 +73,8 @@ def test_a_cycle_reconciles_both_accounts_archives_the_quotes_replays_and_report
     assert rep["archive"]["added"] and not rep["problems"] and rep["replayed_this_cycle"]
     assert set(rep["validation"]["variants"]) == set(replay.VARIANTS) and rep["validation"]["status"] == "INCONCLUSIVE"
     assert rep["fidelity"]["trustworthy"] and rep["challengers"] == []
+    book = json.loads(gzip.decompress((pub / "books" / "original.json.gz").read_bytes()))
+    assert set(book) == {"open", "closed", "marks", "runs"} and book["marks"][0]["t"] == rep["validation"]["start"]
     text = (pub / "PERF_REPORT.md").read_text()
     assert "PROBLEMS THIS CYCLE" not in text and text.count("**Reconciled:") == 2
     assert "| **Realized** P&L (closed trades, after every cost) | +$480.00 from +$500.00 gross |" in text

@@ -8,4 +8,6 @@ parameters; and it keeps a challenger beside an original without ever replacing 
 
 #: 1.0.0: the audits of TRND-1 and RADAR-1, the diagnosis experiment RADX-1, the quote archive, the replay engine
 #:        and the forward challengers.
-PERF_VERSION = "perf-1.0.0"
+#: 1.0.1: a weakness is a class that loses reliably and loses more than the rest (aitrader/perf/radar.py: the first
+#:        cycle on GitHub named none, though the thin entries lost at t -6.58). The audits' figures do not change.
+PERF_VERSION = "perf-1.0.1"

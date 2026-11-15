@@ -305,7 +305,31 @@ broker, no bot change.
   (`research/preregistrations/TRND-F.md`), and needs nothing until then. It is recorded whatever the owner
   decides about TRND-1 as a paper strategy.
 
+- THE PERFORMANCE CYCLE (from 2026-11-15; the owner's order of 2026-11-13). Both paper systems are audited every
+  three hours by `.github/workflows/perf-cycle.yml`: every figure recomputed by a second route, realized apart from
+  unrealized, the radar's loss attributed, its frozen rules replayed with five declared variants on its own stored
+  quotes, and the best on the earlier half judged on the later half only (`docs/PERFORMANCE_ENGINEERING.md`; report
+  on `perf-data`). No challenger is registered: RADX-1 failed, and a variant is proposed only after thirty days on
+  the judging part. Nothing in either system is changed by it.
+
 **Done:**
+
+- RADX-1 FAILED, as registered (2026-11-14; a diagnosis of RADAR-1's paper ledger, not a strategy). Stated from the
+  122 positions opened before 2026-10-30 11:00 UTC and computed once on the 88 opened after. P1 held: the 41 later
+  positions opened on a trailing spread under 50% a year lost 27.5 bp each (t -6.45, 21 of 22 coins negative),
+  against 27.6 bp in the design part. P2 did not: the 15 later positions opened within six hours after the same
+  coin's exit for a decayed spread lost 17.7 bp (t -1.36 against -3.0). Both were required. By the
+  preregistration's own rule no challenger follows from it. The later positions outside both classes averaged
+  -10.6 bp: the diagnosis locates most of the loss and shows a profit nowhere. RADAR-1 is read on 2026-12-06 as
+  registered.
+- DLAB-CRD-D1 and DLAB-ETF-D1, directed tests and not judged edges, proposed nothing for validation. The lab wrote
+  both submissions from its coverage map and registered and ran them by itself on GitHub's schedule (run 7 of
+  `lab-cycle.yml`, 2026-11-13 21:35 UTC). Perpetuals: 14 rankings on past returns, volatility, the volatility ratio
+  and the size of the last move; 3 positive and not told from noise (the best at t 1.38), 11 lost (4 of them only
+  after costs); 12 more refused before any test as cross-coin momentum. Funds: 12 rankings; 2 positive and not told
+  from noise (the best at t 1.19), 3 duplicates, 7 lost; 2 refused as the funds' momentum. Both maps now have no
+  hole. The aggregate of the weak positives planned for each panel was withdrawn by the director before it was
+  submitted (`research/director/log.jsonl`): its expected t on unread rows is about 0.5 against a bar of 3.0.
 - DLAB-ENG-1, a discovery scan and not a judged edge, proposed nothing for validation. Eight years of fit rows and eight of check rows on WTI and natural gas (1994-2011): 2,015 statistics looked at, 102 rules kept and classed. None was promising; 25 were positive on the check rows but not told from noise (the best at t 1.43), each with a written plan; 43 lost on the check rows, 21 were overfit, 11 had too few rows, 2 were duplicates. Its validation window (2012-2024) was never loaded and stays unread.
 - DLAB-ETF-1, a discovery scan and not a judged edge, proposed nothing for validation. It is the first experiment the lab's worker registered and ran by itself on GitHub's runner (run 1 of `lab-cycle.yml`, 2026-11-12). Thirty-one US-listed funds by day, eight years of fit rows (2007-2014) and five of check rows (2015-2019): 15,349 statistics looked at, 266 rules kept and classed. None was promising; 49 were positive on the check rows but not told from noise (the best at t 1.70: every fund held five days while dispersion across the funds is low), each with a written plan; 102 lost on the check rows, 55 of them only after costs; 78 were overfit, 19 had too few rows, 18 were duplicates. The rules' check-row t are centred at -0.56: the average rule lost after costs. Its validation window (2020 on) was never loaded and stays unread; its bar there would have been 3.17.
 - DLAB-CRD-1, a discovery scan and not a judged edge, proposed nothing for validation. The worker's second run (run 2 of `lab-cycle.yml`, 2026-11-12). Fifty-five Binance perpetuals by day with their funding, 791 fit rows (2020-05 to 2022-06) and 731 check rows (2022-07 to 2024-06): 29,218 statistics looked at, 266 rules kept and classed. None was promising, although twelve places in its batch would have cost the bar nothing; 69 were positive on the check rows but not told from noise (the best at t 2.76, one coin's reversal after a shock, which is what the best of 174 distinct behaviours looks like by chance); 72 lost on the check rows, 48 of them only after costs; 60 were overfit, 28 had too few rows, 19 were duplicates, and 18 were recognised by what they do as closed families (funding carry, single-coin momentum). A limit of the scan, found by reading its evidence: 22 of its 24 cross-sectional places went to rankings on funding, the strongest on the fit rows and a closed family; no ranking on past returns or on volatility reached the check rows. Those are not yet looked at out of sample on this panel. Its validation window (2024-07 on) was never loaded and stays unread.
