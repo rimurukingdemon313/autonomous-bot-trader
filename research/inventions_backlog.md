@@ -23,4 +23,4 @@ spot-listing demand, coin-margined hedgers' pressure, quarterly delivery roll, w
 the dead-zone transfer, strike pinning by 0DTE options (an independent 2026 study of 2,294 S&P 500 days found
 none), and the TRND-1 rule on metals, oil and crypto ETFs (DIV-1 already failed on those funds in 2008-2021).
 
-Judged so far by the edge hunt: EXF-1, SQZ-1 and CASC-1 (all FAILED: pressure in crypto continued rather than reverted). BAS-1, the long side of that, is registered.
+Judged so far by the edge hunt: EXF-1, SQZ-1, CASC-1 and BAS-1, all FAILED. Their common finding: a coin under leverage stress of either sign underperforms the market for days to weeks; the information is on the short side, which the Islamic condition excludes for altcoins. A minimum counted in weeks that hold an entry must be checked against the signal's frequency, not only against calendar weeks (BAS-1's two higher thresholds could not reach theirs).

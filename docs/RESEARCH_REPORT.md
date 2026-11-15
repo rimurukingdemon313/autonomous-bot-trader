@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 5 فرضية جديدة انسجلت، 4 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 93 فرضية مسجلة، 70 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 5 فرضية جديدة انسجلت، 5 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 93 فرضية مسجلة، 71 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-15 22:32 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-15 22:53 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-15, UTC)
 
@@ -22,6 +22,7 @@ Generated 2026-11-15 22:32 UTC from the committed record · research-report-1.1.
 - **EXF-1: FAILED** (t -1.6112394212690695). Evidence: `research/knowledge/EXF-1.json`; matches its verdict: yes
 - **SQZ-1: FAILED** (t 0.06751287385190977). Evidence: `research/knowledge/SQZ-1.json`; matches its verdict: yes
 - **CASC-1: FAILED** (t -0.2767235138571872). Evidence: `research/knowledge/CASC-1.json`; matches its verdict: yes
+- **BAS-1: FAILED** (t -0.21530412774627006). Evidence: `research/knowledge/BAS-1.json`; matches its verdict: yes
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
@@ -32,10 +33,10 @@ Generated 2026-11-15 22:32 UTC from the committed record · research-report-1.1.
 | | |
 |---|---|
 | Hypotheses registered | 93 |
-| Verdicts | 82: ABANDONED 2, FAILED 70, INCONCLUSIVE 1, PASSED 9 |
+| Verdicts | 83: ABANDONED 2, FAILED 71, INCONCLUSIVE 1, PASSED 9 |
 | Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
-| Evidence files that still match their verdict | 62 of 62 checked |
+| Evidence files that still match their verdict | 63 of 63 checked |
 | Specs whose hash is missing from their preregistration | none |
 
 ## Validation status
@@ -56,7 +57,7 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 - RADAR-1 (registered 2026-10-07; data to 2027-02-15): RADAR-1: live cross-venue funding radar, paper forward test
 - TRND-F (registered 2026-11-06; data to 2029-12-01): TRND-F: TRND-1's rule forward, 2026-12..2029-11
 
-Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only); BAS-1 (due).
+Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only).
 
 ## The bar each market's next test must clear
 
@@ -97,6 +98,7 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 
 | Recorded | Hypothesis | Verdict | Preregistration | Spec hash quoted | Evidence file | Matches |
 |---|---|---|---|---|---|---|
+| 2026-11-15 | BAS-1 | FAILED | `research/preregistrations/BAS-1.md` | yes | `research/knowledge/BAS-1.json` | yes |
 | 2026-11-15 | CASC-1 | FAILED | `research/preregistrations/CASC-1.md` | yes | `research/knowledge/CASC-1.json` | yes |
 | 2026-11-15 | SQZ-1 | FAILED | `research/preregistrations/SQZ-1.md` | yes | `research/knowledge/SQZ-1.json` | yes |
 | 2026-11-15 | EXF-1 | FAILED | `research/preregistrations/EXF-1.md` | yes | `research/knowledge/EXF-1.json` | yes |
@@ -121,6 +123,5 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 | 2026-11-05 | EMC-1 | FAILED | `research/preregistrations/EMC-1.md` | yes | `research/knowledge/EMC-1.json` | yes |
 | 2026-11-05 | PHD-1 | FAILED | `research/preregistrations/PHD-1.md` | yes | `research/knowledge/PHD-1.json` | yes |
 | 2026-11-05 | SEC-1 | FAILED | `research/preregistrations/SEC-1.md` | yes | `research/knowledge/SEC-1.json` | yes |
-| 2026-11-05 | GSR-1 | FAILED | `research/preregistrations/GSR-1.md` | yes | `research/knowledge/GSR-1.json` | yes |
 
 **Matches**: the evidence file's own hash equals the one recorded with its verdict; where none was recorded, the file names the spec (and code) hashes registered before the test. Every verdict is in `research/registry.jsonl`. Each program's command and frozen spec are in its preregistration, and the program refuses to judge if its spec or code no longer match the hashes recorded at registration.

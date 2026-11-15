@@ -77,6 +77,21 @@ def test_a_coin_that_rises_every_day_is_not_the_arbitrage():
     assert r["mean_excess"] > 0 and not r["gates"]["beats_placebo"] and r["verdict"] == "FAILED"
 
 
+def test_one_position_per_coin_and_placebo_days_are_days_without_high_funding():
+    settle, spot, _ = market(coins=3)
+    high = {s: [(t, 0.002) for t, _ in xs] for s, xs in settle.items()}  # every day has high funding
+    fund = {s: Q.Funding(x) for s, x in high.items()}
+    seasoned = {s: "2020-08-01" for s in settle}
+    bench = Q.Bench(spot, seasoned)
+    evs = B.events(fund, spot, seasoned, bench, "2021-01-01", "2021-03-31", 0.001, C)
+    by = {}
+    for e in evs:
+        by.setdefault(e["coin"], []).append(e["day"])
+    assert evs and all((date.fromisoformat(y) - date.fromisoformat(x)).days >= 7 for v in by.values() for x, y in zip(v, v[1:]))
+    plac = B.placebos(fund, spot, seasoned, bench, evs, 0.001, C)
+    assert plac and all(xs == [] for xs in plac.values())  # no day without high funding: no placebo day
+
+
 def test_every_stage_can_reach_its_own_minimum_and_follows_the_one_before():
     names = list(S.SPEC["stages"])
     for k, name in enumerate(names):
