@@ -2,15 +2,16 @@
 # month? Run on GitHub's runner because Binance's archive is not reachable from the research director's session.
 # RESEARCH ONLY: no account, no key, no order, no model call, no paid service.
 # - probe: file names only (which months of daily klines exist for each contract). No price is read.
-# - dev / validation: refused by the script unless that stage is registered with this exact code and spec. Fetches only
-#   the months its stage needs, never a day past its last exit, judges once and records the verdict.
+# - history / forward: refused by the script unless that stage is registered with this exact code and spec (and, for the
+#   forward stage, before its archive is whole). Fetches only the months its stage needs, never a day past its last
+#   exit, judges once and records the verdict. The forward stage first probes again, for the listings made since.
 # The study's records go to main (those paths only); its data go to the newl-data branch.
 name: NEWL-1 (new-listing study, research only)
 on:
   workflow_dispatch:
     inputs:
       command:
-        description: "probe, dev or validation"
+        description: "probe, history or forward"
         required: true
         default: "probe"
 permissions:
@@ -45,13 +46,15 @@ jobs:
         run: |
           case "$COMMAND" in
             probe) python scripts/newl1.py probe ;;
-            dev|validation) python scripts/newl1.py run "$COMMAND" --data pub/data ;;
+            history) python scripts/newl1.py run history --data pub/data ;;
+            forward) python scripts/newl1.py probe --out research/results/NEWL-1-F-probe.json &&
+                     python scripts/newl1.py run forward --data pub/data --probe research/results/NEWL-1-F-probe.json ;;
             *) echo "unknown command: $COMMAND"; exit 2 ;;
           esac
       - name: Commit the study's records to main
         if: always()
         run: |
-          for p in research/results/NEWL-1-probe.json 'research/knowledge/NEWL-1*.json' research/registry.jsonl; do
+          for p in 'research/results/NEWL-1*-probe.json' 'research/knowledge/NEWL-1*.json' research/registry.jsonl; do
             git add -- "$p" 2>/dev/null || true
           done
           if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi

@@ -1433,7 +1433,7 @@ MUTANTS = [
     ('perf-workflow-after-radar', "the performance cycle also starts when a shift of the radar ends, by that workflow's exact name", '.github/workflows/perf-cycle.yml', 'workflows: ["Funding radar (hourly, paper)"]', 'workflows: ["Funding radar"]', ['tests/unit/test_perf_cycle.py']),
     ('newl-registered-only', 'NEWL-1 fetches and judges nothing before its stage is registered', 'scripts/newl1.py', '    if not any(t.id == pid for t in reg.trials):\n        raise SystemExit(f"{pid} is not registered', '    if False:\n        raise SystemExit(f"{pid} is not registered', ['tests/unit/test_newl1.py']),
     ('newl-once', 'a NEWL-1 stage is judged once', 'scripts/newl1.py', '    if reg.status_of(pid) != "PENDING":\n        raise SystemExit(f"{pid} already has a verdict', '    if False:\n        raise SystemExit(f"{pid} already has a verdict', ['tests/unit/test_newl1.py']),
-    ('newl-after-dev', 'the validation stage is judged only after the development stage passed', 'scripts/newl1.py', '    if "after" in st and _status(reg, st["after"]) != "PASSED":\n        raise SystemExit(f"{pid} is judged only after', '    if False:\n        raise SystemExit(f"{pid} is judged only after', ['tests/unit/test_newl1.py']),
+    ('newl-after-dev', 'the forward stage is judged only after the historical test passed', 'scripts/newl1.py', '    if "after" in st and _status(reg, st["after"]) != "PASSED":\n        raise SystemExit(f"{pid} is judged only after', '    if False:\n        raise SystemExit(f"{pid} is judged only after', ['tests/unit/test_newl1.py']),
     ('newl-code-frozen', 'a NEWL-1 stage runs only with the code and spec it was registered with', 'scripts/newl1.py', '    if design.get("code_sha256") != code_hash() or design.get("spec_sha256") != spec_sha():', '    if False:', ['tests/unit/test_newl1.py']),
     ('newl-partial', 'nothing is judged on a partial archive', 'scripts/newl1.py', '    if man["failed"]:', '    if False:', ['tests/unit/test_newl1.py']),
     ('newl-firewall', "no price after the stage's last day reaches the computation", 'scripts/newl1.py', '    return {s: {d: v for d, v in xs.items() if d <= end} for s, xs in series.items()}', '    return series', ['tests/unit/test_newl1.py']),
@@ -1443,6 +1443,7 @@ MUTANTS = [
     ('newl-no-entry-shown', 'an event without an entry price is shown, never dropped', 'aitrader/research/events/listings.py', '            out.append({"symbol": s, "listed": L, "entry": a, "no_entry_price": True})\n', '', ['tests/unit/test_newl1.py']),
     ('newl-relisting', 'a coin that already had a contract is not a new listing', 'aitrader/research/events/listings.py', '        elif b in seen:', '        elif False:', ['tests/unit/test_newl1.py']),
     ('newl-zero-spread', 'a series with no spread has no t-statistic', 'aitrader/research/events/listings.py', '    if max(abs(v) for v in d) <= 1e-12 * max(1.0, abs(m)):  # no spread', '    if False:  # no spread', ['tests/unit/test_newl1.py']),
+    ('newl-not-before', 'the forward stage is not judged before its archive is whole', 'scripts/newl1.py', '    if now.date().isoformat() < st.get("not_before", ""):', '    if False:', ['tests/unit/test_newl1.py']),
 ]
 
 

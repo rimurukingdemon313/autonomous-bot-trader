@@ -2,13 +2,12 @@
 (research/preregistrations/NEWL-1.md). Runs on GitHub's runner (.github/workflows/newl1.yml): Binance's archive is
 not reachable from the director's session.
 
-    python scripts/newl1.py probe                     # dates only: every contract and its first and last month
+    python scripts/newl1.py probe [--out FILE]        # dates only: every contract and its first and last month
     python scripts/newl1.py hash                      # the code hash the preregistration quotes
-    python scripts/newl1.py preregister dev           # (and later: validation, only after dev PASSED)
-    python scripts/newl1.py run dev --data DIR        # fetch what the stage needs, judge it once, record the verdict
+    python scripts/newl1.py preregister history       # (forward: only after NEWL-1 PASSED)
+    python scripts/newl1.py run history --data DIR    # fetch what the stage needs, judge it once, record the verdict
 
-Nothing here trades. The stage reads no price after its own last exit day, and the validation stage's months are not
-even fetched until it is registered.
+Nothing here trades. A stage reads no price after its own last exit day, and is refused before its data are whole.
 """
 
 from __future__ import annotations
@@ -39,8 +38,11 @@ LISTING = "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision?delimiter
 NS = "{http://s3.amazonaws.com/doc/2006-03-01/}"
 #: Everything that decides the result, frozen with the code. A change is a new registration, never an edit.
 SPEC = {"program": "NEWL-1", "version": L.NEWL_VERSION, "universe": UNIVERSE,
-        "stages": {"dev": {"trial": "NEWL-1", "entries": ["2021-01-01", "2023-12-31"]},
-                   "validation": {"trial": "NEWL-1-V", "entries": ["2024-01-01", "2026-09-30"], "after": "NEWL-1"}},
+        # one historical test of a fixed rule (nothing in it is fitted), then a blind forward test on listings that did
+        # not exist when it was registered, judged once when their archive is whole
+        "stages": {"history": {"trial": "NEWL-1", "entries": ["2021-01-01", "2026-09-30"]},
+                   "forward": {"trial": "NEWL-1-F", "entries": ["2026-11-16", "2027-05-30"], "after": "NEWL-1",
+                               "not_before": "2027-07-11"}},
         "lag_days": 1, "hold_days": 30, "late_lag_days": 2, "cost_per_fill": 0.0015, "seasoned_age_days": [181, 365],
         "min_pool": 3, "placebos": 1000, "seed": 20261115, "min_events": 60, "min_months": 18, "bar_floor": 3.0,
         "gates": ["t", "costs_x2", "halves", "top5_removed", "one_day_late", "beats_random", "without_best_year"]}
@@ -204,6 +206,8 @@ def run(stage: str, data: Path, now: datetime, fetch=checked, reg: Registry | No
         raise SystemExit(f"{pid} already has a verdict: a stage is judged once")
     if "after" in st and _status(reg, st["after"]) != "PASSED":
         raise SystemExit(f"{pid} is judged only after {st['after']} passed")
+    if now.date().isoformat() < st.get("not_before", ""):
+        raise SystemExit(f"{pid} is judged on or after {st['not_before']}, when its archive is whole")
     design = reg.get(pid).design
     if design.get("code_sha256") != code_hash() or design.get("spec_sha256") != spec_sha():
         raise SystemExit(f"{pid}: the code or the spec differs from what was registered")
@@ -268,19 +272,22 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("command", choices=("probe", "hash", "preregister", "run"))
     ap.add_argument("stage", nargs="?", choices=tuple(SPEC["stages"]))
     ap.add_argument("--data", default=str(ROOT / "data" / "newl1"))
+    ap.add_argument("--out", default=str(PROBE), help="probe: where to write it")
+    ap.add_argument("--probe", default=str(PROBE), help="run: the probe the stage reads its listings from")
     a = ap.parse_args(argv)
     now = datetime.now(timezone.utc)
     if a.command == "hash":
         print(code_hash(), spec_sha())
     elif a.command == "probe":
         body = probe(now=now)
-        PROBE.parent.mkdir(parents=True, exist_ok=True)
-        PROBE.write_text(json.dumps(body, indent=1, sort_keys=True) + "\n")
+        out = Path(a.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(body, indent=1, sort_keys=True) + "\n")
         print(json.dumps({"contracts": len(body["contracts"]), "eligible": len(body["eligible"]), "by_year": body["eligible_by_first_year"]}))
     elif a.command == "preregister":
         preregister(a.stage, now)
     else:
-        body = run(a.stage, Path(a.data), now)
+        body = run(a.stage, Path(a.data), now, probe_file=Path(a.probe))
         print(json.dumps({"program": body["program"], "verdict": body["verdict"], "t": body["result"]["t"],
                           "gates": body["result"].get("gates")}))
     return 0

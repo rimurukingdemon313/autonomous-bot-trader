@@ -192,13 +192,14 @@ def tmp_dir():
 
 def test_a_stage_fetches_nothing_past_its_last_day():
     eligible = {"OLDUSDT": "2019-10", "SEASUSDT": "2020-02", "AUSDT": "2020-06", "BUSDT": "2023-11", "LATEUSDT": "2024-02"}
-    want = N.needed(eligible, "dev")
+    eligible["AFTERUSDT"] = "2026-10"
+    want = N.needed(eligible, "history")
     # a coin listed in 2019-10 was 181..365 days old only before the first entry of 2021: no use to this stage
-    assert "LATEUSDT" not in want and "OLDUSDT" not in want and "SEASUSDT" in want
-    assert max(m for ms in want.values() for m in ms) <= "2024-01" and want["BUSDT"][-1] == "2024-01"
-    assert want["AUSDT"] == N._months("2020-06", "2021-08")
-    v = N.needed(eligible, "validation")
-    assert "LATEUSDT" in v and "OLDUSDT" not in v and max(m for ms in v.values() for m in ms) <= "2026-11"
+    assert "OLDUSDT" not in want and "SEASUSDT" in want and "LATEUSDT" in want and "AFTERUSDT" not in want
+    assert max(m for ms in want.values() for m in ms) <= "2026-10"
+    assert want["AUSDT"] == N._months("2020-06", "2021-08") and want["BUSDT"] == N._months("2023-11", "2025-01")
+    f = N.needed({**eligible, "NEWUSDT": "2027-02"}, "forward")
+    assert "NEWUSDT" in f and "BUSDT" not in f and max(m for ms in f.values() for m in ms) <= "2027-06"
 
 
 def test_the_firewall_keeps_later_prices_out():
@@ -232,7 +233,7 @@ def archive(closes, funding):
     return fetch
 
 
-def registered(tmp_path, stage="dev", code=None):
+def registered(tmp_path, stage="history", code=None):
     reg = Registry(tmp_path / "registry.jsonl")
     st = N.SPEC["stages"][stage]
     a, b, end = N.horizon(stage)
@@ -248,33 +249,44 @@ def test_a_stage_is_registered_judged_once_and_recorded(tmp_path):
     probe = tmp_path / "probe.json"
     probe.write_text(json.dumps({"eligible": first}))
     reg = registered(tmp_path)
-    body = N.run("dev", tmp_path / "data", NOW, fetch=archive(closes, funding), reg=reg, out_dir=tmp_path, probe_file=probe)
+    body = N.run("history", tmp_path / "data", NOW, fetch=archive(closes, funding), reg=reg, out_dir=tmp_path, probe_file=probe)
     assert body["verdict"] == "PASSED" and reg.status_of("NEWL-1") == "PASSED"
-    assert body["last_day_read"] == "2024-01-31" and body["result"]["months"] == 36
+    assert body["last_day_read"] == "2026-10-31" and body["result"]["months"] >= 36
     saved = json.loads((tmp_path / "NEWL-1.json").read_text())
     assert saved["spec_sha256"] == N.spec_sha() and saved["events"] and "placebo_shorts" not in saved["events"][0]
     # nothing past the stage's last day was fetched, and a second look is refused
     man = json.loads((tmp_path / "data" / "manifest.json").read_text())
-    assert max(m for ms in man["have"].values() for m in ms) <= "2024-01"
+    assert max(m for ms in man["have"].values() for m in ms) <= "2026-10"
     with pytest.raises(SystemExit, match="judged once"):
-        N.run("dev", tmp_path / "data", NOW, fetch=archive(closes, funding), reg=reg, out_dir=tmp_path, probe_file=probe)
+        N.run("history", tmp_path / "data", NOW, fetch=archive(closes, funding), reg=reg, out_dir=tmp_path, probe_file=probe)
 
 
 def test_nothing_is_fetched_or_judged_before_registration_or_with_other_code(tmp_path):
     probe = tmp_path / "probe.json"
     probe.write_text(json.dumps({"eligible": {"AUSDT": "2021-01"}}))
     with pytest.raises(SystemExit, match="not registered"):
-        N.run("dev", tmp_path / "data", NOW, fetch=lambda u: pytest.fail("fetched"), reg=Registry(tmp_path / "r.jsonl"), probe_file=probe)
+        N.run("history", tmp_path / "data", NOW, fetch=lambda u: pytest.fail("fetched"), reg=Registry(tmp_path / "r.jsonl"), probe_file=probe)
     with pytest.raises(SystemExit, match="differs from what was registered"):
-        N.run("dev", tmp_path / "d2", NOW, fetch=lambda u: pytest.fail("fetched"), reg=registered(tmp_path / "x", code="0" * 64)
+        N.run("history", tmp_path / "d2", NOW, fetch=lambda u: pytest.fail("fetched"), reg=registered(tmp_path / "x", code="0" * 64)
               if (tmp_path / "x").mkdir() is None else None, probe_file=probe)
     assert not (tmp_path / "data").exists()
 
 
-def test_the_validation_stage_waits_for_the_development_stage_to_pass(tmp_path):
-    reg = registered(tmp_path, "validation")
+def test_the_forward_stage_waits_for_the_history_to_pass_and_for_its_archive_to_be_whole(tmp_path):
+    reg = registered(tmp_path, "forward")
     with pytest.raises(SystemExit, match="only after NEWL-1 passed"):
-        N.run("validation", tmp_path / "data", NOW, fetch=lambda u: pytest.fail("fetched"), reg=reg, probe_file=tmp_path / "p.json")
+        N.run("forward", tmp_path / "data", NOW, fetch=lambda u: pytest.fail("fetched"), reg=reg, probe_file=tmp_path / "p.json")
+    reg2 = registered(tmp_path / "b" if (tmp_path / "b").mkdir() is None else None)
+    reg2.record_verdict(__import__("aitrader.research.registry", fromlist=["Verdict"]).Verdict("NEWL-1", NOW, "PASSED", {}))
+    st = N.SPEC["stages"]["forward"]
+    a, b, end = N.horizon("forward")
+    reg2.register(Trial(id=st["trial"], registered=NOW, title="t", hypothesis="h",
+                        uses=(Use(N.UNIVERSE, date.fromisoformat(a), date.fromisoformat(end) + timedelta(days=1), "judge"),),
+                        tests=1, configurations=1, preregistration=N.DOC,
+                        design={"code_sha256": N.code_hash(), "spec_sha256": N.spec_sha(), "stage": "forward"}))
+    with pytest.raises(SystemExit, match="on or after 2027-07-11"):
+        N.run("forward", tmp_path / "data", NOW + timedelta(days=200), fetch=lambda u: pytest.fail("fetched"), reg=reg2,
+              probe_file=tmp_path / "p.json")
 
 
 def test_a_partial_archive_is_never_judged(tmp_path):
@@ -289,9 +301,9 @@ def test_a_partial_archive_is_never_judged(tmp_path):
         return base(url)
     reg = registered(tmp_path)
     with pytest.raises(SystemExit, match="did not arrive"):
-        N.run("dev", tmp_path / "data", NOW, fetch=flaky, reg=reg, out_dir=tmp_path, probe_file=probe)
+        N.run("history", tmp_path / "data", NOW, fetch=flaky, reg=reg, out_dir=tmp_path, probe_file=probe)
     assert reg.status_of("NEWL-1") == "PENDING" and not (tmp_path / "NEWL-1.json").exists()
-    N.run("dev", tmp_path / "data", NOW, fetch=base, reg=reg, out_dir=tmp_path, probe_file=probe)  # the next run completes it
+    N.run("history", tmp_path / "data", NOW, fetch=base, reg=reg, out_dir=tmp_path, probe_file=probe)  # the next run completes it
     assert reg.status_of("NEWL-1") == "PASSED"
 
 
@@ -300,8 +312,9 @@ def test_the_workflow_runs_only_the_three_commands_and_pushes_records_and_data_o
     from pathlib import Path
     wf = (Path(__file__).resolve().parents[2] / ".github" / "workflows" / "newl1.yml").read_text()
     assert "secrets." not in wf and 'COMMAND: ${{ github.event.inputs.command }}' in wf
-    assert re.search(r'case "\$COMMAND" in\s*\n\s*probe\) python scripts/newl1.py probe ;;\s*\n\s*dev\|validation\) '
-                     r'python scripts/newl1.py run "\$COMMAND" --data pub/data ;;\s*\n\s*\*\) echo', wf)
+    assert re.search(r'case "\$COMMAND" in\s*\n\s*probe\) python scripts/newl1.py probe ;;\s*\n\s*history\) '
+                     r'python scripts/newl1.py run history --data pub/data ;;', wf)
+    assert "run forward --data pub/data --probe research/results/NEWL-1-F-probe.json" in wf and '*) echo "unknown command' in wf
     pushes = re.findall(r"git push[^\n]*", wf)
     assert sorted({p.split("HEAD:")[1].split()[0] for p in pushes}) == ["refs/heads/main", "refs/heads/newl-data"]
-    assert "research/results/NEWL-1-probe.json 'research/knowledge/NEWL-1*.json' research/registry.jsonl" in wf
+    assert "'research/results/NEWL-1*-probe.json' 'research/knowledge/NEWL-1*.json' research/registry.jsonl" in wf

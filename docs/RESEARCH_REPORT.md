@@ -2,17 +2,15 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 88 فرضية مسجلة، 66 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 89 فرضية مسجلة، 66 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-15 01:43 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-15 18:05 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-15, UTC)
 
-Nothing new today: no idea checked, no test registered, no verdict.
-
 **New hypotheses registered** (each preregistered before any data was read):
 
-- none
+- **NEWL-1**: NEWL-1: newly listed Binance perpetuals against seasoned listings, history stage. A perpetual entered short at the close of its first full day and held 30 days, hedged with an equal-weight long basket of perpetuals listed 181 to 365 days earlier, earns a positive return after funding and 15 bp a fill on both legs, averaged over monthly cohorts of entries. (`research/preregistrations/NEWL-1.md`, 1 test counted)
 
 **Verdicts recorded** (each judged once):
 
@@ -26,7 +24,7 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 | | |
 |---|---|
-| Hypotheses registered | 88 |
+| Hypotheses registered | 89 |
 | Verdicts | 78: ABANDONED 2, FAILED 66, INCONCLUSIVE 1, PASSED 9 |
 | Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
@@ -51,7 +49,7 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 - RADAR-1 (registered 2026-10-07; data to 2027-02-15): RADAR-1: live cross-venue funding radar, paper forward test
 - TRND-F (registered 2026-11-06; data to 2029-12-01): TRND-F: TRND-1's rule forward, 2026-12..2029-11
 
-Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only).
+Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only); NEWL-1 (due).
 
 ## The bar each market's next test must clear
 
@@ -77,6 +75,7 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |
 | us-treasury-daily | 2 | 0 | 2.394 | 0 | 3.000 |
 | us-vol-etp | 2 | 0 | 2.394 | 2 | 3.000 |
+| crypto-perp-new-listings | 1 | 0 | 2.241 | 1 | 3.000 |
 | em-fx-daily | 1 | 0 | 2.241 | 0 | 3.000 |
 | equity-index-daily | 1 | 0 | 2.241 | 0 | 3.000 |
 | metals-futures-daily | 1 | 0 | 2.241 | 0 | 3.000 |
