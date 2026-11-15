@@ -218,6 +218,9 @@ archived is never rewritten: a difference is reported. A day whose rows no longe
 | `all-three` | the three together | |
 
 A variant outside this list is refused. A new one is declared in code by the director, never invented by a run.
+Because the replay's cut moves forward as the archive grows, hours a later variant's author could already have seen in
+a published report would sit inside its judging part. So a variant declared after 2026-11-14 20:00 UTC is never
+PROPOSED by the replay: it goes straight to a registered forward challenger, judged only on hours after it.
 
 **The chronological validation.** Every variant is replayed on the same stored hours. The hours are cut in two at a
 day boundary. The variant with the best excess over cash on the **earlier** part is the candidate; only the
@@ -250,10 +253,12 @@ on the same hours. If it does not reproduce it, the report says the table means 
 
 ## 8. The cycle
 
-`.github/workflows/perf-cycle.yml`. Two things start it, and neither is a person: GitHub's schedule, every three
-hours at :23 (best-effort: runs start late or are dropped), and the end of each shift of the radar, about every six
-hours, which is the moment the radar has just saved the quotes the cycle archives. The second does not change the
-radar's workflow: GitHub starts this one when that one completes. No model, no key, no order.
+`.github/workflows/perf-cycle.yml`. GitHub's schedule starts it, every three hours at :23 (best-effort: runs start
+late or are dropped). It also listens for the end of a shift of the radar, but that fires only for a shift the
+radar's own schedule started: most shifts are started by the shift before them with the workflow's token, and GitHub
+starts no workflow from an event that token caused (on 2026-11-15 run 303 of the radar ended at 13:17 UTC and started
+nothing). Missed slots cost nothing that matters: every run applies everything new, and the radar keeps 240 hours of
+quotes, so a gap of up to nine days between runs loses none of them. No model, no key, no order.
 
 1. reads `trend-desk-data` and `radar-data` (read only), and restores the radar's cache (restore only: the job
    contains no cache save and pushes to no branch but `perf-data`; both are pinned by tests);
@@ -271,8 +276,16 @@ database cannot be read, or an archived day has changed. The run is red and the 
 Run 1 of `perf-cycle.yml`, id 43665245073, started by hand (`workflow_dispatch`) on 2026-11-15 at 01:54 UTC, three
 and a half minutes, every step green
 (<https://github.com/rimurukingdemon313/autonomous-bot-trader/actions/runs/43665245073>). It created the `perf-data`
-branch (commit `5dafc78`). A run started by GitHub's own schedule is added to this section once one has been seen,
-and not before.
+branch (commit `5dafc78`).
+
+**Started by GitHub's schedule:** run 3, id 43707853592, event `schedule`, 2026-11-15 at 11:13 UTC (the 09:23 slot,
+an hour and fifty minutes late), four minutes, every step green, no person involved
+(<https://github.com/rimurukingdemon313/autonomous-bot-trader/actions/runs/43707853592>). It restored its records from
+`perf-data`, reconciled both accounts again (40 of 40, 24 of 24), archived the one day that had finished since the
+last run (2026-11-14), held 246 stored hours, named the weakness under perf-1.0.1 (entry spreads under 50%/yr, so
+`thick-entry` is the variant asked about), and replayed: the candidate is still `patient-exit`, and the later part
+holds 5 days and 15 closed positions, so it is INCONCLUSIVE and nothing is proposed. The 03:23 and 06:23 slots that day
+did not fire, nor did the 12:23 and 15:23 ones by 16:45 UTC.
 
 - **Both accounts reconciled** on the runner as they had here: 40 of 40 and 24 of 24.
 - **The archive** took ten finished days of the radar's quotes (2026-11-04 to 2026-11-13), each with its hash; 236

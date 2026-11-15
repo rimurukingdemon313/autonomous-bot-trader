@@ -17,9 +17,11 @@ on:
     # recomputes the audit (seconds) and reuses the replay.
     - cron: "23 */3 * * *"
   workflow_run:
-    # ...so the cycle does not depend on the cron alone: it also runs each time a shift of the radar ends (about every
-    # six hours), which is the moment the radar has just saved the quotes this cycle archives. The radar's workflow is
-    # not changed by this: GitHub starts this one when that one completes.
+    # ...and when a shift of the radar ends, the moment the radar has just saved the quotes this cycle archives. This
+    # fires only for a shift started by the radar's own schedule. Most shifts are started by the shift before them with
+    # the workflow's token, and GitHub starts no workflow from an event that token caused (seen on 2026-11-15: run 303
+    # of the radar ended at 13:17 UTC and started nothing). The schedule is what this cycle relies on, and it can miss
+    # days: the radar keeps 240 hours of quotes, so a gap of up to nine days loses none of them.
     workflows: ["Funding radar (hourly, paper)"]
     types: [completed]
   workflow_dispatch:
