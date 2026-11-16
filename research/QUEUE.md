@@ -290,6 +290,17 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | Buying after a token unlock | The published unlock studies (Keyrock, Tokenomist; search results only) find the decline continues after the unlock; the schedules are paid data |
 | INV-1: the natural gas storage-report premium | Power and costs: about 0.1% a report day against 0.53% needed over the unread years, and a CFD's round trip would take it |
 
+**Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building.** Each is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| Fading large four-hour rallies in BTC and ETH (CFD short) | Rallies of the size that reversed are rare in them: about 150 entries would need 0.8% a day |
+| Altcoin froth as a signal against BTC and ETH | A two-coin time series: it needs a daily predictive correlation near 0.12 |
+| The rally-avoidance overlay on a spot basket | It earns only on an altcoin basket held outright (none is); at 8% it fails the cost gate |
+| ETH against BTC after ether's rallies | About 70 events would need 0.9% each |
+| Buying spot-led falls in large coins | +0.51% gross is 2.5 round trips at best: the cost gate |
+| Shorting altcoin CFDs on the short-side findings | Not among the owner's stated instruments; ten coins have no power on the unread window |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.

@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و2 فحص قبل البناء رفض 14 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-16 04:37 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-16 04:51 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-16, UTC)
 
@@ -19,6 +19,7 @@ Generated 2026-11-16 04:37 UTC from the committed record · research-report-1.1.
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
 - Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building: TRND-1's rule on bitcoin and ether CFDs; CALM-1: the long-only basket without leverage-stressed coins; US-hours clientele in bitcoin; Post-FOMC drift into gold; Bitcoin's weekend move and Monday's index session; Passive capture of the unpriced funding; Buying after a token unlock; INV-1: the natural gas storage-report premium.
+- Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building: Fading large four-hour rallies in BTC and ETH (CFD short); Altcoin froth as a signal against BTC and ETH; The rally-avoidance overlay on a spot basket; ETH against BTC after ether's rallies; Buying spot-led falls in large coins; Shorting altcoin CFDs on the short-side findings.
 
 ## Cumulative (since the registry began)
 
@@ -26,7 +27,7 @@ Generated 2026-11-16 04:37 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 94 |
 | Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 63 in the tables of 20 dated checks, on 7 days |
+| Ideas dropped before building (no test spent) | 69 in the tables of 21 dated checks, on 7 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |
