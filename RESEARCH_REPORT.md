@@ -2,51 +2,51 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 2 فرضية جديدة انسجلت، 2 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 90 فرضية مسجلة، 68 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و3 فحص قبل البناء رفض 18 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-15 21:04 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-16 13:11 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-15, UTC)
+## Today (2026-11-16, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **NEWL-1**: NEWL-1: newly listed Binance perpetuals against seasoned listings, history stage. A perpetual entered short at the close of its first full day and held 30 days, hedged with an equal-weight long basket of perpetuals listed 181 to 365 days earlier, earns a positive return after funding and 15 bp a fill on both legs, averaged over monthly cohorts of entries. (`research/preregistrations/NEWL-1.md`, 1 test counted)
-- **EXF-1**: EXF-1: the ex-funding pass-through of perpetual futures, dev stage. Across a funding settlement, a perpetual's premium over its index moves by less than the funding paid, so that the side the previous rate says receives the funding, held from five minutes before the settlement to five minutes after, earns a positive return after two fills of 10 bp, averaged over weekly cohorts; nothing comparable is earned at the same distance from no settlement. (`research/preregistrations/EXF-1.md`, 4 tests counted)
+- **SPL-1**: SPL-1: spot-led rallies and the spot buyer, dev stage. A seasoned coin whose spot rose at least X in four hours while its perpetual never closed more than 0.25% above spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the market, than the same coin at hours it had not risen, and than rallies its perpetual led. (`research/preregistrations/SPL-1.md`, 2 tests counted)
 
 **Verdicts recorded** (each judged once):
 
-- **NEWL-1: FAILED** (t -0.011313903957649443). Evidence: `research/knowledge/NEWL-1.json`; matches its verdict: yes
-- **EXF-1: FAILED** (t -1.6112394212690695). Evidence: `research/knowledge/EXF-1.json`; matches its verdict: yes
+- **SPL-1: FAILED** (t -4.654342822551325). Evidence: `research/knowledge/SPL-1.json`; matches its verdict: yes
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- none
+- Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building: TRND-1's rule on bitcoin and ether CFDs; CALM-1: the long-only basket without leverage-stressed coins; US-hours clientele in bitcoin; Post-FOMC drift into gold; Bitcoin's weekend move and Monday's index session; Passive capture of the unpriced funding; Buying after a token unlock; INV-1: the natural gas storage-report premium.
+- Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building: Fading large four-hour rallies in BTC and ETH (CFD short); Altcoin froth as a signal against BTC and ETH; The rally-avoidance overlay on a spot basket; ETH against BTC after ether's rallies; Buying spot-led falls in large coins; Shorting altcoin CFDs on the short-side findings.
+- Checked on 2026-11-16, 07:50 UTC, and dropped before building: Shorting BTC and ETH CFDs after forced deleveraging; FADE-1: volatility-scaled rally fades in BTC and ETH; OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008); CBP-1: the Coinbase premium and the next hours.
 
 ## Cumulative (since the registry began)
 
 | | |
 |---|---|
-| Hypotheses registered | 90 |
-| Verdicts | 80: ABANDONED 2, FAILED 68, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
-| Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
-| Evidence files that still match their verdict | 60 of 60 checked |
+| Hypotheses registered | 94 |
+| Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
+| Ideas dropped before building (no test spent) | 73 in the tables of 22 dated checks, on 7 days |
+| Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
+| Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |
 
 ## The autonomous engine's ideas (generated by models, never approved by them)
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-15 12:19 UTC, OK
-- Last successful idea step: 2026-11-15 12:19 UTC
+- Last cycle: 2026-11-16 13:11 UTC, OK
+- Last successful idea step: 2026-11-16 13:11 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 18 ideas: DROPPED_POWER 5, REJECTED_BY_CRITIC 13
+- All time: 21 ideas: DROPPED_POWER 5, REJECTED_BY_CRITIC 16
 
 **Today:**
 
-- **DROPPED_POWER**: IPO lockup-expiry forced selling (new:us-ipo-lockup, swing). even at its claimed strength it expects t 2.4 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
-- **DROPPED_POWER**: ETF NAV premium/discount mean reversion (us-etf-broad-daily, swing). even at its claimed strength it expects t 2.546 against a bar of 3.9398: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 19 years of fresh data at the claimed strength, against the 8 it has; or the same mechanism on about 3 independent instruments over those 8 years, tested as one book Class: INSUFFICIENT_POWER.
-- **DROPPED_POWER**: Volatility-managed country equity ETFs (new:country-equity-etfs, position). even at its claimed strength it expects t 2.4 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
+- **REJECTED_BY_CRITIC**: EM FX quarterly sovereign USD debt-service pressure (em-fx-daily, swing). A claimed annual Sharpe of 0.6 over 12 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(12) ≈ 2.07, which is below the bar of 3.000. The evidence (12 years of data) cannot support the claim that this strategy can pass the bar, as a net Sharpe below about 1 cannot reach a bar near 3 with this amount of data. (critic: dots-studio/dots-3-note-preview:free) Class: IMPLAUSIBLE_CLAIM.
+- **REJECTED_BY_CRITIC**: Monthly payroll defined-contribution equity inflows (us-etf-broad-daily, swing). A claimed annual Sharpe of 0.5 over 10 years of fresh data implies a maximum t-statistic of approximately 0.5 * sqrt(10) ≈ 1.58, far below the bar of 3.000. Monthly rules need decades of data to reach such a bar, and the evidence here cannot support the claim. (critic: dots-studio/dots-3-note-preview:free) Class: IMPLAUSIBLE_CLAIM.
+- **REJECTED_BY_CRITIC**: Monthly options-expiration week index drift across global index CFDs (equity-index-daily, swing). A claimed annual Sharpe of 0.6 over 10 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(10) ≈ 1.90, which is below the bar of 3.000. Even testing across multiple index CFDs as one book does not increase the number of independent years, so the evidence cannot support the claim that this strategy can pass the bar. (critic: dots-studio/dots-3-note-preview:free) Class: IMPLAUSIBLE_CLAIM.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
@@ -58,9 +58,13 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 
 | Edge | Status | t (bar) | Out-of-sample | The classification's note | Source |
 |---|---|---|---|---|---|
+| BAS-1@0.0005 | **UNCERTAIN** | -0.633 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/BAS-1.json` |
+| BAS-1@0.001 | **UNCERTAIN** | -0.215 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/BAS-1.json` |
+| CASC-1@0.15 | **UNCERTAIN** | -0.277 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/CASC-1.json` |
 | DAY-1 | **PROMISING** | None (3.388) | — | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.482 on its `days` against 3.388. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/DAY-1.json` |
 | FXT-1 | **PROMISING** | 2.712 (3.629) | — | single-program verdict: expectancies are monthly net returns, not R; a near miss: it failed on the bar alone, with t 2.712 on its `months` against 3.629. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/FXT-1.json` |
 | RCEQ-E1-TOM | **PROMISING** | 2.24 (3.0) | +0.16% a month | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout PROMISING_REPLICATED: 441 months, net t 2.175 | `research/knowledge/RC-EQ.json` |
+| SQZ-1@0.001 | **UNCERTAIN** | 0.068 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/SQZ-1.json` |
 | TME-1 | **PROMISING** | None (3.078) | — | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.239 on its `month_ends` against 3.078. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/TME-1.json` |
 | TRND-1 | **VALIDATED** | 3.834 (3.376) | +0.79% a month | single-program verdict: expectancies are monthly net returns, not R; holdout 69 months, net t 2.737 | `research/knowledge/TRND-1.json` |
 
@@ -92,8 +96,12 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | crypto-binance-usdtm-all | 0 | 5 | 2.638 | 5 | 3.000 |
 | crypto-perp-funding-settlements | 4 | 0 | 2.576 | 4 | 3.000 |
 | crypto-perp-live-xvenue | 3 | 0 | 2.498 | 3 | 3.000 |
+| crypto-spot-crowded-shorts | 3 | 0 | 2.498 | 3 | 3.000 |
+| crypto-spot-high-funding | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-forward | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-monthly | 3 | 0 | 2.498 | 2 | 3.000 |
+| crypto-spot-liquidation-falls | 2 | 0 | 2.394 | 2 | 3.000 |
+| crypto-spot-spot-led-rallies | 2 | 0 | 2.394 | 2 | 3.000 |
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |
 | us-treasury-daily | 2 | 0 | 2.394 | 0 | 3.000 |
 | us-vol-etp | 2 | 0 | 2.394 | 2 | 3.000 |
@@ -108,6 +116,10 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 
 | Recorded | Hypothesis | Verdict | Preregistration | Spec hash quoted | Evidence file | Matches |
 |---|---|---|---|---|---|---|
+| 2026-11-16 | SPL-1 | FAILED | `research/preregistrations/SPL-1.md` | yes | `research/knowledge/SPL-1.json` | yes |
+| 2026-11-15 | BAS-1 | FAILED | `research/preregistrations/BAS-1.md` | yes | `research/knowledge/BAS-1.json` | yes |
+| 2026-11-15 | CASC-1 | FAILED | `research/preregistrations/CASC-1.md` | yes | `research/knowledge/CASC-1.json` | yes |
+| 2026-11-15 | SQZ-1 | FAILED | `research/preregistrations/SQZ-1.md` | yes | `research/knowledge/SQZ-1.json` | yes |
 | 2026-11-15 | EXF-1 | FAILED | `research/preregistrations/EXF-1.md` | yes | `research/knowledge/EXF-1.json` | yes |
 | 2026-11-15 | NEWL-1 | FAILED | `research/preregistrations/NEWL-1.md` | yes | `research/knowledge/NEWL-1.json` | yes |
 | 2026-11-14 | RADX-1 | FAILED | `research/preregistrations/RADX-1.md` | — | `research/knowledge/RADX-1.json` | — |
@@ -129,9 +141,5 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 | 2026-11-05 | LVOL-1 | FAILED | `research/preregistrations/LVOL-1.md` | yes | `research/knowledge/LVOL-1.json` | yes |
 | 2026-11-05 | EMC-1 | FAILED | `research/preregistrations/EMC-1.md` | yes | `research/knowledge/EMC-1.json` | yes |
 | 2026-11-05 | PHD-1 | FAILED | `research/preregistrations/PHD-1.md` | yes | `research/knowledge/PHD-1.json` | yes |
-| 2026-11-05 | SEC-1 | FAILED | `research/preregistrations/SEC-1.md` | yes | `research/knowledge/SEC-1.json` | yes |
-| 2026-11-05 | GSR-1 | FAILED | `research/preregistrations/GSR-1.md` | yes | `research/knowledge/GSR-1.json` | yes |
-| 2026-11-05 | VOLM-1 | FAILED | `research/preregistrations/VOLM-1.md` | yes | `research/knowledge/VOLM-1.json` | yes |
-| 2026-11-05 | XSM-1 | FAILED | `research/preregistrations/XSM-1.md` | yes | `research/knowledge/XSM-1.json` | yes |
 
 **Matches**: the evidence file's own hash equals the one recorded with its verdict; where none was recorded, the file names the spec (and code) hashes registered before the test. Every verdict is in `research/registry.jsonl`. Each program's command and frozen spec are in its preregistration, and the program refuses to judge if its spec or code no longer match the hashes recorded at registration.
