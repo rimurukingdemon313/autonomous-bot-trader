@@ -148,10 +148,13 @@ before the broker ("not VALIDATED"), and the desk trades nothing. It never trade
 
 The desk trades only on the paper broker. To trade a funded account by itself, the system needs:
 
-1. **A broker connection for that account.** The first piece exists: a cTrader DEMO connection and a probe that
-   checks the account (demo and swap-free, by the broker's own record) and measures its spreads, placing no order
-   (`docs/CTRADER.md`). Orders, stop moves and closes on it are not built yet. TradeLocker, DXtrade and Match-Trader
-   also have APIs a server can reach; MetaTrader 4 or 5 needs its own terminal running on Windows.
+1. **A broker connection for that account.** Built for cTrader DEMO accounts (`docs/CTRADER.md`).
+   - A probe checks the account, demo and swap-free by the broker's own record, and measures its spreads.
+   - The demo desk runs this rule, size and stop on that account each weekday morning, through the same risk engine,
+     gate and execution engine.
+   - It waits for the owner's secrets and the owner's word promoting TRND-1 for DEMO. Until then it sends nothing.
+   - TradeLocker, DXtrade and Match-Trader also have APIs a server can reach. MetaTrader 4 or 5 needs its own terminal
+     running on Windows.
 2. **The DEMO rule, unchanged.** An account is used only if the broker itself reports it as a demo account (prop-firm
    challenge accounts usually are). The broker's report and our own check must agree. A live account is refused.
 3. **Credentials only in the host's secret settings.** They are never in the repository, a report or a log.

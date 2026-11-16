@@ -1,0 +1,73 @@
+# The demo desk (aitrader/position/demo_desk.py, docs/CTRADER.md): TRND-1 run by the system itself on the owner's
+# cTrader DEMO account, each weekday morning while the index CFDs trade, through the risk engine, the hard gate and the
+# execution engine. DEMO ONLY: the connection goes to cTrader's demo proxy, the broker's own records must say demo and
+# swap-free, and a failed demo check trips the kill switch. Credentials only from the repository's secrets. Without
+# them the run reports NOT CONFIGURED and sends nothing. Only a rule a person promoted for DEMO
+# (models/artifacts/promoted_rules_demo.json) executes. The account's journal (demo.db) and its report are carried on
+# the demo-desk-data branch.
+name: Demo desk (TRND-1 on a cTrader demo account)
+on:
+  schedule:
+    - cron: "23 7 * * 1-5"  # after the closes, while the index CFDs trade
+    # Backups: GitHub's schedule is best-effort. A run that finds the account already where the rule wants it sends
+    # nothing.
+    - cron: "53 8 * * 1-5"
+    - cron: "23 10 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      clear_kill_switch:
+        description: "a person clears the kill switch: the reason (leave empty otherwise)"
+        default: ""
+      resume:
+        description: "a person resumes after a pause: the reason (leave empty otherwise)"
+        default: ""
+permissions:
+  contents: write
+concurrency:
+  group: demo-desk
+  cancel-in-progress: false
+jobs:
+  desk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the account's journal from demo-desk-data
+        run: |
+          git config user.name "demo-desk"; git config user.email "demo-desk@users.noreply.github.com"
+          if git fetch -q origin demo-desk-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan demo-desk-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          mkdir -p state
+          if [ -f pub/demo.db.gz ]; then gunzip -c pub/demo.db.gz > state/demo.db; fi
+      - name: Run the desk
+        env:
+          CTRADER_CLIENT_ID: ${{ secrets.CTRADER_CLIENT_ID }}
+          CTRADER_CLIENT_SECRET: ${{ secrets.CTRADER_CLIENT_SECRET }}
+          CTRADER_ACCESS_TOKEN: ${{ secrets.CTRADER_ACCESS_TOKEN }}
+          CTRADER_ACCOUNT_LOGIN: ${{ secrets.CTRADER_ACCOUNT_LOGIN }}
+          CLEAR: ${{ inputs.clear_kill_switch }}
+          RESUME: ${{ inputs.resume }}
+        run: |
+          set +e
+          python scripts/demo_desk.py --state state --clear-kill-switch "${CLEAR:-}" --resume "${RESUME:-}"
+          echo "rc=$?" > rc.txt
+          cat state/REPORT.md
+      - name: Publish to demo-desk-data
+        run: |
+          if [ -f state/demo.db ]; then gzip -nc state/demo.db > pub/demo.db.gz; fi
+          cp state/REPORT.md state/state.json pub/
+          cd pub
+          git add -A .
+          git commit -qm "demo desk $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/demo-desk-data && exit 0; sleep $((i * 20)); done
+          exit 1
+      - name: The desk's own verdict
+        run: grep -q "rc=0" rc.txt

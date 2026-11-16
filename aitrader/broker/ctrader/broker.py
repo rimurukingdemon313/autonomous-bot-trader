@@ -43,7 +43,7 @@ class CTraderBroker:
     def __init__(self, session: Session, creds: Credentials, symbols: dict[str, int], light: list[dict],
                  details: dict[int, dict], clock: Callable[[], int], *, gate=None,
                  on_refusal: Callable[[str], None] | None = None, write_timeout: float = 30.0,
-                 quote_wait: float = 10.0, monotonic=time.monotonic) -> None:
+                 quote_wait: float = 10.0, fresh_s: int = 20, monotonic=time.monotonic) -> None:
         self.s, self.c, self.creds = session, session.client, creds
         self.account_id = session.account_id
         self.ids = dict(symbols)  # desk symbol -> cTrader symbolId
@@ -53,13 +53,15 @@ class CTraderBroker:
         self.clock, self._mono = clock, monotonic
         self._gate = gate
         self.on_refusal = on_refusal or (lambda why: None)
-        self.write_timeout, self.quote_wait = write_timeout, quote_wait
+        self.write_timeout, self.quote_wait, self.fresh_s = write_timeout, quote_wait, fresh_s
         self._verdict: bool | None = session.demo.ok
         self.refusal: str | None = None
         self._last: dict[int, list] = {}
         self._subscribed: set[int] = set()
         self._assets: dict[int, str] | None = None
         self._n = 0
+        #: closes this broker sent itself in this run, with the P/L it measured: preferred to the deal list
+        self._own_closes: dict[str, ClosedTrade] = {}
 
     # ── the gate ──
 
@@ -179,16 +181,20 @@ class CTraderBroker:
             last[2] = (e["timestamp"] // 1000) if "timestamp" in e else int(self.clock())
 
     def _mid_or_quote(self, sid: int) -> tuple[float, float, int] | None:
+        """The symbol's last bid and ask with the broker's time of that price. A price older than `fresh_s` waits up
+        to `quote_wait` for a newer one; if none comes it is returned with its own old time, so the risk engine and the
+        gate see its age and refuse it. No price at all is None."""
         self._subscribe()
         deadline = self._mono() + self.quote_wait
         while True:
             self._absorb()
             bid, ask, t = self._last.get(sid, [None, None, None])
-            if bid and ask and ask >= bid:
+            have = bool(bid and ask and ask >= bid)
+            if have and self.clock() - int(t) <= self.fresh_s:
                 return bid / PRICE, ask / PRICE, int(t)
             left = deadline - self._mono()
             if left <= 0:
-                return None
+                return (bid / PRICE, ask / PRICE, int(t)) if have else None
             self.c.pump(min(left, 1.0))
 
     def quote(self, symbol: str, now: int | None = None) -> Quote | None:
@@ -367,16 +373,18 @@ class CTraderBroker:
         pnl = ((cpd["balance"] - before) / 10 ** md) if (md is not None and "balance" in cpd and before is not None
                                                          and t0.get("moneyDigits") == md) else None
         money = (lambda k: cpd[k] / 10 ** md if md is not None and k in cpd else None)
-        return ClosedTrade(position_id=position_id, client_id=bp.client_id, symbol=bp.symbol, side=bp.side, qty=bp.qty,
+        ct = ClosedTrade(position_id=position_id, client_id=bp.client_id, symbol=bp.symbol, side=bp.side, qty=bp.qty,
                            entry=float(cpd.get("entryPrice", bp.entry)), exit=float(deal.get("executionPrice", math.nan)),
                            opened=bp.opened, closed=int(deal.get("executionTimestamp", self.clock() * 1000) // 1000),
                            reason=reason, pnl=pnl, gross_pnl=money("grossProfit"))
+        self._own_closes[position_id] = ct
+        return ct
 
     def closed_since(self, t: int) -> list[ClosedTrade]:
         """Positions the broker closed since t (a stop hit while nobody was connected), read from its closing deals.
         Their net P/L, commission and swap are left unknown (None): the deal reports them without a documented sign
-        convention, and the balance before the deal is not in it. A close this broker sends itself reports the change
-        in balance (close()). The gross profit, whose sign is plain, is kept."""
+        convention, and the balance before the deal is not in it. A close this broker sent itself is returned as
+        close() measured it (the change in balance). The gross profit, whose sign is plain, is kept."""
         now_ms = int(self.clock()) * 1000
         _, res = self.c.call("ProtoOADealListReq", {"ctidTraderAccountId": self.account_id,
                                                     "fromTimestamp": max(0, int(t) * 1000), "toTimestamp": now_ms,
@@ -390,6 +398,9 @@ class CTraderBroker:
             md = cpd.get("moneyDigits")
             closed = int(d.get("executionTimestamp", 0) // 1000)
             if closed < t:
+                continue
+            if str(d["positionId"]) in self._own_closes:
+                out.append(self._own_closes[str(d["positionId"])])  # closed by this broker: its measured P/L
                 continue
             sid = d.get("symbolId")
             out.append(ClosedTrade(

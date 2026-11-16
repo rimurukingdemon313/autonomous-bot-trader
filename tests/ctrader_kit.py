@@ -179,7 +179,7 @@ class FakeTradingCTrader(FakeCTrader):
     write produces. Each write can be told to answer, stay silent, apply silently (the answer is lost), or refuse."""
 
     def __init__(self, prices=None, order_mode="fill", amend_mode="apply", close_mode="fill", commission=-3.0,
-                 **kw):
+                 clock=time.time, **kw):
         self.prices = dict(prices or {101: (5000.0, 5000.5)})
         self.order_mode, self.amend_mode, self.close_mode = order_mode, amend_mode, close_mode
         self.commission = commission  # account currency per close, as the broker reports it (signed)
@@ -187,6 +187,7 @@ class FakeTradingCTrader(FakeCTrader):
         self.positions: dict[int, dict] = {}
         self.deals: list[dict] = []
         self._ids = 7000
+        self.clock = clock  # the broker's clock: its prices and deals are stamped with it
         super().__init__(**kw)
 
     def _id(self) -> int:
@@ -195,7 +196,7 @@ class FakeTradingCTrader(FakeCTrader):
 
     def set_price(self, sid: int, bid: float, ask: float) -> None:
         self.prices[sid] = (bid, ask)
-        self.send("ProtoOASpotEvent", spot(sid, bid, ask) | {"timestamp": int(time.time() * 1000)})
+        self.send("ProtoOASpotEvent", spot(sid, bid, ask) | {"timestamp": int(self.clock() * 1000)})
 
     def _trader_now(self) -> dict:
         return {**self.trader, "balance": int(round(self.balance * 100))}
@@ -211,7 +212,7 @@ class FakeTradingCTrader(FakeCTrader):
             for sid in f.get("symbolId", []):
                 if sid in self.prices:
                     b, a = self.prices[sid]
-                    self.send("ProtoOASpotEvent", spot(sid, b, a) | {"timestamp": int(time.time() * 1000)})
+                    self.send("ProtoOASpotEvent", spot(sid, b, a) | {"timestamp": int(self.clock() * 1000)})
         elif name == "ProtoOAReconcileReq":
             self.requests.append((name, f, cid))
             self.send("ProtoOAReconcileRes", {**acct, "position": list(self.positions.values())}, cid)
@@ -263,7 +264,7 @@ class FakeTradingCTrader(FakeCTrader):
         px = ask if side > 0 else bid
         pid = self._id()
         stop = px - side * f["relativeStopLoss"] / 1e5 if "relativeStopLoss" in f else None
-        now_ms = int(time.time() * 1000)
+        now_ms = int(self.clock() * 1000)
         pos = {"positionId": pid, "tradeData": {"symbolId": f["symbolId"], "volume": f["volume"],
                                                 "tradeSide": f["tradeSide"], "openTimestamp": now_ms,
                                                 "label": f.get("label")},
@@ -303,7 +304,7 @@ class FakeTradingCTrader(FakeCTrader):
         gross = (px - p["price"]) * side * td["volume"] / 100
         self.balance += gross + self.commission
         del self.positions[f["positionId"]]
-        now_ms = int(time.time() * 1000)
+        now_ms = int(self.clock() * 1000)
         deal = {"dealId": self._id(), "orderId": self._id(), "positionId": p["positionId"], "volume": td["volume"],
                 "filledVolume": td["volume"], "symbolId": td["symbolId"], "createTimestamp": now_ms,
                 "executionTimestamp": now_ms, "executionPrice": px, "tradeSide": 2 if side > 0 else 1,
@@ -327,7 +328,7 @@ class FakeTradingCTrader(FakeCTrader):
         side = 1 if td["tradeSide"] == 1 else -1
         gross = (px - p["price"]) * side * td["volume"] / 100
         self.balance += gross + self.commission
-        now_ms = int(time.time() * 1000)
+        now_ms = int(self.clock() * 1000)
         self.deals.append({"dealId": self._id(), "orderId": self._id(), "positionId": pid, "volume": td["volume"],
                            "filledVolume": td["volume"], "symbolId": td["symbolId"], "createTimestamp": now_ms,
                            "executionTimestamp": now_ms, "executionPrice": px, "tradeSide": 2 if side > 0 else 1,

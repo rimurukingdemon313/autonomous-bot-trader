@@ -298,3 +298,16 @@ def test_equity_moves_with_the_brokers_unrealized_pnl(made):
     time.sleep(0.05)
     a = b.account()
     assert a.balance == 200_000.0 and a.equity == pytest.approx(200_000.0 + (5100.0 - 5000.5) * 4)
+
+
+def test_a_stale_price_waits_for_a_newer_one_and_is_otherwise_shown_with_its_age(made):
+    import threading
+    f, b, gate = broker_for(made)
+    assert b.quote("US500").bid == 5000.0  # subscribed: the broker's price, stamped now
+    b._last[101][2] -= 3600  # that price is now an hour old
+    threading.Timer(0.2, lambda: f.set_price(101, 5005.0, 5005.5)).start()
+    q = b.quote("US500")
+    assert q.bid == 5005.0 and abs(q.time - b.clock()) <= 2  # it waited for the newer price
+    b._last[101][2] -= 3600
+    q = b.quote("US500")  # no newer price comes: the old one, with its own time, for the gate to refuse
+    assert q.bid == 5005.0 and b.clock() - q.time >= 3600

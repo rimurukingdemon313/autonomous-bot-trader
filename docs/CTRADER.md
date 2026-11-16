@@ -7,8 +7,15 @@
 - **The system's broker interface on that connection** (`CTraderBroker`): orders, stop moves and closes. They go
   through the hard risk gate's permits, exactly as on the paper broker.
 
-**What does not exist yet:** nothing runs the trend desk against a broker account. The runner that will do it is the
-next piece of work ("What comes next" below).
+- **The demo desk** (`aitrader/position/demo_desk.py`, `scripts/demo_desk.py`, `.github/workflows/demo-desk.yml`).
+  Each weekday morning it brings the demo account to what TRND-1 holds, through the same risk engine, hard gate and
+  execution engine as the paper desk.
+
+**What it waits for:**
+
+- **The owner's secrets.** Without them every run reports NOT CONFIGURED and sends nothing.
+- **The owner's word to promote TRND-1 for DEMO.** Until then every entry is blocked before the broker, and the
+  report shows what it would have done.
 
 ## Why cTrader
 
@@ -108,6 +115,37 @@ The report has:
 It never refreshes the token. A refresh token can be used once ("the refresh token has no expiry, but you can only use
 it once", the official SDK's documentation), so refreshing it here would leave the stored secret dead.
 
+## The demo desk (`aitrader/position/demo_desk.py`)
+
+The paper desk decides at each close and fills at that close. A broker account can only be traded while its CFDs are
+open. So the demo desk runs on weekday mornings (07:23 UTC, with backups at 08:53 and 10:23) and brings the account
+to what the rule holds now.
+
+| | |
+|---|---|
+| **The decision** | The paper desk's own function on the same final Yahoo closes: the month's decision once its last weekday has closed. A close that is not final at the run's time is not read. |
+| **An entry** | Sized by the risk engine on the desk's limits, permitted by the hard gate on the desk's profile scaled to the account's starting balance (recorded at the first run and never changed), and sent through the execution engine. The stop is 6% below the latest close. |
+| **A refused entry** | The market was closed or there was no price. It never happened, so nothing is resent; it is decided again at the next run under a new decision id. |
+| **An unknown outcome** | It pauses the desk, as the execution engine's rule says. The next run first reads the account by client id. A paused desk resumes only by a person's hand-started run, and only when no outcome is still unknown. |
+| **After a stop is hit** | The index stays flat until the next month-end decision, as on the paper desk. |
+| **The rule turning flat** | The position is closed. |
+| **Stops** | Every position held has its stop moved to 6% below the latest close, through the gate's stop permit. |
+| **A failed demo check** | Trips the kill switch, and every later run refuses until a person clears it with a hand-started run (`clear_kill_switch`, with a reason that is kept). |
+| **An account at its limit** | Fails, and everything is closed, as the paper desk and a firm would do it. Tested on a built crash day with the four indices down 13% together. |
+| **A stale price** | A price older than 20 seconds waits for a newer one. If none comes, it is passed on with its true age, and the risk engine refuses it. |
+
+Declared differences from the paper desk:
+
+- Entries and exits happen at the next morning's price, not at the close. In RC-EQ, acting a day late cost the rule
+  about 0.2% a year.
+- The stop is the broker's own order.
+- The size is the paper desk's HALF track scaled to the account. The FULL size decided for funded accounts
+  (`docs/FUNDED_PAPER.md`) is a later step, taken with the owner's word on the challenges.
+
+**Promotion for DEMO.** Only a rule recorded in `models/artifacts/promoted_rules_demo.json` executes: mode DEMO,
+status VALIDATED, health HEALTHY, with who promoted it and when. That file is written only on the owner's own word.
+Research code never writes it.
+
 ## What the owner does (free; no money is spent)
 
 1. **Open a cTrader demo account** at the firm or broker to be used (for example a firm's free trial on cTrader).
@@ -132,8 +170,8 @@ session, so the exact screens were not seen.
 
 - **A first round trip on the demo account:** the minimum volume of one index, opened with its stop, moved and
   closed. It confirms the execution events and the P/L sign convention on the real server before the desk uses it.
-- **The desk acting on a real clock:** the month-end decision minutes before each exchange's close, the 6% stop moved
-  each evening, and the minimal trades for a phase's first four days. This is the schedule decided on 2026-11-07
-  (`docs/FUNDED_PAPER.md`), through the same risk engine and hard gate as the paper desk.
+- **What a challenge account adds:** the minimal trades for a phase's first four days and for inactivity, and the
+  FULL size. These are the schedule decided on 2026-11-07 (`docs/FUNDED_PAPER.md`), and they come with the owner's
+  word on buying challenges.
 - **Keeping the token alive:** each refresh returns a new refresh token, and it has to be stored somewhere private.
 - **Money:** challenges are bought only on the owner's explicit word. Nothing here spends money.

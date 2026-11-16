@@ -25,35 +25,11 @@ from aitrader.broker.ctrader import proto as P  # noqa: E402
 from aitrader.broker.ctrader.client import Client  # noqa: E402
 from aitrader.broker.ctrader.session import ENV, Credentials, open_session, scrub  # noqa: E402
 from aitrader.broker.ctrader.transport import DEMO_HOST, DemoRefused, Transport  # noqa: E402
+from aitrader.broker.ctrader.symbols import NAMES, match_symbols  # noqa: E402
 from aitrader.data.instruments import INDEX_CFDS  # noqa: E402
 
 PROBE_VERSION = "ctrader-probe-1.0.0"
-#: the names brokers give the desk's indices, upper-case without punctuation ("US500.cash" -> US500CASH)
-NAMES = {
-    "US500": {"US500", "US500CASH", "SPX500", "SP500", "USA500", "USSPX500", "US500C"},
-    "NAS100": {"NAS100", "NAS100CASH", "US100", "US100CASH", "USTEC", "USTECH", "USTECH100", "USTECCASH", "NDX100",
-               "NASDAQ100"},
-    "GER40": {"GER40", "GER40CASH", "DE40", "DE40CASH", "DAX40", "GERMANY40", "GER30", "GER30CASH", "DE30", "DAX30"},
-    "UK100": {"UK100", "UK100CASH", "FTSE100", "GB100", "UKX100"},
-}
 PRICE = 1e5  # spot prices are integers in 1/100000 of a unit (ProtoOASpotEvent)
-
-
-def norm(name: str) -> str:
-    return "".join(c for c in name.upper() if c.isalnum())
-
-
-def match_symbols(light: list[dict]) -> dict[str, list[dict]]:
-    """For each desk index, the broker's symbols whose name is one of its known names."""
-    out: dict[str, list[dict]] = {k: [] for k in NAMES}
-    for s in light:
-        n = norm(s.get("symbolName") or "")
-        for desk, names in NAMES.items():
-            if n in names:
-                out[desk].append(s)
-    return out
-
-
 def spread_summary(samples: list[tuple[float, float]], assumed: float | None) -> dict:
     """Spreads (ask - bid, index points) over every quote update with both sides known. None where there were no
     quotes: never a zero."""
