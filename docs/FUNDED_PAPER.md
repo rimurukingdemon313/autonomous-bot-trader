@@ -122,6 +122,9 @@ Several accounts on the same rule win and fail together, so a plan of N accounts
 | 1 account at FULL | 1 year | $-1,100 | $2,410 | $-2,200 to $12,657 | 67% | 66% | 0.19 |
 | 1 account at FULL | 2 years | $10,128 | $13,110 | $-2,200 to $33,230 | 32% | 32% | 0.46 |
 | 1 account at FULL | 3 years | $19,304 | $24,820 | $-1,100 to $57,103 | 10% | 10% | 0.76 |
+| 8 accounts at FULL (the owner's $4,000, 2026-11-16) | 1 year | $-8,800 | $19,280 | $-17,600 to $101,256 | 67% | 66% | 0.19 |
+| 8 accounts at FULL | 2 years | $81,024 | $104,880 | $-17,600 to $265,840 | 32% | 32% | 0.46 |
+| 8 accounts at FULL | 3 years | $154,432 | $198,560 | $-8,800 to $456,824 | 10% | 10% | 0.76 |
 
 - **Most of the first year pays nothing.** The two phases come first: at FULL, two starts in three had no payout yet
   after a year. Half of those paid within three years had their first payout by about 16 months.
@@ -158,6 +161,19 @@ Several accounts on the same rule win and fail together, so a plan of N accounts
 
 It is not a promise. A pass on paper would say the rule behaved as it did in history; the next crash can be the one
 that fails it.
+
+## The owner's $4,000 and the request to raise the risk (2026-11-16)
+
+The owner, 2026-11-16: "raise the risk; I want the target even if you rebuild everything; the method does not
+matter". The size table above answers it: one $200,000 account at the size a $4,000 mean month needs (about
+2.9x) has a worst month near -$90,000 and is ended by the limits several times a year, so it is lost before the
+target is paid. The target is therefore met as the $3,000 was: by the number of accounts at FULL, never by one
+account's size. Eight FULL accounts are eight times one account (the rows above, arithmetic, not a new run): a
+median of about $154,000 over three years (about $4,300 a month across them), nothing paid by the median start in
+the first year (the eight $1,100 challenges), money lost in 10% of starts over three years, and all eight lost
+together on a crash day. The challenges cost money, so they wait for the owner's own word (their standing rule);
+a funded account also needs a broker connection this build does not have. Nothing in the paper desk's size or
+limits was changed. The FULL track of FUNDED-P already shows the full size on paper.
 
 ## If it is used on a funded account later (decided 2026-11-07)
 
