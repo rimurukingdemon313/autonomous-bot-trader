@@ -1,0 +1,3 @@
+# DEMO DESK · TRND-1 on a cTrader demo account · DEMO ONLY · NOT REAL MONEY
+
+**بالعربي:** ما اشتغل: أسرار GitHub ناقصة: CTRADER_CLIENT_ID, CTRADER_CLIENT_SECRET, CTRADER_ACCESS_TOKEN, CTRADER_ACCOUNT_LOGIN
