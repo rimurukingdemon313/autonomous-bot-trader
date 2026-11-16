@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 147 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 149 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -64,6 +64,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0
 | SEC-1 | FAILED | — | 1 | 0 | 3.124 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
+| SPL-1 | FAILED | — | 2 | 0 | 3.000 |
 | SQZ-1 | FAILED | — | 3 | 0 | 3.000 |
 | TME-1 | FAILED | — | 1 | 0 | 3.078 |
 | TRND-1 | PASSED | — | 1 | 1 | 3.376 |
@@ -313,6 +314,10 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0
 | SL-001-05 | BUY | D1 | `range_contraction=low&r1=high` | D1 | 552 | -0.157 | -2.89 (3.25) | -0.196 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-06 | SELL | D1 | `range_contraction=low&r1=low` | D1 | 579 | -0.056 | -1.09 (3.25) | -0.103 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | SL-002-01 | SELL | H1 | `session=mid` | E3 | 8901 | -0.105 | -8.02 (3.25) | -0.153 | — | 1 | **REJECTED** | significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| SPL-1@0.08 | BUY | events | `see research/preregistrations/SPL-1.md (threshold 0.08)` | see research/preregistrations/SPL-1.md | 6378 | -0.015 | -5.21 (3.00) | -0.019 | — | 1 | **REJECTED** | beats_market, beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_day |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| SPL-1@0.15 | BUY | events | `see research/preregistrations/SPL-1.md (threshold 0.15)` | see research/preregistrations/SPL-1.md | 1099 | -0.024 | -4.65 (3.00) | -0.029 | — | 1 | **REJECTED** | beats_leverage_led_rallies, beats_market, beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_day |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | SQZ-1@0.0003 | BUY | events | `see research/preregistrations/SQZ-1.md (threshold 0.0003)` | see research/preregistrations/SQZ-1.md | 1248 | -0.015 | -1.95 (3.00) | -0.018 | — | 1 | **REJECTED** | beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_year |
 | ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | SQZ-1@0.0005 | BUY | events | `see research/preregistrations/SQZ-1.md (threshold 0.0005)` | see research/preregistrations/SQZ-1.md | 653 | -0.003 | -0.29 (3.00) | -0.006 | — | 1 | **REJECTED** | beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin |

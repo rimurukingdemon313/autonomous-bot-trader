@@ -12,7 +12,7 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| 1 | Spot-led rallies (registered 2026-11-16 as SPL-1) | A rise spot buyers led, with no perpetual premium, is unlevered demand that need not be unwound | spot, long only | pumps of thin coins reverse within hours; momentum families failed here |
+| — | none ranked (2026-11-16, after SPL-1 FAILED) | — | — | the next cycle invents from first principles |
 
 Rejected before testing so far (with their reasons, in `research/inventions.jsonl`): on 2026-11-15, TRND-1's rule on
 bitcoin and ether CFDs (time-series momentum failed on them in XTS-1, and the designer knows their unread path),
@@ -24,4 +24,4 @@ spot-listing demand, coin-margined hedgers' pressure, quarterly delivery roll, w
 the dead-zone transfer, strike pinning by 0DTE options (an independent 2026 study of 2,294 S&P 500 days found
 none), and the TRND-1 rule on metals, oil and crypto ETFs (DIV-1 already failed on those funds in 2008-2021).
 
-Judged so far by the edge hunt: EXF-1, SQZ-1, CASC-1 and BAS-1, all FAILED. Their common finding: a coin under leverage stress of either sign underperforms the market for days to weeks; the information is on the short side, which the Islamic condition excludes for altcoins. A minimum counted in weeks that hold an entry must be checked against the signal's frequency, not only against calendar weeks (BAS-1's two higher thresholds could not reach theirs).
+Judged so far by the edge hunt: EXF-1, SQZ-1, CASC-1, BAS-1 and SPL-1, all FAILED (SPL-1: large four-hour rallies reversed within a day, whoever led them). Their common finding: a coin under leverage stress of either sign underperforms the market for days to weeks; the information is on the short side, which the Islamic condition excludes for altcoins. A minimum counted in weeks that hold an entry must be checked against the signal's frequency, not only against calendar weeks (BAS-1's two higher thresholds could not reach theirs).
