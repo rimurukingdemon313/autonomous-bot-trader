@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-16 18:19 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-16 17:34 UTC · decision system `dual_ai`
+Updated 2026-11-16 18:34 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-16 17:34 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,348.96، الربح أو الخسارة $-651.04، صفقات مسكّرة 3 ($-651.04)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,933.98.
-- آخر قرار: USDCAD لا صفقة (اختلفوا).
+- آخر قرار: USDCHF لا صفقة (TRADER2_UNAVAILABLE).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 8، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف $8.17 من $95.00.
 - آلة الزمن لآخر اتفاق (AUDUSD، 10000 إعادة): الهدف أول 46%، الستوب أول 54%، ولا واحد 0%: قريب من التعادل.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
@@ -72,8 +72,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:00 EURJPY BUY: AI DECISION → RISK REJECTED — reward_risk: 1.19 vs minimum 1.2; currency_conflict: BUY EURJPY would bet against an open position: EURUSD SELL is short EUR
 
-## Latest decisions, NO TRADE included (6828 so far)
+## Latest decisions, NO TRADE included (6829 so far)
 
+- 11-16 18:19 USDCHF NO_TRADE: Trader 2's model gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): nobody stands in for it, and there is no decision on one trader alone
 - 11-16 18:15 USDCAD NO_TRADE: the traders disagree (Trader 1 BUY 50, Trader 2 SELL 65): no trade unless both choose the same side; the debate (particle-ai/particle-1:free) would have chosen SELL: followed forward in shadow, not tr
 - 11-16 18:03 AUDUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 62, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-16 18:00 USDJPY NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 58): no trade unless both are that sure; followed forward in shadow, not traded
@@ -85,7 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-16 17:00 USDCHF NO_TRADE: risk engine: news (High-impact release USD Fed Chairman Warsh Speaks 1 min ago: no new position from 30 min before to 30 min after): the model was not consulted
 - 11-16 17:00 USDCAD NO_TRADE: risk engine: news (High-impact release USD Fed Chairman Warsh Speaks 1 min ago: no new position from 30 min before to 30 min after): the model was not consulted
 - 11-16 16:45 AUDUSD NO_TRADE: risk engine: news (High-impact release USD Fed Chairman Warsh Speaks in 14 min: no new position from 30 min before to 30 min after): the model was not consulted
-- 11-16 16:45 USDJPY NO_TRADE: risk engine: news (High-impact release USD Fed Chairman Warsh Speaks in 14 min: no new position from 30 min before to 30 min after): the model was not consulted
 
 ## Open paper positions
 
@@ -119,7 +119,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `dots-studio/dots-3-note-preview:free` · debate `particle-ai/particle-1:free` · calls today 16/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `inclusionai/ling-3.2-flash:free` · debate `particle-ai/particle-1:free` · calls today 19/900
 
 Paid trial `senior-2026-11-04` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $8.17 of $95.00, today $0.33 of $7.50 (the key's own reading)
 
@@ -139,6 +139,7 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-16 18:19 | USDCHF | SELL 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-16 18:15 | USDCAD | BUY 50 | SELL 65 | SELL | -  | DISAGREE | NO_TRADE | - | - |
 | 11-16 18:03 | AUDUSD | SELL 62 | SELL 60 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 46% / S 54% / - 0%: close to break-even |
 | 11-16 18:00 | USDJPY | SELL 58 | SELL 58 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 44% / S 56% / - 0%: leans toward the target |
@@ -150,7 +151,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-16 17:00 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-16 17:00 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-16 16:45 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-16 16:45 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
