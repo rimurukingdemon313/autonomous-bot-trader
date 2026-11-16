@@ -301,6 +301,15 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | Buying spot-led falls in large coins | +0.51% gross is 2.5 round trips at best: the cost gate |
 | Shorting altcoin CFDs on the short-side findings | Not among the owner's stated instruments; ten coins have no power on the unread window |
 
+**Checked on 2026-11-16, 07:50 UTC, and dropped before building.** Each is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| Shorting BTC and ETH CFDs after forced deleveraging | LIQ-1's own events: bitcoin +0.05% (t 0.07) over the next day; no continuation to sell |
+| FADE-1: volatility-scaled rally fades in BTC and ETH | About -0.3% a day expected against 0.6% needed |
+| OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008) | Spent in-sample by the literature; 2004-2026 gives t about 2.0 at the published strength |
+| CBP-1: the Coinbase premium and the next hours | No sign fixed by the mechanism; about 0.27% per eight hours needed against a 0.1% round trip |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
