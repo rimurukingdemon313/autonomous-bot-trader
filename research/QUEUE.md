@@ -333,6 +333,14 @@ the mission document only.
 | NE-ON-SF: the overnight premium without financing | A forward test earns about t 0.3 a year |
 | ALT-CALM: the alt basket without its post-rally coins | Its return is the alt market's; the excess needs a short |
 
+**Checked on 2026-11-16, 16:49 UTC (the edge hunt), and dropped before building.** Each is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| ETF-FLOW-1: the ETFs' creations and the next day's bitcoin | A 694-day study found a next-day correlation of 0.09 (t about 2.4 on all the history there is) |
+| SGEP-1: the Shanghai premium and London gold | Prior art with a weak result (LBMA Alchemist 83, 2005-2016); about 1.1% a month needed over 2016-2026 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
