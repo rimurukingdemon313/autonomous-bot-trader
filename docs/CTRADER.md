@@ -1,9 +1,13 @@
 # cTrader demo connection
 
-**What exists:** a connection to cTrader's Open API, used for DEMO accounts only. It comes with a probe that checks
-the account and measures its prices. **The probe places no order.**
+**What exists:**
 
-**What does not exist yet:** the trend desk does not trade a broker account. Orders, stop moves and closes are the
+- **A connection to cTrader's Open API, for DEMO accounts only.**
+- **A probe** that checks the account and measures its prices. The probe places no order.
+- **The system's broker interface on that connection** (`CTraderBroker`): orders, stop moves and closes. They go
+  through the hard risk gate's permits, exactly as on the paper broker.
+
+**What does not exist yet:** nothing runs the trend desk against a broker account. The runner that will do it is the
 next piece of work ("What comes next" below).
 
 ## Why cTrader
@@ -62,9 +66,26 @@ schema is edited without re-running it.
 The decoder keeps absence visible: a field the broker left out is absent, never `false` or `0`. A NaN or infinite
 price can never be encoded, and a misspelt field name is refused rather than silently dropped.
 
-**Writes are never retried (CLAUDE.md rule 3).** This release sends no write. When orders are built, an unanswered
-order will raise `AmbiguousExecution`, and the only recovery will be to read the account's positions and orders
-(`ProtoOAReconcileReq`).
+## The broker (`aitrader/broker/ctrader/broker.py`)
+
+`CTraderBroker` implements the system's `Broker` protocol, so the execution engine, the hard risk gate and the risk
+engine drive it exactly as they drive the paper broker. There is one write path and one source of size (CLAUDE.md
+rules 2 and 14).
+
+| | |
+|---|---|
+| **Each write needs the gate's permit** | An order, a stop move or a close is accepted only with the gate's single-use permit for exactly that write. A broker with no gate attached sends nothing. |
+| **Writes are sent once (rule 3)** | `Client.write` sends the message once and waits for its terminal execution event. An error answer carrying the write's id is a rejection. If no answer comes in time, the connection is lost, or the send fails after it began, the result is `AmbiguousExecution`. It is never sent again from anywhere. The execution engine then reads the account by client id (`label` and `clientOrderId` carry it). |
+| **Demo at every write (rule 1)** | Before a write is created, the demo check runs again from the broker's account list, and swap-free is read again from the account record. Just before sending, the host and that verdict are checked once more. A failed check refuses the write and calls `on_refusal`, which the runner will wire to the kill switch. |
+| **Orders** | A market order carries its stop as `relativeStopLoss`: cTrader takes no absolute stop on a market order. With slippage the stop is that far from the actual fill, and the next evening's stop move sets it exactly. The volume must be whole steps at or above the minimum, and the stop must be on the loss side of the live price. Otherwise nothing is sent. |
+| **Stop moves** | `ProtoOAAmendPositionSLTPReq`. The result is confirmed by reading the position. If no answer came but the broker holds the new stop, it is accepted. If the broker holds anything else, the move is ambiguous. |
+| **Closes** | The P/L is the change in the broker's own balance across the closing deal. |
+| **Stops hit while away** | Read from the closing deals with their P/L **unknown** (None). The deal reports commission and swap without a documented sign convention, and the balance before it is not in the deal. The gross profit is kept. |
+| **Equity** | The broker's balance plus its own net unrealized P/L. A balance without its `moneyDigits` is an error, never a number. |
+| **Conversion** | Another currency is converted at the broker's own listed pair (EURUSD for GER40 on a USD account). With no such pair there is no spec, so nothing is sized. |
+
+Tests: `tests/unit/test_ctrader_broker.py`, against a fake proxy that trades and through the real gate. It can be set
+to stay silent, to apply a write but lose the answer, or to refuse. Each `ctrader-broker-` mutant is killed.
 
 ## The probe (`scripts/ctrader_probe.py`, `.github/workflows/ctrader-probe.yml`)
 
@@ -109,12 +130,8 @@ session, so the exact screens were not seen.
 
 ## What comes next (not built)
 
-- **`CTraderBroker`:** the system's `Broker` protocol over this connection.
-  - A market order with its stop, waiting for the fill.
-  - An unanswered write raises `AmbiguousExecution` and is resolved only by reading the account.
-  - Stop moves (`ProtoOAAmendPositionSLTPReq`) and closes.
-  - The demo check repeated before order creation and before submission.
-  - Orders refused on an account that is not swap-free.
+- **A first round trip on the demo account:** the minimum volume of one index, opened with its stop, moved and
+  closed. It confirms the execution events and the P/L sign convention on the real server before the desk uses it.
 - **The desk acting on a real clock:** the month-end decision minutes before each exchange's close, the 6% stop moved
   each evening, and the minimal trades for a phase's first four days. This is the schedule decided on 2026-11-07
   (`docs/FUNDED_PAPER.md`), through the same risk engine and hard gate as the paper desk.

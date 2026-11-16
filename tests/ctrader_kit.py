@@ -172,3 +172,167 @@ def env(**over) -> dict:
     base = {"CTRADER_CLIENT_ID": "client-id-0001", "CTRADER_CLIENT_SECRET": "client-secret-0002",
             "CTRADER_ACCESS_TOKEN": "access-token-0003", "CTRADER_ACCOUNT_LOGIN": str(LOGIN)}
     return {k: v for k, v in {**base, **over}.items() if v is not None}
+
+
+class FakeTradingCTrader(FakeCTrader):
+    """The fake proxy with an account that trades: positions, a balance, deals, prices, and the execution events a
+    write produces. Each write can be told to answer, stay silent, apply silently (the answer is lost), or refuse."""
+
+    def __init__(self, prices=None, order_mode="fill", amend_mode="apply", close_mode="fill", commission=-3.0,
+                 **kw):
+        self.prices = dict(prices or {101: (5000.0, 5000.5)})
+        self.order_mode, self.amend_mode, self.close_mode = order_mode, amend_mode, close_mode
+        self.commission = commission  # account currency per close, as the broker reports it (signed)
+        self.balance = 200_000.0
+        self.positions: dict[int, dict] = {}
+        self.deals: list[dict] = []
+        self._ids = 7000
+        super().__init__(**kw)
+
+    def _id(self) -> int:
+        self._ids += 1
+        return self._ids
+
+    def set_price(self, sid: int, bid: float, ask: float) -> None:
+        self.prices[sid] = (bid, ask)
+        self.send("ProtoOASpotEvent", spot(sid, bid, ask) | {"timestamp": int(time.time() * 1000)})
+
+    def _trader_now(self) -> dict:
+        return {**self.trader, "balance": int(round(self.balance * 100))}
+
+    def _handle(self, name: str, f: dict, cid: str | None) -> None:
+        acct = {"ctidTraderAccountId": CTID}
+        if name == "ProtoOATraderReq" and name not in self.errors and name not in self.silent:
+            self.requests.append((name, f, cid))
+            self.send("ProtoOATraderRes", {**acct, "trader": self._trader_now()}, cid)
+        elif name == "ProtoOASubscribeSpotsReq":
+            self.requests.append((name, f, cid))
+            self.send("ProtoOASubscribeSpotsRes", {**acct, "subscribedSymbolId": f.get("symbolId", [])}, cid)
+            for sid in f.get("symbolId", []):
+                if sid in self.prices:
+                    b, a = self.prices[sid]
+                    self.send("ProtoOASpotEvent", spot(sid, b, a) | {"timestamp": int(time.time() * 1000)})
+        elif name == "ProtoOAReconcileReq":
+            self.requests.append((name, f, cid))
+            self.send("ProtoOAReconcileRes", {**acct, "position": list(self.positions.values())}, cid)
+        elif name == "ProtoOAGetPositionUnrealizedPnLReq":
+            self.requests.append((name, f, cid))
+            rows = []
+            for p in self.positions.values():
+                td = p["tradeData"]
+                bid, ask = self.prices[td["symbolId"]]
+                side = 1 if td["tradeSide"] == 1 else -1
+                exit_px = bid if side > 0 else ask
+                gross = (exit_px - p["price"]) * side * td["volume"] / 100
+                rows.append({"positionId": p["positionId"], "grossUnrealizedPnL": int(round(gross * 100)),
+                             "netUnrealizedPnL": int(round(gross * 100))})
+            self.send("ProtoOAGetPositionUnrealizedPnLRes", {**acct, "positionUnrealizedPnL": rows,
+                                                             "moneyDigits": 2}, cid)
+        elif name == "ProtoOADealListReq":
+            self.requests.append((name, f, cid))
+            self.send("ProtoOADealListRes", {**acct, "deal": self.deals, "hasMore": False}, cid)
+        elif name == "ProtoOANewOrderReq" and name not in self.errors:
+            self.requests.append((name, f, cid))
+            self._order(f, cid)
+        elif name == "ProtoOAAmendPositionSLTPReq" and name not in self.errors:
+            self.requests.append((name, f, cid))
+            self._amend(f, cid)
+        elif name == "ProtoOAClosePositionReq" and name not in self.errors:
+            self.requests.append((name, f, cid))
+            self._close(f, cid)
+        else:
+            super()._handle(name, f, cid)
+
+    def _order(self, f: dict, cid: str | None) -> None:
+        mode = self.order_mode
+        if mode == "silent":
+            return
+        order_id = self._id()
+        order = {"orderId": order_id, "tradeData": {"symbolId": f["symbolId"], "volume": f["volume"],
+                                                    "tradeSide": f["tradeSide"], "label": f.get("label")},
+                 "orderType": 1, "orderStatus": 1, "clientOrderId": f.get("clientOrderId")}
+        if mode == "reject":
+            self.send("ProtoOAExecutionEvent", {"ctidTraderAccountId": CTID, "executionType": 7,
+                                                "order": order, "errorCode": "NOT_ENOUGH_MONEY"}, cid)
+            return
+        if mode == "order_error":
+            self.send("ProtoOAOrderErrorEvent", {"ctidTraderAccountId": CTID, "errorCode": "MARKET_CLOSED"}, cid)
+            return
+        bid, ask = self.prices[f["symbolId"]]
+        side = 1 if f["tradeSide"] == 1 else -1
+        px = ask if side > 0 else bid
+        pid = self._id()
+        stop = px - side * f["relativeStopLoss"] / 1e5 if "relativeStopLoss" in f else None
+        now_ms = int(time.time() * 1000)
+        pos = {"positionId": pid, "tradeData": {"symbolId": f["symbolId"], "volume": f["volume"],
+                                                "tradeSide": f["tradeSide"], "openTimestamp": now_ms,
+                                                "label": f.get("label")},
+               "positionStatus": 1, "swap": 0, "price": px, "moneyDigits": 2}
+        if stop is not None:
+            pos["stopLoss"] = round(stop, 5)
+        self.positions[pid] = pos
+        if mode == "silent_fill":
+            return  # filled, but the answer never comes
+        deal = {"dealId": self._id(), "orderId": order_id, "positionId": pid, "volume": f["volume"],
+                "filledVolume": f["volume"], "symbolId": f["symbolId"], "createTimestamp": now_ms,
+                "executionTimestamp": now_ms, "executionPrice": px, "tradeSide": f["tradeSide"], "dealStatus": 2}
+        self.send("ProtoOAExecutionEvent", {"ctidTraderAccountId": CTID, "executionType": 2, "order": order}, cid)
+        self.send("ProtoOAExecutionEvent", {"ctidTraderAccountId": CTID, "executionType": 3, "order": order,
+                                            "position": pos, "deal": deal}, cid)
+
+    def _amend(self, f: dict, cid: str | None) -> None:
+        p = self.positions.get(f["positionId"])
+        if self.amend_mode == "silent" or p is None:
+            return
+        if self.amend_mode == "reject":
+            self.send("ProtoOAErrorRes", {"errorCode": "TRADING_BAD_STOPS", "description": "bad stop"}, cid)
+            return
+        p["stopLoss"] = f["stopLoss"]
+        if self.amend_mode == "silent_apply":
+            return
+        self.send("ProtoOAExecutionEvent", {"ctidTraderAccountId": CTID, "executionType": 4, "position": p}, cid)
+
+    def _close(self, f: dict, cid: str | None) -> None:
+        p = self.positions.get(f["positionId"])
+        if self.close_mode == "silent" or p is None:
+            return
+        td = p["tradeData"]
+        bid, ask = self.prices[td["symbolId"]]
+        side = 1 if td["tradeSide"] == 1 else -1
+        px = bid if side > 0 else ask
+        gross = (px - p["price"]) * side * td["volume"] / 100
+        self.balance += gross + self.commission
+        del self.positions[f["positionId"]]
+        now_ms = int(time.time() * 1000)
+        deal = {"dealId": self._id(), "orderId": self._id(), "positionId": p["positionId"], "volume": td["volume"],
+                "filledVolume": td["volume"], "symbolId": td["symbolId"], "createTimestamp": now_ms,
+                "executionTimestamp": now_ms, "executionPrice": px, "tradeSide": 2 if side > 0 else 1,
+                "dealStatus": 2, "label": td.get("label"),
+                "closePositionDetail": {"entryPrice": p["price"], "grossProfit": int(round(gross * 100)), "swap": 0,
+                                        "commission": int(round(self.commission * 100)),
+                                        "balance": int(round(self.balance * 100)), "moneyDigits": 2,
+                                        "closedVolume": td["volume"]}}
+        self.deals.append(deal)
+        if self.close_mode == "silent_fill":
+            return
+        order = {"orderId": deal["orderId"], "tradeData": td, "orderType": 1, "orderStatus": 2, "closingOrder": True,
+                 "positionId": p["positionId"]}
+        self.send("ProtoOAExecutionEvent", {"ctidTraderAccountId": CTID, "executionType": 3, "order": order,
+                                            "position": {**p, "positionStatus": 2}, "deal": deal}, cid)
+
+    def stop_out(self, pid: int, px: float) -> None:
+        """The broker's own stop closes a position while nobody is connected: only a deal remains."""
+        p = self.positions.pop(pid)
+        td = p["tradeData"]
+        side = 1 if td["tradeSide"] == 1 else -1
+        gross = (px - p["price"]) * side * td["volume"] / 100
+        self.balance += gross + self.commission
+        now_ms = int(time.time() * 1000)
+        self.deals.append({"dealId": self._id(), "orderId": self._id(), "positionId": pid, "volume": td["volume"],
+                           "filledVolume": td["volume"], "symbolId": td["symbolId"], "createTimestamp": now_ms,
+                           "executionTimestamp": now_ms, "executionPrice": px, "tradeSide": 2 if side > 0 else 1,
+                           "dealStatus": 2, "label": td.get("label"),
+                           "closePositionDetail": {"entryPrice": p["price"], "grossProfit": int(round(gross * 100)),
+                                                   "swap": 0, "commission": int(round(self.commission * 100)),
+                                                   "balance": int(round(self.balance * 100)), "moneyDigits": 2,
+                                                   "closedVolume": td["volume"]}})

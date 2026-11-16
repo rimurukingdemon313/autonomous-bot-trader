@@ -1,15 +1,15 @@
 """Requests and answers over the Open API connection: each request carries its own clientMsgId and is matched to the
 answer that carries it back; everything else that arrives (prices, executions) is kept as an event, never dropped.
 
-Only reads are made here. A write (an order, a stop move, a close) is never retried: if its answer does not come, its
-outcome is unknown and the only recovery is to ask the broker what exists (CLAUDE.md rule 3).
+`call` makes reads. `write` sends an order, a stop move or a close exactly once and is never retried: if its answer
+does not come, its outcome is unknown and the only recovery is to ask the broker what exists (CLAUDE.md rule 3).
 """
 
 from __future__ import annotations
 
 import time
 
-from ..base import BrokerError
+from ..base import AmbiguousExecution, BrokerError, BrokerRejected
 from . import proto as P
 
 #: what an error code means for the operator (ProtoOAErrorCode, official names)
@@ -74,11 +74,14 @@ class Client:
         self.heartbeat_if_due()
         if raw is None:
             return None
-        pt, payload, cid = P.open_envelope(raw)
-        name = P.NAME_OF.get(pt)
-        if name == "ProtoHeartbeatEvent":
-            return None
-        msg = P.decode(name, payload) if name else None
+        try:
+            pt, payload, cid = P.open_envelope(raw)
+            name = P.NAME_OF.get(pt)
+            if name == "ProtoHeartbeatEvent":
+                return None
+            msg = P.decode(name, payload) if name else None
+        except P.ProtoError as e:
+            raise ProtocolError(f"a message that cannot be read: {e}") from e
         if name in DISCONNECTS:
             reason = (msg or {}).get("reason") or ""
             self.transport.close()
@@ -126,3 +129,45 @@ class Client:
             (out if e[0] == name else keep).append(e)
         self.events = keep
         return [m or {} for _, m, _ in out]
+
+    def write(self, name: str, fields: dict, mine, terminal, timeout: float = 30.0) -> tuple[str, dict]:
+        """Send one WRITE (an order, a stop move, a close) exactly once and wait for its terminal event.
+
+        `mine(name, msg, answer_id, my_id)` says whether an arriving message concerns this write; `terminal(name, msg)`
+        returns "DONE" (returned), "REJECTED" (BrokerRejected) or None (keep waiting). An error answer carrying this
+        write's id is a rejection: the server refused it. No terminal answer in time, a lost connection, or a send that
+        failed after it began -> AmbiguousExecution: the outcome is unknown, and the only recovery is to read the
+        account (CLAUDE.md rule 3). It is never sent again from here."""
+        if self.transport.closed:
+            raise BrokerRejected(f"{name} not sent: the connection is closed")
+        self._n += 1
+        cid = f"w{self._n}"
+        try:
+            self._send(name, fields, cid)
+        except BrokerError as e:
+            raise AmbiguousExecution(f"{name}: the send failed after it began ({e}): outcome unknown, never resent")
+        deadline = self._clock() + timeout
+        while True:
+            left = deadline - self._clock()
+            if left <= 0:
+                raise AmbiguousExecution(f"{name}: no answer within {timeout:.0f} s: outcome unknown, never resent")
+            try:
+                got = self._read(min(left, self.heartbeat_every))
+            except BrokerError as e:  # the connection ended, or bytes that cannot be read
+                raise AmbiguousExecution(f"{name}: the connection ended before the answer ({e}): outcome unknown, "
+                                         "never resent")
+            if got is None:
+                continue
+            rname, msg, rcid = got
+            msg = msg or {}
+            if rcid == cid and rname in ERRORS + ("ProtoOAOrderErrorEvent",):
+                raise BrokerRejected(str(ApiError(name, msg.get("errorCode"), msg.get("description"))))
+            if mine(rname, msg, rcid, cid):
+                verdict = terminal(rname, msg)
+                if verdict == "DONE":
+                    return rname, msg
+                if verdict == "REJECTED":
+                    et = P.EXECUTION_TYPE.get(msg.get("executionType"), msg.get("executionType"))
+                    raise BrokerRejected(f"{name}: {et}" + (f" ({msg['errorCode']})" if msg.get("errorCode") else ""))
+                continue
+            self.events.append(got)
