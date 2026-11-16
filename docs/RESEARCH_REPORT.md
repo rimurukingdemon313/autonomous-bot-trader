@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و3 فحص قبل البناء رفض 18 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و4 فحص قبل البناء رفض 33 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-16 07:51 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-16 14:05 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-16, UTC)
 
@@ -21,6 +21,7 @@ Generated 2026-11-16 07:51 UTC from the committed record · research-report-1.1.
 - Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building: TRND-1's rule on bitcoin and ether CFDs; CALM-1: the long-only basket without leverage-stressed coins; US-hours clientele in bitcoin; Post-FOMC drift into gold; Bitcoin's weekend move and Monday's index session; Passive capture of the unpriced funding; Buying after a token unlock; INV-1: the natural gas storage-report premium.
 - Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building: Fading large four-hour rallies in BTC and ETH (CFD short); Altcoin froth as a signal against BTC and ETH; The rally-avoidance overlay on a spot basket; ETH against BTC after ether's rallies; Buying spot-led falls in large coins; Shorting altcoin CFDs on the short-side findings.
 - Checked on 2026-11-16, 07:50 UTC, and dropped before building: Shorting BTC and ETH CFDs after forced deleveraging; FADE-1: volatility-scaled rally fades in BTC and ETH; OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008); CBP-1: the Coinbase premium and the next hours.
+- Checked on 2026-11-16, 14:30 UTC (the owner's edge mission: `docs/EDGE_MISSION_2026-11-16.md`), and dropped: PDL-1: forced closure at a perpetual's delisting; ETF-NAV: creation pressure in the ETFs' benchmark hour; Candle-boundary orders of rule-based bots; MSTR issuance and its earnings blackouts; EMIT: emission-driven selling, long-only; PAIR-1: new fiat and stablecoin pairs; GXR-1: gold after US equity panic days; Buyback blackout windows and the US 500; Equity futures financing spread as leverage demand; Central-bank gold purchases; On-chain fee spikes; Protocol revenue and buyback yield; Leveraged-ETF rebalancing at the daily horizon; NE-ON-SF: the overnight premium without financing; ALT-CALM: the alt basket without its post-rally coins.
 
 ## Cumulative (since the registry began)
 
@@ -28,7 +29,7 @@ Generated 2026-11-16 07:51 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 94 |
 | Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 73 in the tables of 22 dated checks, on 7 days |
+| Ideas dropped before building (no test spent) | 88 in the tables of 23 dated checks, on 7 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |

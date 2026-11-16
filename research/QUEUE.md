@@ -310,6 +310,29 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008) | Spent in-sample by the literature; 2004-2026 gives t about 2.0 at the published strength |
 | CBP-1: the Coinbase premium and the next hours | No sign fixed by the mechanism; about 0.27% per eight hours needed against a 0.1% round trip |
 
+**Checked on 2026-11-16, 14:05 UTC (the owner's edge mission: `docs/EDGE_MISSION_2026-11-16.md`), and dropped
+before building.** Sixteen hypotheses were written from first principles; none passed its pre-checks. Each is in
+`research/inventions.jsonl`. PROP (the challenge fee against TRND-1's pass rate) is a business asymmetry, recorded in
+the mission document only.
+
+| Idea | Why it was dropped |
+|---|---|
+| PDL-1: forced closure at a perpetual's delisting | A probe of recorded file names: 18 settled delistings 2022-2026, about 10 a side once signed by funding |
+| ETF-NAV: creation pressure in the ETFs' benchmark hour | A closed family (fixes; hour-of-day effects) |
+| Candle-boundary orders of rule-based bots | A closed family (intraday price patterns) |
+| MSTR issuance and its earnings blackouts | About 50 blackout weeks need about 3.8% a week |
+| EMIT: emission-driven selling, long-only | 1.5-2% a month needed over about 70 months; literature unsettled |
+| PAIR-1: new fiat and stablecoin pairs | Contrary evidence: access effects front-loaded and reverted within weeks |
+| GXR-1: gold after US equity panic days | Prior art (Baur & Lucey 2010), sign not fixed, about 1.8% an event needed |
+| Buyback blackout windows and the US 500 | About t 2.0 at a plausible 3-5 bp a day |
+| Equity futures financing spread as leverage demand | A persistent signal with few episodes; noisy free data |
+| Central-bank gold purchases | About 300 lagged months |
+| On-chain fee spikes | About 100 events, two signs |
+| Protocol revenue and buyback yield | 36-60 months, few tokens |
+| Leveraged-ETF rebalancing at the daily horizon | No free history of their assets; the daily reversal was judged |
+| NE-ON-SF: the overnight premium without financing | A forward test earns about t 0.3 a year |
+| ALT-CALM: the alt basket without its post-rally coins | Its return is the alt market's; the excess needs a short |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
