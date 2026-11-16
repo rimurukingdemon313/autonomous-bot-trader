@@ -40,7 +40,7 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | 23 | SQZ-1 | Crowded shorts and the spot buyer: buy the spot of a seasoned coin whose perpetual's funding paid its longs at least theta per 8 hours over 72 hours, hold seven days, against the seasoned market | Crowded leveraged shorts are squeezed out by liquidations and stops; a spot buyer pays no funding | Heavily shorted stocks underperform; shorts may be hedges of unlocks | FAILED (2026-11-15): `research/results/SQZ-1-verdict.md` |
 | 24 | CASC-1 | Liquidation-led falls and the spot buyer: buy spot after a four-hour fall of at least 8% with the perpetual at least 0.5% below spot, hold 24 hours | Forced selling by the liquidation engine is not informed and should be bought back | Cascades continue; buying falls in crypto has lost before (LIQ-1) | FAILED (2026-11-15): `research/results/CASC-1-verdict.md` |
 | 25 | BAS-1 | High funding and the spot buyer: buy the spot of a coin whose funding paid shorts at least theta per 8 hours over 72 hours, hold seven days | Carry capital buys spot to earn high funding; trend-chasing leverage | Crowded longs crash | FAILED (2026-11-15): `research/results/BAS-1-verdict.md` |
-| 26 | HLQ-1 | Visible liquidation clusters on Hyperliquid: at a half-hourly snapshot where one side holds at least 75% of the leveraged notional liquidated 1-5% from the mark (and at least 1% of open interest), trade toward it, target and stop at its mean distance; on bitcoin and ether CFDs, swap-free, long or short | Predatory trading (Brunnermeier & Pedersen 2005) and cascades, on the one venue whose liquidation prices are public | Hyperliquid's mark is anchored to other venues' prices; a six-month forward window | BUILT (2026-11-16), forward only: the recorder runs every half hour; registered before 2026-12-01 or not at all; judged once on or after 2027-06-12 |
+| 26 | HLQ-1 | Visible liquidation clusters on Hyperliquid: at a half-hourly snapshot where one side holds at least 75% of the leveraged notional liquidated 1-5% from the mark (and at least 1% of open interest), trade toward it, target and stop at its mean distance; on bitcoin and ether CFDs, swap-free, long or short | Predatory trading (Brunnermeier & Pedersen 2005) and cascades, on the one venue whose liquidation prices are public | Hyperliquid's mark is anchored to other venues' prices; a six-month forward window | DROPPED before registration (2026-11-16): the probe found no liquidation within 5% of the mark among the 800 largest accounts; the near ones are spread over about 47,000 accounts, and Hyperliquid's mark is a median with other venues' prices, so the effect on bitcoin and ether is not plausible at t 3.0. Its recorder was stopped; nothing was registered |
 
 **Considered on 2026-11-05 and dropped before any code or data.** Before a candidate is built, its power at the
 published strength, after a retail CFD's costs, is now checked against its bar. A test that cannot pass even if the
@@ -324,10 +324,6 @@ broker, no bot change.
   to November 2029, which did not exist when the rule was chosen. It is judged once, on or after 2029-12-03
   (`research/preregistrations/TRND-F.md`), and needs nothing until then. It is recorded whatever the owner
   decides about TRND-1 as a paper strategy.
-
-- HLQ-1's RECORDER (from 2026-11-16): every half hour, the leveraged positions of Hyperliquid's 800 largest accounts,
-  kept only as liquidation levels per coin, no address (`.github/workflows/hlq1.yml`, data on `hlq-data`). The test
-  is registered before 2026-12-01, judged once on or after 2027-06-12 (row 26).
 
 - THE PERFORMANCE CYCLE (from 2026-11-15; the owner's order of 2026-11-13). Both paper systems are audited every
   three hours by `.github/workflows/perf-cycle.yml`: every figure recomputed by a second route, realized apart from

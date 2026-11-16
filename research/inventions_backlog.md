@@ -12,14 +12,14 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| 1 | Visible liquidation clusters on Hyperliquid (HLQ-1, being built 2026-11-15; forward only) | Hyperliquid publishes every position and its liquidation price: predators and cascades should carry the price to a large visible cluster more often than to an equally distant level with none | BTC or ETH CFD, swap-free, long or short (Hyperliquid data as information only) | a forward window of six months; Hyperliquid's mark price is anchored to other venues, so its clusters may be too small to move bitcoin |
+| — | none ranked (2026-11-16) | HLQ-1, the last, was dropped after its probe | — | the next cycle invents from first principles |
 
 Rejected before testing so far (with their reasons, in `research/inventions.jsonl`): on 2026-11-15, TRND-1's rule on
 bitcoin and ether CFDs (time-series momentum failed on them in XTS-1, and the designer knows their unread path),
 CALM-1 (power: t about 1.5), US-hours clientele in bitcoin (a closed family), the post-FOMC drift into gold (power),
 bitcoin's weekend move and Monday's index session (power), passive capture of the unpriced funding (perpetuals: outside
 the Islamic condition), buying after token unlocks (contradicted: the published unlock studies find the decline goes on)
-and INV-1 (power and costs); before that, liquidation-price magnets,
+INV-1 (power and costs) and, after its probe, HLQ-1 (visible liquidation clusters on Hyperliquid: none near the price among the largest accounts, and a mark anchored to other venues); before that, liquidation-price magnets,
 spot-listing demand, coin-margined hedgers' pressure, quarterly delivery roll, weekend gaps of CME-hedged holders,
 the dead-zone transfer, strike pinning by 0DTE options (an independent 2026 study of 2,294 S&P 500 days found
 none), and the TRND-1 rule on metals, oil and crypto ETFs (DIV-1 already failed on those funds in 2008-2021).
