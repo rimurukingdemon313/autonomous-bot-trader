@@ -12,14 +12,14 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| — | none ranked (2026-11-16) | HLQ-1, the last, was dropped after its probe | — | the next cycle invents from first principles |
+| 1 | Spot-led rallies (registered 2026-11-16 as SPL-1) | A rise spot buyers led, with no perpetual premium, is unlevered demand that need not be unwound | spot, long only | pumps of thin coins reverse within hours; momentum families failed here |
 
 Rejected before testing so far (with their reasons, in `research/inventions.jsonl`): on 2026-11-15, TRND-1's rule on
 bitcoin and ether CFDs (time-series momentum failed on them in XTS-1, and the designer knows their unread path),
 CALM-1 (power: t about 1.5), US-hours clientele in bitcoin (a closed family), the post-FOMC drift into gold (power),
 bitcoin's weekend move and Monday's index session (power), passive capture of the unpriced funding (perpetuals: outside
 the Islamic condition), buying after token unlocks (contradicted: the published unlock studies find the decline goes on)
-INV-1 (power and costs) and, after its probe, HLQ-1 (visible liquidation clusters on Hyperliquid: none near the price among the largest accounts, and a mark anchored to other venues); before that, liquidation-price magnets,
+INV-1 (power and costs), OPT-1 (option flow: the index-option evidence is a quarter of the size needed), REC-1 (recovery after stress: power), VCR-1 (vol-control flows are smooth), OSH-1 (Japanese margin calls: no study, few events), maker-only bitcoin at zero fees (no honest fill model) and, after its probe, HLQ-1 (visible liquidation clusters on Hyperliquid: none near the price among the largest accounts, and a mark anchored to other venues); before that, liquidation-price magnets,
 spot-listing demand, coin-margined hedgers' pressure, quarterly delivery roll, weekend gaps of CME-hedged holders,
 the dead-zone transfer, strike pinning by 0DTE options (an independent 2026 study of 2,294 S&P 500 days found
 none), and the TRND-1 rule on metals, oil and crypto ETFs (DIV-1 already failed on those funds in 2008-2021).

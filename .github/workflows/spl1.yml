@@ -1,0 +1,77 @@
+# SPL-1 (research/preregistrations/SPL-1.md): does a rally that spot buyers led keep going? Run on
+# GitHub's runner because Binance's archive is not reachable from the research director's session.
+# RESEARCH ONLY: no account, no key, no order, no model call, no paid service.
+# It reads CASC-1's hourly panel with CASC-1's frozen readers (its probe, research/results/CASC-1-probe.json).
+# - dev / validation / forward: refused by the script unless that stage is registered with this exact code and spec,
+#   the stage before it PASSED and (forward) its archive is whole. Each fetches only the months its stage needs, never
+#   a bar past its last exit, judges once and records the verdict. The instrument is spot, bought outright; the
+#   perpetual's price is information only.
+# The study's records go to main (those paths only); its data go to the spl-data branch.
+name: SPL-1 (spot-led rallies and the spot buyer, research only)
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "dev, validation or forward"
+        required: true
+        default: "dev"
+permissions:
+  contents: write
+concurrency:
+  group: spl1
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      COMMAND: ${{ github.event.inputs.command }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the study's data from spl-data
+        run: |
+          git config user.name "spl1"; git config user.email "spl1@users.noreply.github.com"
+          if git fetch -q origin spl-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan spl-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+      - name: Run
+        run: |
+          case "$COMMAND" in
+            dev|validation) python scripts/spl1.py run "$COMMAND" --data pub/data ;;
+            forward) python scripts/exf1.py probe --no-funding --out research/results/SPL-1-F-perps.json &&
+                     python scripts/sqz1.py probe --perps research/results/SPL-1-F-perps.json --out research/results/SPL-1-F-coins.json &&
+                     python scripts/casc1.py probe --coins research/results/SPL-1-F-coins.json --out research/results/SPL-1-F-probe.json &&
+                     python scripts/spl1.py run forward --data pub/data --probe research/results/SPL-1-F-probe.json ;;
+            *) echo "unknown command: $COMMAND"; exit 2 ;;
+          esac
+      - name: Commit the study's records to main
+        if: always()
+        run: |
+          for p in 'research/results/SPL-1*-probe.json' 'research/results/SPL-1*-perps.json' 'research/results/SPL-1*-coins.json' 'research/knowledge/SPL-1*.json' research/registry.jsonl; do
+            git add -- "$p" 2>/dev/null || true
+          done
+          if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi
+          git commit -qm "SPL-1 $COMMAND $(date -u +%Y-%m-%dT%H:%MZ): the study's records"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:refs/heads/main && exit 0
+            git fetch -q origin main && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
+            sleep $((i * 15))
+          done
+          exit 1
+      - name: Publish the data to spl-data
+        if: always()
+        run: |
+          cd pub
+          git add -A .
+          git commit -qm "SPL-1 data $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/spl-data && exit 0; sleep $((i * 20)); done
+          exit 1

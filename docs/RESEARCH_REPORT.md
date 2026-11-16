@@ -2,15 +2,15 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 93 فرضية مسجلة، 71 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 71 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-16 02:23 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-16 04:19 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-16, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- none
+- **SPL-1**: SPL-1: spot-led rallies and the spot buyer, dev stage. A seasoned coin whose spot rose at least X in four hours while its perpetual never closed more than 0.25% above spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the market, than the same coin at hours it had not risen, and than rallies its perpetual led. (`research/preregistrations/SPL-1.md`, 2 tests counted)
 
 **Verdicts recorded** (each judged once):
 
@@ -24,7 +24,7 @@ Generated 2026-11-16 02:23 UTC from the committed record · research-report-1.1.
 
 | | |
 |---|---|
-| Hypotheses registered | 93 |
+| Hypotheses registered | 94 |
 | Verdicts | 83: ABANDONED 2, FAILED 71, INCONCLUSIVE 1, PASSED 9 |
 | Ideas dropped before building (no test spent) | 63 in the tables of 20 dated checks, on 7 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 147, UNCERTAIN 4, VALIDATED 1 |
@@ -53,7 +53,7 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 - RADAR-1 (registered 2026-10-07; data to 2027-02-15): RADAR-1: live cross-venue funding radar, paper forward test
 - TRND-F (registered 2026-11-06; data to 2029-12-01): TRND-F: TRND-1's rule forward, 2026-12..2029-11
 
-Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only).
+Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only); SPL-1 (due).
 
 ## The bar each market's next test must clear
 
@@ -80,6 +80,7 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | equity-index-forward | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-monthly | 3 | 0 | 2.498 | 2 | 3.000 |
 | crypto-spot-liquidation-falls | 2 | 0 | 2.394 | 2 | 3.000 |
+| crypto-spot-spot-led-rallies | 2 | 0 | 2.394 | 2 | 3.000 |
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |
 | us-treasury-daily | 2 | 0 | 2.394 | 0 | 3.000 |
 | us-vol-etp | 2 | 0 | 2.394 | 2 | 3.000 |

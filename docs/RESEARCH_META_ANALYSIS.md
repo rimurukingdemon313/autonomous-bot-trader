@@ -2,11 +2,11 @@
 
 **RESEARCH ONLY · NOTHING HERE IS A PROFIT CLAIM.** Written by `scripts/research_meta.py` from the committed record alone: the registry, the edge registry and the discovery lab's ledger of classed rules. No market data is read, so nothing is looked at that was not already looked at, and no test is charged. It describes the record; it validates nothing.
 
-Generated 2026-11-16 02:23 UTC · meta-1.0.0
+Generated 2026-11-16 04:19 UTC · meta-1.0.0
 
 ## 1. What was read
 
-- 93 registered hypotheses with 1,917 counted tests; 83 verdicts: 71 FAILED, 10 PENDING, 9 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
+- 94 registered hypotheses with 1,919 counted tests; 83 verdicts: 71 FAILED, 11 PENDING, 9 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
 - 156 judged trading edges: 147 REJECTED, 4 PROMISING, 4 UNCERTAIN, 1 VALIDATED.
 - 660 rules found in data by the discovery lab and classed, each kept with its reason: 235 NEGATIVE_EXPECTANCY, 159 OVERFIT, 148 INSUFFICIENT_POWER, 58 INSUFFICIENT_DATA, 42 DUPLICATE, 18 REPEATS_CLOSED_FAMILY.
 
@@ -36,6 +36,7 @@ Generated 2026-11-16 02:23 UTC · meta-1.0.0
 | `us-vol-etp` | 1 | 2 | 1 | 0 | 0 |
 | `us-treasury-daily` | 2 | 2 | 2 | 0 | 0 |
 | `crypto-spot-liquidation-falls` | 1 | 2 | 1 | 0 | 0 |
+| `crypto-spot-spot-led-rallies` | 1 | 2 | 0 | 0 | 1 |
 | `metals-futures-daily` | 1 | 1 | 1 | 0 | 0 |
 | `em-fx-daily` | 1 | 1 | 1 | 0 | 0 |
 | `equity-index-daily` | 1 | 1 | 1 | 0 | 0 |
@@ -43,7 +44,7 @@ Generated 2026-11-16 02:23 UTC · meta-1.0.0
 
 A PASSED line is a stage, not an edge: RV-1, DIV-2, DIV-2-H, RC-EQ2-H, CR-1, CR-4, CR-5, TRND-1, TRND-1-H. The edge registry below says which of them is a validated edge: TRND-1.
 
-Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, archive-smc-utc-rerun, archive-edge-program-8, TOM-D, TOM-F, RADAR-1, TRND-F.
+Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, archive-smc-utc-rerun, archive-edge-program-8, TOM-D, TOM-F, RADAR-1, TRND-F, SPL-1.
 
 ## 3. Why the judged edges failed
 
