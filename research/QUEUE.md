@@ -40,6 +40,7 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | 23 | SQZ-1 | Crowded shorts and the spot buyer: buy the spot of a seasoned coin whose perpetual's funding paid its longs at least theta per 8 hours over 72 hours, hold seven days, against the seasoned market | Crowded leveraged shorts are squeezed out by liquidations and stops; a spot buyer pays no funding | Heavily shorted stocks underperform; shorts may be hedges of unlocks | FAILED (2026-11-15): `research/results/SQZ-1-verdict.md` |
 | 24 | CASC-1 | Liquidation-led falls and the spot buyer: buy spot after a four-hour fall of at least 8% with the perpetual at least 0.5% below spot, hold 24 hours | Forced selling by the liquidation engine is not informed and should be bought back | Cascades continue; buying falls in crypto has lost before (LIQ-1) | FAILED (2026-11-15): `research/results/CASC-1-verdict.md` |
 | 25 | BAS-1 | High funding and the spot buyer: buy the spot of a coin whose funding paid shorts at least theta per 8 hours over 72 hours, hold seven days | Carry capital buys spot to earn high funding; trend-chasing leverage | Crowded longs crash | FAILED (2026-11-15): `research/results/BAS-1-verdict.md` |
+| 26 | HLQ-1 | Visible liquidation clusters on Hyperliquid: at a half-hourly snapshot where one side holds at least 75% of the leveraged notional liquidated 1-5% from the mark (and at least 1% of open interest), trade toward it, target and stop at its mean distance; on bitcoin and ether CFDs, swap-free, long or short | Predatory trading (Brunnermeier & Pedersen 2005) and cascades, on the one venue whose liquidation prices are public | Hyperliquid's mark is anchored to other venues' prices; a six-month forward window | BUILT (2026-11-16), forward only: the recorder runs every half hour; registered before 2026-12-01 or not at all; judged once on or after 2027-06-12 |
 
 **Considered on 2026-11-05 and dropped before any code or data.** Before a candidate is built, its power at the
 published strength, after a retail CFD's costs, is now checked against its bar. A test that cannot pass even if the
@@ -274,6 +275,20 @@ The FX reports had closed FX first (`docs/FX_MISSION_REPORT.md`, `docs/FX_TARGET
 | FCI-1: holding the indices only while financial conditions are easy (NFCI) | A crash filter: six to eight crises in any sample, no power, as with the crash filters dropped on 2026-11-06 |
 | EVT-1: drift in natural gas after the weekly storage report | The reaction is immediate and does not revert (Halova et al. 2014), or partly reverses the next week (Ederington et al.). The announcement-day premium is kept as INV-1, for a power check |
 
+**Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building.** Each is in
+`research/inventions.jsonl` with its reason in full.
+
+| Idea | Why it was dropped |
+|---|---|
+| TRND-1's rule on bitcoin and ether CFDs | Time-series momentum already failed on them (XTS-1, 2018-2024); the unread 2024-07..2026-10 is 28 months whose path the designer knows; t 3.0 there needs more than 11% a month |
+| CALM-1: the long-only basket without leverage-stressed coins | Power: about +0.18% a week in the weeks stress occurs, t about 1.5 over the fresh window |
+| US-hours clientele in bitcoin | A session effect: a closed family |
+| Post-FOMC drift into gold | About 143 meetings: t 3.0 needs 0.8% a meeting, the mechanism gives 0.3-0.5% |
+| Bitcoin's weekend move and Monday's index session | About 350 Mondays: it needs a continuation of 0.17% a Monday after the Sunday open |
+| Passive capture of the unpriced funding | It holds perpetuals across a payment: outside the Islamic condition |
+| Buying after a token unlock | The published unlock studies (Keyrock, Tokenomist; search results only) find the decline continues after the unlock; the schedules are paid data |
+| INV-1: the natural gas storage-report premium | Power and costs: about 0.1% a report day against 0.53% needed over the unread years, and a CFD's round trip would take it |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
@@ -309,6 +324,10 @@ broker, no bot change.
   to November 2029, which did not exist when the rule was chosen. It is judged once, on or after 2029-12-03
   (`research/preregistrations/TRND-F.md`), and needs nothing until then. It is recorded whatever the owner
   decides about TRND-1 as a paper strategy.
+
+- HLQ-1's RECORDER (from 2026-11-16): every half hour, the leveraged positions of Hyperliquid's 800 largest accounts,
+  kept only as liquidation levels per coin, no address (`.github/workflows/hlq1.yml`, data on `hlq-data`). The test
+  is registered before 2026-12-01, judged once on or after 2027-06-12 (row 26).
 
 - THE PERFORMANCE CYCLE (from 2026-11-15; the owner's order of 2026-11-13). Both paper systems are audited every
   three hours by `.github/workflows/perf-cycle.yml`: every figure recomputed by a second route, realized apart from

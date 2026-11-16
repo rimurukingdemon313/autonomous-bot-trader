@@ -2,10 +2,41 @@
  "classification": {
   "counts": {
    "PROMISING": 4,
-   "REJECTED": 138,
+   "REJECTED": 147,
+   "UNCERTAIN": 4,
    "VALIDATED": 1
   },
   "standing": [
+   {
+    "edge_id": "BAS-1@0.0005",
+    "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R",
+    "out_of_sample_expectancy": null,
+    "program": "BAS-1",
+    "source": "research/knowledge/BAS-1.json",
+    "status": "UNCERTAIN",
+    "t_required": 3.0,
+    "t_stat": -0.633
+   },
+   {
+    "edge_id": "BAS-1@0.001",
+    "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R",
+    "out_of_sample_expectancy": null,
+    "program": "BAS-1",
+    "source": "research/knowledge/BAS-1.json",
+    "status": "UNCERTAIN",
+    "t_required": 3.0,
+    "t_stat": -0.215
+   },
+   {
+    "edge_id": "CASC-1@0.15",
+    "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R",
+    "out_of_sample_expectancy": null,
+    "program": "CASC-1",
+    "source": "research/knowledge/CASC-1.json",
+    "status": "UNCERTAIN",
+    "t_required": 3.0,
+    "t_stat": -0.277
+   },
    {
     "edge_id": "DAY-1",
     "note": "single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.482 on its `days` against 3.388. Not validated: evidence for a fresh preregistered test on new data",
@@ -35,6 +66,16 @@
     "status": "PROMISING",
     "t_required": 3.0,
     "t_stat": 2.24
+   },
+   {
+    "edge_id": "SQZ-1@0.001",
+    "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R",
+    "out_of_sample_expectancy": null,
+    "program": "SQZ-1",
+    "source": "research/knowledge/SQZ-1.json",
+    "status": "UNCERTAIN",
+    "t_required": 3.0,
+    "t_stat": 0.068
    },
    {
     "edge_id": "TME-1",
@@ -275,9 +316,9 @@
    "INCONCLUSIVE": 1,
    "PASSED": 9
   },
-  "drop_checks": 19,
-  "drop_days": 6,
-  "dropped_before_building": 55,
+  "drop_checks": 20,
+  "drop_days": 7,
+  "dropped_before_building": 63,
   "evidence_changed": [],
   "evidence_checked": 63,
   "evidence_unchanged": 63,
@@ -357,9 +398,9 @@
   "trials": 93,
   "verdicts": 83
  },
- "day": "2026-11-15",
+ "day": "2026-11-16",
  "engine": null,
- "generated": "2026-11-15T22:53:52.226229+00:00",
+ "generated": "2026-11-16T01:54:51.280650+00:00",
  "recent_verdicts": [
   {
    "evidence": {
@@ -675,207 +716,24 @@
   "universe": "fx-majors"
  },
  "today": {
-  "dropped_before_building": [],
-  "registered": [
+  "dropped_before_building": [
    {
-    "hypothesis": "A perpetual entered short at the close of its first full day and held 30 days, hedged with an equal-weight long basket of perpetuals listed 181 to 365 days earlier, earns a positive return after funding and 15 bp a fill on both legs, averaged over monthly cohorts of entries.",
-    "id": "NEWL-1",
-    "preregistration": "research/preregistrations/NEWL-1.md",
-    "tests": 1,
-    "title": "NEWL-1: newly listed Binance perpetuals against seasoned listings, history stage",
-    "uses": [
-     {
-      "end": "2026-11-01",
-      "role": "judge",
-      "start": "2021-01-01",
-      "universe": "crypto-perp-new-listings"
-     }
-    ]
-   },
-   {
-    "hypothesis": "Across a funding settlement, a perpetual's premium over its index moves by less than the funding paid, so that the side the previous rate says receives the funding, held from five minutes before the settlement to five minutes after, earns a positive return after two fills of 10 bp, averaged over weekly cohorts; nothing comparable is earned at the same distance from no settlement.",
-    "id": "EXF-1",
-    "preregistration": "research/preregistrations/EXF-1.md",
-    "tests": 4,
-    "title": "EXF-1: the ex-funding pass-through of perpetual futures, dev stage",
-    "uses": [
-     {
-      "end": "2024-01-01",
-      "role": "judge",
-      "start": "2021-01-01",
-      "universe": "crypto-perp-funding-settlements"
-     }
-    ]
-   },
-   {
-    "hypothesis": "A coin whose USDT-M perpetual paid its longs at least theta per 8 hours over the last 72 hours (crowded shorts), bought on spot and held seven days, beats the equal-weight spot return of every seasoned coin over the same days after 0.15% a side, averaged over weekly cohorts.",
-    "id": "SQZ-1",
-    "preregistration": "research/preregistrations/SQZ-1.md",
-    "tests": 3,
-    "title": "SQZ-1: crowded shorts and the spot buyer, dev stage",
-    "uses": [
-     {
-      "end": "2023-07-01",
-      "role": "judge",
-      "start": "2021-01-01",
-      "universe": "crypto-spot-crowded-shorts"
-     }
-    ]
-   },
-   {
-    "hypothesis": "A seasoned coin whose spot fell at least X in four hours while its perpetual closed at least 0.5% below spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the same coin at hours it had not fallen and more than falls led by spot.",
-    "id": "CASC-1",
-    "preregistration": "research/preregistrations/CASC-1.md",
-    "tests": 2,
-    "title": "CASC-1: liquidation-led falls and the spot buyer, dev stage",
-    "uses": [
-     {
-      "end": "2025-03-01",
-      "role": "judge",
-      "start": "2023-07-01",
-      "universe": "crypto-spot-liquidation-falls"
-     }
-    ]
-   },
-   {
-    "hypothesis": "A coin whose USDT-M perpetual paid its shorts at least theta per 8 hours over the last 72 hours (high funding), bought on spot and held seven days, beats the equal-weight spot return of every seasoned coin over the same days after 0.15% a side, averaged over weekly cohorts.",
-    "id": "BAS-1",
-    "preregistration": "research/preregistrations/BAS-1.md",
-    "tests": 3,
-    "title": "BAS-1: high funding and the spot buyer, dev stage",
-    "uses": [
-     {
-      "end": "2025-03-01",
-      "role": "judge",
-      "start": "2021-01-01",
-      "universe": "crypto-spot-high-funding"
-     }
+    "date": "2026-11-16",
+    "heading": "Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building",
+    "ideas": [
+     "TRND-1's rule on bitcoin and ether CFDs",
+     "CALM-1: the long-only basket without leverage-stressed coins",
+     "US-hours clientele in bitcoin",
+     "Post-FOMC drift into gold",
+     "Bitcoin's weekend move and Monday's index session",
+     "Passive capture of the unpriced funding",
+     "Buying after a token unlock",
+     "INV-1: the natural gas storage-report premium"
     ]
    }
   ],
-  "verdicts": [
-   {
-    "evidence": {
-     "artifact": "research/knowledge/NEWL-1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/NEWL-1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "NEWL-1",
-    "result": {
-     "artifact": "research/knowledge/NEWL-1.json",
-     "events": 812,
-     "gates": {
-      "beats_random": false,
-      "costs_x2": false,
-      "halves": false,
-      "one_day_late": true,
-      "t": false,
-      "top5_removed": false,
-      "without_best_year": false
-     },
-     "mean_cohort_x": -0.0010470944646761053,
-     "months": 67,
-     "t": -0.011313903957649443,
-     "why": null
-    },
-    "status": "FAILED"
-   },
-   {
-    "evidence": {
-     "artifact": "research/knowledge/EXF-1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/EXF-1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "EXF-1",
-    "result": {
-     "artifact": "research/knowledge/EXF-1.json",
-     "chosen_threshold": null,
-     "gates": {
-      "beats_placebo": true,
-      "costs_x2": false,
-      "early_entry": false,
-      "halves": false,
-      "t": false,
-      "top5_removed": false,
-      "without_best_symbol": false,
-      "without_best_year": false
-     },
-     "mean": -0.0009992843948903995,
-     "t": -1.6112394212690695,
-     "trades": 5706,
-     "weeks": 148,
-     "why": null
-    },
-    "status": "FAILED"
-   },
-   {
-    "evidence": {
-     "artifact": "research/knowledge/SQZ-1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/SQZ-1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "SQZ-1",
-    "result": {
-     "artifact": "research/knowledge/SQZ-1.json",
-     "chosen_threshold": null,
-     "gates": null,
-     "mean_excess": 0.0013948233349361555,
-     "t": 0.06751287385190977,
-     "traded": 260,
-     "weeks": 85,
-     "why": "260 entries in 85 weeks: 300 and 52 are needed"
-    },
-    "status": "FAILED"
-   },
-   {
-    "evidence": {
-     "artifact": "research/knowledge/CASC-1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/CASC-1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "CASC-1",
-    "result": {
-     "artifact": "research/knowledge/CASC-1.json",
-     "chosen_drop": null,
-     "days": 54,
-     "gates": null,
-     "mean_net": -0.007337169494454199,
-     "t": -0.2767235138571872,
-     "traded": 73,
-     "why": "73 entries on 54 days: 150 and 40 are needed"
-    },
-    "status": "FAILED"
-   },
-   {
-    "evidence": {
-     "artifact": "research/knowledge/BAS-1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/BAS-1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "BAS-1",
-    "result": {
-     "artifact": "research/knowledge/BAS-1.json",
-     "chosen_threshold": null,
-     "gates": null,
-     "mean_excess": -0.005095992046711422,
-     "t": -0.21530412774627006,
-     "traded": 419,
-     "weeks": 23,
-     "why": "419 entries in 23 weeks: 300 and 52 are needed"
-    },
-    "status": "FAILED"
-   }
-  ]
+  "registered": [],
+  "verdicts": []
  },
  "version": "research-report-1.1.0"
 }

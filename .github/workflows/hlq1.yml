@@ -1,0 +1,81 @@
+# HLQ-1 (research/preregistrations/HLQ-1.md): is the price drawn to the leveraged positions everyone can see?
+# Run on GitHub's runner because Hyperliquid's API and Binance's archive are not reachable from the research
+# director's session. RESEARCH ONLY: no account, no key, no order, no model call, no paid service.
+# - record (every half hour): one snapshot of Hyperliquid's largest accounts, kept only as aggregated liquidation
+#   levels per coin (no address is written), to the hlq-data branch.
+# - probe: counts of what can be read, to research/results/HLQ-1-probe.json.
+# - forward: refused by the script unless HLQ-1 is registered with this exact code and spec and its window's
+#   archive is whole; judges once and records the verdict.
+name: HLQ-1 (visible liquidation clusters, research only)
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "record, probe or forward"
+        required: true
+        default: "record"
+permissions:
+  contents: write
+concurrency:
+  group: hlq1
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      COMMAND: ${{ github.event.inputs.command || 'record' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore the study's data from hlq-data
+        run: |
+          git config user.name "hlq1"; git config user.email "hlq1@users.noreply.github.com"
+          if git fetch -q origin hlq-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan hlq-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+      - name: Run
+        run: |
+          case "$COMMAND" in
+            record) timeout 900 python scripts/hlq1.py record --out pub/hlq ;;
+            probe) python scripts/hlq1.py probe ;;
+            forward) python scripts/hlq1.py run forward --data pub/data --out pub/hlq ;;
+            *) echo "unknown command: $COMMAND"; exit 2 ;;
+          esac
+      - name: Commit the study's records to main
+        if: always() && env.COMMAND != 'record'
+        run: |
+          for p in research/results/HLQ-1-probe.json research/knowledge/HLQ-1.json research/registry.jsonl; do
+            git add -- "$p" 2>/dev/null || true
+          done
+          if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi
+          git commit -qm "HLQ-1 $COMMAND $(date -u +%Y-%m-%dT%H:%MZ): the study's records"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:refs/heads/main && exit 0
+            git fetch -q origin main && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
+            sleep $((i * 15))
+          done
+          exit 1
+      - name: Publish the data to hlq-data
+        if: always() && env.COMMAND != 'probe'
+        run: |
+          cd pub
+          git add -A .
+          git commit -qm "HLQ-1 $COMMAND $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:refs/heads/hlq-data && exit 0
+            git fetch -q origin hlq-data && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
+            sleep $((i * 10))
+          done
+          exit 1

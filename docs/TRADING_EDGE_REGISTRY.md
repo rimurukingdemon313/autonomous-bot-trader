@@ -19,12 +19,14 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 138 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 147 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
 | Program | Verdict | Screened | Judged | Validated | Threshold t |
 |---|---|---|---|---|---|
+| BAS-1 | FAILED | — | 3 | 0 | 3.000 |
+| CASC-1 | FAILED | — | 2 | 0 | 3.000 |
 | COT-1 | FAILED | — | 11 | 0 | 3.414 |
 | CP-001 | FAILED | — | 4 | 0 | 3.180 |
 | DAY-1 | FAILED | — | 1 | 0 | 3.388 |
@@ -34,6 +36,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | DP-002 | FAILED | 966 | 0 | 0 | 3.144 |
 | EMC-1 | FAILED | — | 1 | 0 | 3.000 |
 | ENG-1 | FAILED | — | 1 | 0 | 3.000 |
+| EXF-1 | FAILED | — | 4 | 0 | 3.000 |
 | FLOW-1 | FAILED | — | 4 | 0 | 3.430 |
 | FND-1A | FAILED | — | 1 | 0 | 3.134 |
 | FOMC-1A | FAILED | — | 1 | 0 | 3.163 |
@@ -43,6 +46,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
 | ID-2 | FAILED | — | 30 | 0 | 3.552 |
 | LVOL-1 | FAILED | — | 1 | 0 | 3.154 |
+| NEWL-1 | FAILED | — | 1 | 0 | 3.000 |
 | PHD-1 | FAILED | — | 1 | 0 | 3.144 |
 | QT-1 | FAILED | — | 5 | 0 | 3.566 |
 | QT-2 | FAILED | — | 1 | 0 | 3.568 |
@@ -60,6 +64,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | SEC-1 | FAILED | — | 1 | 0 | 3.124 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
+| SQZ-1 | FAILED | — | 3 | 0 | 3.000 |
 | TME-1 | FAILED | — | 1 | 0 | 3.078 |
 | TRND-1 | PASSED | — | 1 | 1 | 3.376 |
 | TSY-1 | FAILED | — | 1 | 0 | 3.065 |
@@ -100,8 +105,18 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.153 | | | | | | | | | |
 | B6-SESSION-OPEN | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 4565 | -0.165 | -6.49 (3.48) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t -0.495 | | | | | | | | | |
+| BAS-1@0.0003 | BUY | events | `see research/preregistrations/BAS-1.md (threshold 0.0003)` | see research/preregistrations/BAS-1.md | 3372 | -0.010 | -2.24 (3.00) | -0.013 | — | 1 | **REJECTED** | beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_year |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| BAS-1@0.0005 | BUY | events | `see research/preregistrations/BAS-1.md (threshold 0.0005)` | see research/preregistrations/BAS-1.md | 1771 | -0.005 | -0.63 (3.00) | — | — | 1 | **UNCERTAIN** | inconclusive: 1771 entries in 50 weeks: 300 and 52 are needed |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| BAS-1@0.001 | BUY | events | `see research/preregistrations/BAS-1.md (threshold 0.001)` | see research/preregistrations/BAS-1.md | 419 | -0.005 | -0.21 (3.00) | — | — | 1 | **UNCERTAIN** | inconclusive: 419 entries in 23 weeks: 300 and 52 are needed |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | C1-USD-LAG | BOTH | M5 | `see research/preregistrations/ID-1.md` | stop / target / time (bid/ask) | 3029 | -0.123 | -5.45 (3.48) | — | — | 1 | **REJECTED** | development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.867 | | | | | | | | | |
+| CASC-1@0.08 | BUY | events | `see research/preregistrations/CASC-1.md (threshold 0.08)` | see research/preregistrations/CASC-1.md | 326 | -0.018 | -2.07 (3.00) | -0.024 | — | 1 | **REJECTED** | beats_placebo, beats_spot_led_falls, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_day |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| CASC-1@0.15 | BUY | events | `see research/preregistrations/CASC-1.md (threshold 0.15)` | see research/preregistrations/CASC-1.md | 73 | -0.007 | -0.28 (3.00) | — | — | 1 | **UNCERTAIN** | inconclusive: 73 entries on 54 days: 150 and 40 are needed |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | COT1-C-CONT | BOTH | D1 | `rule:c_cont` | D3 | 409 | +0.017 | +0.37 (3.41) | -0.005 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, years, instruments, leave_one_out, outliers, development, top5_removed |
 | COT1-C-REV | BOTH | D1 | `rule:c_rev` | D3 | 410 | -0.081 | -1.59 (3.41) | -0.102 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
 | COT1-F-CONT | BOTH | D1 | `rule:f_cont` | D3 | 575 | -0.077 | -2.09 (3.41) | -0.101 | — | 1 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers, development, validation, incremental, top5_removed |
@@ -137,6 +152,14 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | ENG-1 | — | MN | `see research/preregistrations/ENG-1.md` | see research/preregistrations/ENG-1.md | 400 | +0.002 | +2.09 (3.00) | +0.002 | — | 1 | **REJECTED** | t, top_year, bootstrap |
 | ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R | | | | | | | | | |
+| EXF-1@0.0005 | — | events | `see research/preregistrations/EXF-1.md (threshold 0.0005)` | see research/preregistrations/EXF-1.md | 30824 | -0.001 | -7.36 (3.00) | -0.003 | — | 1 | **REJECTED** | costs_x2, early_entry, halves, t, top5_removed, without_best_symbol, without_best_year |
+| ↳ correction | | | event study (settlement_study, stage dev): expectancies are the per-entry `mean` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| EXF-1@0.001 | — | events | `see research/preregistrations/EXF-1.md (threshold 0.001)` | see research/preregistrations/EXF-1.md | 14225 | -0.001 | -3.07 (3.00) | -0.003 | — | 1 | **REJECTED** | costs_x2, early_entry, halves, t, top5_removed, without_best_symbol, without_best_year |
+| ↳ correction | | | event study (settlement_study, stage dev): expectancies are the per-entry `mean` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| EXF-1@0.002 | — | events | `see research/preregistrations/EXF-1.md (threshold 0.002)` | see research/preregistrations/EXF-1.md | 5706 | -0.001 | -1.61 (3.00) | -0.003 | — | 1 | **REJECTED** | costs_x2, early_entry, halves, t, top5_removed, without_best_symbol, without_best_year |
+| ↳ correction | | | event study (settlement_study, stage dev): expectancies are the per-entry `mean` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| EXF-1@0.005 | — | events | `see research/preregistrations/EXF-1.md (threshold 0.005)` | see research/preregistrations/EXF-1.md | 1223 | -0.002 | -2.50 (3.00) | -0.004 | — | 1 | **REJECTED** | beats_placebo, costs_x2, early_entry, halves, t, top5_removed, without_best_symbol, without_best_year |
+| ↳ correction | | | event study (settlement_study, stage dev): expectancies are the per-entry `mean` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | FLOW1-H1-GOTOBI-PRE | BUY | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | -1.328 | -1.68 (3.43) | -3.370 | — | 1 | **REJECTED** | t, development, validation, years, costs_x2, top_year, specificity |
 | ↳ correction | | | scheduled order flow: expectancies are net basis points per observation, not R | | | | | | | | | |
 | FLOW1-H2-GOTOBI-POST | SELL | M15 | `scheduled clock window (research/preregistrations/FLOW-1.md)` | fixed clock exit | 696 | +0.646 | +0.60 (3.43) | -1.163 | — | 1 | **REJECTED** | t, costs_x2, specificity |
@@ -193,6 +216,8 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.673 | | | | | | | | | |
 | M-trees-S60-tau0.10 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 1115 | -0.003 | -0.08 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 2.86 | | | | | | | | | |
+| NEWL-1 | — | events | `see research/preregistrations/NEWL-1.md` | see research/preregistrations/NEWL-1.md | 812 | -0.001 | -0.01 (3.00) | -0.007 | — | 1 | **REJECTED** | beats_random, costs_x2, halves, t, top5_removed, without_best_year |
+| ↳ correction | | | event study (event_study, stage history): expectancies are the per-entry `mean_cohort_x` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | PHD-1 | — | — | `see research/preregistrations/PHD-1.md` | see research/preregistrations/PHD-1.md | — | — | — | — | — | 1 | **REJECTED** | t, costs_x2, beats_ordinary_days, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | Q1-QUARTER-FADE | BOTH | M5 | `see research/preregistrations/QT-1.md` | stop / target / time (bid/ask) | 9787 | -0.193 | -12.44 (3.57) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
@@ -288,6 +313,12 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 0 | DISCOVERED 0
 | SL-001-05 | BUY | D1 | `range_contraction=low&r1=high` | D1 | 552 | -0.157 | -2.89 (3.25) | -0.196 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | SL-001-06 | SELL | D1 | `range_contraction=low&r1=low` | D1 | 579 | -0.056 | -1.09 (3.25) | -0.103 | — | 2 | **REJECTED** | significance, beats_random, permutation, costs_stress, delay_stress, perturbation, years, instruments, leave_one_out, regimes, outliers |
 | SL-002-01 | SELL | H1 | `session=mid` | E3 | 8901 | -0.105 | -8.02 (3.25) | -0.153 | — | 1 | **REJECTED** | significance, costs_stress, delay_stress, years, instruments, leave_one_out, regimes, outliers |
+| SQZ-1@0.0003 | BUY | events | `see research/preregistrations/SQZ-1.md (threshold 0.0003)` | see research/preregistrations/SQZ-1.md | 1248 | -0.015 | -1.95 (3.00) | -0.018 | — | 1 | **REJECTED** | beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_year |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| SQZ-1@0.0005 | BUY | events | `see research/preregistrations/SQZ-1.md (threshold 0.0005)` | see research/preregistrations/SQZ-1.md | 653 | -0.003 | -0.29 (3.00) | -0.006 | — | 1 | **REJECTED** | beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| SQZ-1@0.001 | BUY | events | `see research/preregistrations/SQZ-1.md (threshold 0.001)` | see research/preregistrations/SQZ-1.md | 260 | +0.001 | +0.07 (3.00) | — | — | 1 | **UNCERTAIN** | inconclusive: 260 entries in 85 weeks: 300 and 52 are needed |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | T1-DAILY-AMD | BOTH | M5 | `see research/preregistrations/QT-1.md` | stop / target / time (bid/ask) | 3978 | -0.113 | -4.41 (3.57) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
 | ↳ correction | | | intraday: net R per trade after costs; beats matched random by Welch t 0.99 | | | | | | | | | |
 | T2-NY-TRUE-OPEN | BOTH | M5 | `see research/preregistrations/QT-1.md` | stop / target / time (bid/ask) | 3259 | -0.164 | -5.87 (3.57) | — | — | 1 | **REJECTED** | development:beats_matched_random, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |

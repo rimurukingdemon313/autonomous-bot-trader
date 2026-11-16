@@ -2,12 +2,12 @@
 
 **RESEARCH ONLY · NOTHING HERE IS A PROFIT CLAIM.** Written by `scripts/research_meta.py` from the committed record alone: the registry, the edge registry and the discovery lab's ledger of classed rules. No market data is read, so nothing is looked at that was not already looked at, and no test is charged. It describes the record; it validates nothing.
 
-Generated 2026-11-15 22:53 UTC · meta-1.0.0
+Generated 2026-11-16 01:54 UTC · meta-1.0.0
 
 ## 1. What was read
 
 - 93 registered hypotheses with 1,917 counted tests; 83 verdicts: 71 FAILED, 10 PENDING, 9 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
-- 143 judged trading edges: 138 REJECTED, 4 PROMISING, 1 VALIDATED.
+- 156 judged trading edges: 147 REJECTED, 4 PROMISING, 4 UNCERTAIN, 1 VALIDATED.
 - 660 rules found in data by the discovery lab and classed, each kept with its reason: 235 NEGATIVE_EXPECTANCY, 159 OVERFIT, 148 INSUFFICIENT_POWER, 58 INSUFFICIENT_DATA, 42 DUPLICATE, 18 REPEATS_CLOSED_FAMILY.
 
 ## 2. The registered hypotheses, by the data they used
@@ -47,22 +47,22 @@ Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, arc
 
 ## 3. Why the judged edges failed
 
-Of 138 rejected edges, 120 have a recorded mean after costs and 89 of those are negative. 125 have a t-statistic: its median is -1.30, and 7 reached 2. 7 failed a single gate, 5 of them the bar itself.
+Of 147 rejected edges, 129 have a recorded mean after costs and 98 of those are negative. 134 have a t-statistic: its median is -1.34, and 7 reached 2. 7 failed a single gate, 5 of them the bar itself.
 
 | Gate failed | Edges |
 |---|---|
 | t_day | 52 |
 | profit_factor | 51 |
 | symbols_positive | 51 |
+| beats_random | 46 |
 | years | 46 |
+| t | 45 |
 | significance | 45 |
-| beats_random | 45 |
 | outliers | 45 |
 | net_r | 44 |
 | leave_one_out | 44 |
 | delay_stress | 40 |
 | instruments | 40 |
-| costs_stress | 39 |
 
 The gates fail together: an edge that is not there fails its t, its random baseline, its halves and its instruments at once. The exceptions are the near misses, which failed on the bar alone:
 

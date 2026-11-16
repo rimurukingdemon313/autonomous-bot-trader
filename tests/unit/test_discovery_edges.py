@@ -193,3 +193,43 @@ def test_an_artifact_without_a_list_of_judged_hypotheses_is_not_read_as_edges(tm
     committed = build(ROOT / "research")
     assert "RADX-1" not in committed["programs"] and not any(e["edge_id"].startswith("RADX") for e in committed["edges"])
     assert json.loads((ROOT / "research" / "knowledge" / "RADX-1.json").read_text())["kind"] == "diagnosis"
+
+
+def test_an_event_study_is_one_record_per_judged_threshold_and_never_validated_by_one_stage():
+    """edges-1.12.0: every threshold an event study judged was a counted test, so each is a record; too few entries
+    is UNCERTAIN, never a rejection or a pass; a failure on the bar alone with t >= 2 is a near miss."""
+    from aitrader.research.discovery.edges import from_event_study
+    g = {"t": True, "costs_x2": True, "halves": True}
+    art = {"program": "EV-1", "kind": "spot_event_study", "stage": "dev", "bar": 3.0, "verdict": "FAILED",
+           "spec": {"instrument": "spot, bought outright"},
+           "results": {"0.1": {"verdict": "FAILED", "t": -1.2, "mean_excess": -0.01, "traded": 400,
+                               "gates": {**g, "t": False, "halves": "False"}, "costs_x2_mean": -0.02},
+                       "0.2": {"verdict": "INCONCLUSIVE", "t": 0.4, "mean_excess": 0.002, "traded": 90,
+                               "why": "90 entries in 20 weeks: 300 and 52 are needed"},
+                       "0.3": {"verdict": "FAILED", "t": 2.4, "mean_excess": 0.004, "traded": 500, "gates": {**g, "t": False}},
+                       "0.4": {"verdict": "PASSED", "t": 3.4, "mean_excess": 0.006, "traded": 600, "gates": g,
+                               "by_year_sum": {"2024": 1.0}},
+                       "0.5": {"verdict": "FAILED", "t": 2.6, "mean_excess": 0.005, "traded": 500,
+                               "gates": {**g, "t": False, "halves": False}}}}
+    recs = {r.edge_id: r for r in from_event_study(art)}
+    assert set(recs) == {"EV-1@0.1", "EV-1@0.2", "EV-1@0.3", "EV-1@0.4", "EV-1@0.5"}
+    assert recs["EV-1@0.5"].status == "REJECTED"  # t 2.6 but a second gate failed: not a near miss
+    assert recs["EV-1@0.1"].status == "REJECTED" and set(recs["EV-1@0.1"].failed_checks) == {"t", "halves"}
+    assert recs["EV-1@0.2"].status == "UNCERTAIN" and "inconclusive" in recs["EV-1@0.2"].failed_checks[0]
+    assert recs["EV-1@0.3"].status == "PROMISING" and recs["EV-1@0.4"].status == "TESTING"
+    assert all(r.direction == "BUY" and r.t_required == 3.0 and r.status != "VALIDATED" for r in recs.values())
+    assert recs["EV-1@0.4"].stability == {"by_year": {"2024": 1.0}} and recs["EV-1@0.1"].cost_sensitivity == -0.02
+    one = from_event_study({"program": "EV-2", "kind": "event_study", "verdict": "FAILED", "spec": {},
+                            "result": {"verdict": "FAILED", "t": 0.1, "mean_cohort_x": -0.001, "events": 812,
+                                       "gates": {"t": False}, "bar": 3.0}})
+    assert [(r.edge_id, r.status, r.direction, r.sample_size) for r in one] == [("EV-2", "REJECTED", None, 812)]
+
+
+def test_on_the_committed_record_the_event_studies_are_judged_edges():
+    reg = build(ROOT / "research")
+    status = {e["edge_id"]: e["status"] for e in reg["edges"]}
+    assert status["NEWL-1"] == "REJECTED" and status["EXF-1@0.0005"] == "REJECTED"
+    assert status["SQZ-1@0.001"] == "UNCERTAIN" and status["CASC-1@0.08"] == "REJECTED"
+    assert {k for k in status if k.split("@")[0] in ("NEWL-1", "EXF-1", "SQZ-1", "CASC-1", "BAS-1")} and \
+        all(v != "VALIDATED" for k, v in status.items() if k.split("@")[0] in ("NEWL-1", "EXF-1", "SQZ-1", "CASC-1", "BAS-1"))
+    assert reg["programs"]["BAS-1"]["judged"] == 3 and reg["version"] == "edges-1.12.0"

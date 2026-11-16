@@ -2,31 +2,23 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 5 فرضية جديدة انسجلت، 5 انحكمت (0 نجحت)، و0 فحص قبل البناء رفض 0 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 93 فرضية مسجلة، 71 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 93 فرضية مسجلة، 71 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-15 22:53 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-16 01:54 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-15, UTC)
+## Today (2026-11-16, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **NEWL-1**: NEWL-1: newly listed Binance perpetuals against seasoned listings, history stage. A perpetual entered short at the close of its first full day and held 30 days, hedged with an equal-weight long basket of perpetuals listed 181 to 365 days earlier, earns a positive return after funding and 15 bp a fill on both legs, averaged over monthly cohorts of entries. (`research/preregistrations/NEWL-1.md`, 1 test counted)
-- **EXF-1**: EXF-1: the ex-funding pass-through of perpetual futures, dev stage. Across a funding settlement, a perpetual's premium over its index moves by less than the funding paid, so that the side the previous rate says receives the funding, held from five minutes before the settlement to five minutes after, earns a positive return after two fills of 10 bp, averaged over weekly cohorts; nothing comparable is earned at the same distance from no settlement. (`research/preregistrations/EXF-1.md`, 4 tests counted)
-- **SQZ-1**: SQZ-1: crowded shorts and the spot buyer, dev stage. A coin whose USDT-M perpetual paid its longs at least theta per 8 hours over the last 72 hours (crowded shorts), bought on spot and held seven days, beats the equal-weight spot return of every seasoned coin over the same days after 0.15% a side, averaged over weekly cohorts. (`research/preregistrations/SQZ-1.md`, 3 tests counted)
-- **CASC-1**: CASC-1: liquidation-led falls and the spot buyer, dev stage. A seasoned coin whose spot fell at least X in four hours while its perpetual closed at least 0.5% below spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the same coin at hours it had not fallen and more than falls led by spot. (`research/preregistrations/CASC-1.md`, 2 tests counted)
-- **BAS-1**: BAS-1: high funding and the spot buyer, dev stage. A coin whose USDT-M perpetual paid its shorts at least theta per 8 hours over the last 72 hours (high funding), bought on spot and held seven days, beats the equal-weight spot return of every seasoned coin over the same days after 0.15% a side, averaged over weekly cohorts. (`research/preregistrations/BAS-1.md`, 3 tests counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **NEWL-1: FAILED** (t -0.011313903957649443). Evidence: `research/knowledge/NEWL-1.json`; matches its verdict: yes
-- **EXF-1: FAILED** (t -1.6112394212690695). Evidence: `research/knowledge/EXF-1.json`; matches its verdict: yes
-- **SQZ-1: FAILED** (t 0.06751287385190977). Evidence: `research/knowledge/SQZ-1.json`; matches its verdict: yes
-- **CASC-1: FAILED** (t -0.2767235138571872). Evidence: `research/knowledge/CASC-1.json`; matches its verdict: yes
-- **BAS-1: FAILED** (t -0.21530412774627006). Evidence: `research/knowledge/BAS-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- none
+- Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building: TRND-1's rule on bitcoin and ether CFDs; CALM-1: the long-only basket without leverage-stressed coins; US-hours clientele in bitcoin; Post-FOMC drift into gold; Bitcoin's weekend move and Monday's index session; Passive capture of the unpriced funding; Buying after a token unlock; INV-1: the natural gas storage-report premium.
 
 ## Cumulative (since the registry began)
 
@@ -34,8 +26,8 @@ Generated 2026-11-15 22:53 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 93 |
 | Verdicts | 83: ABANDONED 2, FAILED 71, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 55 in the tables of 19 dated checks, on 6 days |
-| Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 138, VALIDATED 1 |
+| Ideas dropped before building (no test spent) | 63 in the tables of 20 dated checks, on 7 days |
+| Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 147, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 63 of 63 checked |
 | Specs whose hash is missing from their preregistration | none |
 
@@ -45,9 +37,13 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 
 | Edge | Status | t (bar) | Out-of-sample | The classification's note | Source |
 |---|---|---|---|---|---|
+| BAS-1@0.0005 | **UNCERTAIN** | -0.633 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/BAS-1.json` |
+| BAS-1@0.001 | **UNCERTAIN** | -0.215 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/BAS-1.json` |
+| CASC-1@0.15 | **UNCERTAIN** | -0.277 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/CASC-1.json` |
 | DAY-1 | **PROMISING** | None (3.388) | — | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.482 on its `days` against 3.388. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/DAY-1.json` |
 | FXT-1 | **PROMISING** | 2.712 (3.629) | — | single-program verdict: expectancies are monthly net returns, not R; a near miss: it failed on the bar alone, with t 2.712 on its `months` against 3.629. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/FXT-1.json` |
 | RCEQ-E1-TOM | **PROMISING** | 2.24 (3.0) | +0.16% a month | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout PROMISING_REPLICATED: 441 months, net t 2.175 | `research/knowledge/RC-EQ.json` |
+| SQZ-1@0.001 | **UNCERTAIN** | 0.068 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/SQZ-1.json` |
 | TME-1 | **PROMISING** | None (3.078) | — | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.239 on its `month_ends` against 3.078. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/TME-1.json` |
 | TRND-1 | **VALIDATED** | 3.834 (3.376) | +0.79% a month | single-program verdict: expectancies are monthly net returns, not R; holdout 69 months, net t 2.737 | `research/knowledge/TRND-1.json` |
 

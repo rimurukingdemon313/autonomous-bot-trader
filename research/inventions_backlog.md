@@ -12,13 +12,14 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| 1 | Cascade rebound on spot (registered 2026-11-15 as CASC-1) | A leveraged long cascade in a coin's perpetual drags its spot below value; spot-only buyers are paid for absorbing it | spot, long only | LIQ-1 (BTC and ETH) failed: must say what differs (the cross-section, the size of the cascade relative to spot volume) |
-| 2 | US-hours clientele in BTC, with the US-holiday control | US institutions buy in US hours; on US exchange holidays and weekends the same clock hours should show nothing | BTC CFD or spot, long only | power: BTC's volatility needs about 19 bp a day for t 3 over nine years |
-| 3 | Post-FOMC drift into gold | Treasury yields drift for days after FOMC surprises (slow-moving capital); gold, priced off real yields, should follow its own first reaction | gold CFD, long and short | about 140 meetings since 2009: power is the problem |
-| 4 | BTC's weekend move and Monday's index session | News of the weekend is priced first in crypto; equities reopen thin on Sunday night and may under-react | index CFDs, long and short | the Sunday open may price it fully; power |
-| 5 | Passive capture of the unpriced funding fraction (from EXF-1) | 8-11 bp of a moderate payment is left unpriced; a maker's fill instead of two taker fills might keep it | perpetuals: outside the Islamic condition unless the owner says otherwise | needs the archive's best bid and ask and a fill model; adverse selection |
+| 1 | Visible liquidation clusters on Hyperliquid (HLQ-1, being built 2026-11-15; forward only) | Hyperliquid publishes every position and its liquidation price: predators and cascades should carry the price to a large visible cluster more often than to an equally distant level with none | BTC or ETH CFD, swap-free, long or short (Hyperliquid data as information only) | a forward window of six months; Hyperliquid's mark price is anchored to other venues, so its clusters may be too small to move bitcoin |
 
-Rejected before testing so far (with their reasons, in `research/inventions.jsonl`): liquidation-price magnets,
+Rejected before testing so far (with their reasons, in `research/inventions.jsonl`): on 2026-11-15, TRND-1's rule on
+bitcoin and ether CFDs (time-series momentum failed on them in XTS-1, and the designer knows their unread path),
+CALM-1 (power: t about 1.5), US-hours clientele in bitcoin (a closed family), the post-FOMC drift into gold (power),
+bitcoin's weekend move and Monday's index session (power), passive capture of the unpriced funding (perpetuals: outside
+the Islamic condition), buying after token unlocks (contradicted: the published unlock studies find the decline goes on)
+and INV-1 (power and costs); before that, liquidation-price magnets,
 spot-listing demand, coin-margined hedgers' pressure, quarterly delivery roll, weekend gaps of CME-hedged holders,
 the dead-zone transfer, strike pinning by 0DTE options (an independent 2026 study of 2,294 S&P 500 days found
 none), and the TRND-1 rule on metals, oil and crypto ETFs (DIV-1 already failed on those funds in 2008-2021).

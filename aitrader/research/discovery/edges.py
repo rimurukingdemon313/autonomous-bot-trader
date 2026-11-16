@@ -37,7 +37,7 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.11.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.12.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
@@ -55,6 +55,8 @@ EDGES_VERSION = "edges-1.11.1"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0
 #                                1.11.1: an artifact is read as a set of judged hypotheses only when its `judged` IS a
 #                                list of them. RADX-1, a diagnosis of a paper ledger, records the hour it was judged
 #                                under that name and is no trading edge: it stopped the whole registry from building
+#                                1.12.0: event studies (NEWL-1, EXF-1, SQZ-1, CASC-1, BAS-1 and their kind), which no
+#                                reader recorded: one record per judged configuration, INCONCLUSIVE as UNCERTAIN
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -394,6 +396,54 @@ def _passed(x) -> bool:
     return x is True or x == "True"
 
 
+#: the artifacts of the event studies judged by their own scripts (NEWL-1, EXF-1, SQZ-1, CASC-1, BAS-1, HLQ-1)
+EVENT_KINDS = ("event_study", "settlement_study", "spot_event_study", "forward_event_study")
+#: the per-entry statistic each study was judged on, in the order looked for
+_EVENT_STAT = ("mean_excess", "mean_net", "mean_cohort_x", "mean")
+_EVENT_GROSS = ("gross_mean_excess", "gross_mean", "gross_mean_cohort_x")
+
+
+def from_event_study(art: dict) -> list[EdgeRecord]:
+    """One record per judged configuration of an event study: each threshold was a counted test. Its expectancy is
+    the per-entry statistic the study was judged on (an excess over the market or a net return, as a fraction of
+    notional, averaged over its cohorts), never R. REJECTED when it failed; PROMISING when it failed on the bar
+    alone with its own t >= 2; UNCERTAIN when it had too few entries (INCONCLUSIVE); TESTING when it passed a stage
+    whose next is not judged yet. One stage never makes an edge VALIDATED. The side is BUY only when the study
+    bought spot outright; otherwise the artifact does not say, and it is None."""
+    results = art["results"] if isinstance(art.get("results"), dict) else {"": art.get("result")}
+    side = "BUY" if str((art.get("spec") or {}).get("instrument", "")).startswith("spot") else None
+    doc = f"see research/preregistrations/{art['program']}.md"
+    out = []
+    for key, r in sorted(results.items()):
+        if not isinstance(r, dict) or r.get("verdict") not in ("PASSED", "FAILED", "INCONCLUSIVE"):
+            continue
+        stat = next((k for k in _EVENT_STAT if isinstance(r.get(k), (int, float)) and not isinstance(r.get(k), bool)), None)
+        gross = next((r[k] for k in _EVENT_GROSS if isinstance(r.get(k), (int, float)) and not isinstance(r.get(k), bool)), None)
+        t = r.get("t") if isinstance(r.get("t"), (int, float)) and not isinstance(r.get("t"), bool) else None
+        failed = tuple(g for g, v in sorted((r.get("gates") or {}).items()) if not _passed(v))
+        if r["verdict"] == "PASSED":
+            status = "TESTING"
+        elif r["verdict"] == "INCONCLUSIVE":
+            status, failed = "UNCERTAIN", (f"inconclusive: {r.get('why') or 'too few entries'}",)
+        elif failed == ("t",) and t is not None and t >= PROMISING_T:
+            status = "PROMISING"
+        else:
+            status = "REJECTED"
+        n = next((r[k] for k in ("traded", "trades", "events") if isinstance(r.get(k), int)), None)
+        by_year = r.get("by_year_sum") or r.get("by_year_sum_x")
+        out.append(EdgeRecord(
+            edge_id=art["program"] + (f"@{key}" if key else ""), program=art["program"], direction=side, instrument=(),
+            timeframe="events", market_regime=None, entry_conditions=doc + (f" (threshold {key})" if key else ""),
+            exit_conditions=doc, sample_size=n, gross_expectancy=_r(gross), net_expectancy=_r(r.get(stat)) if stat else None,
+            t_stat=_r(t, 3), t_required=_r(r.get("bar", art.get("bar")), 3), profit_factor=None, drawdown=None,
+            out_of_sample_expectancy=None, walk_forward_expectancy=None, cost_sensitivity=_r(r.get("costs_x2_mean")),
+            complexity=1, stability={"by_year": by_year} if isinstance(by_year, dict) else None, status=status,
+            failed_checks=failed, source=f"research/knowledge/{art['program']}.json",
+            note=f"event study ({art.get('kind')}, stage {art.get('stage')}): expectancies are the per-entry "
+                 f"`{stat}` averaged over its cohorts, a fraction of notional, not R"))
+    return out
+
+
 def from_intraday(art: dict) -> list[EdgeRecord]:
     """Records of an intraday program (ID-*). Expectancies are NET R PER TRADE after measured spread,
     commission, slippage and financing; gross is mid-to-mid. A hypothesis not promoted on development
@@ -515,6 +565,16 @@ def build(root: Path | str) -> dict:
         edges.append(rec)
         programs[pid] = {"verdict": art["verdict"], "judged": 1,
                          "validated": [pid] if rec.status == "VALIDATED" else [], "threshold_t": art.get("threshold_t")}
+    for p in sorted((root / "knowledge").glob("*.json")):
+        try:
+            art = json.loads(p.read_text())
+        except ValueError:
+            continue
+        if isinstance(art, dict) and art.get("kind") in EVENT_KINDS and isinstance(art.get("program"), str):
+            recs = from_event_study(art)
+            edges += recs
+            programs[art["program"]] = {"verdict": art.get("verdict"), "judged": len(recs),
+                                        "validated": [], "threshold_t": art.get("bar") or ((art.get("result") or {}).get("bar"))}
     retail: list[dict] = []
     for p in sorted((root / "knowledge").glob("*.json")):
         try:
