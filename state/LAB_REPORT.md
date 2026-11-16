@@ -4,11 +4,13 @@
 
 **بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 660 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-15 20:32 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 15
+Updated 2026-11-16 00:59 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 16
 
 ## This cycle
 
-No task ran: nothing was due, or nothing could run yet (see the queue).
+| Task | Result |
+|---|---|
+| `sources:2026-W47` | **DONE** · {"new": 35, "query": "cross-sectional cryptocurrency factors returns out-of-sample", "by_origin": {"arxiv": 10, "openalex": 25}} |
 
 **Why nothing is queued.** The lab does not invent work. As things stand:
 
@@ -23,7 +25,7 @@ No task ran: nothing was due, or nothing could run yet (see the queue).
 |---|---|---|---|---|
 | (empty) | | | | |
 
-Done so far: 7 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
+Done so far: 8 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
 
 ## Discovery scans
 
@@ -120,20 +122,20 @@ None: no rule has passed its validation. Nothing is traded, on paper or otherwis
 
 ## The research-source database
 
-85 sources on file. Each has its link, its date and a status. A source's status is UNREAD until its claim is checked: nothing is claimed about a paper from its abstract.
+120 sources on file. Each has its link, its date and a status. A source's status is UNREAD until its claim is checked: nothing is claimed about a paper from its abstract.
 
 | Published | Source | Title |
 |---|---|---|
+| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.17170v1) | Improving Algorithmic Trading for BESS on Intraday Electricity Markets through Distributional Price Forecasts |
+| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16540v1) | Dynamic Scenario-Based Portfolio Optimization for Multi-Asset ETFs |
+| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16495v1) | Verifiable Settlement and Pricing for Local Energy Markets: Architecture and Deployment on Hyperledger Besu |
+| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16484v1) | TAPES: Terminal Adjoint-Propagated Error Scheduling for Financial Diffusion Samplers |
+| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16471v1) | Accuracy Is Not Welfare: Evaluating AI Buyers under Strategic Price Complexity in a Synthetic Duopoly |
+| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15657v1) | Global Seasonality Factor Investing |
+| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15646v1) | Idiosyncratic Market Effects in Global Time Series Momentum |
+| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15619v1) | Parsimonious and Flexible Parameterizations for Realized Covariance Matrix Models |
+| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15564v1) | A high-order recombination algorithm with adaptive scale selection for weak approximation of stochastic differential equations |
 | 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.14325v1) | Point-in-Time Encoders for Earnings Calls |
-| 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.14245v1) | Deep Learning for Operator Maps in Optimal Liquidation |
-| 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.14117v1) | Fine-Tuning an Order-Flow Foundation Model for Sub-Second Forecasting |
-| 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.13962v1) | Deceleration without identification: testing a power-law trend in Bitcoin prices under persistent noise |
-| 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.13616v1) | Optimal Trading Speed on Blockchain |
-| 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.13550v1) | Tabular Foundation Models in Financial Predictions |
-| 2026-11-09 | [arxiv](http://arxiv.org/abs/2611.13365v1) | Making sense of rule 605 |
-| 2026-11-09 | [arxiv](http://arxiv.org/abs/2611.12389v1) | Diversification Across Predictors: Heterogeneous Ensemble Learning for Cross-Sectional Return Prediction |
-| 2026-11-08 | [arxiv](http://arxiv.org/abs/2611.11652v1) | Adjoint Kernel Sensitivity of the Rough Heston Characteristic Exponent |
-| 2026-11-08 | [arxiv](http://arxiv.org/abs/2611.11436v1) | Retrospective Analysis of Team-Following Trading Profitability in Pumpfun Meme Coins Using Funding Networks |
 
 ## Data on file
 
@@ -148,11 +150,11 @@ None.
 
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
-| 2026-11-14T16:35 | 0.8 | 0 | 0 |
 | 2026-11-14T20:03 | 1.0 | 0 | 0 |
 | 2026-11-15T00:59 | 0.8 | 0 | 0 |
 | 2026-11-15T11:29 | 1.0 | 0 | 0 |
 | 2026-11-15T17:03 | 1.0 | 0 | 0 |
 | 2026-11-15T20:32 | 1.0 | 0 | 0 |
+| 2026-11-16T00:59 | 4.3 | 1 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.

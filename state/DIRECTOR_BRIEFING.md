@@ -1,6 +1,6 @@
 # The research director's briefing
 
-Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-15 20:32 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
+Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-16 00:59 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
 
 ## 1. Results waiting for a review
 
@@ -66,20 +66,20 @@ The map covers one declared space only: each ranking a cross-sectional book may 
 
 ## 6. Sources
 
-85 on file; 85 are UNREAD (a title and an abstract are not a finding). The newest:
+120 on file; 120 are UNREAD (a title and an abstract are not a finding). The newest:
 
+- 2026-11-12 · Improving Algorithmic Trading for BESS on Intraday Electricity Markets through Distributional Price Forecasts (http://arxiv.org/abs/2611.17170v1)
+- 2026-11-12 · Dynamic Scenario-Based Portfolio Optimization for Multi-Asset ETFs (http://arxiv.org/abs/2611.16540v1)
+- 2026-11-12 · Verifiable Settlement and Pricing for Local Energy Markets: Architecture and Deployment on Hyperledger Besu (http://arxiv.org/abs/2611.16495v1)
+- 2026-11-12 · TAPES: Terminal Adjoint-Propagated Error Scheduling for Financial Diffusion Samplers (http://arxiv.org/abs/2611.16484v1)
+- 2026-11-12 · Accuracy Is Not Welfare: Evaluating AI Buyers under Strategic Price Complexity in a Synthetic Duopoly (http://arxiv.org/abs/2611.16471v1)
+- 2026-11-11 · Global Seasonality Factor Investing (http://arxiv.org/abs/2611.15657v1)
+- 2026-11-11 · Idiosyncratic Market Effects in Global Time Series Momentum (http://arxiv.org/abs/2611.15646v1)
+- 2026-11-11 · Parsimonious and Flexible Parameterizations for Realized Covariance Matrix Models (http://arxiv.org/abs/2611.15619v1)
+- 2026-11-11 · A high-order recombination algorithm with adaptive scale selection for weak approximation of stochastic differential equations (http://arxiv.org/abs/2611.15564v1)
 - 2026-11-10 · Point-in-Time Encoders for Earnings Calls (http://arxiv.org/abs/2611.14325v1)
 - 2026-11-10 · Deep Learning for Operator Maps in Optimal Liquidation (http://arxiv.org/abs/2611.14245v1)
 - 2026-11-10 · Fine-Tuning an Order-Flow Foundation Model for Sub-Second Forecasting (http://arxiv.org/abs/2611.14117v1)
-- 2026-11-10 · Deceleration without identification: testing a power-law trend in Bitcoin prices under persistent noise (http://arxiv.org/abs/2611.13962v1)
-- 2026-11-10 · Optimal Trading Speed on Blockchain (http://arxiv.org/abs/2611.13616v1)
-- 2026-11-10 · Tabular Foundation Models in Financial Predictions (http://arxiv.org/abs/2611.13550v1)
-- 2026-11-09 · Making sense of rule 605 (http://arxiv.org/abs/2611.13365v1)
-- 2026-11-09 · Diversification Across Predictors: Heterogeneous Ensemble Learning for Cross-Sectional Return Prediction (http://arxiv.org/abs/2611.12389v1)
-- 2026-11-08 · Adjoint Kernel Sensitivity of the Rough Heston Characteristic Exponent (http://arxiv.org/abs/2611.11652v1)
-- 2026-11-08 · Retrospective Analysis of Team-Following Trading Profitability in Pumpfun Meme Coins Using Funding Networks (http://arxiv.org/abs/2611.11436v1)
-- 2026-11-08 · Optimal execution in a fractional setting with reinforcement learning (http://arxiv.org/abs/2611.11373v1)
-- 2026-11-07 · Risk-Sensitive Reinforcement Learning for an Options Market Maker: An Empirical Study with Real S&P 500 Options (http://arxiv.org/abs/2611.10956v1)
 
 ## 7. How a hypothesis is submitted
 
