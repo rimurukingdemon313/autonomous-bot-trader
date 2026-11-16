@@ -4,13 +4,11 @@
 
 **بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 660 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-16 00:59 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 16
+Updated 2026-11-16 12:02 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 17
 
 ## This cycle
 
-| Task | Result |
-|---|---|
-| `sources:2026-W47` | **DONE** · {"new": 35, "query": "cross-sectional cryptocurrency factors returns out-of-sample", "by_origin": {"arxiv": 10, "openalex": 25}} |
+No task ran: nothing was due, or nothing could run yet (see the queue).
 
 **Why nothing is queued.** The lab does not invent work. As things stand:
 
@@ -150,11 +148,11 @@ None.
 
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
-| 2026-11-14T20:03 | 1.0 | 0 | 0 |
 | 2026-11-15T00:59 | 0.8 | 0 | 0 |
 | 2026-11-15T11:29 | 1.0 | 0 | 0 |
 | 2026-11-15T17:03 | 1.0 | 0 | 0 |
 | 2026-11-15T20:32 | 1.0 | 0 | 0 |
 | 2026-11-16T00:59 | 4.3 | 1 | 0 |
+| 2026-11-16T12:02 | 0.7 | 0 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.
