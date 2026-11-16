@@ -1,0 +1,58 @@
+# The cTrader demo probe (docs/CTRADER.md): is the account the owner connected a DEMO account by the broker's own
+# record, is it swap-free, does it quote the trend desk's four index CFDs, and what do their spreads and swap terms
+# really look like? It places NO order and never refreshes the token. Credentials come only from the repository's
+# secrets (CTRADER_CLIENT_ID, CTRADER_CLIENT_SECRET, CTRADER_ACCESS_TOKEN, CTRADER_ACCOUNT_LOGIN); the report names no
+# account number and no secret. Started by hand only.
+name: cTrader demo probe (no orders)
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "minutes of prices to record"
+        default: "10"
+permissions:
+  contents: write
+concurrency:
+  group: ctrader-probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Probe the demo account
+        env:
+          CTRADER_CLIENT_ID: ${{ secrets.CTRADER_CLIENT_ID }}
+          CTRADER_CLIENT_SECRET: ${{ secrets.CTRADER_CLIENT_SECRET }}
+          CTRADER_ACCESS_TOKEN: ${{ secrets.CTRADER_ACCESS_TOKEN }}
+          CTRADER_ACCOUNT_LOGIN: ${{ secrets.CTRADER_ACCOUNT_LOGIN }}
+          MINUTES: ${{ inputs.minutes }}
+        run: |
+          set +e
+          python scripts/ctrader_probe.py --minutes "${MINUTES:-10}" --out out
+          echo "rc=$?" > out/rc.txt
+          cat out/REPORT.md
+      - name: Publish to ctrader-data
+        run: |
+          git config user.name "ctrader-probe"; git config user.email "ctrader-probe@users.noreply.github.com"
+          if git fetch -q origin ctrader-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan ctrader-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          stamp=$(date -u +%Y-%m-%dT%H%MZ)
+          mkdir -p pub/probes
+          cp out/probe.json "pub/probes/$stamp.json"
+          cp out/REPORT.md out/probe.json pub/
+          cd pub
+          git add -A .
+          git commit -qm "ctrader probe $stamp" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/ctrader-data && break; sleep $((i * 20)); done
+      - name: The probe's own verdict
+        run: grep -q "rc=0" out/rc.txt
