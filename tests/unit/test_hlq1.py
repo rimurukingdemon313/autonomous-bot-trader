@@ -317,3 +317,13 @@ def test_registration_comes_before_the_window_and_includes_the_owners_coins(tmp_
         S.preregister("forward", early, ["SOL"])
     S.preregister("forward", early, ["BTC", "ETH", "SOL"])
     assert Registry.load(tmp_path / "r.jsonl").get("HLQ-1").design["coins"] == ["BTC", "ETH", "SOL"]
+
+
+def test_the_probe_counts_where_liquidations_lie_and_keeps_no_address(monkeypatch):
+    fetch, addrs = _fake_hyperliquid(fail_one=False)
+    body = S.probe(fetch, lambda: 1_800_000_000_000, listing=lambda sym: sym == "BTCUSDT", sample=3)
+    assert body["sample_answered"] == 3 and body["top_coins"]["BTC"]["binance_spot_1m"] is True
+    g = body["groups"]["ranks_1_200"]
+    assert g["accounts"] == 3 and g["by_distance"]["1-2%"] == {"n": 3, "usd": 300} and g["near_1_5pct_usd"] == {"BTC": 300}
+    assert body["top_coins"]["BTC"]["cluster_L_usd"] == 300
+    assert not any(a in json.dumps(body) for a in addrs)

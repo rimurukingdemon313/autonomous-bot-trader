@@ -195,6 +195,46 @@ def has_spot_1m(symbol: str, fetch=get_file) -> bool:
     return bool(body) and b"<Key>" in body
 
 
+DEPTH = (0.01, 0.02, 0.03, 0.05, 0.10, 0.25, 0.50)
+DEPTH_LABELS = ("<1%", "1-2%", "2-3%", "3-5%", "5-10%", "10-25%", "25-50%", ">=50%")
+LEVERAGE = ((1, 3), (4, 10), (11, 20), (21, 50), (51, 10 ** 6))
+
+
+def depth(states: list[dict], marks: dict[str, float], coins: set[str]) -> dict:
+    """How far from the mark each position's liquidation lies, and at what leverage, in counts and notional; and,
+    for `coins`, the notional liquidated 1-5% away. No position and no account is kept."""
+    n, usd = [0] * len(DEPTH_LABELS), [0.0] * len(DEPTH_LABELS)
+    lev: dict[str, int] = {}
+    near: dict[str, float] = {}
+    noliq = 0
+    for st in states:
+        for ap in (st or {}).get("assetPositions") or []:
+            p = (ap or {}).get("position") or {}
+            c, szi = p.get("coin"), H._f(p.get("szi"))
+            m = marks.get(c) if c else None
+            if not m or not szi:
+                continue
+            v = abs(szi) * m
+            lv = p.get("leverage") or {}
+            x = H._f(lv.get("value"))
+            band = next((f"{a}-{b}" for a, b in LEVERAGE if x is not None and a <= x <= b), "unknown")
+            key = f"{lv.get('type', 'unknown')} {band}x"
+            lev[key] = lev.get(key, 0) + 1
+            liq = H._f(p.get("liquidationPx"))
+            if liq is None or liq <= 0:
+                noliq += 1
+                continue
+            d = abs(liq / m - 1)
+            k = next((i for i, b in enumerate(DEPTH) if d < b), len(DEPTH))
+            n[k] += 1
+            usd[k] += v
+            if 0.01 <= d <= 0.05 and c in coins:
+                near[c] = near.get(c, 0.0) + v
+    return {"positions": sum(n) + noliq, "no_liquidation_price": noliq,
+            "by_distance": {lab: {"n": n[i], "usd": round(usd[i])} for i, lab in enumerate(DEPTH_LABELS)},
+            "leverage": dict(sorted(lev.items())), "near_1_5pct_usd": {c: round(v) for c, v in sorted(near.items())}}
+
+
 def probe(fetch=http, clock=lambda: int(time.time() * 1000), listing=has_spot_1m, sample: int = 200) -> dict:
     """What the recorder can read, in counts: no position, no address and no price path is kept."""
     t0 = time.monotonic()
@@ -217,7 +257,17 @@ def probe(fetch=http, clock=lambda: int(time.time() * 1000), listing=has_spot_1m
         cover[c] = {"oi_usd": round(m[c][1]), "binance_spot_1m": listing(binance_symbol(c)),
                     "covered_usd": round((a or {}).get("L_usd", 0) + (a or {}).get("S_usd", 0)),
                     "cluster_L_usd": round(L), "cluster_S_usd": round(S), "signal_now": sig is not None}
+    # where the near liquidations are: the largest accounts, and random samples further down the board
+    rng, n100k = random.Random(SPEC["seed"]), sum(v >= 1e5 for v in vals)
+    marks_now = {c: x for c, (x, _) in m.items()}
+    groups = {"ranks_1_200": states}
+    for name, pool, k in (("ranks_201_800_sample", rows[200:800], 200), ("ranks_801_to_100k_sample", rows[800:n100k], 400),
+                          ("below_100k_sample", rows[n100k:], 400)):
+        got, _ = read_states([a for a, _ in rng.sample(pool, min(k, len(pool)))], fetch)
+        groups[name] = got
+    deep = {name: {"accounts": len(sts), **depth(sts, marks_now, set(top))} for name, sts in groups.items()}
     return {"retrieved": datetime.fromtimestamp(clock() / 1000, timezone.utc).isoformat(), "board_seconds": round(board_s, 1),
+            "groups": deep,
             "board_rows": len(rows), "account_value_sum": round(sum(vals)),
             "account_value_top": {str(n): round(sum(vals[:n])) for n in (100, 400, 800, 1600)},
             "accounts_over": {"100k": sum(v >= 1e5 for v in vals), "1m": sum(v >= 1e6 for v in vals)},
