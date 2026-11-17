@@ -2,9 +2,9 @@
 
 **PAPER ONLY · NOT REAL MONEY · NOTHING HERE IS A PROFIT CLAIM.** Written by the performance cycle on GitHub's runner (`scripts/perf_cycle.py`), with no person in the loop. It reads the paper systems' own ledgers, recomputes every figure by a second route, and changes neither system.
 
-**بالعربي:** مكتب TRND-1: الرصيد $200,783.01، المحقّق $0.00، غير المحقّق +$783.01، الصفقات المسكّرة 0. رادار RADAR-1: دفتره -2.04% من رأس ماله الورقي، 215 صفقة مسكّرة، الرابح منها 42. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
+**بالعربي:** مكتب TRND-1: الرصيد $200,783.01، المحقّق $0.00، غير المحقّق +$783.01، الصفقات المسكّرة 0. رادار RADAR-1: دفتره -2.06% من رأس ماله الورقي، 216 صفقة مسكّرة، الرابح منها 42. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
 
-Updated 2026-11-16 22:18 UTC · perf-1.0.1 · cycles so far: 9
+Updated 2026-11-17 01:17 UTC · perf-1.0.1 · cycles so far: 10
 
 ## 1. TRND-1: the trend desk's paper account
 
@@ -63,59 +63,59 @@ Concentration: 4 positions, the largest 25.2% of the gross; by size that is 4.0 
 
 **Reconciled: 24 of 24 checks hold.** Each compares two routes to the same figure.
 
-Marks from 2026-10-07 20:00 UTC to 2026-11-16 22:00 UTC (40.08 days). Paper only: no order is ever sent. Its preregistered single look is on 2026-12-06 and is read as registered, whatever this audit says.
+Marks from 2026-10-07 20:00 UTC to 2026-11-17 01:00 UTC (40.21 days). Paper only: no order is ever sent. Its preregistered single look is on 2026-12-06 and is read as registered, whatever this audit says.
 
 Capital: ten slots of 2N: 20N. The radar has no cash account; N is not a dollar amount. P&L is in basis points (bp) of one leg's notional; 2,000 bp summed over positions is 1% of the book.
 
 | | In bp of N | In % of the book | On a $100,000 book (illustration) |
 |---|---|---|---|
-| **Realized** (closed positions, after every fill) | -4,074.1 | -2.0370% | -$2,037.03 |
-| **Unrealized** (open positions at their marks, entry fills paid) | -15.4 | -0.0077% | -$7.71 |
-| The book if every open position were closed now | -4,160.0 | -2.0800% | -$2,079.99 |
+| **Realized** (closed positions, after every fill) | -4,091.9 | -2.0459% | -$2,045.94 |
+| **Unrealized** (open positions at their marks, entry fills paid) | -18.5 | -0.0092% | -$9.23 |
+| The book if every open position were closed now | -4,180.9 | -2.0904% | -$2,090.42 |
 
 | | |
 |---|---|
-| Closed positions | 215: 42 won, 173 lost |
-| Win rate | 19.5% |
-| Average win / average loss | 77.3 bp / -42.3 bp |
+| Closed positions | 216: 42 won, 174 lost |
+| Win rate | 19.4% |
+| Average win / average loss | 77.3 bp / -42.2 bp |
 | Profit factor | 0.44 |
-| Mean net a position | -18.9 bp (t -3.63) |
+| Mean net a position | -18.9 bp (t -3.64) |
 | Open positions | 4 of 10 slots; on average 22.1% of the capital was deployed |
-| Book P&L | -2.0447% |
-| Book excess over cash (3.875%/yr on the capital in use) | -2.1732% |
+| Book P&L | -2.0552% |
+| Book excess over cash (3.875%/yr on the capital in use) | -2.1842% |
 | Annualised excess on the capital deployed | -90.3%/yr |
-| The same with costs x1.5 / x2 | -168.6% / -246.9% |
+| The same with costs x1.5 / x2 | -168.5% / -246.8% |
 | Maximum drawdown of the book (hourly marks) | 2.1986% |
-| t of the daily excess | -3.47 |
-| Best coin, and the book's excess without it | INIT: -2.6275% |
+| t of the daily excess | -3.48 |
+| Best coin, and the book's excess without it | INIT: -2.6385% |
 
 ### Where it came from
 
-Funding received **3,124 bp**, price moves between the legs **198 bp**, fills **-7,396 bp**: net **-4,074 bp**. A position earned 15.5 bp before costs and paid 34.4 bp: the costs are 2.23 times the gross. Half the positions were closed within 3.0 hours.
+Funding received **3,133 bp**, price moves between the legs **206 bp**, fills **-7,430 bp**: net **-4,092 bp**. A position earned 15.5 bp before costs and paid 34.4 bp: the costs are 2.23 times the gross. Half the positions were closed within 3.0 hours.
 
 | Held for | Positions | Won | Sum | Mean | t | Funding | Price | Costs |
 |---|---|---|---|---|---|---|---|---|
 | 1 to 6 hours | 82 | 14 | -2,470 bp | -30.1 bp | -3.99 | 824 | -494 | 2,800 |
 | 1 hour or less | 72 | 5 | -2,400 bp | -33.3 bp | -5.37 | 44 | 45 | 2,488 |
 | over 3 days | 2 | 1 | -22 bp | -10.9 bp | -0.90 | 56 | -4 | 74 |
-| 6 to 24 hours | 42 | 14 | 124 bp | 3.0 bp | 0.25 | 1,104 | 473 | 1,452 |
+| 6 to 24 hours | 43 | 14 | 107 bp | 2.5 bp | 0.22 | 1,112 | 481 | 1,486 |
 | 1 to 3 days | 17 | 8 | 693 bp | 40.8 bp | 1.16 | 1,096 | 178 | 582 |
 
 | Closed for | Positions | Won | Sum | Mean | t | Funding | Price | Costs |
 |---|---|---|---|---|---|---|---|---|
-| spread_reversed | 120 | 24 | -2,525 bp | -21.0 bp | -3.75 | 1,710 | -117 | 4,118 |
+| spread_reversed | 121 | 24 | -2,543 bp | -21.0 bp | -3.77 | 1,719 | -109 | 4,152 |
 | spread_decayed | 63 | 3 | -2,242 bp | -35.6 bp | -13.97 | 92 | -149 | 2,185 |
 | rebalance | 32 | 15 | 693 bp | 21.7 bp | 0.81 | 1,322 | 464 | 1,093 |
 
 | Known at the entry: entry spread | Positions | Won | Sum | Mean | t | Funding | Price | Costs |
 |---|---|---|---|---|---|---|---|---|
 | under 50%/yr | 124 | 19 | -3,408 bp | -27.5 bp | -6.64 | 829 | 46 | 4,283 |
-| 50 to 100%/yr | 50 | 12 | -468 bp | -9.4 bp | -0.67 | 826 | 406 | 1,700 |
+| 50 to 100%/yr | 51 | 12 | -486 bp | -9.5 bp | -0.70 | 835 | 414 | 1,734 |
 | 100%/yr or more | 41 | 11 | -198 bp | -4.8 bp | -0.28 | 1,469 | -254 | 1,413 |
 
 | Known at the entry: venue pair | Positions | Won | Sum | Mean | t | Funding | Price | Costs |
 |---|---|---|---|---|---|---|---|---|
-| short mexc / long gate | 166 | 33 | -3,526 bp | -21.2 bp | -3.94 | 1,876 | 242 | 5,644 |
+| short mexc / long gate | 167 | 33 | -3,544 bp | -21.2 bp | -3.96 | 1,884 | 249 | 5,678 |
 | short gate / long mexc | 20 | 3 | -281 bp | -14.1 bp | -0.45 | 744 | -345 | 680 |
 | short hyperliquid / long gate | 7 | 1 | -183 bp | -26.2 bp | -2.31 | 35 | 55 | 273 |
 | short hyperliquid / long mexc | 8 | 1 | -131 bp | -16.3 bp | -1.21 | 162 | -29 | 264 |
@@ -125,14 +125,14 @@ Funding received **3,124 bp**, price moves between the legs **198 bp**, fills **
 
 | Known at the entry: time since the coin's previous position | Positions | Won | Sum | Mean | t | Funding | Price | Costs |
 |---|---|---|---|---|---|---|---|---|
-| within 6 hours of the coin's previous exit | 141 | 26 | -2,316 bp | -16.4 bp | -2.14 | 2,305 | 215 | 4,836 |
+| within 6 hours of the coin's previous exit | 142 | 26 | -2,334 bp | -16.4 bp | -2.16 | 2,313 | 223 | 4,870 |
 | a first entry, or later | 74 | 16 | -1,758 bp | -23.8 bp | -5.69 | 819 | -17 | 2,560 |
 
 43 coins were traded and 36 of them lost. The five worst and the five best:
 
 | Coin | Positions | Won | Sum | Mean | t | Funding | Price | Costs |
 |---|---|---|---|---|---|---|---|---|
-| AKE | 24 | 3 | -979 bp | -40.8 bp | -3.50 | 239 | -402 | 816 |
+| AKE | 25 | 3 | -997 bp | -39.9 bp | -3.56 | 247 | -394 | 850 |
 | BTW | 20 | 3 | -821 bp | -41.0 bp | -7.06 | 61 | -202 | 680 |
 | IRYS | 15 | 3 | -481 bp | -32.1 bp | -3.52 | 153 | -125 | 510 |
 | SOXL | 13 | 1 | -447 bp | -34.4 bp | -8.24 | 62 | -68 | 442 |
@@ -143,18 +143,18 @@ Funding received **3,124 bp**, price moves between the legs **198 bp**, fills **
 | RSR | 3 | 3 | 58 bp | 19.4 bp | 1.47 | 67 | 98 | 107 |
 | IDOL | 2 | 1 | 20 bp | 10.0 bp | 0.52 | 74 | 14 | 68 |
 
-Concentration: the most traded coin (AKE) is 11.4% of the positions; by count the book is 18.9 equal coins. Venue pairs: short mexc / long gate 169, short gate / long mexc 20, short gate / long hyperliquid 11, short hyperliquid / long gate 8, short hyperliquid / long mexc 8, short mexc / long hyperliquid 2, short dydx / long gate 1.
+Concentration: the most traded coin (AKE) is 11.4% of the positions; by count the book is 19.1 equal coins. Venue pairs: short mexc / long gate 170, short gate / long mexc 20, short gate / long hyperliquid 11, short hyperliquid / long gate 8, short hyperliquid / long mexc 8, short mexc / long hyperliquid 2, short dydx / long gate 1.
 
 | Open now | Short / long | Opened | Entry spread | Funding | Price | Fills paid | Net at the marks | Net if closed now |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc / gate | 2026-11-09 21:00 UTC | 35.8%/yr | 36.3 | -29.5 | 17.0 | -10.2 bp | -27.2 bp |
-| AKE | mexc / gate | 2026-11-16 09:00 UTC | 98.6%/yr | 7.8 | -5.0 | 17.0 | -14.2 bp | -31.2 bp |
-| EVAA | mexc / gate | 2026-11-16 09:00 UTC | 50.3%/yr | 11.7 | 18.9 | 17.0 | 13.5 bp | -3.5 bp |
-| LIT | hyperliquid / gate | 2026-11-16 15:00 UTC | 50.2%/yr | 17.4 | -2.4 | 19.5 | -4.5 bp | -24.0 bp |
+| PIEVERSE | mexc / gate | 2026-11-09 21:00 UTC | 35.8%/yr | 36.8 | -25.4 | 17.0 | -5.7 bp | -22.7 bp |
+| EVAA | mexc / gate | 2026-11-16 09:00 UTC | 50.3%/yr | 14.3 | 2.2 | 17.0 | -0.5 bp | -17.5 bp |
+| LIT | hyperliquid / gate | 2026-11-16 15:00 UTC | 50.2%/yr | 20.9 | 3.3 | 19.5 | 4.7 bp | -14.8 bp |
+| BLESS | mexc / gate | 2026-11-17 01:00 UTC | 25.0%/yr | 0.0 | 0.0 | 17.0 | -17.0 bp | -34.0 bp |
 
 ## 3. The weakness, the hypothesis and the experiment
 
-**Largest weakness** (a class known when a position is opened, measured against the rest of the book): entry spread, *under 50%/yr*: 124 positions, mean -27.5 bp (t -6.64) against -7.3 bp for the rest (t of the difference -1.73); 2,501 bp lost beyond what the rest would have.
+**Largest weakness** (a class known when a position is opened, measured against the rest of the book): entry spread, *under 50%/yr*: 124 positions, mean -27.5 bp (t -6.64) against -7.4 bp for the rest (t of the difference -1.74); 2,486 bp lost beyond what the rest would have.
 
 **Hypothesis.** Positions opened on a trailing spread under 50%/yr do not earn their round trip. Asking twice the spread at the entry removes them; whether the entries that remain earn more than cash is what the replay measures.
 
@@ -162,23 +162,23 @@ Concentration: the most traded coin (AKE) is 11.4% of the positions; by count th
 
 ### The replay: the radar's frozen rules and the declared variants on the same stored quotes
 
-Stored hours in hand: 281 (2026-11-04 23:00 UTC to 2026-11-16 19:00 UTC); days archived: 12; added this cycle: none.
+Stored hours in hand: 287 (2026-11-04 23:00 UTC to 2026-11-17 01:00 UTC); days archived: 13; added this cycle: 2026-11-16.
 
-Fidelity: the replay of the original rules reproduces 34 of the radar's 38 real positions opened in these hours to the hundredth of a basis point (38 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). **The replay is NOT faithful enough: read nothing from the table below.**
+Fidelity: the replay of the original rules reproduces 39 of the radar's 39 real positions opened in these hours to the hundredth of a basis point (39 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
 
-Earlier part 2026-11-07 22:00 UTC to 2026-11-12 00:00 UTC; later part to 2026-11-16 20:00 UTC. Excess over cash in % of the book.
+Earlier part 2026-11-07 22:00 UTC to 2026-11-12 00:00 UTC; later part to 2026-11-17 02:00 UTC. Excess over cash in % of the book.
 
 | Variant | What changes | Earlier: excess | positions | Later: excess | positions | closed | t (daily) | Later, less the original | its t |
 |---|---|---|---|---|---|---|---|---|---|
-| `original` | nothing: the registered rules | 0.0840% | 18 | 0.0337% | 22 | 19 | 0.19 | 0.0000% | n/a |
-| `same-window` | trailing_entry_h=24 | -0.0668% | 30 | -0.0055% | 31 | 23 | -0.03 | -0.0392% | -0.63 |
-| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.0889% | 16 | 0.1670% | 13 | 10 | 0.70 | 0.1333% | 1.53 |
-| `patient-exit` | exit_now_apr=-1.0 | 0.1231% | 17 | 0.1916% | 16 | 13 | 1.24 | 0.1579% | 2.13 |
-| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.0795% | 19 | 0.2943% | 12 | 7 | 1.68 | 0.2606% | 3.02 |
+| `original` | nothing: the registered rules | 0.0840% | 18 | 0.0095% | 23 | 20 | 0.05 | 0.0000% | n/a |
+| `same-window` | trailing_entry_h=24 | -0.0668% | 30 | -0.0533% | 34 | 25 | -0.27 | -0.0628% | -0.94 |
+| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.0889% | 16 | 0.1481% | 13 | 11 | 0.61 | 0.1386% | 1.59 |
+| `patient-exit` | exit_now_apr=-1.0 | 0.1231% | 17 | 0.1705% | 17 | 13 | 1.02 | 0.1610% | 2.07 |
+| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.0795% | 19 | 0.2856% | 12 | 7 | 1.54 | 0.2762% | 2.94 |
 
-Candidate, chosen on the earlier part only: `patient-exit` (4 variants compared). **INCONCLUSIVE**: the later part holds 5 days and 13 closed positions: 30 and 30 are needed before anything is judged.
+Candidate, chosen on the earlier part only: `patient-exit` (4 variants compared). **INCONCLUSIVE**: the later part holds 6 days and 13 closed positions: 30 and 30 are needed before anything is judged.
 
-Gates on the later part: enough days no, enough positions no, excess over cash no, beats the original no, costs x1.5 yes, without best coin no.
+Gates on the later part: enough days no, enough positions no, excess over cash no, beats the original no, costs x1.5 no, without best coin no.
 
 A variant is proposed as a registered challenger only when every gate holds. A proposal is a request for a preregistered forward test, never a replacement of the original.
 
