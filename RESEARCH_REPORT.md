@@ -2,25 +2,25 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و3 فحص قبل البناء رفض 18 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-16 13:11 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-17 00:17 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-16, UTC)
+## Today (2026-11-17, UTC)
+
+Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **SPL-1**: SPL-1: spot-led rallies and the spot buyer, dev stage. A seasoned coin whose spot rose at least X in four hours while its perpetual never closed more than 0.25% above spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the market, than the same coin at hours it had not risen, and than rallies its perpetual led. (`research/preregistrations/SPL-1.md`, 2 tests counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **SPL-1: FAILED** (t -4.654342822551325). Evidence: `research/knowledge/SPL-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building: TRND-1's rule on bitcoin and ether CFDs; CALM-1: the long-only basket without leverage-stressed coins; US-hours clientele in bitcoin; Post-FOMC drift into gold; Bitcoin's weekend move and Monday's index session; Passive capture of the unpriced funding; Buying after a token unlock; INV-1: the natural gas storage-report premium.
-- Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building: Fading large four-hour rallies in BTC and ETH (CFD short); Altcoin froth as a signal against BTC and ETH; The rally-avoidance overlay on a spot basket; ETH against BTC after ether's rallies; Buying spot-led falls in large coins; Shorting altcoin CFDs on the short-side findings.
-- Checked on 2026-11-16, 07:50 UTC, and dropped before building: Shorting BTC and ETH CFDs after forced deleveraging; FADE-1: volatility-scaled rally fades in BTC and ETH; OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008); CBP-1: the Coinbase premium and the next hours.
+- none
 
 ## Cumulative (since the registry began)
 
@@ -28,7 +28,7 @@ Generated 2026-11-16 13:11 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 94 |
 | Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 73 in the tables of 22 dated checks, on 7 days |
+| Ideas dropped before building (no test spent) | 90 in the tables of 24 dated checks, on 7 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |
@@ -37,20 +37,20 @@ Generated 2026-11-16 13:11 UTC from the committed record · research-report-1.1.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-16 13:11 UTC, OK
-- Last successful idea step: 2026-11-16 13:11 UTC
+- Last cycle: 2026-11-17 00:17 UTC, OK
+- Last successful idea step: 2026-11-17 00:17 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 21 ideas: DROPPED_POWER 5, REJECTED_BY_CRITIC 16
+- All time: 24 ideas: DROPPED_POWER 5, QUEUED_FOR_BUILD 1, REJECTED_BY_CRITIC 18
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: EM FX quarterly sovereign USD debt-service pressure (em-fx-daily, swing). A claimed annual Sharpe of 0.6 over 12 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(12) ≈ 2.07, which is below the bar of 3.000. The evidence (12 years of data) cannot support the claim that this strategy can pass the bar, as a net Sharpe below about 1 cannot reach a bar near 3 with this amount of data. (critic: dots-studio/dots-3-note-preview:free) Class: IMPLAUSIBLE_CLAIM.
-- **REJECTED_BY_CRITIC**: Monthly payroll defined-contribution equity inflows (us-etf-broad-daily, swing). A claimed annual Sharpe of 0.5 over 10 years of fresh data implies a maximum t-statistic of approximately 0.5 * sqrt(10) ≈ 1.58, far below the bar of 3.000. Monthly rules need decades of data to reach such a bar, and the evidence here cannot support the claim. (critic: dots-studio/dots-3-note-preview:free) Class: IMPLAUSIBLE_CLAIM.
-- **REJECTED_BY_CRITIC**: Monthly options-expiration week index drift across global index CFDs (equity-index-daily, swing). A claimed annual Sharpe of 0.6 over 10 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(10) ≈ 1.90, which is below the bar of 3.000. Even testing across multiple index CFDs as one book does not increase the number of independent years, so the evidence cannot support the claim that this strategy can pass the bar. (critic: dots-studio/dots-3-note-preview:free) Class: IMPLAUSIBLE_CLAIM.
+- **REJECTED_BY_CRITIC**: Dealer Hedging Demand from MSCI Energy Index Rebalancing (energy-futures-eia, swing). claimed net Sharpe 1.8 not supported by evidence and likely unachievable after retail CFD costs that erase gross edge (critic: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) Class: IMPLAUSIBLE_CLAIM.
+- **REJECTED_BY_CRITIC**: Disposition Effect in Leveraged Commodity Fund Deleveraging (metals-futures-daily, position). claimed net Sharpe 1.5 not supported by evidence and likely unachievable after retail CFD costs (critic: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) Class: IMPLAUSIBLE_CLAIM.
+- **QUEUED_FOR_BUILD**: Central Bank Gold Purchases and Physical Delivery Follow-Through (metals-futures-daily, position). at its claimed strength it expects t 4.472 against 3.0 (passes 93% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
-- none
+- Central Bank Gold Purchases and Physical Delivery Follow-Through (metals-futures-daily; queued 2026-11-17; claimed net Sharpe 1.0 over 20.0 fresh years): IMF IFS data; no lab test; prior version dropped for lack of power
 
 ## Validation status
 

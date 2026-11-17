@@ -324,9 +324,9 @@
    "INCONCLUSIVE": 1,
    "PASSED": 9
   },
-  "drop_checks": 22,
+  "drop_checks": 24,
   "drop_days": 7,
-  "dropped_before_building": 73,
+  "dropped_before_building": 90,
   "evidence_changed": [],
   "evidence_checked": 64,
   "evidence_unchanged": 64,
@@ -406,24 +406,25 @@
   "trials": 94,
   "verdicts": 84
  },
- "day": "2026-11-16",
+ "day": "2026-11-17",
  "engine": {
   "built": [],
   "by_decision": {
    "DROPPED_POWER": 5,
-   "REJECTED_BY_CRITIC": 16
+   "QUEUED_FOR_BUILD": 1,
+   "REJECTED_BY_CRITIC": 18
   },
   "integrity": {
-   "at": "2026-11-16T13:11:07.993700+00:00",
-   "cycle": "2026-11-16",
+   "at": "2026-11-17T00:17:15.024042+00:00",
+   "cycle": "2026-11-17",
    "detail": null,
    "status": "OK",
    "step": "integrity",
    "version": "research-engine-1.2.0"
   },
   "last": {
-   "at": "2026-11-16T13:11:07.993700+00:00",
-   "cycle": "2026-11-16",
+   "at": "2026-11-17T00:17:15.024042+00:00",
+   "cycle": "2026-11-17",
    "detail": {
     "attempts": [
      {
@@ -437,123 +438,171 @@
       "status": "TIMEOUT"
      },
      {
-      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "model": "inclusionai/ling-3.2-flash:free",
+      "role": "researcher",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "recursive/flint-v1.0:free",
       "role": "researcher",
       "status": "OK"
      },
      {
-      "model": "dots-studio/dots-3-note-preview:free",
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "role": "critic",
       "status": "OK"
      }
     ],
     "ideas": [
-     "27897bab11bd6eb53459",
-     "5405148e3f51dc8b2d24",
-     "57fe73e40075fa9c66af"
+     "55cd6dee7c6f5e5a5e1d",
+     "5dd15e5486b97afeea12",
+     "f927800f67dcdedf2764"
     ]
    },
    "status": "OK",
    "step": "ideas",
    "version": "research-engine-1.2.0"
   },
-  "last_ok": "2026-11-16T13:11:07.993700+00:00",
-  "queued": [],
-  "today": [
+  "last_ok": "2026-11-17T00:17:15.024042+00:00",
+  "queued": [
    {
-    "at": "2026-11-16T13:11:07.993700+00:00",
-    "claimed_sharpe_annual": 0.6,
+    "at": "2026-11-17T00:17:15.024042+00:00",
+    "claimed_sharpe_annual": 1.0,
     "conditions_flag": null,
-    "critic": "dots-studio/dots-3-note-preview:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "A claimed annual Sharpe of 0.6 over 12 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(12) \u2248 2.07, which is below the bar of 3.000. The evidence (12 years of data) cannot support the claim that this strategy can pass the bar, as a net Sharpe below about 1 cannot reach a bar near 3 with this amount of data.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-16",
-    "data_source": "em-fx-daily daily OHLC for EM FX pairs; debt-service dates and amounts from central bank and IMF public debt calendars",
-    "decision": "REJECTED_BY_CRITIC",
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "critic_category": null,
+    "critic_reason": "claims are plausible and testable given available data and mechanism",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-17",
+    "data_source": "IMF International Financial Statistics and central bank published data",
+    "decision": "QUEUED_FOR_BUILD",
     "duplicate_of": null,
-    "evidence": "none: a new idea",
-    "fingerprint": "27897bab11bd6eb53459",
-    "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "Emerging-market sovereigns and quasi-sovereign issuers must service USD-denominated debt on fixed contractual dates. They acquire USD by selling local currency, creating predictable, price-insensitive demand for USD around debt-service dates. This persists because debt service is a legal obligation and full currency hedging is costly or politically undesirable. The flow is macro/policy-driven (sovereign debt contracts) and forced (non-discretionary), so counterparties trading against it are not motivated by profit.",
+    "evidence": "IMF IFS data; no lab test; prior version dropped for lack of power",
+    "fingerprint": "f927800f67dcdedf2764",
+    "horizon": "position",
+    "idea_class": "UNTESTED_HYPOTHESIS",
+    "mechanism": "Central bank gold purchases create forced long physical demand and subsequent delivery or lease flows that affect gold futures.",
     "mechanism_class": "macro and policy",
-    "needs_short_or_leverage": "Yes: the rule sells EM currencies against USD (short the EM currency leg) and uses leverage to equal-weight 12 pairs as one book.",
-    "power": null,
-    "proposer": "nvidia/nemotron-3.5-super-vl:free",
-    "rule": "For each of 12 EM FX pairs versus USD, maintain a calendar of sovereign USD debt-service dates (bond principal/coupon and IMF repayments) published by central banks or the IMF. At the close on the second trading day before each debt-service date, take the position that buys USD and sells the EM currency (long USD/XXX or short XXX/USD as quoted). Exit at the close on the fifth trading day after entry. Include only debt-service dates where the trailing 4-quarter rolling USD debt-service amount for that currency is above its own 25th percentile. Equal-weight across pairs as one book. No look-ahead: all debt-service dates and amounts are known from public calendars before the entry date.",
+    "needs_short_or_leverage": "no short; leverage optional for sizing",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 1.0,
+     "expected_t": 4.472,
+     "p_pass": 0.93,
+     "years": 20.0
+    },
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "When net central bank gold purchases exceed 100 tonnes in a quarter, go long gold futures; exit after six months or when net purchases turn negative.",
     "source": "engine",
-    "title": "EM FX quarterly sovereign USD debt-service pressure",
-    "universe": "em-fx-daily",
+    "title": "Central Bank Gold Purchases and Physical Delivery Follow-Through",
+    "universe": "metals-futures-daily",
     "version": "research-engine-1.2.0",
-    "why": "A claimed annual Sharpe of 0.6 over 12 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(12) \u2248 2.07, which is below the bar of 3.000. The evidence (12 years of data) cannot support the claim that this strategy can pass the bar, as a net Sharpe below about 1 cannot reach a bar near 3 with this amount of data.",
-    "why_new": "em-fx-daily has zero prior tests; sovereign debt-service FX pressure has not been tested in this lab; using 12 currencies as one book answers power concerns that have killed single-currency flow ideas.",
-    "years_of_fresh_data": 12
-   },
-   {
-    "at": "2026-11-16T13:11:07.993700+00:00",
-    "claimed_sharpe_annual": 0.5,
-    "conditions_flag": null,
-    "critic": "dots-studio/dots-3-note-preview:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "A claimed annual Sharpe of 0.5 over 10 years of fresh data implies a maximum t-statistic of approximately 0.5 * sqrt(10) \u2248 1.58, far below the bar of 3.000. Monthly rules need decades of data to reach such a bar, and the evidence here cannot support the claim.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-16",
-    "data_source": "us-etf-broad-daily daily OHLC for broad US equity ETFs",
-    "decision": "REJECTED_BY_CRITIC",
-    "duplicate_of": null,
-    "evidence": "none: a new idea",
-    "fingerprint": "5405148e3f51dc8b2d24",
-    "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "US defined-contribution retirement plans (401(k), 403(b)) collect employee contributions on payroll dates, typically monthly or semi-monthly, and target-date or index funds must deploy the cash into equities within days. This creates persistent, price-insensitive net buying pressure in broad US equity ETFs. It persists because payroll deductions are automatic and fiduciary rules require invested cash rather than cash drag. The liquidity providers are sellers who transact with non-price-sensitive buyers; the flow persists because it is mandated by payroll practice and fund prospectuses, not by alpha.",
-    "mechanism_class": "forced flows",
-    "needs_short_or_leverage": "No: long only; leverage is not required.",
-    "power": null,
-    "proposer": "nvidia/nemotron-3.5-super-vl:free",
-    "rule": "At the close on the first trading day of each month, go long an equal-weight basket of broad US equity ETFs (SPY, IVV, VOO, VTI, IWM). Exit at the close on the third trading day after entry. Repeat monthly. No look-ahead: monthly payroll deployment dates are known in advance from fund prospectuses and payroll calendars.",
-    "source": "engine",
-    "title": "Monthly payroll defined-contribution equity inflows",
-    "universe": "us-etf-broad-daily",
-    "version": "research-engine-1.2.0",
-    "why": "A claimed annual Sharpe of 0.5 over 10 years of fresh data implies a maximum t-statistic of approximately 0.5 * sqrt(10) \u2248 1.58, far below the bar of 3.000. Monthly rules need decades of data to reach such a bar, and the evidence here cannot support the claim.",
-    "why_new": "us-etf-broad-daily has zero prior tests; monthly payroll auto-investment as a forced-flow mechanism has not been tested here; breadth across ETFs traded as one book provides the power a single-instrument monthly rule lacks.",
-    "years_of_fresh_data": 10
-   },
-   {
-    "at": "2026-11-16T13:11:07.993700+00:00",
-    "claimed_sharpe_annual": 0.6,
-    "conditions_flag": null,
-    "critic": "dots-studio/dots-3-note-preview:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "A claimed annual Sharpe of 0.6 over 10 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(10) \u2248 1.90, which is below the bar of 3.000. Even testing across multiple index CFDs as one book does not increase the number of independent years, so the evidence cannot support the claim that this strategy can pass the bar.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-16",
-    "data_source": "equity-index-daily daily OHLC for index CFDs plus prior-day options open interest from exchange publications",
-    "decision": "REJECTED_BY_CRITIC",
-    "duplicate_of": null,
-    "evidence": "Stivers & Sun documented expiration-week effects in US large caps; this proposal extends the structural delta-hedging mechanism globally across index CFDs as one book to answer the power critique.",
-    "fingerprint": "57fe73e40075fa9c66af",
-    "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "Equity index options market makers must delta-hedge into the close on expiration Friday. When aggregate open interest is concentrated at strikes away from the current index level, hedging flows push the index toward the max-pain strike. This is structural (options market-making obligations) and persists because market makers are contractually obligated to hedge and cannot opt out; the flow is mechanical, not profit-motivated. Options buyers whose strikes expire worthless due to pinning pressure are the willing losers.",
-    "mechanism_class": "structural or regulatory",
-    "needs_short_or_leverage": "Yes: the rule can go short when the index close is above the max-pain strike, and uses leverage to equal-weight the index CFD book.",
-    "power": null,
-    "proposer": "nvidia/nemotron-3.5-super-vl:free",
-    "rule": "At the close on the first trading day of the monthly options-expiration week (the week containing the third Friday), for each index CFD identify the strike with the largest combined call-plus-put open interest in the near-month expiration series, using open interest published after the prior close. If the index close is below that strike, go long the index CFD; if above, go short. Exit at the close on expiration Friday. Equal-weight across index CFDs as one book. No look-ahead: open interest is known from the prior day's publication.",
-    "source": "engine",
-    "title": "Monthly options-expiration week index drift across global index CFDs",
-    "universe": "equity-index-daily",
-    "version": "research-engine-1.2.0",
-    "why": "A claimed annual Sharpe of 0.6 over 10 years of fresh data implies a maximum t-statistic of approximately 0.6 * sqrt(10) \u2248 1.90, which is below the bar of 3.000. Even testing across multiple index CFDs as one book does not increase the number of independent years, so the evidence cannot support the claim that this strategy can pass the bar.",
-    "why_new": "equity-index-daily has zero prior tests; single-instrument expiration-week ideas were dropped for lack of power, and this version answers that by testing many index CFDs as one book; the mandatory delta-hedging mechanism is structural and persists.",
-    "years_of_fresh_data": 10
+    "why": "at its claimed strength it expects t 4.472 against 3.0 (passes 93% of the time); the claim must be verified at its source before it is built",
+    "why_new": "Version answers the prior lack of power by using about 36 years of fresh central-bank data and testing gold, silver and platinum as one book.",
+    "years_of_fresh_data": 20.0
    }
   ],
-  "total": 21
+  "today": [
+   {
+    "at": "2026-11-17T00:17:15.024042+00:00",
+    "claimed_sharpe_annual": 1.8,
+    "conditions_flag": null,
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "critic_category": "implausible_claim",
+    "critic_reason": "claimed net Sharpe 1.8 not supported by evidence and likely unachievable after retail CFD costs that erase gross edge",
+    "critic_verdict": "REJECT",
+    "cycle": "2026-11-17",
+    "data_source": "MSCI index methodology and Bloomberg rebalancing schedules",
+    "decision": "REJECTED_BY_CRITIC",
+    "duplicate_of": null,
+    "evidence": "MSCI methodology publications and Bloomberg rebalancing data; no lab test of this dealer-hedging liquidity signal",
+    "fingerprint": "55cd6dee7c6f5e5a5e1d",
+    "horizon": "swing",
+    "idea_class": "IMPLAUSIBLE_CLAIM",
+    "mechanism": "Forced institutional rebalancing flows into energy futures require dealer hedging, creating temporary liquidity premia and price pressure.",
+    "mechanism_class": "liquidity provision",
+    "needs_short_or_leverage": "yes: short or leverage required for short rebalancing legs and sizing",
+    "power": null,
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "When the MSCI GSCI rebalancing announcement indicates an estimated net index buy above 0.3% of contract volume, enter long the affected energy futures; when the estimated net buy is below -0.3%, enter short; enter one trading day after announcement and exit at the next rebalancing effective date; sizing-free gross exposure capped at two times notional.",
+    "source": "engine",
+    "title": "Dealer Hedging Demand from MSCI Energy Index Rebalancing",
+    "universe": "energy-futures-eia",
+    "version": "research-engine-1.2.0",
+    "why": "claimed net Sharpe 1.8 not supported by evidence and likely unachievable after retail CFD costs that erase gross edge",
+    "why_new": "Not previously tested as a dealer-hedging liquidity signal on energy futures; uses fresh rebalancing schedules and a one-book energy futures universe.",
+    "years_of_fresh_data": 8.0
+   },
+   {
+    "at": "2026-11-17T00:17:15.024042+00:00",
+    "claimed_sharpe_annual": 1.5,
+    "conditions_flag": null,
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "critic_category": "implausible_claim",
+    "critic_reason": "claimed net Sharpe 1.5 not supported by evidence and likely unachievable after retail CFD costs",
+    "critic_verdict": "REJECT",
+    "cycle": "2026-11-17",
+    "data_source": "CS/Tremmerman managed futures index and fund filings; no lab test",
+    "decision": "REJECTED_BY_CRITIC",
+    "duplicate_of": null,
+    "evidence": "Published behavioural literature on disposition and realization biases; no lab test of this forced deleveraging signal",
+    "fingerprint": "5dd15e5486b97afeea12",
+    "horizon": "position",
+    "idea_class": "IMPLAUSIBLE_CLAIM",
+    "mechanism": "Leveraged commodity funds hold winners and cut losers due to disposition and realization biases, forcing deleveraging that reverses prior trends.",
+    "mechanism_class": "behavioural bias",
+    "needs_short_or_leverage": "yes: leverage and shorting required for contrarian shorts",
+    "power": null,
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "When managed futures fund gross exposure rises above its 90th percentile over a rolling three-year distribution, fade the next seven trading days of forced deleveraging by taking the opposite of the funds' net long exposure proxy; exit after seven trading days.",
+    "source": "engine",
+    "title": "Disposition Effect in Leveraged Commodity Fund Deleveraging",
+    "universe": "metals-futures-daily",
+    "version": "research-engine-1.2.0",
+    "why": "claimed net Sharpe 1.5 not supported by evidence and likely unachievable after retail CFD costs",
+    "why_new": "Not tested on metals futures via behavioural forced deleveraging; uses fresh fund leverage data.",
+    "years_of_fresh_data": 10.0
+   },
+   {
+    "at": "2026-11-17T00:17:15.024042+00:00",
+    "claimed_sharpe_annual": 1.0,
+    "conditions_flag": null,
+    "critic": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "critic_category": null,
+    "critic_reason": "claims are plausible and testable given available data and mechanism",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-17",
+    "data_source": "IMF International Financial Statistics and central bank published data",
+    "decision": "QUEUED_FOR_BUILD",
+    "duplicate_of": null,
+    "evidence": "IMF IFS data; no lab test; prior version dropped for lack of power",
+    "fingerprint": "f927800f67dcdedf2764",
+    "horizon": "position",
+    "idea_class": "UNTESTED_HYPOTHESIS",
+    "mechanism": "Central bank gold purchases create forced long physical demand and subsequent delivery or lease flows that affect gold futures.",
+    "mechanism_class": "macro and policy",
+    "needs_short_or_leverage": "no short; leverage optional for sizing",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 1.0,
+     "expected_t": 4.472,
+     "p_pass": 0.93,
+     "years": 20.0
+    },
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "When net central bank gold purchases exceed 100 tonnes in a quarter, go long gold futures; exit after six months or when net purchases turn negative.",
+    "source": "engine",
+    "title": "Central Bank Gold Purchases and Physical Delivery Follow-Through",
+    "universe": "metals-futures-daily",
+    "version": "research-engine-1.2.0",
+    "why": "at its claimed strength it expects t 4.472 against 3.0 (passes 93% of the time); the claim must be verified at its source before it is built",
+    "why_new": "Version answers the prior lack of power by using about 36 years of fresh central-bank data and testing gold, silver and platinum as one book.",
+    "years_of_fresh_data": 20.0
+   }
+  ],
+  "total": 24
  },
- "generated": "2026-11-16T13:11:07.993700+00:00",
+ "generated": "2026-11-17T00:17:15.024042+00:00",
  "recent_verdicts": [
   {
    "evidence": {
@@ -869,95 +918,9 @@
   "universe": "fx-majors"
  },
  "today": {
-  "dropped_before_building": [
-   {
-    "date": "2026-11-16",
-    "heading": "Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building",
-    "ideas": [
-     "TRND-1's rule on bitcoin and ether CFDs",
-     "CALM-1: the long-only basket without leverage-stressed coins",
-     "US-hours clientele in bitcoin",
-     "Post-FOMC drift into gold",
-     "Bitcoin's weekend move and Monday's index session",
-     "Passive capture of the unpriced funding",
-     "Buying after a token unlock",
-     "INV-1: the natural gas storage-report premium"
-    ]
-   },
-   {
-    "date": "2026-11-16",
-    "heading": "Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building",
-    "ideas": [
-     "Fading large four-hour rallies in BTC and ETH (CFD short)",
-     "Altcoin froth as a signal against BTC and ETH",
-     "The rally-avoidance overlay on a spot basket",
-     "ETH against BTC after ether's rallies",
-     "Buying spot-led falls in large coins",
-     "Shorting altcoin CFDs on the short-side findings"
-    ]
-   },
-   {
-    "date": "2026-11-16",
-    "heading": "Checked on 2026-11-16, 07:50 UTC, and dropped before building",
-    "ideas": [
-     "Shorting BTC and ETH CFDs after forced deleveraging",
-     "FADE-1: volatility-scaled rally fades in BTC and ETH",
-     "OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008)",
-     "CBP-1: the Coinbase premium and the next hours"
-    ]
-   }
-  ],
-  "registered": [
-   {
-    "hypothesis": "A seasoned coin whose spot rose at least X in four hours while its perpetual never closed more than 0.25% above spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the market, than the same coin at hours it had not risen, and than rallies its perpetual led.",
-    "id": "SPL-1",
-    "preregistration": "research/preregistrations/SPL-1.md",
-    "tests": 2,
-    "title": "SPL-1: spot-led rallies and the spot buyer, dev stage",
-    "uses": [
-     {
-      "end": "2025-03-01",
-      "role": "judge",
-      "start": "2023-07-01",
-      "universe": "crypto-spot-spot-led-rallies"
-     }
-    ]
-   }
-  ],
-  "verdicts": [
-   {
-    "evidence": {
-     "artifact": "research/knowledge/SPL-1.json",
-     "artifact_unchanged": true,
-     "preregistration": "research/preregistrations/SPL-1.md",
-     "preregistration_exists": true,
-     "spec_quoted": true
-    },
-    "id": "SPL-1",
-    "result": {
-     "artifact": "research/knowledge/SPL-1.json",
-     "chosen_rise": null,
-     "days": 411,
-     "gates": {
-      "beats_leverage_led_rallies": false,
-      "beats_market": false,
-      "beats_placebo": false,
-      "costs_x2": false,
-      "halves": false,
-      "late_entry": false,
-      "t": false,
-      "top5_removed": false,
-      "without_best_coin": false,
-      "without_best_day": false
-     },
-     "mean_net": -0.02366045446211943,
-     "t": -4.654342822551325,
-     "traded": 1099,
-     "why": null
-    },
-    "status": "FAILED"
-   }
-  ]
+  "dropped_before_building": [],
+  "registered": [],
+  "verdicts": []
  },
  "version": "research-report-1.1.0"
 }
