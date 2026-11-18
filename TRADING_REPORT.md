@@ -4,7 +4,7 @@
 
 **بالعربي:** هذا تقرير التداول الورقي وحده: فلوس مو حقيقية، ومو باكتيست، وما بيه ولا رقم من البحث. الرصيد هسه $198,091.51، يعني من البداية -$1,908.49. آخر يوم (2026-11-17) طلع -$1,365.11. الصفقات المسكّرة: 0 (ربحت 0، خسرت 0). أكبر نزول من القمة: $3,788.59. الـ$4,000 بالشهر هدف مو إلزام: النظام ما يزيد المخاطرة ولا يفتح صفقة حتى يوصله.
 
-Updated 2026-11-18 03:51 UTC · sessions run: 14 · recorded: 14 · last: 2026-11-17 · desk-ledger-1.0.1
+Updated 2026-11-18 08:32 UTC · sessions run: 14 · recorded: 14 · last: 2026-11-17 · desk-ledger-1.0.1
 
 ## Daily
 
@@ -57,7 +57,7 @@ The $4,000 a month is a target, never a quota: the desk does not trade more, or 
 | 1 | OPEN | GER40 | LONG | 2026-11-09 16:30 UTC | — | 26,268.04 | 26,044.62 | 0.84 | $24,773.82 | 0.124x | open -$206.91 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 25,818.21 was above the mean of its last ten month-end closes, 24,980.08 |
 | 2 | OPEN | UK100 | LONG | 2026-11-09 16:30 UTC | — | 10,783.50 | 10,689.40 | 1.70 | $24,665.05 | 0.123x | open -$211.42 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 10,729.80 was above the mean of its last ten month-end closes, 10,562.40 |
 | 3 | OPEN | US500 | LONG | 2026-11-09 21:00 UTC | — | 7,550.29 | 7,340.28 | 3.25 | $24,536.49 | 0.123x | open -$682.53 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 7,580.07 was above the mean of its last ten month-end closes, 7,304.23 |
-| 4 | OPEN | NAS100 | LONG | 2026-11-09 21:00 UTC | — | 27,908.47 | 27,001.04 | 0.89 | $24,837.12 | 0.124x | open -$807.62 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 28,384.85 was above the mean of its last ten month-end closes, 27,883.88 |
+| 4 | OPEN | NAS100 | LONG | 2026-11-09 21:00 UTC | — | 27,908.47 | 27,001.03 | 0.89 | $24,837.12 | 0.124x | open -$807.63 | | | | | | | TRND-1 BUY for 2026-11: the 2026-10-30 month-end close 28,384.85 was above the mean of its last ten month-end closes, 27,883.88 |
 
 An open trade is marked at the last close's bid, so the spread and the slippage at its entry are already in its P&L; its commission is charged, and its costs itemized, when it closes. Each closed trade's gross less its costs equals its net, as the paper broker booked it.
 
