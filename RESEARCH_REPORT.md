@@ -4,9 +4,9 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-17 23:32 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-18 13:29 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-17, UTC)
+## Today (2026-11-18, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -37,20 +37,21 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-17 00:17 UTC, OK
-- Last successful idea step: 2026-11-17 00:17 UTC
+- Last cycle: 2026-11-18 13:29 UTC, OK
+- Last successful idea step: 2026-11-18 13:29 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 24 ideas: DROPPED_POWER 5, QUEUED_FOR_BUILD 1, REJECTED_BY_CRITIC 18
+- All time: 27 ideas: DROPPED_POWER 6, QUEUED_FOR_BUILD 2, REJECTED_BY_CRITIC 19
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: Dealer Hedging Demand from MSCI Energy Index Rebalancing (energy-futures-eia, swing). claimed net Sharpe 1.8 not supported by evidence and likely unachievable after retail CFD costs that erase gross edge (critic: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) Class: IMPLAUSIBLE_CLAIM.
-- **REJECTED_BY_CRITIC**: Disposition Effect in Leveraged Commodity Fund Deleveraging (metals-futures-daily, position). claimed net Sharpe 1.5 not supported by evidence and likely unachievable after retail CFD costs (critic: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free) Class: IMPLAUSIBLE_CLAIM.
-- **QUEUED_FOR_BUILD**: Central Bank Gold Purchases and Physical Delivery Follow-Through (metals-futures-daily, position). at its claimed strength it expects t 4.472 against 3.0 (passes 93% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
+- **QUEUED_FOR_BUILD**: Treasury Inflation Expectations Risk Premium (us-treasury-daily, position). at its claimed strength it expects t 3.795 against 3.0 (passes 79% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
+- **REJECTED_BY_CRITIC**: Commodity Price Lead-Lag in Emerging Market FX Currencies (em-fx-daily, swing). At its own claimed strength the test cannot clear the bar: a net Sharpe of 1.0 over 8 fresh years gives t of about 2.8 against a bar of 3.000 before any costs, and the conditional 3-day trigger (BCOM +1.5% with the EM FX lagging) makes the effective bet count far smaller than daily. On top of that, EM FX CFDs (BRL, ZAR, COP, MXN) carry wide spreads against a 1.0% catch-up target, so the net claim is more than the evidence (none) could support. (critic: inclusionai/ling-3.2-flash:free) Class: IMPLAUSIBLE_CLAIM.
+- **DROPPED_POWER**: Sector Rotation Lead-Lag among US Equity ETFs (us-etf-broad-daily, swing). even at its claimed strength it expects t 3.3 against a bar of 3.9398: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 13 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
 - Central Bank Gold Purchases and Physical Delivery Follow-Through (metals-futures-daily; queued 2026-11-17; claimed net Sharpe 1.0 over 20.0 fresh years): IMF IFS data; no lab test; prior version dropped for lack of power
+- Treasury Inflation Expectations Risk Premium (us-treasury-daily; queued 2026-11-18; claimed net Sharpe 1.2 over 10 fresh years): none: a new idea
 
 ## Validation status
 
