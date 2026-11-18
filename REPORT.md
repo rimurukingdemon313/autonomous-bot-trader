@@ -1,13 +1,13 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-18 08:39 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-18 03:08 UTC · decision system `dual_ai`
+Updated 2026-11-18 08:43 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-18 03:08 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
 ## ملخص بالعربي
 
-- الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,336.15، الربح أو الخسارة $-663.85، صفقات مسكّرة 3 ($-651.04)، مفتوحة 1.
-- الحساب الكامل من البداية: $191,921.17.
+- الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,342.25، الربح أو الخسارة $-657.75، صفقات مسكّرة 3 ($-651.04)، مفتوحة 1.
+- الحساب الكامل من البداية: $191,927.27.
 - آخر قرار: AUDUSD بيع (الاثنين اتفقوا).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 9، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف $8.39 من $95.00.
 - آلة الزمن لآخر اتفاق (AUDUSD، 10000 إعادة): الهدف أول 57%، الستوب أول 42%، ولا واحد 1%: يميل للهدف.
@@ -19,7 +19,7 @@ dual-ai 1.12.0 and on: the H1 chart, held up to 48 h (1.11.0); a trade only when
 
 | Start | Equity | Total P&L | Closed | Open | Trades | Win rate | Expectancy | Profit factor |
 |---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $199,336.15 | $-663.85 | $-651.04 | 1 ($-12.81) | 3 (insufficient) | 0.0% | -0.904R | 0.00 |
+| $200,000.00 | $199,342.25 | $-657.75 | $-651.04 | 1 ($-6.71) | 3 (insufficient) | 0.0% | -0.904R | 0.00 |
 
 Before it, kept and apart (not in the figures above): 137 trades, net $-7,414.98. The whole paper journal, which the hard gate and the risk engine still guard, is under Paper account below; nothing in it was moved or removed.
 
@@ -35,9 +35,9 @@ The 4 trade(s) of the old DEBATE rule, stopped in dual-ai-1.2.0, were removed fr
 
 | Account | Equity | P&L today | Total P&L | Drawdown | Open | Trades | Win rate | Expectancy | Profit factor | Risk | Bot |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| $200,000.00 | $191,921.17 | $-12.81 | $-8,078.83 | $-8,078.83 | 1 | 140 (adequate) | 38.6% | -0.140R | 0.72 | ACTIVE | RUNNING |
+| $200,000.00 | $191,927.27 | $-6.71 | $-8,072.73 | $-8,072.73 | 1 | 140 (adequate) | 38.6% | -0.140R | 0.72 | ACTIVE | RUNNING |
 
-Equity includes declared operator adjustments of $1,416.51 (without them: $190,504.65); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
+Equity includes declared operator adjustments of $1,416.51 (without them: $190,510.75); P&L today excludes them. `remove-retired-debate-rule-trades-2026-10-15`: operator: the 4 trades of the retired debate rule (dual-ai 1.1.0, stopped in 1.2.0) are removed from the paper account; they stay in the journal.
 
 ## Who lost it: the market or us
 
@@ -91,7 +91,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 | Symbol | Side | Qty | Entry | Stop | Target | P&L |
 |---|---|---|---|---|---|---|
-| AUDUSD | SELL | 0.61 | 0.67174 | 0.6734 | 0.6696 | $-12.81 |
+| AUDUSD | SELL | 0.61 | 0.67174 | 0.6734 | 0.6696 | $-6.71 |
 
 ## Closed paper trades (latest 20)
 
