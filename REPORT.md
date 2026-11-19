@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-19 07:00 UTC**, run 1013, version `radar-1.0.0`. State from: cache. Quotes this hour: 2361.
+Updated **2026-11-19 08:00 UTC**, run 1014, version `radar-1.0.0`. State from: cache. Quotes this hour: 2360.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,33 +17,33 @@ Updated **2026-11-19 07:00 UTC**, run 1013, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 42.46
+- days: 42.5
 - run_coverage: 0.9931
 - closed_positions: 237
 - open_positions: 7
-- utilisation: 0.2428
+- utilisation: 0.2433
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.3985
-- book_excess_pct: -2.5666
-- ann_excess_deployed_pct: -91.509
-- ann_excess_deployed_costs_x1.5_pct: -166.265
-- ann_excess_deployed_costs_x2_pct: -241.021
+- book_pnl_pct: -2.3978
+- book_excess_pct: -2.5663
+- ann_excess_deployed_pct: -91.238
+- ann_excess_deployed_costs_x1.5_pct: -165.782
+- ann_excess_deployed_costs_x2_pct: -240.325
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.021
+- book_excess_without_best_coin_pct: -3.0206
 - max_dd_pct: 2.4154
-- t_excess_daily: -3.797
+- t_excess_daily: -3.796
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| BLESS | mexc | gate | 2026-11-17 04:00 | 28.2% | 17.3 | 2.2 | 17.0 | **2.5** |
-| SOXL | mexc | gate | 2026-11-17 08:00 | 25.1% | 14.1 | -2.1 | 17.0 | **-5.1** |
-| SOXS | gate | mexc | 2026-11-17 18:00 | 26.4% | 14.8 | 1.6 | 17.0 | **-0.6** |
-| EVAA | mexc | gate | 2026-11-18 15:00 | 45.8% | 6.4 | -15.6 | 17.0 | **-26.2** |
-| PIEVERSE | mexc | gate | 2026-11-18 18:00 | 26.1% | 16.3 | 8.6 | 17.0 | **7.9** |
-| KORU | mexc | gate | 2026-11-18 20:00 | 39.0% | 1.5 | -0.1 | 17.0 | **-15.6** |
-| MMT | mexc | gate | 2026-11-19 00:00 | 25.4% | 1.9 | 16.4 | 17.0 | **1.3** |
+| BLESS | mexc | gate | 2026-11-17 04:00 | 28.2% | 17.3 | 14.7 | 17.0 | **15.0** |
+| SOXL | mexc | gate | 2026-11-17 08:00 | 25.1% | 14.3 | -0.1 | 17.0 | **-2.8** |
+| SOXS | gate | mexc | 2026-11-17 18:00 | 26.4% | 14.9 | -3.3 | 17.0 | **-5.4** |
+| EVAA | mexc | gate | 2026-11-18 15:00 | 45.8% | 6.4 | -17.3 | 17.0 | **-28.0** |
+| PIEVERSE | mexc | gate | 2026-11-18 18:00 | 26.1% | 16.3 | 4.7 | 17.0 | **4.0** |
+| KORU | mexc | gate | 2026-11-18 20:00 | 39.0% | 1.7 | 1.4 | 17.0 | **-13.9** |
+| MMT | mexc | gate | 2026-11-19 00:00 | 25.4% | 1.9 | 11.8 | 17.0 | **-3.4** |
 
 ## Closed positions (237)
 
