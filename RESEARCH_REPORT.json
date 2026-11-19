@@ -406,49 +406,64 @@
   "trials": 94,
   "verdicts": 84
  },
- "day": "2026-11-18",
+ "day": "2026-11-19",
  "engine": {
   "built": [],
   "by_decision": {
-   "DROPPED_POWER": 6,
+   "DROPPED_POWER": 7,
    "QUEUED_FOR_BUILD": 2,
-   "REJECTED_BY_CRITIC": 19
+   "REJECTED_BY_CRITIC": 21
   },
   "integrity": {
-   "at": "2026-11-18T22:57:38.222116+00:00",
-   "cycle": "2026-11-18",
+   "at": "2026-11-19T13:57:44.204172+00:00",
+   "cycle": "2026-11-19",
    "detail": null,
    "status": "OK",
    "step": "integrity",
    "version": "research-engine-1.2.0"
   },
   "last": {
-   "at": "2026-11-18T13:29:49.427119+00:00",
-   "cycle": "2026-11-18",
+   "at": "2026-11-19T13:57:44.204172+00:00",
+   "cycle": "2026-11-19",
    "detail": {
     "attempts": [
      {
       "model": "dots-studio/dots-3-note-preview:free",
       "role": "researcher",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "baidu/ernie-5.5-flash-preview:free",
+      "role": "researcher",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "recursive/flint-v1.0:free",
+      "role": "researcher",
       "status": "OK"
      },
      {
-      "model": "inclusionai/ling-3.2-flash:free",
+      "model": "dots-studio/dots-3-note-preview:free",
+      "role": "critic",
+      "status": "TIMEOUT"
+     },
+     {
+      "model": "particle-ai/particle-1:free",
       "role": "critic",
       "status": "OK"
      }
     ],
     "ideas": [
-     "ef547d35a3823dc99185",
-     "7877d55befd3b1411fcd",
-     "c4ec2884592edc3984d1"
+     "408f7f6f4bfd431d5f2c",
+     "8aaf9ac0724cde82378f",
+     "aeaa6f0da478787475fb"
     ]
    },
    "status": "OK",
    "step": "ideas",
    "version": "research-engine-1.2.0"
   },
-  "last_ok": "2026-11-18T13:29:49.427119+00:00",
+  "last_ok": "2026-11-19T13:57:44.204172+00:00",
   "queued": [
    {
     "at": "2026-11-17T00:17:15.024042+00:00",
@@ -525,119 +540,113 @@
   ],
   "today": [
    {
-    "at": "2026-11-18T13:29:49.427119+00:00",
-    "claimed_sharpe_annual": 1.2,
+    "at": "2026-11-19T13:57:44.204172+00:00",
+    "claimed_sharpe_annual": 0.8,
     "conditions_flag": null,
-    "critic": "inclusionai/ling-3.2-flash:free",
+    "critic": "particle-ai/particle-1:free",
     "critic_category": null,
-    "critic_reason": "New family on an untested universe (us-treasury-daily, 0 tests) with a coherent risk-premium mechanism (inflation-risk term premium compressing as yields revert). The rule is fully causal (rolling 252-day percentile, 50-day SMA exit), H.15 yields are point-in-time and public, and Treasury CFDs exist. At the claimed net Sharpe of 1.2 over 10 fresh years, t is about 3.8 against a bar of 3.0, and two instruments traded as one book double the data; costs on liquid bond CFDs are small. Whether the edge survives is for the statistics.",
+    "critic_reason": "A real, mechanical flow story (vol-targeting CTAs must de-risk as realized volatility rises), implemented only from public daily commodity closes and prior-window volatility percentiles, so it is testable without look-ahead. It is not the closed VIX-contango or equity vol-managed family: it is a different asset class and a short-side breadth version (six instruments traded as one book over 12 fresh years), which is exactly the form the power-dropped volatility family was left open to. The claimed net Sharpe of 0.8 is modest rather than implausible; whether 12 years and a handful of high-vol episodes can clear a bar of 3.0 is for the statistics, not for me.",
     "critic_verdict": "PASS",
-    "cycle": "2026-11-18",
-    "data_source": "US Treasury daily yield data (Federal Reserve H.15) and corresponding CFD price data",
-    "decision": "QUEUED_FOR_BUILD",
-    "duplicate_of": null,
-    "evidence": "none: a new idea",
-    "fingerprint": "ef547d35a3823dc99185",
-    "horizon": "position",
-    "idea_class": "UNTESTED_HYPOTHESIS",
-    "mechanism": "Investors demand a premium for holding nominal bonds during periods of high macroeconomic uncertainty or inflation volatility. When inflation expectations spike, the required term premium increases, causing nominal bond yields to rise and bond prices to fall. Patient capital willing to bear inflation risk buys these bonds at rich yields, capturing the premium as expectations stabilize and yields revert. This persists because inflation risk is systematic and cannot be diversified away by most investors, who face constraints on holding long-duration assets during high inflation.",
-    "mechanism_class": "risk premium",
-    "needs_short_or_leverage": "no",
-    "power": {
-     "bar": 3.0,
-     "claimed_sharpe": 1.2,
-     "expected_t": 3.795,
-     "p_pass": 0.787,
-     "years": 10
-    },
-    "proposer": "dots-studio/dots-3-note-preview:free",
-    "rule": "At the daily close, compute the 10-year Treasury yield. If the current yield is in the top 10% of the rolling 252-day window, enter a long position in the 10-year Treasury CFD. Hold the position until the yield falls below its 50-day simple moving average, at which point exit to cash. If the yield is not in the top 10% at the close, remain in cash. This rule spans 2 instruments (the 10-year and 30-year Treasury CFDs) traded as one book.",
-    "source": "engine",
-    "title": "Treasury Inflation Expectations Risk Premium",
-    "universe": "us-treasury-daily",
-    "version": "research-engine-1.2.0",
-    "why": "at its claimed strength it expects t 3.795 against 3.0 (passes 79% of the time); the claim must be verified at its source before it is built",
-    "why_new": "This is the first proposal in the risk premium class on the completely untested us-treasury-daily universe. While the general bond risk premium is well-documented in academic literature, it has not been tested as a daily CFD trading rule in a swap-free account, and the specific mechanism of inflation risk premium compression captured via yield-percentile mean reversion is new to this lab's registry.",
-    "years_of_fresh_data": 10
-   },
-   {
-    "at": "2026-11-18T13:29:49.427119+00:00",
-    "claimed_sharpe_annual": 1.0,
-    "conditions_flag": null,
-    "critic": "inclusionai/ling-3.2-flash:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "At its own claimed strength the test cannot clear the bar: a net Sharpe of 1.0 over 8 fresh years gives t of about 2.8 against a bar of 3.000 before any costs, and the conditional 3-day trigger (BCOM +1.5% with the EM FX lagging) makes the effective bet count far smaller than daily. On top of that, EM FX CFDs (BRL, ZAR, COP, MXN) carry wide spreads against a 1.0% catch-up target, so the net claim is more than the evidence (none) could support.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-18",
-    "data_source": "Daily commodity futures index data (Bloomberg Commodity Index) and EM FX daily spot/CFD prices",
-    "decision": "REJECTED_BY_CRITIC",
-    "duplicate_of": null,
-    "evidence": "none: a new idea",
-    "fingerprint": "7877d55befd3b1411fcd",
-    "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "Many emerging market currencies are heavily commodity-exporter dependent. Commodity prices (measured by the Bloomberg Commodity Index) lead the respective EM FX currencies because commodity markets are more liquid and react faster to global macroeconomic news. The information diffuses from the commodity futures market to the thinner EM FX market with a lag of a few days. Global institutional investors trade the commodity futures first, while local exporters and central banks in EM countries hedge slowly, creating a persistent lag that can be captured by buying the EM FX after a strong commodity price move.",
-    "mechanism_class": "cross-asset linkage",
-    "needs_short_or_leverage": "no",
-    "power": null,
-    "proposer": "dots-studio/dots-3-note-preview:free",
-    "rule": "At the daily close, if the Bloomberg Commodity Index has returned more than 1.5% over the past 3 days, and the corresponding commodity-linked EM FX currency (e.g., BRL, ZAR, COP, MXN) has returned less than 0.5% over the same 3-day window, enter a long position in that EM FX CFD. Hold the position for 5 trading days or exit immediately if the EM FX catches up and returns more than 1.0% from entry, whichever comes first. If no such currency meets the condition, stay in cash. This rule spans 4 commodity-linked EM FX currencies (BRL, ZAR, COP, MXN) traded as one book.",
-    "source": "engine",
-    "title": "Commodity Price Lead-Lag in Emerging Market FX Currencies",
-    "universe": "em-fx-daily",
-    "version": "research-engine-1.2.0",
-    "why": "At its own claimed strength the test cannot clear the bar: a net Sharpe of 1.0 over 8 fresh years gives t of about 2.8 against a bar of 3.000 before any costs, and the conditional 3-day trigger (BCOM +1.5% with the EM FX lagging) makes the effective bet count far smaller than daily. On top of that, EM FX CFDs (BRL, ZAR, COP, MXN) carry wide spreads against a 1.0% catch-up target, so the net claim is more than the evidence (none) could support.",
-    "why_new": "This is the first proposal in the cross-asset linkage class on the completely untested em-fx-daily universe. While the commodity currency link is well-known in academic economics, the specific lead-lag trading rule exploiting the 3-to-5 day lag of EM FX relative to broad commodity index moves has never been tested in a swap-free CFD account, and it avoids the carry constraint by using short-term price momentum rather than interest rate differentials.",
-    "years_of_fresh_data": 8
-   },
-   {
-    "at": "2026-11-18T13:29:49.427119+00:00",
-    "claimed_sharpe_annual": 1.1,
-    "conditions_flag": null,
-    "critic": "inclusionai/ling-3.2-flash:free",
-    "critic_category": null,
-    "critic_reason": "New family on an untested universe (us-etf-broad-daily, 0 tests) with a genuine information-diffusion mechanism (Hong-Stein style leader-laggard drift). The rule is causal (5-day ranks, fixed hold, no look-ahead), sector ETF daily history is public, and long-only ETF holding fits the swap-free account with negligible costs. At the claimed net Sharpe of 1.1 over 9 fresh years, t is about 3.3 against a bar of 3.0, and 10 ETFs traded as one book add breadth; whether the diffusion edge is real after the market's own drift is for the statistics.",
-    "critic_verdict": "PASS",
-    "cycle": "2026-11-18",
-    "data_source": "Daily adjusted close prices of US sector and industry ETFs (from Yahoo Finance or Bloomberg)",
+    "cycle": "2026-11-19",
+    "data_source": "public daily commodity futures closes and CTA risk-model proxies",
     "decision": "DROPPED_POWER",
     "duplicate_of": null,
     "evidence": "none: a new idea",
-    "fingerprint": "c4ec2884592edc3984d1",
-    "horizon": "swing",
+    "fingerprint": "408f7f6f4bfd431d5f2c",
+    "horizon": "position",
     "idea_class": "INSUFFICIENT_POWER",
-    "mechanism": "Information about economic conditions or sector-specific trends does not diffuse instantaneously across all sectors. Leading sectors (e.g., technology, financials, or energy) react first to macroeconomic news or earnings surprises, and lagging sectors (e.g., consumer staples, utilities, or REITs) react with a delay of several days. Institutional investors with large portfolios trade leading sectors first due to lower transaction costs or mandate constraints, while retail investors and smaller funds trade lagging sectors later, creating a persistent information diffusion drift that can be captured by buying the lagging sectors after the leaders have moved.",
-    "mechanism_class": "information diffusion",
-    "needs_short_or_leverage": "no",
+    "mechanism": "Volatility-targeting CTAs are forced to sell commodity futures as realized volatility rises, creating temporary forced supply before rebalancing.",
+    "mechanism_class": "volatility",
+    "needs_short_or_leverage": "yes (short futures)",
     "power": {
-     "bar": 3.9398,
-     "claimed_sharpe": 1.1,
-     "expected_t": 3.3,
-     "p_pass": 0.261,
+     "bar": 3.0,
+     "claimed_sharpe": 0.8,
+     "expected_t": 2.771,
+     "p_pass": 0.41,
      "plan": {
       "independent_instruments_needed": 2,
       "ways": [
-       "about 13 years of fresh data at the claimed strength, against the 9 it has",
-       "or the same mechanism on about 2 independent instruments over those 9 years, tested as one book"
+       "about 14 years of fresh data at the claimed strength, against the 12 it has",
+       "or the same mechanism on about 2 independent instruments over those 12 years, tested as one book"
       ],
-      "years_of_fresh_data_needed": 12.8
+      "years_of_fresh_data_needed": 14.1
      },
-     "years": 9
+     "years": 12.0
     },
-    "proposer": "dots-studio/dots-3-note-preview:free",
-    "rule": "At the daily close, rank a basket of 10 broad sector and industry ETFs (e.g., XLK, XLF, XLE, XLV, XLP, XLY, XLI, XLB, XLRE, XLU) by their 5-day returns. If the top-performing ETF (the leader) has returned more than 3.0% over the past 5 days, and the bottom-performing ETF (the laggard) has returned less than 0.5% over the same 5 days, enter a long position in the laggard ETF. Hold the position for 10 trading days or exit immediately if the laggard ETF catches up and returns more than 2.0% from entry, whichever comes first. If no such pair exists, stay in cash. This rule spans 10 sector and industry ETFs traded as one book.",
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "Enter short one unit per commodity in a six-instrument commodity futures basket when the prior 252-day realized volatility percentile is above the 80th percentile and the prior 10-day annualized realized volatility exceeds 30 percent; exit when the 30-day realized volatility falls below the 50th percentile of the prior 252 days or after 20 trading days, whichever first.",
     "source": "engine",
-    "title": "Sector Rotation Lead-Lag among US Equity ETFs",
-    "universe": "us-etf-broad-daily",
+    "title": "CTA Commodity De-Risking Shock",
+    "universe": "new:cta-commodity",
     "version": "research-engine-1.2.0",
-    "why": "even at its claimed strength it expects t 3.3 against a bar of 3.9398: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 13 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book",
-    "why_new": "This is the first proposal in the information diffusion class on the completely untested us-etf-broad-daily universe. While cross-industry information diffusion is a well-known academic phenomenon (Hong and Stein 1997), the specific sector rotation lead-lag trading rule exploiting the 5-to-10 day lag of laggard sector ETFs relative to leader sector ETFs has never been tested in this lab's registry, and it fits the swap-free condition perfectly because it requires only long positions in highly liquid ETFs with negligible overnight financing.",
-    "years_of_fresh_data": 9
+    "why": "even at its claimed strength it expects t 2.771 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 12 it has; or the same mechanism on about 2 independent instruments over those 12 years, tested as one book",
+    "why_new": "Uses cross-commodity CTA forced de-risking thresholds rather than the single-asset VIX contango family already tested.",
+    "years_of_fresh_data": 12.0
+   },
+   {
+    "at": "2026-11-19T13:57:44.204172+00:00",
+    "claimed_sharpe_annual": 0.6,
+    "conditions_flag": null,
+    "critic": "particle-ai/particle-1:free",
+    "critic_category": "data_cannot_be_had",
+    "critic_reason": "The rule needs a signed opening-cross imbalance series for a twenty-name basket plus the index, and dealer rebalancing-hedging proxies, at intraday granularity. No such history is held here (the universe is daily ETF closes) and the dealer-hedging measure does not exist as obtainable data; the hypothesis itself names no source. Even if the imbalance feed were bought, a 21-leg round trip inside 30 minutes at retail spreads is the exact configuration the record says loses its whole gross edge, so a claimed 0.6 net Sharpe over 8 years (t about 1.7 against a bar of 3.0) could not be supported.",
+    "critic_verdict": "REJECT",
+    "cycle": "2026-11-19",
+    "data_source": "none: a new idea",
+    "decision": "REJECTED_BY_CRITIC",
+    "duplicate_of": null,
+    "evidence": "none: a new idea",
+    "fingerprint": "8aaf9ac0724cde82378f",
+    "horizon": "intraday",
+    "idea_class": "INSUFFICIENT_DATA",
+    "mechanism": "Dealer index-rebalancing hedging flows create temporary opening cross imbalances between the index future and a twenty-instrument basket of constituents.",
+    "mechanism_class": "market microstructure",
+    "needs_short_or_leverage": "yes (short the overweighted leg)",
+    "power": null,
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "Enter long the basket leg and short the index leg with a fixed 1:1 notional hedge when the signed opening imbalance exceeds 2 times its 20-day rolling median; exit at fair value or after 30 minutes.",
+    "source": "engine",
+    "title": "Opening Cross Imbalance from Index Rebalancing Hedging",
+    "universe": "us-equity-etf",
+    "version": "research-engine-1.2.0",
+    "why": "The rule needs a signed opening-cross imbalance series for a twenty-name basket plus the index, and dealer rebalancing-hedging proxies, at intraday granularity. No such history is held here (the universe is daily ETF closes) and the dealer-hedging measure does not exist as obtainable data; the hypothesis itself names no source. Even if the imbalance feed were bought, a 21-leg round trip inside 30 minutes at retail spreads is the exact configuration the record says loses its whole gross edge, so a claimed 0.6 net Sharpe over 8 years (t about 1.7 against a bar of 3.0) could not be supported.",
+    "why_new": "Uses live opening order-book imbalance and actual rebalance hedging proxies rather than close-to-close proxies.",
+    "years_of_fresh_data": 8.0
+   },
+   {
+    "at": "2026-11-19T13:57:44.204172+00:00",
+    "claimed_sharpe_annual": 0.7,
+    "conditions_flag": null,
+    "critic": "particle-ai/particle-1:free",
+    "critic_category": "repeats_closed_family",
+    "critic_reason": "Shorting the collateral after a forced-deleveraging event is the family already closed by evidence, not by power: LIQ-1's own liquidation events gave bitcoin +0.05% (t 0.07) over the next day, and 'shorting BTC and ETH CFDs after forced deleveraging' was dropped precisely because there is no continuation to sell. Swapping the trigger from derivatives liquidations to a lending-pool collateral ratio is the same mechanism on the same coins with no genuinely new evidence, and the historical pool-level collateral-ratio series is not held either.",
+    "critic_verdict": "REJECT",
+    "cycle": "2026-11-19",
+    "data_source": "none: a new idea",
+    "decision": "REJECTED_BY_CRITIC",
+    "duplicate_of": "forced deleveraging / liquidation-led falls (LIQ-1, CASC-1; shorting after forced deleveraging)",
+    "evidence": "none: a new idea",
+    "fingerprint": "aeaa6f0da478787475fb",
+    "horizon": "swing",
+    "idea_class": "REPEATS_CLOSED_FAMILY",
+    "mechanism": "Lending-protocol collateral shortfalls force liquidations and borrower deleveraging, creating a transient forced selling cascade.",
+    "mechanism_class": "forced flows",
+    "needs_short_or_leverage": "yes (short and leverage)",
+    "power": null,
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "When a lending pool collateral ratio falls below 150 percent and the prior 24 hours saw a greater than 5 percent price drop in the collateral, enter short one unit of the collateral; exit when the pool collateral ratio recovers above 200 percent or after 10 trading days.",
+    "source": "engine",
+    "title": "Cross-Protocol Forced Deleveraging in Crypto Lending",
+    "universe": "new:crypto-lending",
+    "version": "research-engine-1.2.0",
+    "why": "Shorting the collateral after a forced-deleveraging event is the family already closed by evidence, not by power: LIQ-1's own liquidation events gave bitcoin +0.05% (t 0.07) over the next day, and 'shorting BTC and ETH CFDs after forced deleveraging' was dropped precisely because there is no continuation to sell. Swapping the trigger from derivatives liquidations to a lending-pool collateral ratio is the same mechanism on the same coins with no genuinely new evidence, and the historical pool-level collateral-ratio series is not held either.",
+    "why_new": "Extends forced-deleveraging logic from derivatives liquidation to lending-protocol insurance cascades across venues.",
+    "years_of_fresh_data": 10.0
    }
   ],
-  "total": 27
+  "total": 30
  },
- "generated": "2026-11-18T22:57:38.222116+00:00",
+ "generated": "2026-11-19T13:57:44.204172+00:00",
  "recent_verdicts": [
   {
    "evidence": {

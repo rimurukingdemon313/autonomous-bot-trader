@@ -4,9 +4,9 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-18 22:57 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-19 13:57 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-18, UTC)
+## Today (2026-11-19, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -37,16 +37,16 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-18 13:29 UTC, OK
-- Last successful idea step: 2026-11-18 13:29 UTC
+- Last cycle: 2026-11-19 13:57 UTC, OK
+- Last successful idea step: 2026-11-19 13:57 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 27 ideas: DROPPED_POWER 6, QUEUED_FOR_BUILD 2, REJECTED_BY_CRITIC 19
+- All time: 30 ideas: DROPPED_POWER 7, QUEUED_FOR_BUILD 2, REJECTED_BY_CRITIC 21
 
 **Today:**
 
-- **QUEUED_FOR_BUILD**: Treasury Inflation Expectations Risk Premium (us-treasury-daily, position). at its claimed strength it expects t 3.795 against 3.0 (passes 79% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
-- **REJECTED_BY_CRITIC**: Commodity Price Lead-Lag in Emerging Market FX Currencies (em-fx-daily, swing). At its own claimed strength the test cannot clear the bar: a net Sharpe of 1.0 over 8 fresh years gives t of about 2.8 against a bar of 3.000 before any costs, and the conditional 3-day trigger (BCOM +1.5% with the EM FX lagging) makes the effective bet count far smaller than daily. On top of that, EM FX CFDs (BRL, ZAR, COP, MXN) carry wide spreads against a 1.0% catch-up target, so the net claim is more than the evidence (none) could support. (critic: inclusionai/ling-3.2-flash:free) Class: IMPLAUSIBLE_CLAIM.
-- **DROPPED_POWER**: Sector Rotation Lead-Lag among US Equity ETFs (us-etf-broad-daily, swing). even at its claimed strength it expects t 3.3 against a bar of 3.9398: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 13 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 2 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: CTA Commodity De-Risking Shock (new:cta-commodity, position). even at its claimed strength it expects t 2.771 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 12 it has; or the same mechanism on about 2 independent instruments over those 12 years, tested as one book Class: INSUFFICIENT_POWER.
+- **REJECTED_BY_CRITIC**: Opening Cross Imbalance from Index Rebalancing Hedging (us-equity-etf, intraday). The rule needs a signed opening-cross imbalance series for a twenty-name basket plus the index, and dealer rebalancing-hedging proxies, at intraday granularity. No such history is held here (the universe is daily ETF closes) and the dealer-hedging measure does not exist as obtainable data; the hypothesis itself names no source. Even if the imbalance feed were bought, a 21-leg round trip inside 30 minutes at retail spreads is the exact configuration the record says loses its whole gross edge, so a claimed 0.6 net Sharpe over 8 years (t about 1.7 against a bar of 3.0) could not be supported. (critic: particle-ai/particle-1:free) Class: INSUFFICIENT_DATA.
+- **REJECTED_BY_CRITIC**: Cross-Protocol Forced Deleveraging in Crypto Lending (new:crypto-lending, swing). Shorting the collateral after a forced-deleveraging event is the family already closed by evidence, not by power: LIQ-1's own liquidation events gave bitcoin +0.05% (t 0.07) over the next day, and 'shorting BTC and ETH CFDs after forced deleveraging' was dropped precisely because there is no continuation to sell. Swapping the trigger from derivatives liquidations to a lending-pool collateral ratio is the same mechanism on the same coins with no genuinely new evidence, and the historical pool-level collateral-ratio series is not held either. (critic: particle-ai/particle-1:free) Class: REPEATS_CLOSED_FAMILY.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
