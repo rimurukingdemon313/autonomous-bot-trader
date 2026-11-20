@@ -4,9 +4,9 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-19 23:05 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-20 13:39 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-19, UTC)
+## Today (2026-11-20, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -37,21 +37,24 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-19 13:57 UTC, OK
-- Last successful idea step: 2026-11-19 13:57 UTC
+- Last cycle: 2026-11-20 13:39 UTC, OK
+- Last successful idea step: 2026-11-20 13:39 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 30 ideas: DROPPED_POWER 7, QUEUED_FOR_BUILD 2, REJECTED_BY_CRITIC 21
+- All time: 33 ideas: DROPPED_POWER 7, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 21
 
 **Today:**
 
-- **DROPPED_POWER**: CTA Commodity De-Risking Shock (new:cta-commodity, position). even at its claimed strength it expects t 2.771 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 14 years of fresh data at the claimed strength, against the 12 it has; or the same mechanism on about 2 independent instruments over those 12 years, tested as one book Class: INSUFFICIENT_POWER.
-- **REJECTED_BY_CRITIC**: Opening Cross Imbalance from Index Rebalancing Hedging (us-equity-etf, intraday). The rule needs a signed opening-cross imbalance series for a twenty-name basket plus the index, and dealer rebalancing-hedging proxies, at intraday granularity. No such history is held here (the universe is daily ETF closes) and the dealer-hedging measure does not exist as obtainable data; the hypothesis itself names no source. Even if the imbalance feed were bought, a 21-leg round trip inside 30 minutes at retail spreads is the exact configuration the record says loses its whole gross edge, so a claimed 0.6 net Sharpe over 8 years (t about 1.7 against a bar of 3.0) could not be supported. (critic: particle-ai/particle-1:free) Class: INSUFFICIENT_DATA.
-- **REJECTED_BY_CRITIC**: Cross-Protocol Forced Deleveraging in Crypto Lending (new:crypto-lending, swing). Shorting the collateral after a forced-deleveraging event is the family already closed by evidence, not by power: LIQ-1's own liquidation events gave bitcoin +0.05% (t 0.07) over the next day, and 'shorting BTC and ETH CFDs after forced deleveraging' was dropped precisely because there is no continuation to sell. Swapping the trigger from derivatives liquidations to a lending-pool collateral ratio is the same mechanism on the same coins with no genuinely new evidence, and the historical pool-level collateral-ratio series is not held either. (critic: particle-ai/particle-1:free) Class: REPEATS_CLOSED_FAMILY.
+- **QUEUED_FOR_BUILD**: International sector rotation lead-lag among equity ETFs (new:international-sector-etfs, swing). at its claimed strength it expects t 3.795 against 3.0 (passes 79% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
+- **QUEUED_FOR_BUILD**: Volatility-managed global equity factor ETFs (new:global-equity-etfs, position). at its claimed strength it expects t 5.196 against 3.0 (passes 99% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
+- **QUEUED_FOR_BUILD**: ETF premium/discount mean reversion across many ETFs (new:many-etfs, swing). at its claimed strength it expects t 3.394 against 3.0 (passes 65% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
 - Central Bank Gold Purchases and Physical Delivery Follow-Through (metals-futures-daily; queued 2026-11-17; claimed net Sharpe 1.0 over 20.0 fresh years): IMF IFS data; no lab test; prior version dropped for lack of power
 - Treasury Inflation Expectations Risk Premium (us-treasury-daily; queued 2026-11-18; claimed net Sharpe 1.2 over 10 fresh years): none: a new idea
+- International sector rotation lead-lag among equity ETFs (new:international-sector-etfs; queued 2026-11-20; claimed net Sharpe 1.2 over 10 fresh years): none: a new idea
+- Volatility-managed global equity factor ETFs (new:global-equity-etfs; queued 2026-11-20; claimed net Sharpe 1.5 over 12 fresh years): none: a new idea
+- ETF premium/discount mean reversion across many ETFs (new:many-etfs; queued 2026-11-20; claimed net Sharpe 1.2 over 8 fresh years): none: a new idea
 
 ## Validation status
 
