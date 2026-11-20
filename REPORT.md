@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-20 18:11 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-20 16:40 UTC · decision system `dual_ai`
+Updated 2026-11-20 18:26 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-20 16:40 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,242.50، الربح أو الخسارة $-757.50، صفقات مسكّرة 4 ($-757.50)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,827.51.
-- آخر قرار: AUDJPY لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: GBPUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 10، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف ما ينقرى هسه من $95.00.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -71,8 +71,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 01:00 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (7559 so far)
+## Latest decisions, NO TRADE included (7561 so far)
 
+- 11-20 18:15 GBPUSD NO_TRADE: risk engine: trading_calendar (Friday 18:15 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
+- 11-20 18:15 EURUSD NO_TRADE: risk engine: trading_calendar (Friday 18:15 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 - 11-20 18:00 AUDJPY NO_TRADE: risk engine: trading_calendar (Friday 18:00 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 - 11-20 18:00 EURCHF NO_TRADE: risk engine: trading_calendar (Friday 18:00 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
 - 11-20 17:45 GBPJPY NO_TRADE: risk engine: trading_calendar (Friday 17:45 UTC: no new position on Friday from 12:00 to 24:00 UTC): the model was not consulted
@@ -83,8 +85,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-20 17:15 USDCAD NO_TRADE: risk engine: trading_calendar (Friday 17:15 UTC: no new position on Friday from 12:00 to 24:00 UTC); news (Medium-impact release USD President Trump Speaks 16 min ago: no new position from 30 min befo
 - 11-20 17:00 AUDUSD NO_TRADE: risk engine: trading_calendar (Friday 17:00 UTC: no new position on Friday from 12:00 to 24:00 UTC); news (Medium-impact release USD President Trump Speaks 1 min ago: no new position from 30 min befor
 - 11-20 17:00 USDJPY NO_TRADE: risk engine: trading_calendar (Friday 17:00 UTC: no new position on Friday from 12:00 to 24:00 UTC); news (Medium-impact release USD President Trump Speaks 1 min ago: no new position from 30 min befor
-- 11-20 16:45 GBPUSD NO_TRADE: risk engine: trading_calendar (Friday 16:45 UTC: no new position on Friday from 12:00 to 24:00 UTC); news (Medium-impact release USD President Trump Speaks in 14 min: no new position from 30 min befor
-- 11-20 16:45 EURUSD NO_TRADE: risk engine: trading_calendar (Friday 16:45 UTC: no new position on Friday from 12:00 to 24:00 UTC); news (Medium-impact release USD President Trump Speaks in 14 min: no new position from 30 min befor
 
 ## Open paper positions
 
@@ -138,6 +138,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-20 18:15 | GBPUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-20 18:15 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 18:00 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 18:00 | EURCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 17:45 | GBPJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -148,8 +150,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-20 17:15 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 17:00 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 17:00 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-20 16:45 | GBPUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-20 16:45 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
