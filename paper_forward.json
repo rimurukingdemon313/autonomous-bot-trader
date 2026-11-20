@@ -2546,6 +2546,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "EURGBP",
+   "decision": "NO_TRADE",
+   "t": 1795176019,
+   "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+   "data_flags": []
+  },
+  {
+   "symbol": "NZDUSD",
+   "decision": "NO_TRADE",
+   "t": 1795176017,
+   "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+   "data_flags": []
+  },
+  {
    "symbol": "USDCHF",
    "decision": "NO_TRADE",
    "t": 1795175239,
@@ -2698,23 +2712,9 @@
    "t": 1795165409,
    "reason": "Trader 2's model gave no usable answer (UPSTREAM_ERROR: upstream error: JSON error injected into SSE stream): nobody stands in for it, and there is no decision on one trader alone",
    "data_flags": []
-  },
-  {
-   "symbol": "USDCAD",
-   "decision": "NO_TRADE",
-   "t": 1795165221,
-   "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 58): no trade unless both are that sure; followed forward in shadow, not traded",
-   "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1795164507,
-   "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 60, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded",
-   "data_flags": []
   }
  ],
- "decisions_total": 7509,
+ "decisions_total": 7511,
  "shift": {
   "started": "2026-11-20 11:05 UTC",
   "decision_mode": "dual_ai",
@@ -2986,11 +2986,6 @@
       "until": 1795176375,
       "why": "rate_limited",
       "in_a_row": 3
-     },
-     "inclusionai/ling-3.2-flash:free": {
-      "until": 1795175599,
-      "why": "rate_limited",
-      "in_a_row": 1
      }
     },
     "excluded": {},
@@ -3134,83 +3129,23 @@
    }
   },
   "last_analysis": {
-   "decision_id": "88853581f3cd6caee81691f0",
-   "symbol": "USDCHF",
-   "t": 1795175239,
+   "decision_id": "6174828da324aa5f976617ea",
+   "symbol": "EURGBP",
+   "t": 1795176019,
    "decision": "NO_TRADE",
-   "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error inclusionai/ling-3.2-flash:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in fo",
+   "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
    "consensus": {
     "outcome": "NO_TRADE",
-    "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error inclusionai/ling-3.2-flash:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok): nobody stands in for it, and there is no decision on one trader alone",
-    "rule": "TRADER2_UNAVAILABLE"
+    "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+    "rule": "NOT_ASKED"
    },
-   "models": {
-    "trader1": "nvidia/nemotron-3.5-super-vl:free",
-    "trader2": "inclusionai/ling-3.2-flash:free"
-   },
-   "trader1": {
-    "confidence": 52,
-    "direction": "BUY",
-    "entry": 0.841875,
-    "invalidation": 0.84139,
-    "liquidity": "Lows swept at 0.84176, 0.84147 and 0.84139 (bullish sweep signal); EQH at 0.8444 above, EQL far below at 0.81737.",
-    "market_structure": "H4 uptrend (HH+HL) intact; H1 just printed bearish CHoCH at 0.84139 after sweeping lows, with price at the bottom of the entry zone and tested supply OB above.",
-    "momentum": "Bearish displacement on the last H1 bar, but sweep of lows suggests exhaustion; M1/H1 range position near lows.",
-    "reason": "H4 structure remains up (HH+HL) while H1 swept the 0.84139 low with a bullish signal, setting up a mean-reversion buy into the tested supply OB at 0.84179-0.84306. Entry at the ask targets the OB high with a stop below the bearish CHoCH/LL at 0.84139. Desk history shows BUYs lose strongly, but the prior cause\u2014falling majors\u2014is absent now that H4 is trending up. This is a lower-confidence H1 counter-trend trade aligned with the higher timeframe.",
-    "reversal_probability": 48,
-    "risk_reward": 1.21,
-    "stop_loss": 0.8409,
-    "take_profit": 0.84305,
-    "trend": "H4 UP (HH+HL), H1 DOWN (LH+LL); higher timeframe bias favors buyers on dips."
-   },
+   "models": {},
+   "trader1": null,
    "trader2": null,
    "verifier": null,
-   "chart": {
-    "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1795175239,
-    "bytes": 30147,
-    "execution_timeframe": "H1",
-    "height": 1000,
-    "higher_timeframe": "H4",
-    "last_bar_available": 1795172400,
-    "last_bar_open": 1795168800,
-    "sha256": "1712362f094a1e985887f3e027aa712b01a607a44d8ffff4ac8557b43f3c5151",
-    "version": "chart-render-1.0.0",
-    "width": 1280
-   },
-   "calls": [
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0,
-     "error": null,
-     "latency_ms": 56657.6,
-     "model": "nvidia/nemotron-3.5-super-vl:free",
-     "ok": true,
-     "provider_id": "gen-1795175242-9hOBYR1TTBG4Bxinq6BT",
-     "request_id": "5e853bf75da94dfca3270a0b9c0f7d93",
-     "role": "vision",
-     "status": "OK",
-     "tokens": 22872,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": null,
-     "error": "HTTP 429: Provider returned error inclusionai/ling-3.2-flash:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok",
-     "latency_ms": 660.5,
-     "model": "inclusionai/ling-3.2-flash:free",
-     "ok": false,
-     "provider_id": null,
-     "request_id": "98b27104391749928e23a5219810bcf1",
-     "role": "judge",
-     "status": "RATE_LIMITED",
-     "tokens": null,
-     "tried": []
-    }
-   ],
-   "trader1_input": "image",
+   "chart": null,
+   "calls": [],
+   "trader1_input": null,
    "version": "dual-ai-1.21.0",
    "time_machine": null,
    "senior": null,
@@ -3218,6 +3153,54 @@
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "6174828da324aa5f976617ea",
+    "symbol": "EURGBP",
+    "t": 1795176019,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.21.0",
+    "time_machine": null,
+    "senior": null,
+    "senior_shadow": null,
+    "risk": null
+   },
+   {
+    "decision_id": "aa23ef7c5096a555873f8a05",
+    "symbol": "NZDUSD",
+    "t": 1795176017,
+    "decision": "NO_TRADE",
+    "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+    "consensus": {
+     "outcome": "NO_TRADE",
+     "reason": "risk engine: trading_calendar (Friday 12:00 UTC: no new position from 12:00 to 16:00 UTC): the model was not consulted",
+     "rule": "NOT_ASKED"
+    },
+    "models": {},
+    "trader1": null,
+    "trader2": null,
+    "verifier": null,
+    "chart": null,
+    "calls": [],
+    "trader1_input": null,
+    "version": "dual-ai-1.21.0",
+    "time_machine": null,
+    "senior": null,
+    "senior_shadow": null,
+    "risk": null
+   },
    {
     "decision_id": "88853581f3cd6caee81691f0",
     "symbol": "USDCHF",
@@ -4418,265 +4401,6 @@
     "senior": null,
     "senior_shadow": null,
     "risk": null
-   },
-   {
-    "decision_id": "bd5221d645fd98d1d9f737b0",
-    "symbol": "USDCAD",
-    "t": 1795170619,
-    "decision": "NO_TRADE",
-    "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 50): no trade unless both are that sure; followed forward in shadow, not traded",
-    "consensus": {
-     "agreed": "SELL",
-     "desk_confidence": 0.5,
-     "direction": null,
-     "floor": 65,
-     "levels_from": null,
-     "more_confident": "trader1",
-     "outcome": "NO_TRADE",
-     "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 50): no trade unless both are that sure; followed forward in shadow, not traded",
-     "rule": "LOW_CONFIDENCE"
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "recursive/flint-v1.0:free"
-    },
-    "trader1": {
-     "confidence": 55,
-     "direction": "SELL",
-     "entry": 1.43253,
-     "invalidation": 1.4341,
-     "liquidity": "Recent lows swept at 1.4329 (6 bars ago); support below at 1.43055 and 1.43099",
-     "market_structure": "H1 and H4 both in LH+LL downtrend; recent bearish BOS at 1.4329; price below tested supply OB 1.4329\u20131.4342",
-     "momentum": "Bearish displacement and structure breaks dominate; short-term bounce is corrective within the downtrend",
-     "reason": "H1 and H4 both print LH+LL downtrends with the most recent bearish BOS at 1.4329 and price under the tested supply OB (1.4329\u20131.4342). Desk memory flags BUY as a strong losing side here (n=250, 32.4% win rate) while SELL carries no such condition; the setup clears the under-1.3 R:R losing bucket. Stop at 1.4341 sits just above the OB high to invalidate the break; target at 1.43055 support is reachable within 629 minutes given high ATR. Regime is TRANSITION and H1 USDCAD history is weak, so confidence is modest.",
-     "reversal_probability": 35,
-     "risk_reward": 1.26,
-     "stop_loss": 1.4341,
-     "take_profit": 1.43055,
-     "trend": "DOWN on H1 and H4"
-    },
-    "trader2": {
-     "confidence": 50,
-     "direction": "SELL",
-     "entry": 1.432525,
-     "invalidation": 1.4341,
-     "liquidity": "sell-side above 1.4342/1.43466, buy-side below 1.4308; recent low sweep at 1.4329 failed",
-     "market_structure": "H1/H4 down (LH+LL); M5/M15 mixed with late bullish CHoCH at 1.43247",
-     "momentum": "bearish BOS/displacement after high, bounce corrective within downtrend",
-     "reason": "H1/H4 are down with a bearish BOS at 1.4329 and price below the tested supply, so I favor the SELL continuation; the late M5/M15 bullish CHoCH and sweep at 1.4329 only mark a corrective bounce. The desk's H1 SELL record and the under-1.3 R:R check argue caution, but the downtrend and liquidity offer the stronger immediate side. Invalidation above 1.4341.",
-     "reversal_probability": 35,
-     "risk_reward": 1.21,
-     "stop_loss": 1.4342,
-     "take_profit": 1.4305,
-     "trend": "DOWN on H1/H4"
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1795170619,
-     "bytes": 29373,
-     "execution_timeframe": "H1",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1795168800,
-     "last_bar_open": 1795165200,
-     "sha256": "0d7750965288fa1e846744fbef6c1ca59a44d24d430504947030d2df2a900e70",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 79156.2,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1795170622-mNYSxW7k5RYp5KSASqMA",
-      "request_id": "66f4456f966d4bb4832233315c67a9fd",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 24358,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 138152.0,
-      "model": "recursive/flint-v1.0:free",
-      "ok": true,
-      "provider_id": "gen-1795170701-u5tJ8o4tUoloIERb0sPH",
-      "request_id": "67d93ec194574e1b9058db0fee3edd31",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 29702,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.21.0",
-    "time_machine": {
-     "based_on": "713 H1 bars, 2026-10-09 to 2026-11-20, each hour drawn from the same hour of day plus or minus 1; a simulation of the recent past, not a forecast",
-     "entry": 1.432525,
-     "fan": {
-      "columns": [
-       "hour",
-       "p05",
-       "p25",
-       "p50",
-       "p75",
-       "p95"
-      ],
-      "rows": [
-       [
-        2,
-        1.43051,
-        1.431743,
-        1.432496,
-        1.433278,
-        1.434864
-       ],
-       [
-        4,
-        1.429544,
-        1.431625,
-        1.43302,
-        1.434643,
-        1.4379
-       ],
-       [
-        6,
-        1.428954,
-        1.431517,
-        1.433367,
-        1.435396,
-        1.438917
-       ],
-       [
-        8,
-        1.428762,
-        1.431539,
-        1.433551,
-        1.435781,
-        1.439396
-       ],
-       [
-        10,
-        1.428498,
-        1.431514,
-        1.433614,
-        1.435897,
-        1.43959
-       ]
-      ]
-     },
-     "hours": 10,
-     "mean_r": -0.0605,
-     "mean_r_after_costs": -0.2128,
-     "neither": 0.015,
-     "replays": 10000,
-     "reward_risk": 1.254,
-     "seed": 3176276438,
-     "side": "SELL",
-     "stop": 1.4341,
-     "stop_first": 0.574,
-     "target": 1.43055,
-     "target_first": 0.411,
-     "target_share_of_decided": 0.4173,
-     "verdict": "leans toward the stop",
-     "version": "time-machine-1.0.0",
-     "win_rate_needed": 0.5113
-    },
-    "senior": null,
-    "senior_shadow": null,
-    "risk": null
-   },
-   {
-    "decision_id": "9f9111e699a34841a0fbfc8a",
-    "symbol": "AUDUSD",
-    "t": 1795169809,
-    "decision": "NO_TRADE",
-    "reason": "Trader 2's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "Trader 2's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone",
-     "rule": "TRADER2_UNAVAILABLE"
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "baidu/ernie-5.5-flash-preview:free"
-    },
-    "trader1": {
-     "confidence": 55,
-     "direction": "SELL",
-     "entry": 0.66585,
-     "invalidation": 0.66707,
-     "liquidity": "Bearish sweep at highs 0.66707; untested demand OB 0.66507-0.66582 below; open bearish FVGs at 0.66698-0.66765 and above",
-     "market_structure": "H4 downtrend LH+LL; H1 range with bearish BOS at 0.66618 and a bullish CHoCH at 0.66707 that was swept 1 bar ago, failing the bullish breakout",
-     "momentum": "Bearish displacement on recent H1 bars; M15, M5 and H1 all trading near range lows with range20 positions at 0.10, 0.19 and 0.14",
-     "reason": "H4 downtrend and the failed bullish CHoCH at 0.66707 favor SELL; desk memory shows SELL on AUDUSD H1 has positive expectancy while BUY loses strongly. Stop above the swept CHoCH invalidates the setup; target below today's low aligns with H4 downside. R:R meets the 1.2 minimum despite mixed H1 swings.",
-     "reversal_probability": 45,
-     "risk_reward": 1.2,
-     "stop_loss": 0.6671,
-     "take_profit": 0.66435,
-     "trend": "H4 DOWN; H1 RANGE (mixed swings)"
-    },
-    "trader2": null,
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1795169809,
-     "bytes": 29646,
-     "execution_timeframe": "H1",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1795168800,
-     "last_bar_open": 1795165200,
-     "sha256": "a42081d96e605f70d94f71310c969212a50d9e5180f5af335674dfd8e8545ee0",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 90032.0,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1795169811-W0MUQiUakHLziCPfvLlS",
-      "request_id": "85fc540c88a0410bb9d6035ad1375362",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 28578,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 67048.2,
-      "model": "baidu/ernie-5.5-flash-preview:free",
-      "ok": false,
-      "provider_id": "gen-1795169902-zJogZMzR7fwdoeluCiew",
-      "request_id": "0715194525284f0ab429df0ff5080895",
-      "role": "judge",
-      "status": "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)",
-      "tokens": 32283,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.21.0",
-    "time_machine": null,
-    "senior": null,
-    "senior_shadow": null,
-    "risk": null
    }
   ],
   "open_positions": [],
@@ -5256,12 +4980,12 @@
     "note": "since dual-ai 1.10.0 a trade is on Trader 1's levels; the same agreement on Trader 2's own levels, followed forward and never traded. difference_r > 0 would mean Trader 2's levels did better"
    },
    "low_confidence_in_shadow": {
-    "n": 956,
+    "n": 957,
     "sample": "adequate",
     "win_rate": 0.438,
-    "expectancy_r": 0.057,
-    "total_r": 54.69,
-    "profit_factor_r": 1.096,
+    "expectancy_r": 0.056,
+    "total_r": 53.61,
+    "profit_factor_r": 1.094,
     "note": "since dual-ai 1.12.0 an agreement is a trade only when both traders state 65 or more; the agreements below, followed forward as the trades they would have been, after costs. Doing better than the trades taken would mean the floor costs money"
    },
    "senior_vetoes_in_shadow": {
@@ -5374,7 +5098,7 @@
     "DISAGREE": 364,
     "LOW_CONFIDENCE": 1111,
     "MARKET_UNAVAILABLE": 887,
-    "NOT_ASKED": 3963,
+    "NOT_ASKED": 3965,
     "SENIOR_VETO": 10,
     "TRADER1_UNAVAILABLE": 52,
     "TRADER2_UNAVAILABLE": 308
@@ -5388,7 +5112,7 @@
    },
    "agreement_rate": 0.247,
    "decisions_with_both_traders": 1965,
-   "unavailable": 5210
+   "unavailable": 5212
   },
   "recent_trades": [
    {
@@ -6115,8 +5839,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1795175115,
+  "last_cycle": 1795176016,
   "last_cycle_error": null,
-  "cycles": 3
+  "cycles": 4
  }
 }
