@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-21 00:01 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-20 22:16 UTC · decision system `dual_ai`
+Updated 2026-11-21 00:16 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-20 22:16 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,242.50، الربح أو الخسارة $-757.50، صفقات مسكّرة 4 ($-757.50)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,827.51.
-- آخر قرار: GBPUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: AUDUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 10، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف ما ينقرى هسه من $95.00.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -71,8 +71,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 01:00 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (7607 so far)
+## Latest decisions, NO TRADE included (7609 so far)
 
+- 11-21 00:15 AUDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 6334s old
+- 11-21 00:15 USDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: latest bar closed 135 minutes ago; STALE_DATA: quote is 8119s old; STALE_DATA: last closed bar is 135 minutes old [data: latest bar closed 135 minutes ago]
 - 11-21 00:00 GBPUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 5432s old
 - 11-21 00:00 EURUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 5430s old
 - 11-20 23:45 AUDJPY NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 4535s old
@@ -83,8 +85,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-20 23:15 NZDUSD NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 2730s old
 - 11-20 23:00 USDCHF NO_TRADE: blocked before consulting the model: DATA_QUALITY: features missing: bar_body; STALE_DATA: quote is 3621s old
 - 11-20 23:00 USDCAD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 1429s old
-- 11-20 22:45 AUDUSD NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 936s old
-- 11-20 22:45 USDJPY NO_TRADE: blocked before consulting the model: STALE_DATA: quote is 2721s old
 
 ## Open paper positions
 
@@ -138,6 +138,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-21 00:15 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
+| 11-21 00:15 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-21 00:00 | GBPUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-21 00:00 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 23:45 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -148,8 +150,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-20 23:15 | NZDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 23:00 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-20 23:00 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-20 22:45 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-20 22:45 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
