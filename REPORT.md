@@ -1,6 +1,6 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-21 08:22 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-21 14:57 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
@@ -60,7 +60,7 @@ What the rule holds now, and at the latest close what a HALF position ($25,000) 
 | US500 | **HOLD** | 7,580.07 (2026-10-30) | 7,304.23 | 6,910.39 (2026-11-20) | 3.62 | 6,495.77 |
 | NAS100 | **HOLD** | 28,384.85 (2026-10-30) | 27,883.88 | 25,028.98 (2026-11-20) | 1.00 | 23,527.24 |
 | GER40 | **HOLD** | 25,818.21 (2026-10-30) | 24,980.08 | 24,802.78 (2026-11-20) | 0.92 at 1.0970 | 23,314.61 |
-| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,346.30 (2026-11-20) | 1.85 at 1.3086 | 9,725.52 |
+| UK100 | **HOLD** | 10,729.80 (2026-10-30) | 10,562.40 | 10,346.30 (2026-11-20) | 1.85 at 1.3082 | 9,725.52 |
 
 ## The rules
 
