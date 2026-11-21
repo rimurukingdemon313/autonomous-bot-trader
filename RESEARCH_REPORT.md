@@ -2,13 +2,11 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-21 13:04 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-21 21:41 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-21, UTC)
-
-Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
@@ -20,7 +18,7 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- none
+- Checked on 2026-11-21, 19:56 UTC (the idea engine's first five survivors), and dropped before building: Central-bank gold purchases and physical delivery; The inflation-risk term premium in Treasuries; International sector rotation after the US sectors; A volatility sort of thirty country ETFs; ETF premium and discount reversal across fifty ETFs.
 
 ## Cumulative (since the registry began)
 
@@ -28,7 +26,7 @@ Nothing new today: no idea checked, no test registered, no verdict.
 |---|---|
 | Hypotheses registered | 94 |
 | Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 90 in the tables of 24 dated checks, on 7 days |
+| Ideas dropped before building (no test spent) | 95 in the tables of 25 dated checks, on 8 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |
