@@ -4,7 +4,7 @@
 
 **بالعربي:** مكتب TRND-1: الرصيد $196,056.12، المحقّق $0.00، غير المحقّق -$3,943.89، الصفقات المسكّرة 0. رادار RADAR-1: دفتره -2.51% من رأس ماله الورقي، 246 صفقة مسكّرة، الرابح منها 43. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
 
-Updated 2026-11-20 20:32 UTC · perf-1.0.1 · cycles so far: 28
+Updated 2026-11-21 00:17 UTC · perf-1.0.1 · cycles so far: 29
 
 ## 1. TRND-1: the trend desk's paper account
 
@@ -63,15 +63,15 @@ Concentration: 4 positions, the largest 25.1% of the gross; by size that is 4.0 
 
 **Reconciled: 24 of 24 checks hold.** Each compares two routes to the same figure.
 
-Marks from 2026-10-07 20:00 UTC to 2026-11-20 20:00 UTC (44.00 days). Paper only: no order is ever sent. Its preregistered single look is on 2026-12-06 and is read as registered, whatever this audit says.
+Marks from 2026-10-07 20:00 UTC to 2026-11-21 00:00 UTC (44.17 days). Paper only: no order is ever sent. Its preregistered single look is on 2026-12-06 and is read as registered, whatever this audit says.
 
 Capital: ten slots of 2N: 20N. The radar has no cash account; N is not a dollar amount. P&L is in basis points (bp) of one leg's notional; 2,000 bp summed over positions is 1% of the book.
 
 | | In bp of N | In % of the book | On a $100,000 book (illustration) |
 |---|---|---|---|
 | **Realized** (closed positions, after every fill) | -5,045.3 | -2.5227% | -$2,522.66 |
-| **Unrealized** (open positions at their marks, entry fills paid) | 32.6 | 0.0163% | +$16.28 |
-| The book if every open position were closed now | -5,063.7 | -2.5319% | -$2,531.88 |
+| **Unrealized** (open positions at their marks, entry fills paid) | 22.3 | 0.0111% | +$11.15 |
+| The book if every open position were closed now | -5,074.0 | -2.5370% | -$2,537.01 |
 
 | | |
 |---|---|
@@ -81,13 +81,13 @@ Capital: ten slots of 2N: 20N. The radar has no cash account; N is not a dollar 
 | Profit factor | 0.39 |
 | Mean net a position | -20.5 bp (t -4.46) |
 | Open positions | 3 of 10 slots; on average 25.1% of the capital was deployed |
-| Book P&L | -2.5064% |
-| Book excess over cash (3.875%/yr on the capital in use) | -2.6487% |
-| Annualised excess on the capital deployed | -87.9%/yr |
-| The same with costs x1.5 / x2 | -158.9% / -229.9% |
-| Maximum drawdown of the book (hourly marks) | 2.5228% |
+| Book P&L | -2.5115% |
+| Book excess over cash (3.875%/yr on the capital in use) | -2.6543% |
+| Annualised excess on the capital deployed | -87.7%/yr |
+| The same with costs x1.5 / x2 | -158.3% / -229.0% |
+| Maximum drawdown of the book (hourly marks) | 2.5318% |
 | t of the daily excess | -3.99 |
-| Best coin, and the book's excess without it | INIT: -3.1030% |
+| Best coin, and the book's excess without it | INIT: -3.1086% |
 
 ### Where it came from
 
@@ -147,9 +147,9 @@ Concentration: the most traded coin (AKE) is 10.4% of the positions; by count th
 
 | Open now | Short / long | Opened | Entry spread | Funding | Price | Fills paid | Net at the marks | Net if closed now |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc / gate | 2026-11-18 18:00 UTC | 26.1%/yr | 26.6 | 6.7 | 17.0 | 16.3 bp | -0.7 bp |
-| EVAA | mexc / gate | 2026-11-19 15:00 UTC | 25.9%/yr | 29.5 | 29.0 | 17.0 | 41.5 bp | 24.5 bp |
-| SOXL | mexc / gate | 2026-11-20 16:00 UTC | 27.4%/yr | 1.5 | -9.7 | 17.0 | -25.2 bp | -42.2 bp |
+| PIEVERSE | mexc / gate | 2026-11-18 18:00 UTC | 26.1%/yr | 28.1 | 7.3 | 17.0 | 18.3 bp | 1.3 bp |
+| EVAA | mexc / gate | 2026-11-19 15:00 UTC | 25.9%/yr | 33.0 | 7.5 | 17.0 | 23.6 bp | 6.6 bp |
+| SOXL | mexc / gate | 2026-11-20 16:00 UTC | 27.4%/yr | 4.7 | -7.3 | 17.0 | -19.6 bp | -36.6 bp |
 
 ## 3. The weakness, the hypothesis and the experiment
 
@@ -161,21 +161,21 @@ Concentration: the most traded coin (AKE) is 10.4% of the positions; by count th
 
 ### The replay: the radar's frozen rules and the declared variants on the same stored quotes
 
-Stored hours in hand: 377 (2026-11-04 23:00 UTC to 2026-11-20 19:00 UTC); days archived: 16; added this cycle: none.
+Stored hours in hand: 382 (2026-11-04 23:00 UTC to 2026-11-21 00:00 UTC); days archived: 17; added this cycle: 2026-11-20.
 
-Fidelity: the replay of the original rules reproduces 65 of the radar's 68 real positions opened in these hours to the hundredth of a basis point (68 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
+Fidelity: the replay of the original rules reproduces 68 of the radar's 68 real positions opened in these hours to the hundredth of a basis point (68 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
 
-Earlier part 2026-11-07 22:00 UTC to 2026-11-14 00:00 UTC; later part to 2026-11-20 20:00 UTC. Excess over cash in % of the book.
+Earlier part 2026-11-07 22:00 UTC to 2026-11-14 00:00 UTC; later part to 2026-11-21 01:00 UTC. Excess over cash in % of the book.
 
 | Variant | What changes | Earlier: excess | positions | Later: excess | positions | closed | t (daily) | Later, less the original | its t |
 |---|---|---|---|---|---|---|---|---|---|
-| `original` | nothing: the registered rules | 0.2419% | 28 | -0.6315% | 42 | 39 | -2.71 | 0.0000% | n/a |
-| `same-window` | trailing_entry_h=24 | 0.1051% | 42 | -0.5572% | 41 | 38 | -6.32 | 0.0743% | 0.38 |
-| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.3751% | 18 | -0.2893% | 17 | 17 | -4.54 | 0.3422% | 1.60 |
-| `patient-exit` | exit_now_apr=-1.0 | 0.3137% | 25 | -0.4349% | 37 | 33 | -1.87 | 0.1965% | 2.49 |
-| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.3626% | 23 | -0.1143% | 18 | 16 | -1.63 | 0.5171% | 2.71 |
+| `original` | nothing: the registered rules | 0.2419% | 28 | -0.6284% | 42 | 39 | -2.55 | 0.0000% | n/a |
+| `same-window` | trailing_entry_h=24 | 0.1051% | 42 | -0.5598% | 42 | 38 | -5.19 | 0.0686% | 0.35 |
+| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.3751% | 18 | -0.2930% | 18 | 17 | -4.43 | 0.3354% | 1.54 |
+| `patient-exit` | exit_now_apr=-1.0 | 0.3137% | 25 | -0.4426% | 37 | 34 | -1.88 | 0.1859% | 2.15 |
+| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.3626% | 23 | -0.1128% | 18 | 16 | -1.73 | 0.5157% | 2.54 |
 
-Candidate, chosen on the earlier part only: `thick-entry` (4 variants compared). **INCONCLUSIVE**: the later part holds 7 days and 17 closed positions: 30 and 30 are needed before anything is judged.
+Candidate, chosen on the earlier part only: `thick-entry` (4 variants compared). **INCONCLUSIVE**: the later part holds 8 days and 17 closed positions: 30 and 30 are needed before anything is judged.
 
 Gates on the later part: enough days no, enough positions no, excess over cash no, beats the original no, costs x1.5 no, without best coin no.
 
