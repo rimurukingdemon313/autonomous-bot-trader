@@ -2,27 +2,23 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 1 فرضية جديدة انسجلت، 1 انحكمت (0 نجحت)، و5 فحص قبل البناء رفض 35 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-16 16:49 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-21 19:56 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-16, UTC)
+## Today (2026-11-21, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **SPL-1**: SPL-1: spot-led rallies and the spot buyer, dev stage. A seasoned coin whose spot rose at least X in four hours while its perpetual never closed more than 0.25% above spot, bought on spot at that close and sold 24 hours later, earns a positive net return after 0.25% a side, averaged over days, more than the market, than the same coin at hours it had not risen, and than rallies its perpetual led. (`research/preregistrations/SPL-1.md`, 2 tests counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **SPL-1: FAILED** (t -4.654342822551325). Evidence: `research/knowledge/SPL-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-16, 00:00 UTC (the edge hunt's pre-checks), and dropped before building: TRND-1's rule on bitcoin and ether CFDs; CALM-1: the long-only basket without leverage-stressed coins; US-hours clientele in bitcoin; Post-FOMC drift into gold; Bitcoin's weekend move and Monday's index session; Passive capture of the unpriced funding; Buying after a token unlock; INV-1: the natural gas storage-report premium.
-- Checked on 2026-11-16, 05:00 UTC (after SPL-1), and dropped before building: Fading large four-hour rallies in BTC and ETH (CFD short); Altcoin froth as a signal against BTC and ETH; The rally-avoidance overlay on a spot basket; ETH against BTC after ether's rallies; Buying spot-led falls in large coins; Shorting altcoin CFDs on the short-side findings.
-- Checked on 2026-11-16, 07:50 UTC, and dropped before building: Shorting BTC and ETH CFDs after forced deleveraging; FADE-1: volatility-scaled rally fades in BTC and ETH; OIL-1: last month's oil move and the index CFDs (Driesprong, Jacobsen & Maat 2008); CBP-1: the Coinbase premium and the next hours.
-- Checked on 2026-11-16, 14:05 UTC (the owner's edge mission: `docs/EDGE_MISSION_2026-11-16.md`), and dropped: PDL-1: forced closure at a perpetual's delisting; ETF-NAV: creation pressure in the ETFs' benchmark hour; Candle-boundary orders of rule-based bots; MSTR issuance and its earnings blackouts; EMIT: emission-driven selling, long-only; PAIR-1: new fiat and stablecoin pairs; GXR-1: gold after US equity panic days; Buyback blackout windows and the US 500; Equity futures financing spread as leverage demand; Central-bank gold purchases; On-chain fee spikes; Protocol revenue and buyback yield; Leveraged-ETF rebalancing at the daily horizon; NE-ON-SF: the overnight premium without financing; ALT-CALM: the alt basket without its post-rally coins.
-- Checked on 2026-11-16, 16:49 UTC (the edge hunt), and dropped before building: ETF-FLOW-1: the ETFs' creations and the next day's bitcoin; SGEP-1: the Shanghai premium and London gold.
+- Checked on 2026-11-21, 19:56 UTC (the idea engine's first five survivors), and dropped before building: Central-bank gold purchases and physical delivery; The inflation-risk term premium in Treasuries; International sector rotation after the US sectors; A volatility sort of thirty country ETFs; ETF premium and discount reversal across fifty ETFs.
 
 ## Cumulative (since the registry began)
 
@@ -30,7 +26,7 @@ Generated 2026-11-16 16:49 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 94 |
 | Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 90 in the tables of 24 dated checks, on 7 days |
+| Ideas dropped before building (no test spent) | 95 in the tables of 25 dated checks, on 8 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |

@@ -797,6 +797,8 @@ So the floor refused 141 H1 agreements in two days and let 5 through, and those 
   - It is confirmed on EVALUATION (16 to 23 November, judged 27 November).
   - Each look is judged per agreement and per day, since agreements of one day move together.
   - Only a confirmed result lifts the floor on H1.
+  - **LEARNING FAILED** (run 2026-11-21): the 739 refused agreements would have made -0.044 R each after costs
+    (t -0.90; over the 10 days t -0.53). The floor stays and EVALUATION is not judged.
 
 ## Configuration and activation
 

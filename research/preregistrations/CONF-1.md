@@ -80,3 +80,34 @@ There is one rule (the units, followed forward as the trades they would have bee
   reported, not explained away.
 - **Models.** The seats' models can change during the windows: a seat passes on when its holder is gone, absent
   or excluded. The units record their models, so a change is visible. It does not change the rule.
+
+## Result (LEARNING, run 2026-11-21 19:52 UTC, after its date; `research/knowledge/CONF-1.json`)
+
+**FAILED.** The floor stays. EVALUATION is not judged.
+
+The look was due on 20 November and was run once, on 21 November: the session was away when it fell due. The answer
+does not depend on the day it is run, because an outcome counts only if the ledger recorded it by 20 November.
+
+| Under the floor, decided 2 to 16 November | Needed to qualify | Found |
+|---|---|---|
+| Agreements | 100 or more | **739** |
+| Mean net R per agreement | +0.10 or more | **-0.044 R** |
+| t of that mean | 2.0 or more | **-0.90** |
+| The days' own mean net R | | -0.039 R over 10 days |
+| t over the days | 2.0 or more | **-0.53** |
+
+Reported, never judged:
+
+| | Agreements | Mean net R | Total | Win rate | Profit factor |
+|---|---|---|---|---|---|
+| Refused by the floor | 739 | -0.044 R | -32.7 R | 39.4% | 0.93 |
+| Let through by the floor | 5 (1 day) | -0.591 R | -3.0 R | 20.0% | 0.31 |
+
+- Decided but not resolved by the date: **0**.
+- The agreements the floor refused would have lost money after costs, but not by a margin a test can tell from zero.
+  Lifting the floor on H1 would have added about 74 agreements a day at a small loss each.
+- The 5 it let through lost more, but 5 agreements on one day say nothing either way.
+- Data: the shift database published at 00:08 UTC on 20 November (`paper-forward-data` 4505ba2, sha256
+  `9b2dbddddb515bb3fc9bfed16fc4786b0102cbec0f4612bcbca2bdf96b9d1a03`), the first after the look's date. The
+  database of 21 November 19:49 UTC (fe66e05) gives exactly the same result. The run checked the spec and code
+  hashes above before reading anything.

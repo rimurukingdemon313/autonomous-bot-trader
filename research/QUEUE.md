@@ -341,6 +341,20 @@ the mission document only.
 | ETF-FLOW-1: the ETFs' creations and the next day's bitcoin | A 694-day study found a next-day correlation of 0.09 (t about 2.4 on all the history there is) |
 | SGEP-1: the Shanghai premium and London gold | Prior art with a weak result (LBMA Alchemist 83, 2005-2016); about 1.1% a month needed over 2016-2026 |
 
+**Checked on 2026-11-21, 19:56 UTC (the idea engine's first five survivors), and dropped before building.** The
+engine (free models, `research-data`) queued them between 17 and 20 November: each passed its critic and its power
+gate at the Sharpe ratio its proposer claimed. A claimed Sharpe ratio is not evidence, so each was
+checked against the record and the owner's conditions before any rule was written. None can be written in the lab's
+rule language on a panel it holds.
+
+| Idea | Why it was dropped |
+|---|---|
+| Central-bank gold purchases and physical delivery | Already dropped on 2026-11-16 (14:05) for power: the figures come one to two months late and about 300 months exist. A quarterly threshold makes it worse: central banks sold through 2009 and have bought since about 2010-2011 (the World Gold Council's yearly totals, from memory, not checked here), so the rule is long gold since then, a few regime switches rather than a test |
+| The inflation-risk term premium in Treasuries | Treasuries pay interest: the owner's Islamic condition excludes interest-bearing instruments |
+| International sector rotation after the US sectors | The US-listed international sector funds price at the same close as the US sectors, so no lag is left at the next open; the lag the mechanism needs is in foreign stocks, which the owner cannot trade. It needs a short, and the US sector lead-lag was dropped for power |
+| A volatility sort of thirty country ETFs | The lab already classed rankings on past volatility on its 31 funds, eleven of them country funds (DLAB-ETF-D1: nothing above about 1 bp a day). Long-short, so it needs a short; the long-only side is market exposure (volatility-managed exposure is a closed family) |
+| ETF premium and discount reversal across fifty ETFs | Needs each fund's daily NAV history, which no feed here carries (Yahoo has none). Liquid funds' premiums are a few basis points, below the round trip (2026-11-16: ETF-NAV). Long-short |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
@@ -370,8 +384,9 @@ broker, no bot change.
 - FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows. Its HALF
   track carries a one-day stop at 6% (funded-paper-1.1.0, added before the first day). Without it, 1987-10-19
   alone ended 547 of 732 replayed runs.
-- CONF-1 (do the H1 agreements the confidence floor refuses pay?), on 2026-11-20 and 2026-11-27. It costs
-  nothing.
+- CONF-1 (do the H1 agreements the confidence floor refuses pay?): LEARNING **FAILED** (run 2026-11-21, due
+  2026-11-20): 739 agreements, mean -0.044 R, t -0.90, days' t -0.53. The floor stays; EVALUATION is not judged
+  (`research/preregistrations/CONF-1.md`, Result).
 - TRND-F (registered 2026-11-06): TRND-1's rule, unchanged, on the four index CFDs over the months December 2026
   to November 2029, which did not exist when the rule was chosen. It is judged once, on or after 2029-12-03
   (`research/preregistrations/TRND-F.md`), and needs nothing until then. It is recorded whatever the owner
