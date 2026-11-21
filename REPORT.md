@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-21 06:00 UTC**, run 1060, version `radar-1.0.0`. State from: cache. Quotes this hour: 2369.
+Updated **2026-11-21 07:00 UTC**, run 1061, version `radar-1.0.0`. State from: cache. Quotes this hour: 2369.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-11-21 06:00 UTC**, run 1060, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 44.42
+- days: 44.46
 - run_coverage: 0.9934
 - closed_positions: 247
 - open_positions: 2
 - utilisation: 0.2515
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.515
-- book_excess_pct: -2.65
-- ann_excess_deployed_pct: -87.01
-- ann_excess_deployed_costs_x1.5_pct: -157.249
-- ann_excess_deployed_costs_x2_pct: -227.488
+- book_pnl_pct: -2.5301
+- book_excess_pct: -2.6652
+- ann_excess_deployed_pct: -87.442
+- ann_excess_deployed_costs_x1.5_pct: -157.629
+- ann_excess_deployed_costs_x2_pct: -227.815
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.1043
+- book_excess_without_best_coin_pct: -3.1195
 - max_dd_pct: 2.5318
-- t_excess_daily: -3.997
+- t_excess_daily: -4.026
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc | gate | 2026-11-18 18:00 | 26.1% | 30.0 | 10.7 | 17.0 | **23.8** |
-| EVAA | mexc | gate | 2026-11-19 15:00 | 25.9% | 38.2 | 7.4 | 17.0 | **28.5** |
+| PIEVERSE | mexc | gate | 2026-11-18 18:00 | 26.1% | 30.4 | 13.9 | 17.0 | **27.3** |
+| EVAA | mexc | gate | 2026-11-19 15:00 | 25.9% | 39.0 | -27.2 | 17.0 | **-5.1** |
 
 ## Closed positions (247)
 
@@ -79,6 +79,6 @@ Updated **2026-11-21 06:00 UTC**, run 1060, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 58.3% | 73.4% |
+| EVAA | mexc | gate | 59.3% | 73.4% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
