@@ -4,9 +4,9 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-20 22:41 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-21 13:04 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-20, UTC)
+## Today (2026-11-21, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -37,16 +37,16 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-20 13:39 UTC, OK
-- Last successful idea step: 2026-11-20 13:39 UTC
+- Last cycle: 2026-11-21 13:04 UTC, OK
+- Last successful idea step: 2026-11-21 13:04 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 33 ideas: DROPPED_POWER 7, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 21
+- All time: 36 ideas: DROPPED_POWER 10, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 21
 
 **Today:**
 
-- **QUEUED_FOR_BUILD**: International sector rotation lead-lag among equity ETFs (new:international-sector-etfs, swing). at its claimed strength it expects t 3.795 against 3.0 (passes 79% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
-- **QUEUED_FOR_BUILD**: Volatility-managed global equity factor ETFs (new:global-equity-etfs, position). at its claimed strength it expects t 5.196 against 3.0 (passes 99% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
-- **QUEUED_FOR_BUILD**: ETF premium/discount mean reversion across many ETFs (new:many-etfs, swing). at its claimed strength it expects t 3.394 against 3.0 (passes 65% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS.
+- **DROPPED_POWER**: Commodity futures hedging-pressure risk premium (new:commodity-futures-cot, swing). even at its claimed strength it expects t 1.5 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 4 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: US high-yield credit spread diffusion into EM FX (em-fx-daily, swing). even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: Cross-sectional short-term reversal in EM FX (em-fx-daily, swing). even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
