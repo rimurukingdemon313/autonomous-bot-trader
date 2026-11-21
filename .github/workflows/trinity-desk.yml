@@ -1,0 +1,57 @@
+# TRINITY-MASTER, the owner's package of 2026-11-21 (docs/TRINITY.md). PAPER AND RESEARCH ONLY: no broker, no account,
+# no key, no real money. GitHub's runner can reach Yahoo; this session cannot.
+#   data: fetch the daily bars the strategy reads (scripts/trinity_data.py) and publish them, as served, under
+#         history/ on the trinity-desk-data branch. Nothing is computed from them here.
+name: TRINITY desk (paper and research only)
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "data"
+        required: true
+        default: "data"
+permissions:
+  contents: write
+concurrency:
+  group: trinity-desk
+  cancel-in-progress: false
+jobs:
+  trinity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Check the command
+        env:
+          COMMAND: ${{ github.event.inputs.command }}
+        run: |
+          case "$COMMAND" in data) ;; *) echo "unknown command: $COMMAND"; exit 1 ;; esac
+      - name: Open trinity-desk-data
+        run: |
+          git config user.name "trinity-desk"; git config user.email "trinity-desk@users.noreply.github.com"
+          if git fetch -q origin trinity-desk-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan trinity-desk-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+      - name: Fetch the bars (a failed fetch is retried)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/trinity_data.py --out fetched 2>&1 | tee data.log && break
+            echo "attempt $i failed"; sleep $((i * 30))
+          done
+          test -f fetched/history/manifest.json
+      - name: Publish to trinity-desk-data
+        run: |
+          rm -rf pub/history && cp -r fetched/history pub/history
+          cd pub
+          git add -A .
+          git commit -qm "trinity data $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/trinity-desk-data && exit 0; sleep $((i * 20)); done
+          exit 1
