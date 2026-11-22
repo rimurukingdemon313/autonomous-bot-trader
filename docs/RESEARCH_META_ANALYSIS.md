@@ -2,7 +2,7 @@
 
 **RESEARCH ONLY · NOTHING HERE IS A PROFIT CLAIM.** Written by `scripts/research_meta.py` from the committed record alone: the registry, the edge registry and the discovery lab's ledger of classed rules. No market data is read, so nothing is looked at that was not already looked at, and no test is charged. It describes the record; it validates nothing.
 
-Generated 2026-11-22 11:30 UTC · meta-1.0.0
+Generated 2026-11-22 13:48 UTC · meta-1.0.0
 
 ## 1. What was read
 

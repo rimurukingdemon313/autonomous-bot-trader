@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 3 انحكمت (1 نجحت)، و4 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 3 انحكمت (1 نجحت)، و5 فحص قبل البناء رفض 9 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-22 11:30 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-22 13:48 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-22, UTC)
 
@@ -26,6 +26,7 @@ Generated 2026-11-22 11:30 UTC from the committed record · research-report-1.1.
 - Checked on 2026-11-22, 04:55 UTC (the edge hunt), and dropped before building: QTG-1: buy a coin when Binance removes its Seed or Monitoring Tag.
 - Checked on 2026-11-22, 07:50 UTC (the edge hunt), and dropped before building: MSTR-1: long bitcoin in the weeks after Strategy announces a purchase.
 - Checked on 2026-11-22, 10:54 UTC (the edge hunt), and dropped before building: LPB-1: BNB around Binance's Launchpool announcements, the dated demand of users who lock BNB to farm.
+- Checked on 2026-11-22, 13:48 UTC (the edge hunt), and dropped before building: UWD-1: record Upbit's investment-warning flags forward, buy the coin on Binance after a designation or its lifting.
 
 ## Cumulative (since the registry began)
 
@@ -33,7 +34,7 @@ Generated 2026-11-22 11:30 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 103 in the tables of 29 dated checks, on 9 days |
+| Ideas dropped before building (no test spent) | 104 in the tables of 30 dated checks, on 9 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |

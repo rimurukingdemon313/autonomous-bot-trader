@@ -411,6 +411,13 @@ for a stage. It is in `research/inventions.jsonl`.
 |---|---|
 | LPB-1: BNB around Binance's Launchpool announcements, the dated demand of users who lock BNB to farm | Contradicted and underpowered: a practitioner analysis (Odaily) finds no rise after recent announcements, often a slight fall (search result); about 100 events at a 7-day standard deviation near 6% against bitcoin need +1.8% net an event for t 3.0 after a next-day entry. The farming rewards are a yield for locking a coin, not a price edge |
 
+**Checked on 2026-11-22, 13:48 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| UWD-1: record Upbit's investment-warning flags forward, buy the coin on Binance after a designation or its lifting | Power and sign: a year of recording gives some 20 to 30 designations of coins Binance lists, and at a 10-day standard deviation near 25% t 3.0 needs a +15% to +20% rebound a trade after a next-day entry. The news shows the fall at the designation itself (June 2021: 25 warned, 5 delisted, Maro down more than 70%) and nothing systematic after it (search results); many designated coins are delisted next |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
