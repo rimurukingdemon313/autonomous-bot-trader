@@ -2,49 +2,56 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 3 انحكمت (1 نجحت)، و4 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-21 21:41 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-22 12:53 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-21, UTC)
+## Today (2026-11-22, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- none
+- **KRP-1**: KRP-1: the Korean coin premium and the global price, dev stage. A coin whose price in bitcoin on Upbit stands at least theta above its price in bitcoin on Binance at the 00:00 UTC close, after 30 days with the median gap below theta/2, bought on Binance spot an hour later against a short of bitcoin and closed 24 hours after that, earns a positive net return after 0.6% a round trip, averaged over days, more than the same coin on ordinary days and more than Korean discounts of the same size. (`research/preregistrations/KRP-1.md`, 2 tests counted)
+- **SCX-1**: SCX-1: stablecoins while their primary market is shut, dev stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 2 tests counted)
+- **SCX-1-V**: SCX-1-V: stablecoins while their primary market is shut, validation stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 1 test counted)
 
 **Verdicts recorded** (each judged once):
 
-- none
+- **SCX-1: PASSED** (t 3.021214961382649). Evidence: `research/knowledge/SCX-1.json`; matches its verdict: yes
+- **SCX-1-V: FAILED** (t -0.2524623549484536). Evidence: `research/knowledge/SCX-1-V.json`; matches its verdict: yes
+- **KRP-1: FAILED** (t -0.8697910228458722). Evidence: `research/knowledge/KRP-1.json`; matches its verdict: yes
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-21, 19:56 UTC (the idea engine's first five survivors), and dropped before building: Central-bank gold purchases and physical delivery; The inflation-risk term premium in Treasuries; International sector rotation after the US sectors; A volatility sort of thirty country ETFs; ETF premium and discount reversal across fifty ETFs.
+- Checked on 2026-11-22, 02:20 UTC (the original edge hunt, round 2: `docs/ORIGINAL_EDGE_HUNT_2.md`), and dropped: AIB-1: aggregate insider buying and the US 500; MGN-1: exchange margin hikes as forced deleveraging; BWT-1: Brent against WTI under the Cushing constraint; RBP-1: the rebalancing return; ANC-1: the 52-week-high anchor in the index.
+- Checked on 2026-11-22, 04:55 UTC (the edge hunt), and dropped before building: QTG-1: buy a coin when Binance removes its Seed or Monitoring Tag.
+- Checked on 2026-11-22, 07:50 UTC (the edge hunt), and dropped before building: MSTR-1: long bitcoin in the weeks after Strategy announces a purchase.
+- Checked on 2026-11-22, 10:54 UTC (the edge hunt), and dropped before building: LPB-1: BNB around Binance's Launchpool announcements, the dated demand of users who lock BNB to farm.
 
 ## Cumulative (since the registry began)
 
 | | |
 |---|---|
-| Hypotheses registered | 94 |
-| Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 95 in the tables of 25 dated checks, on 8 days |
-| Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
-| Evidence files that still match their verdict | 64 of 64 checked |
+| Hypotheses registered | 97 |
+| Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
+| Ideas dropped before building (no test spent) | 103 in the tables of 29 dated checks, on 9 days |
+| Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
+| Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
 
 ## The autonomous engine's ideas (generated by models, never approved by them)
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-21 13:04 UTC, OK
-- Last successful idea step: 2026-11-21 13:04 UTC
+- Last cycle: 2026-11-22 12:53 UTC, OK
+- Last successful idea step: 2026-11-22 12:53 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 36 ideas: DROPPED_POWER 10, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 21
+- All time: 39 ideas: DROPPED_POWER 10, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 24
 
 **Today:**
 
-- **DROPPED_POWER**: Commodity futures hedging-pressure risk premium (new:commodity-futures-cot, swing). even at its claimed strength it expects t 1.5 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 4 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
-- **DROPPED_POWER**: US high-yield credit spread diffusion into EM FX (em-fx-daily, swing). even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
-- **DROPPED_POWER**: Cross-sectional short-term reversal in EM FX (em-fx-daily, swing). even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
+- **REJECTED_BY_CRITIC**: Tax-Loss Harvesting Seasonality in Long-Only Equity Index CFDs (us-equity-etf, position). The mechanism relies on the repurchase of constituents after the wash-sale window, but the hypothesis trades the index CFD itself. The turnover pressure of individual constituents in an ETF/index does not translate into a predictable seasonal drift for the index CFD at the scale required to overcome costs, especially since the repurchase is a distributed, non-directional flow relative to the index's overall momentum. (critic: google/gemma-4-26b-a4b-it:free) Class: NO_MECHANISM.
+- **REJECTED_BY_CRITIC**: Basel Endgame Dealer Hedging Demand in Equity Index Futures (equity-index-forward, swing). Dealer net gamma and specific dealer hedging positions resulting from Basel Endgame regulatory constraints are not publicly available data; they are proprietary bank internal metrics. (critic: google/gemma-4-26b-a4b-it:free) Class: INSUFFICIENT_DATA.
+- **REJECTED_BY_CRITIC**: CBDC Pilot Settlement Flows in Swap-Free FX (new:cbdc-pilot-fx, intraday). The universe 'new:cbdc-pilot-fx' is not a recognized market in the provided list, and the specific timing and flow impact of central bank digital currency pilot announcements are not available in a structured, tradable format. (critic: google/gemma-4-26b-a4b-it:free) Class: INSUFFICIENT_DATA.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
@@ -65,6 +72,7 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 | CASC-1@0.15 | **UNCERTAIN** | -0.277 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/CASC-1.json` |
 | DAY-1 | **PROMISING** | None (3.388) | — | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.482 on its `days` against 3.388. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/DAY-1.json` |
 | FXT-1 | **PROMISING** | 2.712 (3.629) | — | single-program verdict: expectancies are monthly net returns, not R; a near miss: it failed on the bar alone, with t 2.712 on its `months` against 3.629. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/FXT-1.json` |
+| KRP-1@0.1 | **UNCERTAIN** | -0.919 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/KRP-1.json` |
 | RCEQ-E1-TOM | **PROMISING** | 2.24 (3.0) | +0.16% a month | retail CFD: monthly net account returns after spread, slippage, financing and dividends, not R; replication/holdout PROMISING_REPLICATED: 441 months, net t 2.175 | `research/knowledge/RC-EQ.json` |
 | SQZ-1@0.001 | **UNCERTAIN** | 0.068 (3.0) | — | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_excess` averaged over its cohorts, a fraction of notional, not R | `research/knowledge/SQZ-1.json` |
 | TME-1 | **PROMISING** | None (3.078) | — | single-program verdict: its statistic is named in its artifact and preregistration; a near miss: it failed on the bar alone, with t 2.239 on its `month_ends` against 3.078. Not validated: evidence for a fresh preregistered test on new data | `research/knowledge/TME-1.json` |
@@ -102,6 +110,8 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | crypto-spot-high-funding | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-forward | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-monthly | 3 | 0 | 2.498 | 2 | 3.000 |
+| stablecoin-pairs-weekend | 3 | 0 | 2.498 | 3 | 3.000 |
+| crypto-spot-korean-premium | 2 | 0 | 2.394 | 2 | 3.000 |
 | crypto-spot-liquidation-falls | 2 | 0 | 2.394 | 2 | 3.000 |
 | crypto-spot-spot-led-rallies | 2 | 0 | 2.394 | 2 | 3.000 |
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |
@@ -118,6 +128,9 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 
 | Recorded | Hypothesis | Verdict | Preregistration | Spec hash quoted | Evidence file | Matches |
 |---|---|---|---|---|---|---|
+| 2026-11-22 | KRP-1 | FAILED | `research/preregistrations/KRP-1.md` | yes | `research/knowledge/KRP-1.json` | yes |
+| 2026-11-22 | SCX-1-V | FAILED | `research/preregistrations/SCX-1.md` | yes | `research/knowledge/SCX-1-V.json` | yes |
+| 2026-11-22 | SCX-1 | PASSED | `research/preregistrations/SCX-1.md` | yes | `research/knowledge/SCX-1.json` | yes |
 | 2026-11-16 | SPL-1 | FAILED | `research/preregistrations/SPL-1.md` | yes | `research/knowledge/SPL-1.json` | yes |
 | 2026-11-15 | BAS-1 | FAILED | `research/preregistrations/BAS-1.md` | yes | `research/knowledge/BAS-1.json` | yes |
 | 2026-11-15 | CASC-1 | FAILED | `research/preregistrations/CASC-1.md` | yes | `research/knowledge/CASC-1.json` | yes |
@@ -140,8 +153,5 @@ The sealed holdout: fx-majors from 2017-01-01 (sealed 2026-09-26). It is opened 
 | 2026-11-05 | RBL-1 | FAILED | `research/preregistrations/RBL-1.md` | yes | `research/knowledge/RBL-1.json` | yes |
 | 2026-11-05 | TME-1 | FAILED | `research/preregistrations/TME-1.md` | yes | `research/knowledge/TME-1.json` | yes |
 | 2026-11-05 | TSY-1 | FAILED | `research/preregistrations/TSY-1.md` | yes | `research/knowledge/TSY-1.json` | yes |
-| 2026-11-05 | LVOL-1 | FAILED | `research/preregistrations/LVOL-1.md` | yes | `research/knowledge/LVOL-1.json` | yes |
-| 2026-11-05 | EMC-1 | FAILED | `research/preregistrations/EMC-1.md` | yes | `research/knowledge/EMC-1.json` | yes |
-| 2026-11-05 | PHD-1 | FAILED | `research/preregistrations/PHD-1.md` | yes | `research/knowledge/PHD-1.json` | yes |
 
 **Matches**: the evidence file's own hash equals the one recorded with its verdict; where none was recorded, the file names the spec (and code) hashes registered before the test. Every verdict is in `research/registry.jsonl`. Each program's command and frozen spec are in its preregistration, and the program refuses to judge if its spec or code no longer match the hashes recorded at registration.
