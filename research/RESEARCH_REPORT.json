@@ -2,7 +2,8 @@
  "classification": {
   "counts": {
    "PROMISING": 4,
-   "REJECTED": 149,
+   "REJECTED": 150,
+   "TESTING": 1,
    "UNCERTAIN": 4,
    "VALIDATED": 1
   },
@@ -66,6 +67,16 @@
     "status": "PROMISING",
     "t_required": 3.0,
     "t_stat": 2.24
+   },
+   {
+    "edge_id": "SCX-1@0.001",
+    "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R",
+    "out_of_sample_expectancy": null,
+    "program": "SCX-1",
+    "source": "research/knowledge/SCX-1.json",
+    "status": "TESTING",
+    "t_required": 3.0,
+    "t_stat": 3.021
    },
    {
     "edge_id": "SQZ-1@0.001",
@@ -295,11 +306,11 @@
    },
    "stablecoin-pairs-weekend": {
     "discovery_tests": 0,
-    "judged_tests": 2,
-    "next_bar_t": 2.394,
+    "judged_tests": 3,
+    "next_bar_t": 2.4977,
     "recent_bar_t": 3.0,
-    "recent_tests": 2,
-    "tests": 2
+    "recent_tests": 3,
+    "tests": 3
    },
    "us-equity-etf": {
     "discovery_tests": 0,
@@ -338,14 +349,14 @@
    "ABANDONED": 2,
    "FAILED": 72,
    "INCONCLUSIVE": 1,
-   "PASSED": 9
+   "PASSED": 10
   },
   "drop_checks": 26,
   "drop_days": 9,
   "dropped_before_building": 100,
   "evidence_changed": [],
-  "evidence_checked": 64,
-  "evidence_unchanged": 64,
+  "evidence_checked": 65,
+  "evidence_unchanged": 65,
   "pending": [
    {
     "id": "archive-smc-h1",
@@ -425,21 +436,33 @@
     "title": "KRP-1: the Korean coin premium and the global price, dev stage"
    },
    {
-    "id": "SCX-1",
-    "judge_until": "2023-06-27",
+    "id": "SCX-1-V",
+    "judge_until": "2026-10-27",
     "kind": "due",
     "registered": "2026-11-22",
-    "title": "SCX-1: stablecoins while their primary market is shut, dev stage"
+    "title": "SCX-1-V: stablecoins while their primary market is shut, validation stage"
    }
   ],
   "spec_not_quoted": [],
-  "trials": 96,
-  "verdicts": 84
+  "trials": 97,
+  "verdicts": 85
  },
  "day": "2026-11-22",
  "engine": null,
- "generated": "2026-11-22T02:50:31.953109+00:00",
+ "generated": "2026-11-22T03:14:44.067329+00:00",
  "recent_verdicts": [
+  {
+   "evidence": {
+    "artifact": "research/knowledge/SCX-1.json",
+    "artifact_unchanged": true,
+    "preregistration": "research/preregistrations/SCX-1.md",
+    "preregistration_exists": true,
+    "spec_quoted": true
+   },
+   "id": "SCX-1",
+   "recorded": "2026-11-22T03:02:07.813101+00:00",
+   "status": "PASSED"
+  },
   {
    "evidence": {
     "artifact": "research/knowledge/SPL-1.json",
@@ -727,18 +750,6 @@
    "id": "EMC-1",
    "recorded": "2026-11-05T15:47:02.604214+00:00",
    "status": "FAILED"
-  },
-  {
-   "evidence": {
-    "artifact": "research/knowledge/PHD-1.json",
-    "artifact_unchanged": true,
-    "preregistration": "research/preregistrations/PHD-1.md",
-    "preregistration_exists": true,
-    "spec_quoted": true
-   },
-   "id": "PHD-1",
-   "recorded": "2026-11-05T13:17:27.899684+00:00",
-   "status": "FAILED"
   }
  ],
  "seal": {
@@ -797,9 +808,56 @@
       "universe": "stablecoin-pairs-weekend"
      }
     ]
+   },
+   {
+    "hypothesis": "A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday.",
+    "id": "SCX-1-V",
+    "preregistration": "research/preregistrations/SCX-1.md",
+    "tests": 1,
+    "title": "SCX-1-V: stablecoins while their primary market is shut, validation stage",
+    "uses": [
+     {
+      "end": "2026-10-27",
+      "role": "judge",
+      "start": "2023-07-02",
+      "universe": "stablecoin-pairs-weekend"
+     }
+    ]
    }
   ],
-  "verdicts": []
+  "verdicts": [
+   {
+    "evidence": {
+     "artifact": "research/knowledge/SCX-1.json",
+     "artifact_unchanged": true,
+     "preregistration": "research/preregistrations/SCX-1.md",
+     "preregistration_exists": true,
+     "spec_quoted": true
+    },
+    "id": "SCX-1",
+    "result": {
+     "artifact": "research/knowledge/SCX-1.json",
+     "chosen_theta": 0.001,
+     "gates": {
+      "beats_placebo": true,
+      "beats_weekdays": true,
+      "costs_x2": true,
+      "halves": true,
+      "late_entry": true,
+      "t": true,
+      "top5_removed": true,
+      "without_best_pair": true,
+      "without_best_week": true
+     },
+     "mean_net": 0.0008637002380822741,
+     "t": 3.021214961382649,
+     "traded": 242,
+     "weeks": 81,
+     "why": null
+    },
+    "status": "PASSED"
+   }
+  ]
  },
  "version": "research-report-1.1.0"
 }

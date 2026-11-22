@@ -104,7 +104,11 @@ def test_the_committed_registry_matches_the_committed_evidence():
     div = next(e for e in reg["edges"] if e["edge_id"] == "DIV2-H1-TSMOM12")
     assert div["status"] == "REJECTED" and any("holdout" in c for c in div["failed_checks"])
     passed = {k for k, p in reg["programs"].items() if p["verdict"] == "PASSED"}
-    assert passed <= {"DIV-2", "TRND-1"}
+    assert passed <= {"DIV-2", "TRND-1", "SCX-1"}
+    # SCX-1 passed its development stage on 2026-11-22 (t 3.02 at 10 bp): a stage pass is TESTING until its
+    # validation stage is judged, never VALIDATED; its 3 bp threshold failed and is REJECTED
+    scx = {e["edge_id"]: e["status"] for e in reg["edges"] if e.get("program") == "SCX-1"}
+    assert scx == {"SCX-1@0.001": "TESTING", "SCX-1@0.0003": "REJECTED"}
     assert all(p["verdict"] in ("FAILED", "FAIL", "PASSED") or p["verdict"].startswith("BLOCKED")
                for p in reg["programs"].values())
     vix = next((e for e in reg["edges"] if e["edge_id"] == "R4-XA-VIX-A"), None)

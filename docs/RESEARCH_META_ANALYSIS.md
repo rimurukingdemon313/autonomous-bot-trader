@@ -2,12 +2,12 @@
 
 **RESEARCH ONLY · NOTHING HERE IS A PROFIT CLAIM.** Written by `scripts/research_meta.py` from the committed record alone: the registry, the edge registry and the discovery lab's ledger of classed rules. No market data is read, so nothing is looked at that was not already looked at, and no test is charged. It describes the record; it validates nothing.
 
-Generated 2026-11-22 02:50 UTC · meta-1.0.0
+Generated 2026-11-22 03:14 UTC · meta-1.0.0
 
 ## 1. What was read
 
-- 96 registered hypotheses with 1,923 counted tests; 84 verdicts: 72 FAILED, 12 PENDING, 9 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
-- 158 judged trading edges: 149 REJECTED, 4 PROMISING, 4 UNCERTAIN, 1 VALIDATED.
+- 97 registered hypotheses with 1,924 counted tests; 85 verdicts: 72 FAILED, 12 PENDING, 10 PASSED, 2 ABANDONED, 1 INCONCLUSIVE.
+- 160 judged trading edges: 150 REJECTED, 4 PROMISING, 4 UNCERTAIN, 1 TESTING, 1 VALIDATED.
 - 660 rules found in data by the discovery lab and classed, each kept with its reason: 235 NEGATIVE_EXPECTANCY, 159 OVERFIT, 148 INSUFFICIENT_POWER, 58 INSUFFICIENT_DATA, 42 DUPLICATE, 18 REPEATS_CLOSED_FAMILY.
 
 ## 2. The registered hypotheses, by the data they used
@@ -32,32 +32,32 @@ Generated 2026-11-22 02:50 UTC · meta-1.0.0
 | `equity-index-monthly` | 3 | 3 | 0 | 2 | 1 |
 | `crypto-spot-crowded-shorts` | 1 | 3 | 1 | 0 | 0 |
 | `crypto-spot-high-funding` | 1 | 3 | 1 | 0 | 0 |
+| `stablecoin-pairs-weekend` | 2 | 3 | 0 | 1 | 1 |
 | `equity-index-b` | 2 | 2 | 0 | 1 | 1 |
 | `us-vol-etp` | 1 | 2 | 1 | 0 | 0 |
 | `us-treasury-daily` | 2 | 2 | 2 | 0 | 0 |
 | `crypto-spot-liquidation-falls` | 1 | 2 | 1 | 0 | 0 |
 | `crypto-spot-spot-led-rallies` | 1 | 2 | 1 | 0 | 0 |
 | `crypto-spot-korean-premium` | 1 | 2 | 0 | 0 | 1 |
-| `stablecoin-pairs-weekend` | 1 | 2 | 0 | 0 | 1 |
 | `metals-futures-daily` | 1 | 1 | 1 | 0 | 0 |
 | `em-fx-daily` | 1 | 1 | 1 | 0 | 0 |
 | `equity-index-daily` | 1 | 1 | 1 | 0 | 0 |
 | `crypto-perp-new-listings` | 1 | 1 | 1 | 0 | 0 |
 
-A PASSED line is a stage, not an edge: RV-1, DIV-2, DIV-2-H, RC-EQ2-H, CR-1, CR-4, CR-5, TRND-1, TRND-1-H. The edge registry below says which of them is a validated edge: TRND-1.
+A PASSED line is a stage, not an edge: RV-1, DIV-2, DIV-2-H, RC-EQ2-H, CR-1, CR-4, CR-5, TRND-1, TRND-1-H, SCX-1. The edge registry below says which of them is a validated edge: TRND-1.
 
-Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, archive-smc-utc-rerun, archive-edge-program-8, TOM-D, TOM-F, RADAR-1, TRND-F, KRP-1, SCX-1.
+Pending: archive-smc-h1, archive-smc-h2, archive-trend-3, archive-reversion, archive-smc-utc-rerun, archive-edge-program-8, TOM-D, TOM-F, RADAR-1, TRND-F, KRP-1, SCX-1-V.
 
 ## 3. Why the judged edges failed
 
-Of 149 rejected edges, 131 have a recorded mean after costs and 100 of those are negative. 136 have a t-statistic: its median is -1.40, and 7 reached 2. 7 failed a single gate, 5 of them the bar itself.
+Of 150 rejected edges, 132 have a recorded mean after costs and 100 of those are negative. 137 have a t-statistic: its median is -1.34, and 7 reached 2. 7 failed a single gate, 5 of them the bar itself.
 
 | Gate failed | Edges |
 |---|---|
 | t_day | 52 |
 | profit_factor | 51 |
 | symbols_positive | 51 |
-| t | 47 |
+| t | 48 |
 | beats_random | 46 |
 | years | 46 |
 | significance | 45 |

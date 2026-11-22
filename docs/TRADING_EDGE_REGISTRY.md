@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 149 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 1 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 150 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -61,6 +61,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0
 | RC-EQ2 | FAILED | — | 1 | 0 | 3.000 |
 | RC-FX | FAILED | — | 2 | 0 | 3.455 |
 | RV-1 | FAILED | — | 6 | 0 | 2.807 |
+| SCX-1 | PASSED | — | 2 | 0 | 3.000 |
 | SEC-1 | FAILED | — | 1 | 0 | 3.124 |
 | SL-001 | FAILED | — | 6 | 0 | 3.248 |
 | SL-002 | FAILED | — | 1 | 0 | 3.254 |
@@ -305,6 +306,10 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0
 | ↳ correction | | | cross-sectional book: t is the Stage-1 information-coefficient t; expectancies are weekly returns of notional, not R | | | | | | | | | |
 | RV1-H6-MOMENTUM-VOL | BOTH | W1 | `cross-sectional rank: RV1-H6-MOMENTUM-VOL` | weekly rebalance of a currency-neutral book | 372 | — | +2.10 (2.81) | — | — | 1 | **REJECTED** | t |
 | ↳ correction | | | cross-sectional book: t is the Stage-1 information-coefficient t; expectancies are weekly returns of notional, not R | | | | | | | | | |
+| SCX-1@0.0003 | — | events | `see research/preregistrations/SCX-1.md (threshold 0.0003)` | see research/preregistrations/SCX-1.md | 603 | +0.000 | +1.67 (3.00) | +0.000 | — | 1 | **REJECTED** | beats_placebo, t |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| SCX-1@0.001 | — | events | `see research/preregistrations/SCX-1.md (threshold 0.001)` | see research/preregistrations/SCX-1.md | 242 | +0.001 | +3.02 (3.00) | +0.001 | — | 1 | **TESTING** | — |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | SEC-1 | — | — | `see research/preregistrations/SEC-1.md` | see research/preregistrations/SEC-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, costs_x2, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | SL-001-01 | BUY | D1 | `brk_hi120=high` | D5 | 266 | -0.038 | -0.42 (3.25) | -0.104 | — | 1 | **REJECTED** | significance, beats_random, costs_stress, delay_stress, perturbation, years, leave_one_out, outliers |
