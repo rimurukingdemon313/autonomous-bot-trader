@@ -33,7 +33,7 @@ from zoneinfo import ZoneInfo
 
 from ..broker.base import BrokerError
 from ..broker.paper import PaperBroker
-from ..data.instruments import INDEX_CFDS
+from ..data.instruments import COMMODITY_CFDS, INDEX_CFDS
 from ..decision.edge_status import classify
 from ..execution.engine import ExecutionEngine
 from ..memory.db import Database
@@ -46,7 +46,15 @@ from ..risk.profile import TRND1_PAPER_200K, HardRiskProfile
 #:        trade again: flat, its equity cannot move. The size no longer halves after a run of losing trades: a run of
 #:        small losses in choppy months is part of TRND-1 as it was tested and replayed, at a fixed size. The daily,
 #:        weekly and total limits, the gate and the stop are unchanged.
-TREND_DESK_VERSION = "trend-desk-1.1.0"
+#: 1.2.0 (the TRINITY desk, 2026-11-21): the promoted-rule file may also hold another desk's rule: status EXPERIMENTAL (a
+#:        person put an unvalidated rule on paper for a forward test; classify gives it EXPERIMENTAL, which the risk
+#:        engine sizes at 0.25% and the execution engine sends only where unvalidated execution is enabled), and the
+#:        XAUUSD and USOIL CFDs; a rule carrying "weights" is refused like any other size. The trend desk itself
+#:        trades TRND-1 exactly as before.
+TREND_DESK_VERSION = "trend-desk-1.2.0"
+#: what a promoted rule may name: the index CFDs, gold, and the commodity CFDs
+RULE_INSTRUMENTS = frozenset(INDEX_CFDS) | {"XAUUSD"} | frozenset(COMMODITY_CFDS)
+RULE_STATUSES = ("VALIDATED", "PROMISING", "EXPERIMENTAL", "RETIRED")
 RULE_ID = "TRND-1"
 INDICES = ("US500", "NAS100", "GER40", "UK100")
 MONTHS = 10
@@ -78,7 +86,7 @@ class PromotedRule:
     """A rule a person promoted for the desk to trade. It never carries a size: sizing is the risk engine's."""
 
     rule_id: str
-    status: str  # VALIDATED | PROMISING | RETIRED
+    status: str  # VALIDATED | PROMISING | EXPERIMENTAL (on paper for a forward test, unvalidated) | RETIRED
     health: str  # HEALTHY | DEGRADED | RETIRED
     instruments: tuple[str, ...]
     mode: str  # PAPER: where it may trade
@@ -91,15 +99,14 @@ class PromotedRule:
         for k in ("rule_id", "status", "health", "instruments", "mode", "promoted_by", "promoted_on", "evidence"):
             if k not in d:
                 raise RuleFileError(f"promoted rule missing {k!r}")
-        for k in ("size", "lots", "units", "notional", "risk_pct", "risk_amount", "leverage"):
+        for k in ("size", "lots", "units", "notional", "risk_pct", "risk_amount", "leverage", "weights"):
             if k in d:
                 raise RuleFileError(f"{d['rule_id']}: a rule never carries {k!r}; sizing is the risk engine's")
-        if d["status"] not in ("VALIDATED", "PROMISING", "RETIRED") or d["health"] not in ("HEALTHY", "DEGRADED",
-                                                                                          "RETIRED"):
+        if d["status"] not in RULE_STATUSES or d["health"] not in ("HEALTHY", "DEGRADED", "RETIRED"):
             raise RuleFileError(f"{d['rule_id']}: unknown status {d['status']!r} or health {d['health']!r}")
         if d["mode"] != "PAPER":
             raise RuleFileError(f"{d['rule_id']}: mode {d['mode']!r}; this build trades PAPER only")
-        unknown = [s for s in d["instruments"] if s not in INDEX_CFDS]
+        unknown = [s for s in d["instruments"] if s not in RULE_INSTRUMENTS]
         if unknown:
             raise RuleFileError(f"{d['rule_id']}: unknown instruments {unknown}")
         return cls(d["rule_id"], d["status"], d["health"], tuple(d["instruments"]), d["mode"], d["promoted_by"],
@@ -507,7 +514,8 @@ def sessions(bars: dict[str, list[DailyBar]], after: int | None = None, until: i
     return [(t, d, sorted(ss, key=INDICES.index)) for (t, d), ss in sorted(groups.items())]
 
 
-__all__ = ["DESK_LIMITS", "INDICES", "MONTHS", "PROMOTED_RULES_PATH", "RULE_ID", "STOP_REL", "TREND_DESK_VERSION",
+__all__ = ["DESK_LIMITS", "INDICES", "MONTHS", "PROMOTED_RULES_PATH", "RULE_ID", "RULE_INSTRUMENTS", "RULE_STATUSES",
+           "STOP_REL", "TREND_DESK_VERSION",
            "DailyBar", "DailyFeed", "DeskClock", "PromotedRule", "RuleDecision", "RuleFileError", "TrendDesk",
            "close_time", "decision_for", "is_last_weekday", "load_promoted_rules", "month_ends", "next_month",
            "open_time", "sessions"]

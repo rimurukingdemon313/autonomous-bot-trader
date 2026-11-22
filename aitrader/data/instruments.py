@@ -77,13 +77,42 @@ INDEX_CFDS: dict[str, IndexCFD] = {
 INDEX_POINT = 1.0
 
 
+@dataclass(frozen=True, slots=True)
+class CommodityCFD:
+    """A commodity CFD a desk trades on paper (aitrader/position/trinity_paper_desk.py). Kept apart from UNIVERSE (the
+    research registry's "fx-majors" universe and its contamination record) and from INDEX_CFDS.
+
+    One lot is `contract_size` units of the commodity (barrels for oil). `pip` is its price step for spreads,
+    slippage and commission allowances. The spread is a declared typical CFD spread in price units, not a measured
+    one. Gold is not here: XAUUSD keeps the metal rules it already has (100 ounces a lot, a 0.1 pip)."""
+
+    symbol: str
+    quote: str
+    contract_size: float
+    pip: float
+    spread: float
+
+
+COMMODITY_CFDS: dict[str, CommodityCFD] = {
+    "USOIL": CommodityCFD("USOIL", "USD", 100.0, 0.01, 0.04),
+}
+
+
 def is_index(symbol: str) -> bool:
     return symbol in INDEX_CFDS
 
 
+def is_commodity(symbol: str) -> bool:
+    return symbol in COMMODITY_CFDS
+
+
 def quote_currency(symbol: str) -> str:
-    """The currency an instrument's price is quoted in: an index CFD's own, a pair's second leg."""
-    return INDEX_CFDS[symbol].quote if symbol in INDEX_CFDS else symbol[3:]
+    """The currency an instrument's price is quoted in: an index or commodity CFD's own, a pair's second leg."""
+    if symbol in INDEX_CFDS:
+        return INDEX_CFDS[symbol].quote
+    if symbol in COMMODITY_CFDS:
+        return COMMODITY_CFDS[symbol].quote
+    return symbol[3:]
 
 
 def get(symbol: str) -> Instrument:

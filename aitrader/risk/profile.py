@@ -26,13 +26,15 @@ import math
 from dataclasses import asdict, dataclass, fields, replace
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from ..data.instruments import INDEX_POINT, is_index
+from ..data.instruments import COMMODITY_CFDS, INDEX_POINT, is_commodity, is_index
 
 #: 1.1.0: `daily_breach` (LOCK_RUN, FTMO's rule: a daily breach ends the run; LOCK_DAY: no new trade until the
 #:        next reset, the breach recorded as a violation) and the PAPER-FORWARD-200K profile.
 #: 1.2.0: the TRND1-PAPER-200K profile (the trend desk's own account, docs/TREND_DESK.md), and an index CFD's pip is
 #:        one index point. The existing profiles, their fields and their hashes are unchanged.
-PROFILE_VERSION = "hard-profile-1.2.0"
+#: 1.3.0: the TRINITY-PAPER-200K profile (the TRINITY desk's own account, docs/TRINITY.md), and a commodity CFD's pip
+#:        is its own (data.instruments.COMMODITY_CFDS). The existing profiles, their fields and their hashes are unchanged.
+PROFILE_VERSION = "hard-profile-1.3.0"
 DAILY_BREACH = ("LOCK_RUN", "LOCK_DAY")
 
 
@@ -167,13 +169,21 @@ PAPER_FORWARD_200K = replace(FTMO_200K, name="PAPER-FORWARD-200K", daily_breach=
 #: leverage. A validated rule only: unvalidated decisions stay capped at 0.25% by the risk engine whatever this says.
 TRND1_PAPER_200K = replace(FTMO_200K, name="TRND1-PAPER-200K", risk_per_trade=1_500.0, max_open_risk=8_000.0,
                            max_open_positions=4, leverage=20.0)
+#: The TRINITY desk's account (aitrader/position/trinity_paper_desk.py): the same FTMO-style limits, with the owner's
+#: package's own: at most 1.5% lost at the stop per position ($3,000), 4% for all of them together ($8,000), inside the
+#: $10,000 daily limit; four positions, one per instrument; margin at 1:10, the package's order adapter's leverage.
+#: The rule is unvalidated, so the risk engine caps each position at 0.25% ($500) whatever this says.
+TRINITY_PAPER_200K = replace(FTMO_200K, name="TRINITY-PAPER-200K", risk_per_trade=3_000.0, max_open_risk=8_000.0,
+                             max_open_positions=4, leverage=10.0)
 PROFILES = {FTMO_200K.name: FTMO_200K, PAPER_FORWARD_200K.name: PAPER_FORWARD_200K,
-            TRND1_PAPER_200K.name: TRND1_PAPER_200K}
+            TRND1_PAPER_200K.name: TRND1_PAPER_200K, TRINITY_PAPER_200K.name: TRINITY_PAPER_200K}
 
 
 def pip_of(symbol: str) -> float:
     if is_index(symbol):
         return INDEX_POINT
+    if is_commodity(symbol):
+        return COMMODITY_CFDS[symbol].pip
     return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
 
 
@@ -191,5 +201,6 @@ def loss_per_lot(profile: HardRiskProfile, *, stop_distance: float, pip: float, 
     return parts
 
 
-__all__ = ["DAILY_BREACH", "FTMO_200K", "PAPER_FORWARD_200K", "PROFILES", "PROFILE_VERSION", "TRND1_PAPER_200K",
+__all__ = ["DAILY_BREACH", "FTMO_200K", "PAPER_FORWARD_200K", "PROFILES", "PROFILE_VERSION", "TRINITY_PAPER_200K",
+           "TRND1_PAPER_200K",
            "HardRiskProfile", "ProfileError", "loss_per_lot", "pip_of"]

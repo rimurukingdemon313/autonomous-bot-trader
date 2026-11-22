@@ -26,7 +26,7 @@ import threading
 import time
 from typing import Callable
 
-from ..data.instruments import INDEX_POINT, is_index, quote_currency
+from ..data.instruments import COMMODITY_CFDS, INDEX_POINT, is_commodity, is_index, quote_currency
 from ..memory.db import Database
 from ..risk.engine import InstrumentSpec, Quote
 from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, ClosedTrade, Fill
@@ -44,7 +44,9 @@ from .base import AccountSnapshot, BrokerError, BrokerPosition, BrokerRejected, 
 #:        unit of the index per lot, a 1-point pip, P/L in the index's own currency converted at the live rate; a
 #:        position may have no target (it is closed by its rule or its stop); `modify_stop` moves a stop with the
 #:        hard gate's single-use stop permit. FX and metal fills, stops, targets and P/L are unchanged.
-PAPER_VERSION = "paper-1.5.0"
+#: 1.6.0 (the TRINITY desk, aitrader/position/trinity_paper_desk.py): commodity CFDs (data.instruments.COMMODITY_CFDS,
+#:        USOIL): their own contract size and pip. Index, FX and metal fills, stops, targets and P/L are unchanged.
+PAPER_VERSION = "paper-1.6.0"
 ROLLOVER_HOUR_UTC = 21
 
 
@@ -67,12 +69,16 @@ def rollovers(t0: int, t1: int) -> int:
 def contract_size(symbol: str) -> float:
     if is_index(symbol):
         return 1.0  # one unit of the index per lot
+    if is_commodity(symbol):
+        return COMMODITY_CFDS[symbol].contract_size
     return 100.0 if symbol.startswith("XAU") else 100_000.0
 
 
 def pip_of(symbol: str) -> float:
     if is_index(symbol):
         return INDEX_POINT
+    if is_commodity(symbol):
+        return COMMODITY_CFDS[symbol].pip
     return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
 
 

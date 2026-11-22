@@ -26,7 +26,9 @@ import json
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-LEDGER_VERSION = "desk-ledger-1.0.1"
+#: 1.1.0: `ledger` takes the strategy's name and its signal text as parameters, for the TRINITY desk; the trend desk's
+#:        ledger and report are unchanged.
+LEDGER_VERSION = "desk-ledger-1.1.0"
 TARGET_MONTH_USD = 4_000.0
 STRATEGY = "TRND-1"
 START_DAY = "2026-11-09"
@@ -105,7 +107,7 @@ def _reconciles(row: dict) -> bool | None:
     return abs(g - s - c - sl - f - n) < 0.01
 
 
-def ledger(db, desk) -> dict:
+def ledger(db, desk, strategy: str = STRATEGY, signal=None) -> dict:
     """Every trade the desk ever made, closed or open, with its costs, size, leverage and signal; every session's
     account at its close and at its intraday lows."""
     record = _events(db, "DESK_EQUITY", "DESK_INTRADAY_LOW", "DESK_DECISION", "DESK_TRADE_CLOSED")
@@ -123,7 +125,8 @@ def ledger(db, desk) -> dict:
 
     def common(pid, dec):
         e = at_entry.get(pid, {})
-        return {"position": pid, "strategy": STRATEGY, "signal": _signal(dec), "decision_id": (dec or {}).get("decision_id"),
+        return {"position": pid, "strategy": strategy, "signal": (signal or _signal)(dec),
+                "decision_id": (dec or {}).get("decision_id"),
                 "entry_notional_usd": e.get("notional"), "entry_leverage": e.get("leverage"),
                 "risk_usd": ((dec or {}).get("risk") or {}).get("risk_amount")}
     rows = []

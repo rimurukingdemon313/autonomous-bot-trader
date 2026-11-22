@@ -51,9 +51,10 @@ def _num(v) -> float | None:
     return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) else None
 
 
-def parse(res: dict, now: datetime) -> tuple[dict[str, dict], list[str]]:
+def parse(res: dict, now: datetime, is_final=None) -> tuple[dict[str, dict], list[str]]:
     """{day: {o, h, l, c, adj, v}} by the exchange's own date, and the problems found. A row whose day has not ended
-    in UTC at `now` is not final and is left out. A row with no close is left out and named; nothing is filled."""
+    in UTC at `now` is not final and is left out; `is_final(day)`, when given, decides instead (the TRINITY desk: 30
+    minutes after the New York close). A row with no close is left out and named; nothing is filled."""
     tz = ZoneInfo(res["meta"].get("exchangeTimezoneName") or "America/New_York")
     q = res["indicators"]["quote"][0]
     adj = ((res["indicators"].get("adjclose") or [{}])[0]).get("adjclose") or []
@@ -61,8 +62,8 @@ def parse(res: dict, now: datetime) -> tuple[dict[str, dict], list[str]]:
     today = now.astimezone(timezone.utc).date()
     for i, ts in enumerate(res.get("timestamp") or []):
         day = datetime.fromtimestamp(ts, timezone.utc).astimezone(tz).date()
-        if day >= today:
-            continue  # the day being fetched: not final
+        if (day >= today) if is_final is None else not is_final(day):
+            continue  # not final yet
         row = {k: _num(q.get(src, [None] * (i + 1))[i]) for k, src in
                (("o", "open"), ("h", "high"), ("l", "low"), ("c", "close"), ("v", "volume"))}
         row["adj"] = _num(adj[i]) if i < len(adj) else None

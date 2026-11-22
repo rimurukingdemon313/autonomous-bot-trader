@@ -1,15 +1,25 @@
-# TRINITY-MASTER, the owner's package of 2026-11-21 (docs/TRINITY.md). PAPER AND RESEARCH ONLY: no broker, no account,
-# no key, no real money. GitHub's runner can reach Yahoo; this session cannot.
-#   data: fetch the daily bars the strategy reads (scripts/trinity_data.py) and publish them, as served, under
-#         history/ on the trinity-desk-data branch. Nothing is computed from them here.
-name: TRINITY desk (paper and research only)
+# The TRINITY desk (docs/TRINITY.md): the owner's TRINITY-MASTER traded by the system on its own $200,000 paper
+# account, through the risk engine, the hard risk gate and the paper broker, after each weekday's New York close on
+# GitHub's runner, which can reach Yahoo. PAPER ONLY: no broker, no account, no key, no real money. The rule is
+# EXPERIMENTAL (unvalidated): the risk engine sizes it at 0.25% a position, and it never reaches DEMO or live.
+#   run (the schedule): fetch, apply the sessions not yet applied, publish desk.db, the reports, the design book and
+#        the daily audit (research/results/TRINITY-MASTER-daily-audit.json) to the trinity-desk-data branch.
+#   data: fetch the full daily history (scripts/trinity_data.py) and publish it under history/. Nothing traded.
+#   replay: the desk's own code on that history from 2008 (descriptive), published under replay/. Nothing traded.
+name: TRINITY desk (TRINITY-MASTER on paper, unvalidated)
 on:
+  schedule:
+    - cron: "47 22 * * 1-5"  # after the New York close: every price source has a final bar
+    # Backups. GitHub's cron is best-effort. A run applies only the sessions not yet applied, in order, so a backup
+    # that finds nothing new changes nothing.
+    - cron: "17 1 * * 2-6"
+    - cron: "47 6 * * 2-6"
   workflow_dispatch:
     inputs:
       command:
-        description: "data"
+        description: "run | data | replay"
         required: true
-        default: "data"
+        default: "run"
 permissions:
   contents: write
 concurrency:
@@ -27,9 +37,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Check the command
         env:
-          COMMAND: ${{ github.event.inputs.command }}
+          COMMAND: ${{ github.event.inputs.command || 'run' }}
         run: |
-          case "$COMMAND" in data) ;; *) echo "unknown command: $COMMAND"; exit 1 ;; esac
+          case "$COMMAND" in run|data|replay) ;; *) echo "unknown command: $COMMAND"; exit 1 ;; esac
+          echo "COMMAND=$COMMAND" >> "$GITHUB_ENV"
       - name: Open trinity-desk-data
         run: |
           git config user.name "trinity-desk"; git config user.email "trinity-desk@users.noreply.github.com"
@@ -39,7 +50,20 @@ jobs:
             git worktree add -q --detach pub
             (cd pub && git checkout -q --orphan trinity-desk-data && git rm -rq --cached . && git clean -fdxq)
           fi
-      - name: Fetch the bars (a failed fetch is retried)
+          mkdir -p state
+          if [ -f pub/desk.db.gz ]; then gunzip -c pub/desk.db.gz > state/desk.db; fi
+      - name: Run the desk (a failed fetch is retried; a session is never applied twice)
+        if: env.COMMAND == 'run'
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/trinity_paper_desk.py --state state 2>&1 | grep -v '"stage":"RISK_GATE"' | tee desk.log && break
+            echo "attempt $i failed"; sleep $((i * 30))
+          done
+          test -f state/REPORT.md
+          cat state/REPORT.md
+      - name: Fetch the history
+        if: env.COMMAND == 'data' || env.COMMAND == 'replay'
         run: |
           set -o pipefail
           for i in 1 2 3; do
@@ -47,11 +71,34 @@ jobs:
             echo "attempt $i failed"; sleep $((i * 30))
           done
           test -f fetched/history/manifest.json
+      - name: Replay the desk's own code on the history (descriptive)
+        if: env.COMMAND == 'replay'
+        run: |
+          python scripts/trinity_paper_desk.py --replay 2008-01-02 --history fetched/history --state replay \
+            | grep -v '"stage":"RISK_GATE"' | tail -40
+          test -f replay/REPORT.md
       - name: Publish to trinity-desk-data
         run: |
-          rm -rf pub/history && cp -r fetched/history pub/history
+          case "$COMMAND" in
+            run)
+              gzip -nc state/desk.db > pub/desk.db.gz
+              cp state/REPORT.md state/state.json state/design_book.json pub/
+              mkdir -p pub/research/results
+              cp state/research/results/TRINITY-MASTER-daily-audit.json pub/research/results/
+              # rebuilt in full from desk.db each run; a file the run could not write is removed, never left stale
+              for f in TRADING_REPORT.md ledger.csv equity.csv; do
+                if [ -f "state/$f" ]; then cp "state/$f" pub/; else rm -f "pub/$f"; fi
+              done ;;
+            data)
+              rm -rf pub/history && cp -r fetched/history pub/history ;;
+            replay)
+              rm -rf pub/history pub/replay && cp -r fetched/history pub/history && mkdir -p pub/replay
+              cp replay/REPORT.md replay/TRADING_REPORT.md replay/state.json replay/design_book.json \
+                 replay/ledger.csv replay/equity.csv pub/replay/
+              cp replay/research/results/TRINITY-MASTER-daily-audit.json pub/replay/ ;;
+          esac
           cd pub
           git add -A .
-          git commit -qm "trinity data $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          git commit -qm "trinity $COMMAND $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
           for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/trinity-desk-data && exit 0; sleep $((i * 20)); done
           exit 1

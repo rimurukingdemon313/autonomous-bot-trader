@@ -1,11 +1,16 @@
 {
- "note": "Rules a person promoted for a position desk to trade (aitrader/position/trend_desk.py). Research code never writes here. A rule never carries a size: the risk engine sizes every trade. PAPER only.",
+ "note": "Rules a person promoted for a position desk to trade (aitrader/position/trend_desk.py, aitrader/position/trinity_paper_desk.py). Research code never writes here. A rule never carries a size: the risk engine sizes every trade. PAPER only. EXPERIMENTAL: a person put an unvalidated rule on paper for a forward test; the risk engine sizes it as unvalidated (0.25% a trade) and it can never be VALIDATED from this file alone.",
  "rules": [
   {
    "rule_id": "TRND-1",
    "status": "VALIDATED",
    "health": "HEALTHY",
-   "instruments": ["US500", "NAS100", "GER40", "UK100"],
+   "instruments": [
+    "US500",
+    "NAS100",
+    "GER40",
+    "UK100"
+   ],
    "mode": "PAPER",
    "promoted_by": "the owner, 2026-11-08: \"النظام يتداول من وحده انتهى\" (the system trades by itself), after TRND-1 was proposed to them for a funded account",
    "promoted_on": "2026-11-08",
@@ -16,6 +21,27 @@
     "registry": "research/knowledge/edge_registry.json (edges-1.10.0): VALIDATED",
     "not_an_edge_over_the_market": "month by month it earned slightly less than holding the index; what it had was about half the worst fall",
     "forward": "research/preregistrations/TRND-F.md judges the rule forward once, on or after 2029-12-03"
+   }
+  },
+  {
+   "rule_id": "TRINITY-MASTER",
+   "status": "EXPERIMENTAL",
+   "health": "HEALTHY",
+   "instruments": [
+    "NAS100",
+    "US500",
+    "XAUUSD",
+    "USOIL"
+   ],
+   "mode": "PAPER",
+   "promoted_by": "the owner, 2026-11-21: \"اقرأ CLAUDE_HANDOFF_SPEC.md ونفذ المطلوب بالكامل في المستودع\" (read CLAUDE_HANDOFF_SPEC.md and implement what it asks, in full, in the repository); the specification asks for a PAPER-mode desk registered here",
+   "promoted_on": "2026-11-21",
+   "evidence": {
+    "source": "research/external/trinity/ (the owner's package as received; trinity_omega_suite.py sha256 de0d1596b0cf69ba92fd93a610607ec1b18e1d17bca4430c87269b0390eebd1b)",
+    "backtest": "in-sample only: 288 three-weekly closes 2007-2026 chosen by the package, 119 hand-set constants; its t 4.24 reproduces exactly on its own data",
+    "red_team": "research/results/TRINITY-MASTER-redteam.json and docs/TRINITY.md: on the 15 regular 15-day grids of real daily prices t 1.55 to 4.78 (median 2.99), every grid's drawdown above 10%, and a fixed mix of its own average weights at a higher median t (3.60)",
+    "validation": "none: not preregistered, not judged on data its author had not seen. EXPERIMENTAL on paper only; never DEMO, never live",
+    "forward": "the TRINITY desk's own paper record from 2026-11-23 (trinity-desk-data), with the design book beside it"
    }
   }
  ]

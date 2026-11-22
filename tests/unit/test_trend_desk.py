@@ -268,13 +268,17 @@ def test_the_promotion_file_is_strict_and_never_carries_a_size(tmp_path):
     good = {"rule_id": "TRND-1", "status": "VALIDATED", "health": "HEALTHY", "instruments": ["US500"], "mode": "PAPER",
             "promoted_by": "x", "promoted_on": "2026-11-08", "evidence": {}}
     for bad in ({**good, "risk_pct": 1.0}, {**good, "mode": "LIVE"}, {**good, "instruments": ["EURUSD"]},
-                {k: v for k, v in good.items() if k != "health"}):
+                {k: v for k, v in good.items() if k != "health"}, {**good, "weights": {"US500": 0.5}},
+                {**good, "status": "LIVE_READY"}):
         (tmp_path / "r.json").write_text(json.dumps({"rules": [bad]}))
         with pytest.raises(RuleFileError):
             TD.load_promoted_rules(tmp_path / "r.json")
     assert TD.load_promoted_rules(tmp_path / "none.json")[0] == []
-    rules, _ = TD.load_promoted_rules()  # the repository's own: the owner's promotion of TRND-1, paper only
-    assert [(r.rule_id, r.status, r.health, r.mode) for r in rules] == [("TRND-1", "VALIDATED", "HEALTHY", "PAPER")]
+    # the repository's own: the owner's promotion of TRND-1 (2026-11-08) and of TRINITY-MASTER as an unvalidated
+    # paper forward test (2026-11-21); both PAPER only, and TRND-1 the only VALIDATED rule
+    rules, _ = TD.load_promoted_rules()
+    assert [(r.rule_id, r.status, r.health, r.mode) for r in rules] == [
+        ("TRND-1", "VALIDATED", "HEALTHY", "PAPER"), ("TRINITY-MASTER", "EXPERIMENTAL", "HEALTHY", "PAPER")]
 
 
 def test_the_runner_waits_for_a_late_bar_and_writes_the_report(tmp_path):

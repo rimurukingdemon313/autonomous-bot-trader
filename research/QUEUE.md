@@ -384,6 +384,13 @@ broker, no bot change.
 - FUNDED-P (from 2026-11-09): see the owner's answer above. Not judged: a paper record, read as it grows. Its HALF
   track carries a one-day stop at 6% (funded-paper-1.1.0, added before the first day). Without it, 1987-10-19
   alone ended 547 of 732 replayed runs.
+- THE TRINITY DESK (from 2026-11-23; the owner, 2026-11-21: "read CLAUDE_HANDOFF_SPEC.md and implement it in
+  full"). The owner's TRINITY-MASTER on its own $200,000 paper account, EXPERIMENTAL: unvalidated, so the risk
+  engine sizes it at 0.25% a position, and it never reaches DEMO or live (`docs/TRINITY.md`; trinity-desk-1.0.0;
+  report on `trinity-desk-data`). Not judged: a paper record, read as it grows, with the package's own weights
+  measured beside it (the design book). The package's 20-year figures were tested on real prices first and did
+  not hold as stated: on the spec's own 15-day rebalance t 1.55 to 4.78 by starting day, every drawdown above
+  10%, and a fixed mix of its average weights at a higher median t (`research/results/TRINITY-MASTER-redteam.json`).
 - CONF-1 (do the H1 agreements the confidence floor refuses pay?): LEARNING **FAILED** (run 2026-11-21, due
   2026-11-20): 739 agreements, mean -0.044 R, t -0.90, days' t -0.53. The floor stays; EVALUATION is not judged
   (`research/preregistrations/CONF-1.md`, Result).

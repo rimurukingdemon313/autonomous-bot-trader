@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 from math import floor
 from zoneinfo import ZoneInfo
 
-from ..data.instruments import INDEX_POINT, is_index
+from ..data.instruments import COMMODITY_CFDS, INDEX_POINT, is_commodity, is_index
 from .profile import HardRiskProfile, loss_per_lot
 
 #: 1.1.0: the cost ceiling counts the WHOLE round trip (spread + commission + slippage on both fills)
@@ -95,7 +95,9 @@ from .profile import HardRiskProfile, loss_per_lot
 #:   fixed amount; every other decision stays at UNVALIDATED_MAX_RISK_PCT (0.25%), whatever its limits say. Equity-
 #:   index CFDs: a 1-point pip, and an index is its own exposure (it shares no currency with a pair or another index).
 #:   Every FX and metal decision is sized and checked exactly as before.
-RISK_VERSION = "risk-1.16.0"
+#: 1.17.0 (the TRINITY desk, aitrader/position/trinity_paper_desk.py): a commodity CFD (data.instruments.COMMODITY_CFDS,
+#: USOIL) has its own pip and is its own exposure, like an index CFD. Nothing else changes.
+RISK_VERSION = "risk-1.17.0"
 #: a quote stamped this far after the moment of opening is not a quote of now (the hard gate's own tolerance)
 QUOTE_FUTURE_S = 5
 NEW_YORK = ZoneInfo("America/New_York")
@@ -293,13 +295,15 @@ class RiskVerdict:
 def pip_size(symbol: str) -> float:
     if is_index(symbol):
         return INDEX_POINT
+    if is_commodity(symbol):
+        return COMMODITY_CFDS[symbol].pip
     return 0.1 if symbol.startswith("XAU") else 0.01 if symbol.endswith("JPY") else 0.0001
 
 
 def exposures(symbol: str) -> tuple[str, ...]:
     """What a position in `symbol` is exposed to, for the per-currency limit: a pair's two currencies; an index CFD
-    is its own exposure, shared with nothing else."""
-    return (symbol,) if is_index(symbol) else (symbol[:3], symbol[3:])
+    is its own exposure, shared with nothing else, and so is a commodity CFD."""
+    return (symbol,) if is_index(symbol) or is_commodity(symbol) else (symbol[:3], symbol[3:])
 
 
 def streak_multiplier(closed_r: list[float], step: int, floor_: float) -> float:
