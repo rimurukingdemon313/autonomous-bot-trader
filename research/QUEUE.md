@@ -425,6 +425,13 @@ for a stage; UDL-1, first in the backlog, waits for the owner's word. It is in `
 |---|---|
 | SGC-1: the HK50 index CFD while Southbound Stock Connect is shut for mainland holidays (the largest net buyer absent) | Power: the net buying is about 0.01% of Hong Kong's market value a day, so even five times that a four-day closure moves the index about 0.2%, while some 35 closures since 2020 need about +1.8% each for t 3.0. The news is mixed and the flow turned to net selling in 2026 (search results) |
 
+**Checked on 2026-11-22, 22:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| TQB-1: long bitcoin into the quarter-ends when Tether books 15% of its profits into bitcoin | Not dated: Tether accumulates through the quarter and moves the coins to its reserve wallet at the end (search result), so the quarter-end is a transfer, not market buying. And about 13 quarter-ends need +4% each for t 3.0, on a path the designer has seen |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
