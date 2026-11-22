@@ -389,6 +389,14 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | PGL-1: South African load shedding and platinum | Its mechanism: no load shedding for over a year |
 | CHL-1: China's price limits and Hong Kong the next day | Data: daily limit hits per stock |
 
+**Checked on 2026-11-22, 04:55 UTC (the edge hunt), and dropped before building.** No edge-hunt experiment was
+running or waiting for a stage (KRP-1 and SCX-1 FAILED; UDL-1, first in the backlog, waits for data), so the cycle
+invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| QTG-1: buy a coin when Binance removes its Seed or Monitoring Tag | Power. A tag puts a 90-day quiz between Binance's users and the coin (search results), so a removal reopens the largest venue's buyers. But there have been about 30 removals since 2023, and at a 10-day standard deviation near 15% against bitcoin, t 3.0 needs about +8% net over 10 days after a next-day entry: far more than an access friction plausibly leaves. No study was found; the news gives falls when a tag is added (a short-side signal, excluded for altcoins) and no figure for removals |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
