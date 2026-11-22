@@ -360,6 +360,23 @@ costs at x1, x1.5 and x2, a matched random baseline, and a threshold that counts
 
 **Round 2 found no edge.** Of the three chosen, two failed on data they had not seen and one could not be tested.
 
+### Every possible trade (a descriptive backtest, 2026-11-22)
+
+The owner asked to see both strategies applied to every trade they could have made, without flattery.
+`scripts/r2_backtest.py` (run 45010822465; `research/results/ROUND2-full-backtest.md` and `.json`) ran the frozen
+study code on all of 2018 to October 2026: every threshold, every cost level, holds from 6 hours to a week. It
+reproduces every entry the judged runs recorded (KRP-1's 288, SCX-1's 242 and SCX-1-V's 251, identical). It is not a
+test and changes no verdict; it spent KRP-1's unread validation months.
+
+- **SCX-1:** the reversion from a deviation is real before costs (+4.9 bp a swap at 10 bp, t 4.14, 493 swaps), but
+  it is on every weekday (Monday +4.2 bp, Wednesday +3.1 bp), and it is small: $10,000 became $10,695 in 7.9 years
+  at 1 bp a fill (+0.86% a year), and $7,068 at Binance's standard 10 bp (-29%). At 2 bp a fill nothing is left
+  (+0.9 bp, t 0.77).
+- **KRP-1:** no threshold or hold makes money at 0.6% a round trip with any significance (the best row: 20% for a
+  day, +0.85%, t 0.75, 76 trades). The registered rule: 429 trades, 47% beat bitcoin, $10,000 became $9,664. The
+  one strong figure is negative: coins with a fresh 2% premium lose to bitcoin over the next week (-2.58% net, t
+  -3.26, 521 trades), a short-side signal the Islamic condition excludes for altcoins.
+
 ## 5. What would count as success
 
 As the owner set it: a result out of sample, significant after the multiple-test correction, net of every cost,
