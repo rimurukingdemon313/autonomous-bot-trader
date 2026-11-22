@@ -4,7 +4,7 @@
 
 **بالعربي:** مكتب TRND-1: الرصيد $192,929.44، المحقّق -$2,660.70، غير المحقّق -$4,409.87، الصفقات المسكّرة 1. رادار RADAR-1: دفتره -2.60% من رأس ماله الورقي، 253 صفقة مسكّرة، الرابح منها 46. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
 
-Updated 2026-11-22 11:17 UTC · perf-1.0.1 · cycles so far: 36
+Updated 2026-11-22 11:40 UTC · perf-1.0.1 · cycles so far: 37
 
 ## 1. TRND-1: the trend desk's paper account
 
@@ -169,15 +169,15 @@ Earlier part 2026-11-07 22:00 UTC to 2026-11-15 00:00 UTC; later part to 2026-11
 
 | Variant | What changes | Earlier: excess | positions | Later: excess | positions | closed | t (daily) | Later, less the original | its t |
 |---|---|---|---|---|---|---|---|---|---|
+| `all-three` | entry_now_apr=0.3, entry_trailing_apr=0.5, exit_now_apr=-1.0, trailing_entry_h=24 | 0.3804% | 25 | -0.1733% | 22 | 19 | -3.10 | 0.4750% | 2.41 |
 | `original` | nothing: the registered rules | 0.1653% | 33 | -0.6483% | 45 | 41 | -2.69 | 0.0000% | n/a |
-| `same-window` | trailing_entry_h=24 | 0.0262% | 48 | -0.7025% | 48 | 43 | -4.49 | -0.0542% | -0.20 |
-| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.3069% | 23 | -0.2356% | 16 | 15 | -3.89 | 0.4127% | 1.98 |
 | `patient-exit` | exit_now_apr=-1.0 | 0.3205% | 28 | -0.5229% | 41 | 37 | -2.37 | 0.1254% | 2.38 |
-| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.3804% | 25 | -0.1733% | 22 | 19 | -3.10 | 0.4750% | 2.41 |
+| `same-window` | trailing_entry_h=24 | 0.0262% | 48 | -0.7025% | 48 | 43 | -4.49 | -0.0542% | -0.20 |
+| `thick-entry` | entry_now_apr=0.3, entry_trailing_apr=0.5 | 0.3069% | 23 | -0.2356% | 16 | 15 | -3.89 | 0.4127% | 1.98 |
 
 Candidate, chosen on the earlier part only: `all-three` (4 variants compared). **INCONCLUSIVE**: the later part holds 8 days and 19 closed positions: 30 and 30 are needed before anything is judged.
 
-Gates on the later part: enough days no, enough positions no, excess over cash no, beats the original no, costs x1.5 no, without best coin no.
+Gates on the later part: beats the original no, costs x1.5 no, enough days no, enough positions no, excess over cash no, without best coin no.
 
 A variant is proposed as a registered challenger only when every gate holds. A proposal is a request for a preregistered forward test, never a replacement of the original.
 
