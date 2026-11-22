@@ -1,0 +1,43 @@
+# Round 2's two strategies (SCX-1, KRP-1) on every trade they could have made: a DESCRIPTIVE backtest, asked for by the
+# owner on 2026-11-22 (scripts/r2_backtest.py). Run on GitHub's runner because the data hosts are not reachable from
+# the research director's session. RESEARCH ONLY: no account, no key, no order, no model call, no paid service.
+# It is not a test: it registers nothing, touches no registry and cannot change a verdict. It writes two files to
+# research/results/ on main and nothing else.
+name: Round 2 full backtest (descriptive, research only)
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: r2-backtest
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Run
+        run: python scripts/r2_backtest.py run --out research/results
+      - name: Commit the results to main
+        if: success()
+        run: |
+          git config user.name "r2-backtest"; git config user.email "r2-backtest@users.noreply.github.com"
+          mkdir -p /tmp/rec
+          cp research/results/ROUND2-full-backtest.json research/results/ROUND2-full-backtest.md /tmp/rec/
+          for i in 1 2 3 4 5; do
+            git fetch -q origin main && git reset -q --hard FETCH_HEAD
+            cp /tmp/rec/ROUND2-full-backtest.json /tmp/rec/ROUND2-full-backtest.md research/results/
+            git add -- research/results/ROUND2-full-backtest.json research/results/ROUND2-full-backtest.md
+            if git diff --cached --quiet; then echo "already on main"; exit 0; fi
+            git commit -qm "Round 2 full backtest $(date -u +%Y-%m-%dT%H:%MZ): descriptive, not a test"
+            git push -q origin HEAD:refs/heads/main && exit 0
+            sleep $((i * 15))
+          done
+          exit 1

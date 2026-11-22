@@ -1644,6 +1644,13 @@ MUTANTS = [
     ('scx1-inconclusive', 'too few SCX-1 weeks is INCONCLUSIVE, never a pass', 'aitrader/research/events/stablecoin.py', '    if len(ok) < min_events or len(c) < min_weeks:', '    if False:', ['tests/unit/test_scx1.py']),
     ('scx1-weekday-gate', 'a reversion the Wednesdays share is not the weekend mechanism', 'aitrader/research/events/stablecoin.py', '"beats_weekdays": cm is not None and m is not None and m > cm}', '"beats_weekdays": True}', ['tests/unit/test_scx1.py']),
     ('edges-later-stage', 'a stage pass whose later stage failed is REJECTED, never left TESTING', 'aitrader/research/discovery/edges.py', '    if rec.status != "TESTING" or lid is None:\n        return rec', '    if True:\n        return rec', ['tests/unit/test_discovery_edges.py']),
+    ('r2bt-fill-twice', 'a swap pays its fill cost on the way in and on the way out', 'scripts/r2_backtest.py', 'row["net"][f"{f:g}bp_a_fill"] = summary([(e["day"], e["gross"] - 2 * f / 1e4) for e in evs])', 'row["net"][f"{f:g}bp_a_fill"] = summary([(e["day"], e["gross"] - f / 1e4) for e in evs])', ['tests/unit/test_r2_backtest.py']),
+    ('r2bt-cap', 'a premium beyond the cap is a data mismatch, never a trade', 'scripts/r2_backtest.py', 'if t_in <= busy or r is None or abs(r) > spec["rho_cap"] or sign * r < theta', 'if t_in <= busy or r is None or sign * r < theta', ['tests/unit/test_r2_backtest.py']),
+    ('r2bt-one-position', 'one position per coin at a time in every premium trade', 'scripts/r2_backtest.py', '            busy = t_in + spec["hold_hours"] * K.HOUR - 1\n    return out', '            busy = -1\n    return out', ['tests/unit/test_r2_backtest.py']),
+    ('r2bt-open-cap', 'the simulation never holds more than its cap of open positions', 'scripts/r2_backtest.py', '            if len(open_) >= KRP_MAX_OPEN:', '            if False:', ['tests/unit/test_r2_backtest.py']),
+    ('r2bt-book-at-exit', "a trade's result is booked at its exit, on the allocation made at its entry", 'scripts/r2_backtest.py', '            pnl = alloc.pop(i) * (evs[i]["excess"] - cost)', '            pnl = alloc.pop(i) * evs[i]["excess"]', ['tests/unit/test_r2_backtest.py']),
+    ('r2bt-restore-spec', "the frozen study's spec is restored after the whole-window fetch", 'scripts/r2_backtest.py', '    finally:\n        K1.SPEC = saved', '    finally:\n        pass', ['tests/unit/test_r2_backtest.py']),
+    ('r2bt-partial', 'nothing is reported on a partial panel', 'scripts/r2_backtest.py', '    if man["failed"]:\n        raise SystemExit(f"{len(man[\'failed\'])} SCX-1 archive files', '    if False:\n        raise SystemExit(f"{len(man[\'failed\'])} SCX-1 archive files', ['tests/unit/test_r2_backtest.py']),
 ]
 
 
