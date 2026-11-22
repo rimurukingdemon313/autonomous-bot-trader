@@ -2,15 +2,16 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 94 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 2 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 96 فرضية مسجلة، 72 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-21 21:04 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-22 02:50 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-21, UTC)
+## Today (2026-11-22, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- none
+- **KRP-1**: KRP-1: the Korean coin premium and the global price, dev stage. A coin whose price in bitcoin on Upbit stands at least theta above its price in bitcoin on Binance at the 00:00 UTC close, after 30 days with the median gap below theta/2, bought on Binance spot an hour later against a short of bitcoin and closed 24 hours after that, earns a positive net return after 0.6% a round trip, averaged over days, more than the same coin on ordinary days and more than Korean discounts of the same size. (`research/preregistrations/KRP-1.md`, 2 tests counted)
+- **SCX-1**: SCX-1: stablecoins while their primary market is shut, dev stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 2 tests counted)
 
 **Verdicts recorded** (each judged once):
 
@@ -18,15 +19,15 @@ Generated 2026-11-21 21:04 UTC from the committed record · research-report-1.1.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-21, 19:56 UTC (the idea engine's first five survivors), and dropped before building: Central-bank gold purchases and physical delivery; The inflation-risk term premium in Treasuries; International sector rotation after the US sectors; A volatility sort of thirty country ETFs; ETF premium and discount reversal across fifty ETFs.
+- Checked on 2026-11-22, 02:20 UTC (the original edge hunt, round 2: `docs/ORIGINAL_EDGE_HUNT_2.md`), and dropped: AIB-1: aggregate insider buying and the US 500; MGN-1: exchange margin hikes as forced deleveraging; BWT-1: Brent against WTI under the Cushing constraint; RBP-1: the rebalancing return; ANC-1: the 52-week-high anchor in the index.
 
 ## Cumulative (since the registry began)
 
 | | |
 |---|---|
-| Hypotheses registered | 94 |
+| Hypotheses registered | 96 |
 | Verdicts | 84: ABANDONED 2, FAILED 72, INCONCLUSIVE 1, PASSED 9 |
-| Ideas dropped before building (no test spent) | 95 in the tables of 25 dated checks, on 8 days |
+| Ideas dropped before building (no test spent) | 100 in the tables of 26 dated checks, on 9 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 149, UNCERTAIN 4, VALIDATED 1 |
 | Evidence files that still match their verdict | 64 of 64 checked |
 | Specs whose hash is missing from their preregistration | none |
@@ -53,7 +54,7 @@ Every judged hypothesis not rejected, as the edge classification states it. Only
 - RADAR-1 (registered 2026-10-07; data to 2027-02-15): RADAR-1: live cross-venue funding radar, paper forward test
 - TRND-F (registered 2026-11-06; data to 2029-12-01): TRND-F: TRND-1's rule forward, 2026-12..2029-11
 
-Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only).
+Also registered without a verdict here, and counted in every bar: archive-smc-h1 (archive record); archive-smc-h2 (archive record); archive-trend-3 (archive record); archive-reversion (archive record); archive-smc-utc-rerun (archive record); archive-edge-program-8 (archive record); TOM-D (design only); KRP-1 (due); SCX-1 (due).
 
 ## The bar each market's next test must clear
 
@@ -79,9 +80,11 @@ Bonferroni over every test already counted on the rows a new test would read, an
 | crypto-spot-high-funding | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-forward | 3 | 0 | 2.498 | 3 | 3.000 |
 | equity-index-monthly | 3 | 0 | 2.498 | 2 | 3.000 |
+| crypto-spot-korean-premium | 2 | 0 | 2.394 | 2 | 3.000 |
 | crypto-spot-liquidation-falls | 2 | 0 | 2.394 | 2 | 3.000 |
 | crypto-spot-spot-led-rallies | 2 | 0 | 2.394 | 2 | 3.000 |
 | equity-index-b | 2 | 0 | 2.394 | 2 | 3.000 |
+| stablecoin-pairs-weekend | 2 | 0 | 2.394 | 2 | 3.000 |
 | us-treasury-daily | 2 | 0 | 2.394 | 0 | 3.000 |
 | us-vol-etp | 2 | 0 | 2.394 | 2 | 3.000 |
 | crypto-perp-new-listings | 1 | 0 | 2.241 | 1 | 3.000 |

@@ -42,6 +42,9 @@ validated is ever proposed as a paper strategy (CLAUDE.md rule 14), never real m
 | 25 | BAS-1 | High funding and the spot buyer: buy the spot of a coin whose funding paid shorts at least theta per 8 hours over 72 hours, hold seven days | Carry capital buys spot to earn high funding; trend-chasing leverage | Crowded longs crash | FAILED (2026-11-15): `research/results/BAS-1-verdict.md` |
 | 26 | HLQ-1 | Visible liquidation clusters on Hyperliquid: at a half-hourly snapshot where one side holds at least 75% of the leveraged notional liquidated 1-5% from the mark (and at least 1% of open interest), trade toward it, target and stop at its mean distance; on bitcoin and ether CFDs, swap-free, long or short | Predatory trading (Brunnermeier & Pedersen 2005) and cascades, on the one venue whose liquidation prices are public | Hyperliquid's mark is anchored to other venues' prices; a six-month forward window | DROPPED before registration (2026-11-16): the probe found no liquidation within 5% of the mark among the 800 largest accounts; the near ones are spread over about 47,000 accounts, and Hyperliquid's mark is a median with other venues' prices, so the effect on bitcoin and ether is not plausible at t 3.0. Its recorder was stopped; nothing was registered |
 | 27 | SPL-1 | Spot-led rallies and the spot buyer: buy the spot of a seasoned coin whose spot rose at least 8% (or 15%) in four hours while its perpetual never closed more than 0.25% above spot, hold 24 hours | Unlevered demand does not have to be unwound; the leverage-led rises are the contrast | Coordinated pumps of thin coins reverse within hours; momentum families failed here | FAILED (2026-11-16): `research/results/SPL-1-verdict.md` |
+| 28 | KRP-1 | The Korean coin premium: buy a coin on Binance spot, against a bitcoin CFD short, the day after its price in bitcoin on Upbit stood at least 5% (or 10%) above its price in bitcoin on Binance after a month without such a gap; hold 24 hours | Capital controls keep foreigners off Korea's venues; residents can close a coin-relative gap without moving won abroad, by buying the coin and selling bitcoin on the global venue (`docs/ORIGINAL_EDGE_HUNT_2.md`, A1) | The gap can close on the Korean side alone; arbitrage may finish within the hour; Korean spikes can mark retail tops | PROPOSED: probe, then preregistration (round 2) |
+| 29 | SCX-1 | Stablecoins while their primary market is shut: at 22:00 UTC on Sunday, swap a stablecoin pair at least 3 bp (or 10 bp) from par into its cheap side, from a stock of both, and back at 21:00 UTC on Monday | Issuers mint and redeem only on US banking days, so at weekends the peg rests on market makers' stock (`docs/ORIGINAL_EDGE_HUNT_2.md`, C1) | A tick of deviation is often the last trade's bounce; tiny capacity even if real | PROPOSED: probe, then preregistration (round 2) |
+| 30 | UDL-1 | The Korean exit at an Upbit delisting: buy the coin on Binance spot after Upbit's cut-off, hold ten days | A captive clientele must sell by a dated deadline; the selling reaches the global price through arbitrage, and ends on a known date (`docs/ORIGINAL_EDGE_HUNT_2.md`, B1) | The SEC staff study found declines persisting a month after regulatory events | WAITING FOR DATA: Upbit's notice pages refused GitHub's runner (HTTP 403, 2026-11-22); not failed. It needs a reachable record of the notices |
 
 **Considered on 2026-11-05 and dropped before any code or data.** Before a candidate is built, its power at the
 published strength, after a retail CFD's costs, is now checked against its bar. A test that cannot pass even if the
@@ -354,6 +357,37 @@ rule language on a panel it holds.
 | International sector rotation after the US sectors | The US-listed international sector funds price at the same close as the US sectors, so no lag is left at the next open; the lag the mechanism needs is in foreign stocks, which the owner cannot trade. It needs a short, and the US sector lead-lag was dropped for power |
 | A volatility sort of thirty country ETFs | The lab already classed rankings on past volatility on its 31 funds, eleven of them country funds (DLAB-ETF-D1: nothing above about 1 bp a day). Long-short, so it needs a short; the long-only side is market exposure (volatility-managed exposure is a closed family) |
 | ETF premium and discount reversal across fifty ETFs | Needs each fund's daily NAV history, which no feed here carries (Yahoo has none). Liquid funds' premiums are a few basis points, below the round trip (2026-11-16: ETF-NAV). Long-short |
+
+**Checked on 2026-11-22, 02:20 UTC (the original edge hunt, round 2: `docs/ORIGINAL_EDGE_HUNT_2.md`), and dropped
+before building.** The owner asked on 2026-11-16 for twenty radically different hypotheses, scored, and the best
+three tested. Three were chosen (rows 28 to 30). Five are dropped with the evidence; twelve wait (below). Each is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| AIB-1: aggregate insider buying and the US 500 | Published (Seyhun 1988; Lakonishok & Lee 2001) and found not to forecast out of sample, 2004-2009 (the 2010 Financial Analysts Journal replication; search result) |
+| MGN-1: exchange margin hikes as forced deleveraging | The closest test is negative: no price effect of margin increases in 16 commodity futures, 2000-2011, only more volatility that day (Hedegaard, AQR working paper; search result) |
+| BWT-1: Brent against WTI under the Cushing constraint | A published strategy (Bollinger bands on the spread, 1992-2013): the owner excluded copies of published strategies |
+| RBP-1: the rebalancing return | Known arithmetic of portfolios (Booth & Fama 1992; Willenbrock 2011), not a market's mistake to test |
+| ANC-1: the 52-week-high anchor in the index | Published (Li & Yu 2012), monthly, and sensitive to the index used: little power at that horizon |
+
+**Round 2's twelve that wait (2026-11-22): not built, and not failed.** As the owner set it, a hypothesis is not
+failed for want of data. Each waits for what is written beside it (`docs/ORIGINAL_EDGE_HUNT_2.md`, section 6).
+
+| Hypothesis | What it waits for |
+|---|---|
+| TGA-1: Treasury cash-balance drains and risk assets | Power: a daily information coefficient near 0.06 would be needed over 2015-2026 |
+| HPS-1: miners' cash stress and bitcoin | Power: about ten capitulations since 2012; a panel of proof-of-work coins could give it |
+| JDR-1: Japanese index funds' dividend reinvestment | Power: two events a year |
+| NGW-1: weekend weather forecasts and natural gas | Data: archived weekend model runs |
+| AHP-1: the A-H premium and the H-share index | Power at the index level the owner can trade |
+| PPS-1: platinum against palladium | Power: a handful of independent swings since 2000 |
+| PAXG-1: tokenized gold while the gold market is shut | The owner's decision: gold is sealed from 2017, forward months included, until the seal has an end date |
+| XST-1: tokenized stocks at the weekend | Power: trading since mid-2025, about ten names at weekends |
+| AMM-1: concentrated-liquidity range exits | Data: an indexer or a node |
+| ESQ-1: Ethereum's validator exit queue | Power and data: a handful of large queues; the sold fraction unobserved |
+| PGL-1: South African load shedding and platinum | Its mechanism: no load shedding for over a year |
+| CHL-1: China's price limits and Hong Kong the next day | Data: daily limit hits per stock |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second

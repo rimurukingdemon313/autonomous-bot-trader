@@ -12,7 +12,12 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| — | none ranked (2026-11-16, after SPL-1 FAILED) | — | — | the next cycle invents from first principles |
+| 1 | KRP-1 the Korean coin premium (round 2, A1) | Residents close a coin-relative Korean gap by buying the coin and selling bitcoin abroad | Coin spot bought outright on Binance, short bitcoin through a swap-free CFD (one short, stated) | Arbitrage may finish within the hour; 0.6% a round trip |
+| 2 | SCX-1 stablecoins while their primary market is shut (round 2, C1) | Issuers move dollars only on US banking days; weekend deviations wait for Monday | A spot swap between stablecoins from a stock of both; no short, no borrowing | A tick is often the last trade's bounce; small capacity |
+| 3 | UDL-1 the Korean exit at an Upbit delisting (round 2, B1) | A captive clientele sells by a dated deadline; the selling ends on a known date | Coin spot bought outright on Binance | WAITING FOR DATA: Upbit's notice pages refuse GitHub's runner (403); not failed |
+
+Round 2 (`docs/ORIGINAL_EDGE_HUNT_2.md`, 2026-11-22) chose these three by a rule fixed before scoring; its twelve
+others wait for data or power (`research/QUEUE.md`), and five were rejected with the evidence.
 
 Rejected before testing so far (with their reasons, in `research/inventions.jsonl`): on 2026-11-15, TRND-1's rule on
 bitcoin and ether CFDs (time-series momentum failed on them in XTS-1, and the designer knows their unread path),

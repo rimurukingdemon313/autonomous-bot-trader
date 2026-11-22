@@ -333,6 +333,17 @@ and code quoted by sha256, a probe that reads names and dates only, a developmen
 costs at x1, x1.5 and x2, a matched random baseline, and a threshold that counts every earlier test on its data
 (never below t 3.0).
 
+### The probes (2026-11-22, names and file names only, no price read)
+
+- **SCX-1:** hourly bars for six pair names in Binance's archive (`research/results/SCX-1-probe.json`): 237
+  development Sundays with up to five pairs, 174 validation Sundays with four. It is preregistered
+  (`research/preregistrations/SCX-1.md`).
+- **UDL-1:** Upbit's notice pages refuse automated requests from GitHub's runner (HTTP 403 on both of the current
+  announcement lists; the older list is gone, HTTP 404: `research/results/UDL-1-probe.json`). No dated exit could
+  be read, so UDL-1 is **not testable now, and not failed**: it waits for a reachable record of Upbit's delisting
+  notices (an archive of them, or a list the owner exports). The refusal was not worked around.
+- **KRP-1:** see `research/results/KRP-1-probe.json` and its preregistration.
+
 ## 5. What would count as success
 
 As the owner set it: a result out of sample, significant after the multiple-test correction, net of every cost,

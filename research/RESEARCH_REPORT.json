@@ -173,6 +173,14 @@
     "recent_tests": 3,
     "tests": 3
    },
+   "crypto-spot-korean-premium": {
+    "discovery_tests": 0,
+    "judged_tests": 2,
+    "next_bar_t": 2.394,
+    "recent_bar_t": 3.0,
+    "recent_tests": 2,
+    "tests": 2
+   },
    "crypto-spot-liquidation-falls": {
     "discovery_tests": 0,
     "judged_tests": 2,
@@ -285,6 +293,14 @@
     "recent_tests": 0,
     "tests": 10
    },
+   "stablecoin-pairs-weekend": {
+    "discovery_tests": 0,
+    "judged_tests": 2,
+    "next_bar_t": 2.394,
+    "recent_bar_t": 3.0,
+    "recent_tests": 2,
+    "tests": 2
+   },
    "us-equity-etf": {
     "discovery_tests": 0,
     "judged_tests": 6,
@@ -324,9 +340,9 @@
    "INCONCLUSIVE": 1,
    "PASSED": 9
   },
-  "drop_checks": 25,
-  "drop_days": 8,
-  "dropped_before_building": 95,
+  "drop_checks": 26,
+  "drop_days": 9,
+  "dropped_before_building": 100,
   "evidence_changed": [],
   "evidence_checked": 64,
   "evidence_unchanged": 64,
@@ -400,15 +416,29 @@
     "kind": "forward",
     "registered": "2026-11-06",
     "title": "TRND-F: TRND-1's rule forward, 2026-12..2029-11"
+   },
+   {
+    "id": "KRP-1",
+    "judge_until": "2025-03-01",
+    "kind": "due",
+    "registered": "2026-11-22",
+    "title": "KRP-1: the Korean coin premium and the global price, dev stage"
+   },
+   {
+    "id": "SCX-1",
+    "judge_until": "2023-06-27",
+    "kind": "due",
+    "registered": "2026-11-22",
+    "title": "SCX-1: stablecoins while their primary market is shut, dev stage"
    }
   ],
   "spec_not_quoted": [],
-  "trials": 94,
+  "trials": 96,
   "verdicts": 84
  },
- "day": "2026-11-21",
+ "day": "2026-11-22",
  "engine": null,
- "generated": "2026-11-21T21:04:21.815302+00:00",
+ "generated": "2026-11-22T02:50:31.953109+00:00",
  "recent_verdicts": [
   {
    "evidence": {
@@ -726,18 +756,49 @@
  "today": {
   "dropped_before_building": [
    {
-    "date": "2026-11-21",
-    "heading": "Checked on 2026-11-21, 19:56 UTC (the idea engine's first five survivors), and dropped before building",
+    "date": "2026-11-22",
+    "heading": "Checked on 2026-11-22, 02:20 UTC (the original edge hunt, round 2: `docs/ORIGINAL_EDGE_HUNT_2.md`), and dropped",
     "ideas": [
-     "Central-bank gold purchases and physical delivery",
-     "The inflation-risk term premium in Treasuries",
-     "International sector rotation after the US sectors",
-     "A volatility sort of thirty country ETFs",
-     "ETF premium and discount reversal across fifty ETFs"
+     "AIB-1: aggregate insider buying and the US 500",
+     "MGN-1: exchange margin hikes as forced deleveraging",
+     "BWT-1: Brent against WTI under the Cushing constraint",
+     "RBP-1: the rebalancing return",
+     "ANC-1: the 52-week-high anchor in the index"
     ]
    }
   ],
-  "registered": [],
+  "registered": [
+   {
+    "hypothesis": "A coin whose price in bitcoin on Upbit stands at least theta above its price in bitcoin on Binance at the 00:00 UTC close, after 30 days with the median gap below theta/2, bought on Binance spot an hour later against a short of bitcoin and closed 24 hours after that, earns a positive net return after 0.6% a round trip, averaged over days, more than the same coin on ordinary days and more than Korean discounts of the same size.",
+    "id": "KRP-1",
+    "preregistration": "research/preregistrations/KRP-1.md",
+    "tests": 2,
+    "title": "KRP-1: the Korean coin premium and the global price, dev stage",
+    "uses": [
+     {
+      "end": "2025-03-01",
+      "role": "judge",
+      "start": "2018-01-01",
+      "universe": "crypto-spot-korean-premium"
+     }
+    ]
+   },
+   {
+    "hypothesis": "A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday.",
+    "id": "SCX-1",
+    "preregistration": "research/preregistrations/SCX-1.md",
+    "tests": 2,
+    "title": "SCX-1: stablecoins while their primary market is shut, dev stage",
+    "uses": [
+     {
+      "end": "2023-06-27",
+      "role": "judge",
+      "start": "2018-12-16",
+      "universe": "stablecoin-pairs-weekend"
+     }
+    ]
+   }
+  ],
   "verdicts": []
  },
  "version": "research-report-1.1.0"
