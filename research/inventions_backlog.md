@@ -12,7 +12,7 @@ three times the round trip); unread data, or a forward design.
 
 | Rank | Candidate | Mechanism, in one line | Instrument | First worry |
 |---|---|---|---|---|
-| 1 | UDL-1 the Korean exit at an Upbit delisting (round 2, B1) | A captive clientele sells by a dated deadline; the selling ends on a known date | Coin spot bought outright on Binance | WAITING FOR DATA: Upbit's notice pages refuse GitHub's runner (403); not failed |
+| 1 | UDL-1 the Korean exit at an Upbit delisting (round 2, B1) | A captive clientele sells by a dated deadline; the selling ends on a known date | Coin spot bought outright on Binance | WAITING FOR DATA: Upbit's notice pages refuse GitHub's runner (403); not failed. A third-party feed republishes the notices with dates: using it waits for the owner's word (`research/QUEUE.md`, row 30) |
 
 Round 2 (`docs/ORIGINAL_EDGE_HUNT_2.md`, 2026-11-22) chose three by a rule fixed before scoring: KRP-1 and SCX-1
 were registered and judged (below), UDL-1 waits here for data; its twelve others wait for data or power
