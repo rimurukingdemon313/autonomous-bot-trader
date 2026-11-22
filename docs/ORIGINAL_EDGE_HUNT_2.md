@@ -350,11 +350,12 @@ costs at x1, x1.5 and x2, a matched random baseline, and a threshold that counts
   gate); its validation stage, judged once on 2023-07 to 2026-10, weeks no study here had read, failed every gate
   (251 swaps, -0.2 bp net, t -0.25; the same rule on Wednesdays earned +2.0 bp). The development pass did not hold.
   No forward stage. `research/results/SCX-1-verdict.md`.
-- **KRP-1: FAILED in development**, judged once by run 44978747723 of `krp1.yml` (its Run step ended at 03:17:31 UTC): t -0.87 at a
-  5% fresh spike, -0.92 at 10%, against a bar of 3.0. Its records were lost when its commit to main met SCX-1's on
-  `research/registry.jsonl` (the commit step now re-applies a study's own lines on a fresh main). The same frozen
-  code is run once more only to write those records; **the verdict that binds is the first run's, FAILED, whatever
-  the second prints**, and a difference between the two is reported as a fault, never as a result.
+- **KRP-1: FAILED in development**, judged once by run 44978747723 of `krp1.yml` (its Run step ended at 03:17:31
+  UTC): at a 5% fresh premium t -0.87 against a bar of 3.0 (288 entries; +0.29% a day before the 0.6% round trip,
+  -0.31% net); at 10% INCONCLUSIVE, 138 entries where 150 are required (t -0.92). Its records were lost when its
+  commit to main met SCX-1's on `research/registry.jsonl`; the rule written before the rerun was that the first
+  run's verdict binds and the rerun must equal it. Run 44982217651 reproduced it exactly (the same entries, verdict
+  and t values) and wrote the records. `research/results/KRP-1-verdict.md`.
 - **UDL-1: not tested.** It waits for a readable record of Upbit's delisting notices.
 
 **Round 2 found no edge.** Of the three chosen, two failed on data they had not seen and one could not be tested.

@@ -19,7 +19,7 @@ result is committed.
 
 ## Summary
 
-RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 152 | DEGRADED 0 | RETIRED 0
+RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 5 | DISCOVERED 0 | VALIDATING 0 | VALIDATED 1 | REJECTED 153 | DEGRADED 0 | RETIRED 0
 
 ## Programs
 
@@ -45,6 +45,7 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0
 | GSR-1 | FAILED | — | 1 | 0 | 3.000 |
 | ID-1 | FAILED | — | 16 | 0 | 3.483 |
 | ID-2 | FAILED | — | 30 | 0 | 3.552 |
+| KRP-1 | FAILED | — | 2 | 0 | 3.000 |
 | LVOL-1 | FAILED | — | 1 | 0 | 3.154 |
 | NEWL-1 | FAILED | — | 1 | 0 | 3.000 |
 | PHD-1 | FAILED | — | 1 | 0 | 3.144 |
@@ -181,6 +182,10 @@ RESEARCH 0 | HYPOTHESIS 0 | TESTING 0 | PROMISING 4 | UNCERTAIN 4 | DISCOVERED 0
 | ↳ correction | | | single-program verdict: expectancies are monthly net returns, not R; a near miss: it failed on the bar alone, with t 2.712 on its `months` against 3.629. Not validated: evidence for a fresh preregistered test on new data | | | | | | | | | |
 | GSR-1 | — | — | `see research/preregistrations/GSR-1.md` | see research/preregistrations/GSR-1.md | — | — | — | — | — | 1 | **REJECTED** | t, development, validation, costs_x2, both_sides, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
+| KRP-1@0.05 | — | events | `see research/preregistrations/KRP-1.md (threshold 0.05)` | see research/preregistrations/KRP-1.md | 288 | -0.003 | -0.87 (3.00) | -0.009 | — | 1 | **REJECTED** | beats_placebo, costs_x2, halves, late_entry, t, top5_removed, without_best_coin, without_best_day |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
+| KRP-1@0.1 | — | events | `see research/preregistrations/KRP-1.md (threshold 0.1)` | see research/preregistrations/KRP-1.md | 138 | -0.005 | -0.92 (3.00) | — | — | 1 | **UNCERTAIN** | inconclusive: 138 entries on 122 days: 150 and 60 are needed |
+| ↳ correction | | | event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R | | | | | | | | | |
 | LVOL-1 | — | — | `see research/preregistrations/LVOL-1.md` | see research/preregistrations/LVOL-1.md | — | — | — | — | — | 1 | **REJECTED** | t, validation, top_year |
 | ↳ correction | | | single-program verdict: its statistic is named in its artifact and preregistration | | | | | | | | | |
 | M-ridge-S15-tau0.00 | BOTH | M5 | `see research/preregistrations/ID-2.md` | stop / target / time (bid/ask) | 4534 | -0.015 | -0.70 (3.55) | — | — | 1 | **REJECTED** | development:costs_x1.25, development:net_r, development:profit_factor, development:symbols_positive, development:t_day |
