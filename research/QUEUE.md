@@ -418,6 +418,13 @@ for a stage. It is in `research/inventions.jsonl`.
 |---|---|
 | UWD-1: record Upbit's investment-warning flags forward, buy the coin on Binance after a designation or its lifting | Power and sign: a year of recording gives some 20 to 30 designations of coins Binance lists, and at a 10-day standard deviation near 25% t 3.0 needs a +15% to +20% rebound a trade after a next-day entry. The news shows the fall at the designation itself (June 2021: 25 warned, 5 delisted, Maro down more than 70%) and nothing systematic after it (search results); many designated coins are delisted next |
 
+**Checked on 2026-11-22, 19:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1, first in the backlog, waits for the owner's word. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| SGC-1: the HK50 index CFD while Southbound Stock Connect is shut for mainland holidays (the largest net buyer absent) | Power: the net buying is about 0.01% of Hong Kong's market value a day, so even five times that a four-day closure moves the index about 0.2%, while some 35 closures since 2020 need about +1.8% each for t 3.0. The news is mixed and the flow turned to net selling in 2026 (search results) |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
