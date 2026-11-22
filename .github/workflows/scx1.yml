@@ -1,0 +1,72 @@
+# SCX-1 (research/preregistrations/SCX-1.md): stablecoins while their primary market is shut. Run on GitHub's runner because the data hosts are not reachable from the
+# research director's session. RESEARCH ONLY: no account, no key, no order, no model call, no paid service.
+# - probe: names and file names only. No price is read.
+# - dev / validation / forward: refused by the script unless that stage is registered with this exact code and spec,
+#   and (for the later stages) only after the stage before it passed. Each fetches only what its stage needs, never a
+#   moment past its last exit, judges once and records the verdict.
+# The study's records go to main (those paths only); its data go to the scx-data branch.
+name: SCX-1 (stablecoins while their primary market is shut, research only)
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "probe, dev, validation or forward"
+        required: true
+        default: "probe"
+permissions:
+  contents: write
+concurrency:
+  group: scx1
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      COMMAND: ${{ github.event.inputs.command }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Restore the study's data from scx-data
+        run: |
+          git config user.name "scx1"; git config user.email "scx1@users.noreply.github.com"
+          if git fetch -q origin scx-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan scx-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+      - name: Run
+        run: |
+          case "$COMMAND" in
+            probe) python scripts/scx1.py probe ;;
+            dev|validation|forward) python scripts/scx1.py run "$COMMAND" --data pub/data ;;
+            *) echo "unknown command: $COMMAND"; exit 2 ;;
+          esac
+      - name: Commit the study's records to main
+        if: always()
+        run: |
+          for p in 'research/results/SCX-1*-probe.json' 'research/knowledge/SCX-1*.json' research/registry.jsonl; do
+            git add -- "$p" 2>/dev/null || true
+          done
+          if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi
+          git commit -qm "SCX-1 $COMMAND $(date -u +%Y-%m-%dT%H:%MZ): the study's records"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:refs/heads/main && exit 0
+            git fetch -q origin main && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
+            sleep $((i * 15))
+          done
+          exit 1
+      - name: Publish the data to scx-data
+        if: always()
+        run: |
+          cd pub
+          git add -A .
+          git commit -qm "SCX-1 data $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "nothing new"; exit 0; }
+          for i in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/scx-data && exit 0; sleep $((i * 20)); done
+          exit 1

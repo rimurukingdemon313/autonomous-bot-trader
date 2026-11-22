@@ -1,0 +1,39 @@
+# UDL-1's data probe (docs/ORIGINAL_EDGE_HUNT_2.md, B1): are Upbit's delisting notices reachable, and how many dated
+# exits of coins Binance also quotes do they give? Run on GitHub's runner because Upbit is not reachable from the
+# research director's session. RESEARCH ONLY: notice text and file names only, no price, no account, no key, no order.
+# Nothing is judged here: UDL-1 is preregistered only if this probe finds enough dated exits.
+name: UDL-1 probe (Upbit delisting notices, research only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: udl1
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Probe
+        run: python scripts/udl1.py probe
+      - name: Commit the probe to main
+        if: always()
+        run: |
+          git config user.name "udl1"; git config user.email "udl1@users.noreply.github.com"
+          git add -- research/results/UDL-1-probe.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi
+          git commit -qm "UDL-1 probe $(date -u +%Y-%m-%dT%H:%MZ): notice titles and dates, no price"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:refs/heads/main && exit 0
+            git fetch -q origin main && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
+            sleep $((i * 15))
+          done
+          exit 1
