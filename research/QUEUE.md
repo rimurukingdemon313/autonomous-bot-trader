@@ -397,6 +397,13 @@ invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | QTG-1: buy a coin when Binance removes its Seed or Monitoring Tag | Power. A tag puts a 90-day quiz between Binance's users and the coin (search results), so a removal reopens the largest venue's buyers. But there have been about 30 removals since 2023, and at a 10-day standard deviation near 15% against bitcoin, t 3.0 needs about +8% net over 10 days after a next-day entry: far more than an access friction plausibly leaves. No study was found; the news gives falls when a tag is added (a short-side signal, excluded for altcoins) and no figure for removals |
 
+**Checked on 2026-11-22, 07:50 UTC (the edge hunt), and dropped before building.** Still no experiment running or
+waiting for a stage, so the cycle invented another. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| MSTR-1: long bitcoin in the weeks after Strategy announces a purchase | Known and contradicted: TD Cowen found its buying had minimal, statistically weak price effect; K33 found a dip after large announcements that reverses within days (search results). Power: t 3.0 needs +1.6% over three days on about 90 announcements, or a 3% difference between weeks at bitcoin's 9% weekly volatility. And bitcoin's 2020-2026 path is in the designer's training data: only a forward stage would be unseen, and none of a year or two can reach t 3.0 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
