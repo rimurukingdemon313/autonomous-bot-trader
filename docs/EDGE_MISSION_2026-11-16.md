@@ -385,6 +385,8 @@ rule forbids that: "never invents an experiment to keep a queue busy".
 
    The hourly window 2025-03-08 to 2026-10-29 is still unread and would be its validation. With only the ten or so
    coins a broker quotes, its power must first be checked on that subset.
+
+   **Note of 2026-11-22:** this window has since been read, by the descriptive Round 2 backtest the owner asked for (run 45010822465, 204 coins' hourly spot bars): it is no longer unread for any altcoin hypothesis, and a test of this kind would need months after 2026-10 (`research/director/log.jsonl`, 2026-11-22 11:30).
 4. **FX** stays sealed until the owner sets a date (`research/holdout.json`).
 
 ## 7. Sources (web searches of 2026-11-16; search results only, no paper read in full)

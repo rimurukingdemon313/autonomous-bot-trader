@@ -24,6 +24,8 @@ condition excludes for altcoins. Its long-only use would be avoidance (not buyin
 after one): that is a different rule and has not been tested; it could be judged only on the unread window
 (2025-03-08 to 2026-10-29), which SPL-1-V would have used and which stays unread.
 
+**Note of 2026-11-22:** this window has since been read, by the descriptive Round 2 backtest the owner asked for (run 45010822465, 204 coins' hourly spot bars): it is no longer unread for any altcoin hypothesis, and a test of this kind would need months after 2026-10 (`research/director/log.jsonl`, 2026-11-22 11:30).
+
 ## What follows
 
 Nothing later is registered: SPL-1-V and SPL-1-F follow only a pass. The family "who leads the price" is recorded

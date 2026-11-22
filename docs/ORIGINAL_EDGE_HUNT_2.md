@@ -366,7 +366,10 @@ The owner asked to see both strategies applied to every trade they could have ma
 `scripts/r2_backtest.py` (run 45010822465; `research/results/ROUND2-full-backtest.md` and `.json`) ran the frozen
 study code on all of 2018 to October 2026: every threshold, every cost level, holds from 6 hours to a week. It
 reproduces every entry the judged runs recorded (KRP-1's 288, SCX-1's 242 and SCX-1-V's 251, identical). It is not a
-test and changes no verdict; it spent KRP-1's unread validation months.
+test and changes no verdict. It spent KRP-1's unread validation months, and with them the hourly window
+2025-03-08 to 2026-10-29 that the decision of 2026-11-16 kept unread for a possible altcoin short-side test: by the
+rule that contamination is a property of market periods, a future altcoin test needs months after 2026-10
+(`research/director/log.jsonl`, 2026-11-22 11:30).
 
 - **SCX-1:** the reversion from a deviation is real before costs (+4.9 bp a swap at 10 bp, t 4.14, 493 swaps), but
   it is on every weekday (Monday +4.2 bp, Wednesday +3.1 bp), and it is small: $10,000 became $10,695 in 7.9 years
