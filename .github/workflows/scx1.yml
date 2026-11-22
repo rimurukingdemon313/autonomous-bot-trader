@@ -51,14 +51,30 @@ jobs:
       - name: Commit the study's records to main
         if: always()
         run: |
-          for p in 'research/results/SCX-1*-probe.json' 'research/knowledge/SCX-1*.json' research/registry.jsonl; do
-            git add -- "$p" 2>/dev/null || true
+          # Only this study's files and its own new registry lines are carried onto the newest main, so another
+          # study appending to the registry at the same time can never make a judged record go missing.
+          mkdir -p /tmp/rec
+          git diff "$(git rev-parse HEAD)" -- research/registry.jsonl | sed -n 's/^+\([^+].*\)$/\1/p' > /tmp/rec/registry.add
+          for f in research/results/SCX-1*-probe.json research/knowledge/SCX-1*.json; do
+            if [ -f "$f" ]; then cp "$f" /tmp/rec/; fi
           done
-          if git diff --cached --quiet; then echo "nothing new for main"; exit 0; fi
-          git commit -qm "SCX-1 $COMMAND $(date -u +%Y-%m-%dT%H:%MZ): the study's records"
+          # (a test of the captured output, not a pipe into grep -q: under pipefail an early exit of grep can fail it)
+          if [ -z "$(git status --porcelain -- research/results research/knowledge)" ] && [ ! -s /tmp/rec/registry.add ]; then
+            echo "nothing new for main"; exit 0
+          fi
           for i in 1 2 3 4 5; do
+            git fetch -q origin main && git reset -q --hard FETCH_HEAD
+            for f in /tmp/rec/*.json; do
+              [ -f "$f" ] || continue
+              case "$(basename "$f")" in *-probe.json) cp "$f" research/results/ ;; *) cp "$f" research/knowledge/ ;; esac
+            done
+            while IFS= read -r line; do
+              grep -qxF -- "$line" research/registry.jsonl || printf '%s\n' "$line" >> research/registry.jsonl
+            done < /tmp/rec/registry.add
+            git add -- research/results research/knowledge research/registry.jsonl
+            if git diff --cached --quiet; then echo "already on main"; exit 0; fi
+            git commit -qm "SCX-1 $COMMAND $(date -u +%Y-%m-%dT%H:%MZ): the study's records"
             git push -q origin HEAD:refs/heads/main && exit 0
-            git fetch -q origin main && git rebase -q FETCH_HEAD || { git rebase --abort; break; }
             sleep $((i * 15))
           done
           exit 1

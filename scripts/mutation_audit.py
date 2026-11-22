@@ -1643,6 +1643,7 @@ MUTANTS = [
     ('scx1-placebo-window', 'an SCX-1 placebo never reads an hour outside its stage', 'aitrader/research/events/stablecoin.py', '            if abs(k) < 48 or not lo <= t <= hi - hold_hours * HOUR:', '            if abs(k) < 48:', ['tests/unit/test_scx1.py']),
     ('scx1-inconclusive', 'too few SCX-1 weeks is INCONCLUSIVE, never a pass', 'aitrader/research/events/stablecoin.py', '    if len(ok) < min_events or len(c) < min_weeks:', '    if False:', ['tests/unit/test_scx1.py']),
     ('scx1-weekday-gate', 'a reversion the Wednesdays share is not the weekend mechanism', 'aitrader/research/events/stablecoin.py', '"beats_weekdays": cm is not None and m is not None and m > cm}', '"beats_weekdays": True}', ['tests/unit/test_scx1.py']),
+    ('edges-later-stage', 'a stage pass whose later stage failed is REJECTED, never left TESTING', 'aitrader/research/discovery/edges.py', '    if rec.status != "TESTING" or lid is None:\n        return rec', '    if True:\n        return rec', ['tests/unit/test_discovery_edges.py']),
 ]
 
 

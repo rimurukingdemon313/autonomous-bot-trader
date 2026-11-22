@@ -105,10 +105,12 @@ def test_the_committed_registry_matches_the_committed_evidence():
     assert div["status"] == "REJECTED" and any("holdout" in c for c in div["failed_checks"])
     passed = {k for k, p in reg["programs"].items() if p["verdict"] == "PASSED"}
     assert passed <= {"DIV-2", "TRND-1", "SCX-1"}
-    # SCX-1 passed its development stage on 2026-11-22 (t 3.02 at 10 bp): a stage pass is TESTING until its
-    # validation stage is judged, never VALIDATED; its 3 bp threshold failed and is REJECTED
-    scx = {e["edge_id"]: e["status"] for e in reg["edges"] if e.get("program") == "SCX-1"}
-    assert scx == {"SCX-1@0.001": "TESTING", "SCX-1@0.0003": "REJECTED"}
+    # SCX-1 passed its development stage on 2026-11-22 (t 3.02 at 10 bp) and its validation SCX-1-V then FAILED
+    # (t -0.25): a stage pass that did not hold is REJECTED, with the failed stage named (edges-1.13.0)
+    scx = {e["edge_id"]: e for e in reg["edges"] if str(e.get("program", "")).startswith("SCX-1")}
+    assert {k: e["status"] for k, e in scx.items()} == {"SCX-1@0.001": "REJECTED", "SCX-1@0.0003": "REJECTED",
+                                                        "SCX-1-V@0.001": "REJECTED"}
+    assert "later stage SCX-1-V FAILED" in scx["SCX-1@0.001"]["failed_checks"]
     assert all(p["verdict"] in ("FAILED", "FAIL", "PASSED") or p["verdict"].startswith("BLOCKED")
                for p in reg["programs"].values())
     vix = next((e for e in reg["edges"] if e["edge_id"] == "R4-XA-VIX-A"), None)
@@ -236,4 +238,28 @@ def test_on_the_committed_record_the_event_studies_are_judged_edges():
     assert status["SQZ-1@0.001"] == "UNCERTAIN" and status["CASC-1@0.08"] == "REJECTED"
     assert {k for k in status if k.split("@")[0] in ("NEWL-1", "EXF-1", "SQZ-1", "CASC-1", "BAS-1")} and \
         all(v != "VALIDATED" for k, v in status.items() if k.split("@")[0] in ("NEWL-1", "EXF-1", "SQZ-1", "CASC-1", "BAS-1"))
-    assert reg["programs"]["BAS-1"]["judged"] == 3 and reg["version"] == "edges-1.12.0"
+    assert reg["programs"]["BAS-1"]["judged"] == 3 and reg["version"] == "edges-1.13.0"
+
+
+def test_a_stage_pass_whose_later_stage_failed_is_rejected_and_only_on_the_threshold_it_judged():
+    from aitrader.research.discovery.edges import after_later_stages, from_event_study, later_stage_failures
+
+    def art(pid, stage, verdict, results):
+        return {"program": pid, "stage": stage, "kind": "spot_event_study", "verdict": verdict, "bar": 3.0,
+                "spec": {"instrument": "spot"}, "results": results}
+    ok = {"verdict": "PASSED", "t": 3.2, "mean_net": 0.01, "gates": {"t": True}}
+    bad = {"verdict": "FAILED", "t": -0.3, "mean_net": -0.001, "gates": {"t": False}}
+    dev = art("Q-1", "dev", "PASSED", {"0.05": ok, "0.1": {**ok, "t": 3.1}})
+    for later, want in ((art("Q-1-V", "validation", "FAILED", {"0.05": bad}), {"Q-1@0.05": "REJECTED", "Q-1@0.1": "TESTING"}),
+                        (art("Q-1-V", "validation", "PASSED", {"0.05": ok}), {"Q-1@0.05": "TESTING", "Q-1@0.1": "TESTING"}),
+                        (None, {"Q-1@0.05": "TESTING", "Q-1@0.1": "TESTING"})):
+        arts = {"Q-1": dev, **({"Q-1-V": later} if later else {})}
+        fails = later_stage_failures(arts)
+        got = {r.edge_id: after_later_stages(r, fails).status for r in from_event_study(dev)}
+        assert got == want
+    # a validation pass whose forward stage failed is rejected in turn, and the development pass with it
+    arts = {"Q-1": dev, "Q-1-V": art("Q-1-V", "validation", "PASSED", {"0.05": ok}),
+            "Q-1-F": art("Q-1-F", "forward", "FAILED", {"0.05": bad})}
+    fails = later_stage_failures(arts)
+    assert after_later_stages(from_event_study(arts["Q-1-V"])[0], fails).status == "REJECTED"
+    assert {r.edge_id: after_later_stages(r, fails).status for r in from_event_study(dev)}["Q-1@0.05"] == "REJECTED"

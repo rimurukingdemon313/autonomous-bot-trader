@@ -344,6 +344,21 @@ costs at x1, x1.5 and x2, a matched random baseline, and a threshold that counts
   notices (an archive of them, or a list the owner exports). The refusal was not worked around.
 - **KRP-1:** see `research/results/KRP-1-probe.json` and its preregistration.
 
+### The outcomes (2026-11-22)
+
+- **SCX-1: FAILED.** Its development stage passed at 10 bp (242 swaps, +8.6 bp net, t 3.02 against a bar of 3.0, every
+  gate); its validation stage, judged once on 2023-07 to 2026-10, weeks no study here had read, failed every gate
+  (251 swaps, -0.2 bp net, t -0.25; the same rule on Wednesdays earned +2.0 bp). The development pass did not hold.
+  No forward stage. `research/results/SCX-1-verdict.md`.
+- **KRP-1: FAILED in development**, judged once by run 44978747723 of `krp1.yml` (its Run step ended at 03:17:31 UTC): t -0.87 at a
+  5% fresh spike, -0.92 at 10%, against a bar of 3.0. Its records were lost when its commit to main met SCX-1's on
+  `research/registry.jsonl` (the commit step now re-applies a study's own lines on a fresh main). The same frozen
+  code is run once more only to write those records; **the verdict that binds is the first run's, FAILED, whatever
+  the second prints**, and a difference between the two is reported as a fault, never as a result.
+- **UDL-1: not tested.** It waits for a readable record of Upbit's delisting notices.
+
+**Round 2 found no edge.** Of the three chosen, two failed on data they had not seen and one could not be tested.
+
 ## 5. What would count as success
 
 As the owner set it: a result out of sample, significant after the multiple-test correction, net of every cost,

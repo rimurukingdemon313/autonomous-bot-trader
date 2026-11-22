@@ -37,7 +37,7 @@ from pathlib import Path
 #: of the hypothesis it judged
 #: 1.4.0: cross-sectional programs (RV-1): one record per hypothesis, its status the latest classification
 #: across the program's stage artifacts (Stage 1 -> Stage 2 -> holdout)
-EDGES_VERSION = "edges-1.12.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
+EDGES_VERSION = "edges-1.13.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0: trend portfolios (DIV-*);
 #                                1.6.1: a trend holdout failure is named, and the holdout t is in the note;
 #                                1.7.0: retail-CFD programs (RC-*), including a replication on a new universe;
 #                                1.8.0: intraday programs (ID-*): development-screened, validation-judged
@@ -57,6 +57,8 @@ EDGES_VERSION = "edges-1.12.0"  # 1.5.0: scheduled-flow programs (FLOW-1); 1.6.0
 #                                under that name and is no trading edge: it stopped the whole registry from building
 #                                1.12.0: event studies (NEWL-1, EXF-1, SQZ-1, CASC-1, BAS-1 and their kind), which no
 #                                reader recorded: one record per judged configuration, INCONCLUSIVE as UNCERTAIN
+#                                1.13.0: an event study's stage pass whose later stage (P-V, then P-F) was judged and
+#                                FAILED is REJECTED, the failed stage named: a pass that did not hold is no edge (SCX-1)
 STATUSES = ("RESEARCH", "HYPOTHESIS", "TESTING", "PROMISING", "UNCERTAIN", "DISCOVERED", "VALIDATING", "VALIDATED",
             "REJECTED", "DEGRADED", "RETIRED")
 TRANSITIONS = {
@@ -444,6 +446,33 @@ def from_event_study(art: dict) -> list[EdgeRecord]:
     return out
 
 
+def later_stage_failures(arts: dict[str, dict]) -> dict[tuple[str, str], str]:
+    """{(program, threshold key): the later stage that FAILED} for event studies judged in stages: a development
+    stage (P) is followed by its validation (P-V) and its forward stage (P-F), a validation by its forward stage.
+    Only a later stage's own thresholds are named: it is judged on the one the stage before chose."""
+    out: dict[tuple[str, str], str] = {}
+    for pid, art in arts.items():
+        stage = art.get("stage")
+        base = pid[:-2] if stage in ("validation", "forward") and pid[-2:] in ("-V", "-F") else pid
+        for lid in {"dev": (base + "-V", base + "-F"), "validation": (base + "-F",)}.get(stage, ()):
+            later = arts.get(lid)
+            if not later or later.get("verdict") != "FAILED":
+                continue
+            for key in (later.get("results") or {}) if isinstance(later.get("results"), dict) else ():
+                out.setdefault((pid, key), lid)
+    return out
+
+
+def after_later_stages(rec: EdgeRecord, later_failed: dict[tuple[str, str], str]) -> EdgeRecord:
+    """A stage pass (TESTING) whose next stage was judged and FAILED is REJECTED, the failed stage named."""
+    key = rec.edge_id.split("@", 1)[1] if "@" in rec.edge_id else ""
+    lid = later_failed.get((rec.program, key))
+    if rec.status != "TESTING" or lid is None:
+        return rec
+    return replace(rec, status="REJECTED", failed_checks=rec.failed_checks + (f"later stage {lid} FAILED",),
+                   note=(rec.note or "") + f"; its stage pass did not hold: {lid} FAILED")
+
+
 def from_intraday(art: dict) -> list[EdgeRecord]:
     """Records of an intraday program (ID-*). Expectancies are NET R PER TRADE after measured spread,
     commission, slippage and financing; gross is mid-to-mid. A hypothesis not promoted on development
@@ -565,16 +594,20 @@ def build(root: Path | str) -> dict:
         edges.append(rec)
         programs[pid] = {"verdict": art["verdict"], "judged": 1,
                          "validated": [pid] if rec.status == "VALIDATED" else [], "threshold_t": art.get("threshold_t")}
+    event_arts: list[dict] = []
     for p in sorted((root / "knowledge").glob("*.json")):
         try:
             art = json.loads(p.read_text())
         except ValueError:
             continue
         if isinstance(art, dict) and art.get("kind") in EVENT_KINDS and isinstance(art.get("program"), str):
-            recs = from_event_study(art)
-            edges += recs
-            programs[art["program"]] = {"verdict": art.get("verdict"), "judged": len(recs),
-                                        "validated": [], "threshold_t": art.get("bar") or ((art.get("result") or {}).get("bar"))}
+            event_arts.append(art)
+    later_failed = later_stage_failures({a["program"]: a for a in event_arts})
+    for art in event_arts:
+        recs = [after_later_stages(r, later_failed) for r in from_event_study(art)]
+        edges += recs
+        programs[art["program"]] = {"verdict": art.get("verdict"), "judged": len(recs),
+                                    "validated": [], "threshold_t": art.get("bar") or ((art.get("result") or {}).get("bar"))}
     retail: list[dict] = []
     for p in sorted((root / "knowledge").glob("*.json")):
         try:

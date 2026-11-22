@@ -4,10 +4,10 @@
   "DISCOVERED": 0,
   "HYPOTHESIS": 0,
   "PROMISING": 4,
-  "REJECTED": 150,
+  "REJECTED": 152,
   "RESEARCH": 0,
   "RETIRED": 0,
-  "TESTING": 1,
+  "TESTING": 0,
   "UNCERTAIN": 4,
   "VALIDATED": 1,
   "VALIDATING": 0
@@ -8238,6 +8238,42 @@
   },
   {
    "complexity": 1,
+   "cost_sensitivity": -0.0002,
+   "direction": null,
+   "drawdown": null,
+   "edge_id": "SCX-1-V@0.001",
+   "entry_conditions": "see research/preregistrations/SCX-1-V.md (threshold 0.001)",
+   "exit_conditions": "see research/preregistrations/SCX-1-V.md",
+   "failed_checks": [
+    "beats_placebo",
+    "beats_weekdays",
+    "costs_x2",
+    "halves",
+    "late_entry",
+    "t",
+    "top5_removed",
+    "without_best_pair",
+    "without_best_week"
+   ],
+   "gross_expectancy": 0.0002,
+   "instrument": [],
+   "market_regime": null,
+   "net_expectancy": -0.0,
+   "note": "event study (spot_event_study, stage validation): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R",
+   "out_of_sample_expectancy": null,
+   "profit_factor": null,
+   "program": "SCX-1-V",
+   "sample_size": 251,
+   "source": "research/knowledge/SCX-1-V.json",
+   "stability": null,
+   "status": "REJECTED",
+   "t_required": 3.0,
+   "t_stat": -0.252,
+   "timeframe": "events",
+   "walk_forward_expectancy": null
+  },
+  {
+   "complexity": 1,
    "cost_sensitivity": 0.0,
    "direction": null,
    "drawdown": null,
@@ -8273,19 +8309,21 @@
    "edge_id": "SCX-1@0.001",
    "entry_conditions": "see research/preregistrations/SCX-1.md (threshold 0.001)",
    "exit_conditions": "see research/preregistrations/SCX-1.md",
-   "failed_checks": [],
+   "failed_checks": [
+    "later stage SCX-1-V FAILED"
+   ],
    "gross_expectancy": 0.0011,
    "instrument": [],
    "market_regime": null,
    "net_expectancy": 0.0009,
-   "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R",
+   "note": "event study (spot_event_study, stage dev): expectancies are the per-entry `mean_net` averaged over its cohorts, a fraction of notional, not R; its stage pass did not hold: SCX-1-V FAILED",
    "out_of_sample_expectancy": null,
    "profit_factor": null,
    "program": "SCX-1",
    "sample_size": 242,
    "source": "research/knowledge/SCX-1.json",
    "stability": null,
-   "status": "TESTING",
+   "status": "REJECTED",
    "t_required": 3.0,
    "t_stat": 3.021,
    "timeframe": "events",
@@ -10242,6 +10280,12 @@
    "validated": [],
    "verdict": "PASSED"
   },
+  "SCX-1-V": {
+   "judged": 1,
+   "threshold_t": 3.0,
+   "validated": [],
+   "verdict": "FAILED"
+  },
   "SEC-1": {
    "judged": 1,
    "threshold_t": 3.1237,
@@ -10338,5 +10382,5 @@
    "verdict": "FAILED"
   }
  },
- "version": "edges-1.12.0"
+ "version": "edges-1.13.0"
 }
