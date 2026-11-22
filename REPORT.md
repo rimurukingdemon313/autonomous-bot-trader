@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-22 18:00 UTC**, run 1096, version `radar-1.0.0`. State from: cache. Quotes this hour: 2369.
+Updated **2026-11-22 19:00 UTC**, run 1097, version `radar-1.0.0`. State from: cache. Quotes this hour: 2369.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-22 18:00 UTC**, run 1096, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 45.92
+- days: 45.96
 - run_coverage: 0.9937
 - closed_positions: 255
 - open_positions: 3
-- utilisation: 0.252
+- utilisation: 0.2521
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.5944
-- book_excess_pct: -2.7421
-- ann_excess_deployed_pct: -86.938
-- ann_excess_deployed_costs_x1.5_pct: -157.188
-- ann_excess_deployed_costs_x2_pct: -227.437
+- book_pnl_pct: -2.5824
+- book_excess_pct: -2.7302
+- ann_excess_deployed_pct: -86.466
+- ann_excess_deployed_costs_x1.5_pct: -156.64
+- ann_excess_deployed_costs_x2_pct: -226.813
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.1964
+- book_excess_without_best_coin_pct: -3.1845
 - max_dd_pct: 2.604
-- t_excess_daily: -4.131
+- t_excess_daily: -4.113
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| IDOL | mexc | gate | 2026-11-22 04:00 | 37.3% | 2.5 | 8.2 | 17.0 | **-6.3** |
-| SOXL | mexc | gate | 2026-11-22 11:00 | 28.3% | 9.1 | -8.9 | 17.0 | **-16.8** |
-| PIEVERSE | mexc | gate | 2026-11-22 17:00 | 31.8% | 0.5 | -3.3 | 17.0 | **-19.9** |
+| IDOL | mexc | gate | 2026-11-22 04:00 | 37.3% | 2.6 | 38.0 | 17.0 | **23.6** |
+| SOXL | mexc | gate | 2026-11-22 11:00 | 28.3% | 9.2 | -2.9 | 17.0 | **-10.6** |
+| PIEVERSE | mexc | gate | 2026-11-22 17:00 | 31.8% | 0.8 | -15.6 | 17.0 | **-31.8** |
 
 ## Closed positions (255)
 
@@ -80,7 +80,6 @@ Updated **2026-11-22 18:00 UTC**, run 1096, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| SOXL | mexc | gate | 36.5% | 21.3% |
-| PIEVERSE | mexc | gate | 32.0% | 35.0% |
+| PIEVERSE | mexc | gate | 31.9% | 25.7% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
