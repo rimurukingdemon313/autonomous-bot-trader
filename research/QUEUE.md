@@ -440,6 +440,13 @@ what was to be checked. It is in `research/inventions.jsonl`.
 |---|---|
 | HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power | The hash-ribbon evidence is bitcoin's alone and its promoter's own (nine signals, hypothetical); no altcoin study; the free tier's altcoin hash rates unconfirmed (search results). The panel's hash rates move with miners switching between coins of one algorithm and with merge-mining, not with cash stress, so they add events without the mechanism; bitcoin alone gives about one signal a year |
 
+**Checked on 2026-11-23, 04:50 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| LXR-1: a bitcoin CFD in the day's direction into the US close, when the 2x bitcoin ETFs must rebalance | Power and known: the mechanism is published for equities, BITX rebalances in CME futures where basis traders spread it (search results), and some $240 million on a 4% day plausibly moves bitcoin 5 to 15 bp against the 24 bp t 3.0 needs on about 100 days; only a forward stage would be unseen, most of a decade long |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.

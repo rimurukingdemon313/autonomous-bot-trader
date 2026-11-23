@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 1 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و2 فحص قبل البناء رفض 2 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-23 01:49 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-23 04:50 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-23, UTC)
 
@@ -19,6 +19,7 @@ Generated 2026-11-23 01:49 UTC from the committed record · research-report-1.1.
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
 - Checked on 2026-11-23, 01:49 UTC (the edge hunt), and dropped before building: HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power.
+- Checked on 2026-11-23, 04:50 UTC (the edge hunt), and dropped before building: LXR-1: a bitcoin CFD in the day's direction into the US close, when the 2x bitcoin ETFs must rebalance.
 
 ## Cumulative (since the registry began)
 
@@ -26,7 +27,7 @@ Generated 2026-11-23 01:49 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 107 in the tables of 33 dated checks, on 10 days |
+| Ideas dropped before building (no test spent) | 108 in the tables of 34 dated checks, on 10 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
