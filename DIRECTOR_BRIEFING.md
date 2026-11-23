@@ -1,6 +1,6 @@
 # The research director's briefing
 
-Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-22 21:14 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
+Written by the lab's worker (lab-cycle-1.1.0, dlab-1.2.0) at 2026-11-23 01:38 UTC, for the model that directs the research (docs/RESEARCH_INSTITUTION.md). Everything here is computed from the committed record. The director reads it, decides what is worth testing, and writes: a hypothesis as rules into `research/director/inbox/`, and each decision into `research/director/log.jsonl`. It approves nothing.
 
 ## 1. Results waiting for a review
 
@@ -66,20 +66,20 @@ The map covers one declared space only: each ranking a cross-sectional book may 
 
 ## 6. Sources
 
-120 on file; 120 are UNREAD (a title and an abstract are not a finding). The newest:
+171 on file; 171 are UNREAD (a title and an abstract are not a finding). The newest:
 
-- 2026-11-12 · Improving Algorithmic Trading for BESS on Intraday Electricity Markets through Distributional Price Forecasts (http://arxiv.org/abs/2611.17170v1)
-- 2026-11-12 · Dynamic Scenario-Based Portfolio Optimization for Multi-Asset ETFs (http://arxiv.org/abs/2611.16540v1)
-- 2026-11-12 · Verifiable Settlement and Pricing for Local Energy Markets: Architecture and Deployment on Hyperledger Besu (http://arxiv.org/abs/2611.16495v1)
-- 2026-11-12 · TAPES: Terminal Adjoint-Propagated Error Scheduling for Financial Diffusion Samplers (http://arxiv.org/abs/2611.16484v1)
-- 2026-11-12 · Accuracy Is Not Welfare: Evaluating AI Buyers under Strategic Price Complexity in a Synthetic Duopoly (http://arxiv.org/abs/2611.16471v1)
-- 2026-11-11 · Global Seasonality Factor Investing (http://arxiv.org/abs/2611.15657v1)
-- 2026-11-11 · Idiosyncratic Market Effects in Global Time Series Momentum (http://arxiv.org/abs/2611.15646v1)
-- 2026-11-11 · Parsimonious and Flexible Parameterizations for Realized Covariance Matrix Models (http://arxiv.org/abs/2611.15619v1)
-- 2026-11-11 · A high-order recombination algorithm with adaptive scale selection for weak approximation of stochastic differential equations (http://arxiv.org/abs/2611.15564v1)
-- 2026-11-10 · Point-in-Time Encoders for Earnings Calls (http://arxiv.org/abs/2611.14325v1)
-- 2026-11-10 · Deep Learning for Operator Maps in Optimal Liquidation (http://arxiv.org/abs/2611.14245v1)
-- 2026-11-10 · Fine-Tuning an Order-Flow Foundation Model for Sub-Second Forecasting (http://arxiv.org/abs/2611.14117v1)
+- 2026-11-19 · Bond yield dynamics: a multi-country multi-horizon string model (http://arxiv.org/abs/2611.26466v1)
+- 2026-11-19 · Feasible sub-replicating portfolios for basket options via the block rearrangement algorithm (http://arxiv.org/abs/2611.26119v1)
+- 2026-11-19 · Neckpinches in a Positively Curved Market: Ricci Flow with Surgery on the Nikkei-225 (http://arxiv.org/abs/2611.25860v1)
+- 2026-11-19 · Trading Before a Committed Rebalance (http://arxiv.org/abs/2611.25762v1)
+- 2026-11-19 · Auto-Alpha: A Framework for Autonomous Factor Research (http://arxiv.org/abs/2611.25732v1)
+- 2026-11-19 · Quantum Calibration of Local-Volatility Surfaces from Sparse Option Quotes (http://arxiv.org/abs/2611.25344v1)
+- 2026-11-18 · Stock bubbles in limited participation models with power utilities (http://arxiv.org/abs/2611.24912v1)
+- 2026-11-18 · Vibe-Trading: Towards Agent-Native Trading (http://arxiv.org/abs/2611.24845v1)
+- 2026-11-18 · Sensitivity analysis in real options studies: systematic review and recommendations (http://arxiv.org/abs/2611.24266v1)
+- 2026-11-18 · Algorithmic Market Making Can Lead to Rough Volatility Through the Order Book (http://arxiv.org/abs/2611.24028v1)
+- 2026-11-18 · When Price Charts Rhyme: Historical Visual Retrieval for Stock Return Prediction (http://arxiv.org/abs/2611.23723v1)
+- 2026-11-17 · Spectral Pricing of Corridor Products under Layered Local Volatility (http://arxiv.org/abs/2611.23587v1)
 
 ## 7. How a hypothesis is submitted
 

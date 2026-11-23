@@ -4,11 +4,13 @@
 
 **بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 660 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-22 21:14 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 43
+Updated 2026-11-23 01:38 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 44
 
 ## This cycle
 
-No task ran: nothing was due, or nothing could run yet (see the queue).
+| Task | Result |
+|---|---|
+| `sources:2026-W48` | **DONE** · {"new": 51, "query": "transfer entropy information flow asset returns predictability out-of-sample", "by_origin": {"arxiv": 27, "openalex": 24}} |
 
 **Why nothing is queued.** The lab does not invent work. As things stand:
 
@@ -23,7 +25,7 @@ No task ran: nothing was due, or nothing could run yet (see the queue).
 |---|---|---|---|---|
 | (empty) | | | | |
 
-Done so far: 8 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
+Done so far: 9 tasks. A task is known by its id and never runs twice. A failed task is retried by later cycles, three times at most; a new version of the worker gives a failed task its attempts back, once.
 
 ## Discovery scans
 
@@ -120,20 +122,20 @@ None: no rule has passed its validation. Nothing is traded, on paper or otherwis
 
 ## The research-source database
 
-120 sources on file. Each has its link, its date and a status. A source's status is UNREAD until its claim is checked: nothing is claimed about a paper from its abstract.
+171 sources on file. Each has its link, its date and a status. A source's status is UNREAD until its claim is checked: nothing is claimed about a paper from its abstract.
 
 | Published | Source | Title |
 |---|---|---|
-| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.17170v1) | Improving Algorithmic Trading for BESS on Intraday Electricity Markets through Distributional Price Forecasts |
-| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16540v1) | Dynamic Scenario-Based Portfolio Optimization for Multi-Asset ETFs |
-| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16495v1) | Verifiable Settlement and Pricing for Local Energy Markets: Architecture and Deployment on Hyperledger Besu |
-| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16484v1) | TAPES: Terminal Adjoint-Propagated Error Scheduling for Financial Diffusion Samplers |
-| 2026-11-12 | [arxiv](http://arxiv.org/abs/2611.16471v1) | Accuracy Is Not Welfare: Evaluating AI Buyers under Strategic Price Complexity in a Synthetic Duopoly |
-| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15657v1) | Global Seasonality Factor Investing |
-| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15646v1) | Idiosyncratic Market Effects in Global Time Series Momentum |
-| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15619v1) | Parsimonious and Flexible Parameterizations for Realized Covariance Matrix Models |
-| 2026-11-11 | [arxiv](http://arxiv.org/abs/2611.15564v1) | A high-order recombination algorithm with adaptive scale selection for weak approximation of stochastic differential equations |
-| 2026-11-10 | [arxiv](http://arxiv.org/abs/2611.14325v1) | Point-in-Time Encoders for Earnings Calls |
+| 2026-11-19 | [arxiv](http://arxiv.org/abs/2611.26466v1) | Bond yield dynamics: a multi-country multi-horizon string model |
+| 2026-11-19 | [arxiv](http://arxiv.org/abs/2611.26119v1) | Feasible sub-replicating portfolios for basket options via the block rearrangement algorithm |
+| 2026-11-19 | [arxiv](http://arxiv.org/abs/2611.25860v1) | Neckpinches in a Positively Curved Market: Ricci Flow with Surgery on the Nikkei-225 |
+| 2026-11-19 | [arxiv](http://arxiv.org/abs/2611.25762v1) | Trading Before a Committed Rebalance |
+| 2026-11-19 | [arxiv](http://arxiv.org/abs/2611.25732v1) | Auto-Alpha: A Framework for Autonomous Factor Research |
+| 2026-11-19 | [arxiv](http://arxiv.org/abs/2611.25344v1) | Quantum Calibration of Local-Volatility Surfaces from Sparse Option Quotes |
+| 2026-11-18 | [arxiv](http://arxiv.org/abs/2611.24912v1) | Stock bubbles in limited participation models with power utilities |
+| 2026-11-18 | [arxiv](http://arxiv.org/abs/2611.24845v1) | Vibe-Trading: Towards Agent-Native Trading |
+| 2026-11-18 | [arxiv](http://arxiv.org/abs/2611.24266v1) | Sensitivity analysis in real options studies: systematic review and recommendations |
+| 2026-11-18 | [arxiv](http://arxiv.org/abs/2611.24028v1) | Algorithmic Market Making Can Lead to Rough Volatility Through the Order Book |
 
 ## Data on file
 
@@ -148,11 +150,11 @@ None.
 
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
-| 2026-11-21T17:26 | 0.7 | 0 | 0 |
 | 2026-11-21T21:05 | 0.8 | 0 | 0 |
 | 2026-11-22T01:13 | 0.9 | 0 | 0 |
 | 2026-11-22T11:58 | 0.7 | 0 | 0 |
 | 2026-11-22T17:47 | 1.0 | 0 | 0 |
 | 2026-11-22T21:14 | 0.6 | 0 | 0 |
+| 2026-11-23T01:38 | 32.1 | 1 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.
