@@ -4,7 +4,7 @@
 
 **بالعربي:** مكتب TRND-1: الرصيد $192,929.44، المحقّق -$2,660.70، غير المحقّق -$4,409.87، الصفقات المسكّرة 1. رادار RADAR-1: دفتره -2.63% من رأس ماله الورقي، 257 صفقة مسكّرة، الرابح منها 46. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
 
-Updated 2026-11-23 12:17 UTC · perf-1.0.1 · cycles so far: 41
+Updated 2026-11-23 13:13 UTC · perf-1.0.1 · cycles so far: 42
 
 ## 1. TRND-1: the trend desk's paper account
 
@@ -162,7 +162,7 @@ Concentration: the most traded coin (AKE) is 9.9% of the positions; by count the
 
 ### The replay: the radar's frozen rules and the declared variants on the same stored quotes
 
-Stored hours in hand: 442 (2026-11-04 23:00 UTC to 2026-11-23 12:00 UTC); days archived: 19; added this cycle: 2026-11-22.
+Stored hours in hand: 442 (2026-11-04 23:00 UTC to 2026-11-23 12:00 UTC); days archived: 19; added this cycle: none.
 
 Fidelity: the replay of the original rules reproduces 81 of the radar's 81 real positions opened in these hours to the hundredth of a basis point (81 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
 
@@ -170,15 +170,15 @@ Earlier part 2026-11-07 22:00 UTC to 2026-11-15 00:00 UTC; later part to 2026-11
 
 | Variant | What changes | Earlier: excess | positions | Later: excess | positions | closed | t (daily) | Later, less the original | its t |
 |---|---|---|---|---|---|---|---|---|---|
+| `all-three` | entry_now_apr=0.3, entry_trailing_apr=0.5, exit_now_apr=-1.0, trailing_entry_h=24 | 0.3804% | 25 | -0.1500% | 23 | 20 | -2.39 | 0.5297% | 2.70 |
 | `original` | nothing: the registered rules | 0.1653% | 33 | -0.6797% | 50 | 45 | -2.77 | 0.0000% | n/a |
-| `same-window` | trailing_entry_h=24 | 0.0262% | 48 | -0.7614% | 54 | 49 | -4.80 | -0.0818% | -0.31 |
-| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.3069% | 23 | -0.2924% | 19 | 17 | -4.76 | 0.3872% | 1.81 |
 | `patient-exit` | exit_now_apr=-1.0 | 0.3205% | 28 | -0.5407% | 46 | 41 | -2.42 | 0.1389% | 2.43 |
-| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.3804% | 25 | -0.1500% | 23 | 20 | -2.39 | 0.5297% | 2.70 |
+| `same-window` | trailing_entry_h=24 | 0.0262% | 48 | -0.7614% | 54 | 49 | -4.80 | -0.0818% | -0.31 |
+| `thick-entry` | entry_now_apr=0.3, entry_trailing_apr=0.5 | 0.3069% | 23 | -0.2924% | 19 | 17 | -4.76 | 0.3872% | 1.81 |
 
 Candidate, chosen on the earlier part only: `all-three` (4 variants compared). **INCONCLUSIVE**: the later part holds 9 days and 20 closed positions: 30 and 30 are needed before anything is judged.
 
-Gates on the later part: enough days no, enough positions no, excess over cash no, beats the original no, costs x1.5 no, without best coin no.
+Gates on the later part: beats the original no, costs x1.5 no, enough days no, enough positions no, excess over cash no, without best coin no.
 
 A variant is proposed as a registered challenger only when every gate holds. A proposal is a request for a preregistered forward test, never a replacement of the original.
 
