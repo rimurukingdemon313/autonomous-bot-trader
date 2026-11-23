@@ -380,7 +380,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | HPS-1: miners' cash stress and bitcoin | **Dropped on 2026-11-23** (below): the panel of proof-of-work coins does not carry the mechanism, and bitcoin alone gives about one signal a year |
 | JDR-1: Japanese index funds' dividend reinvestment | **Dropped on 2026-11-23** (below): a trade brokers sell, dividend futures let anyone pre-position, and two events a year |
 | NGW-1: weekend weather forecasts and natural gas | Data: archived weekend model runs |
-| AHP-1: the A-H premium and the H-share index | Power at the index level the owner can trade |
+| AHP-1: the A-H premium and the H-share index | **Dropped on 2026-11-23** (below): no evidence it predicts returns, a premium moved by the dollar, and a handful of swings |
 | PPS-1: platinum against palladium | **Dropped on 2026-11-23** (below): four or five swings since 1990, and the ratio's mean moves after structural breaks |
 | PAXG-1: tokenized gold while the gold market is shut | The owner's decision: gold is sealed from 2017, forward months included, until the seal has an end date |
 | XST-1: tokenized stocks at the weekend | **Dropped on 2026-11-23** (below): weekend token prices already carry most of Monday's move, and the residual cannot pay a thin token's round trip |
@@ -486,6 +486,14 @@ for a stage; UDL-1 waits for the owner's word, so the cycle took PPS-1 from roun
 | Idea | Why it was dropped |
 |---|---|
 | PPS-1: long the cheap metal and short the dear one when the platinum-palladium ratio is extreme (the short stated) | Power and a moving mean: no study found, the ratio ranged 0.6 to 5.3 since 1990 and settled in a new range after the 2001-2003 break (search results); four or five independent swings cannot reach t 3.0 |
+
+**Checked on 2026-11-23, 22:48 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word, so the cycle took AHP-1 from round 2's waiting list. It is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| AHP-1: the HK50 index when the A-H premium is extreme | No study of return predictability; studies disagree on Stock Connect's effect on the premium; the dollar index explains 50% to 70% of its changes (an analysis hosted by the People's Bank of China; search results); a handful of monthly swings since 2006 |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
