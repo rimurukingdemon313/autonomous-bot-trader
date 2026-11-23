@@ -378,7 +378,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 |---|---|
 | TGA-1: Treasury cash-balance drains and risk assets | **Dropped on 2026-11-23** (below): commentary on both sides, no study, and a forward stage of about ten years |
 | HPS-1: miners' cash stress and bitcoin | **Dropped on 2026-11-23** (below): the panel of proof-of-work coins does not carry the mechanism, and bitcoin alone gives about one signal a year |
-| JDR-1: Japanese index funds' dividend reinvestment | Power: two events a year |
+| JDR-1: Japanese index funds' dividend reinvestment | **Dropped on 2026-11-23** (below): a trade brokers sell, dividend futures let anyone pre-position, and two events a year |
 | NGW-1: weekend weather forecasts and natural gas | Data: archived weekend model runs |
 | AHP-1: the A-H premium and the H-share index | Power at the index level the owner can trade |
 | PPS-1: platinum against palladium | Power: a handful of independent swings since 2000 |
@@ -470,6 +470,14 @@ for a stage; UDL-1 waits for the owner's word, so the cycle took TGA-1 from roun
 | Idea | Why it was dropped |
 |---|---|
 | TGA-1: the index after the Treasury's cash balance drains (reserves added) or rebuilds (reserves drained) | Power: commentary on both sides and no study (about $207 billion left reserves in a month while the S&P 500 rose; search results); the 2015-2026 path is read and known to the designer, and a forward stage at an information coefficient of 0.06 needs about ten years |
+
+**Checked on 2026-11-23, 16:48 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word, so the cycle took JDR-1 from round 2's waiting list. It is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| JDR-1: the Japanese index into the March and September record dates, when index funds reinvest dividends | Known and anticipated: brokers sell the March-end trade (Smartkarma, 2025; the Nikkei 225 rebalance about +$2.2 billion) and Osaka's dividend futures let anyone pre-position (search results); about 40 events need +1.4% each for t 3.0 |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
