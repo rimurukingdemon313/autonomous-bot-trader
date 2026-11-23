@@ -395,6 +395,7 @@ none of those: it only earns the holdout its single look.
   (2026-11-23: HPS-1 was checked and dropped: the coin panel's hash rates move with miners switching between coins and with merge-mining, not with cash stress; `research/QUEUE.md`.)
 - **NGW-1, AMM-1, ESQ-1, CHL-1:** data. NGW-1 needs archived weekend weather forecasts; AMM-1 and ESQ-1 an indexer or
   a node; CHL-1 a mainland source of daily limit hits.
+  (2026-11-23: ESQ-1 was checked and dropped: four or five large queues, whatever the data; `research/QUEUE.md`.)
 - **PGL-1:** the mechanism has to come back (load shedding of stage 4 or more).
 
 ## 7. Sources

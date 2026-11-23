@@ -385,7 +385,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | PAXG-1: tokenized gold while the gold market is shut | The owner's decision: gold is sealed from 2017, forward months included, until the seal has an end date |
 | XST-1: tokenized stocks at the weekend | Power: trading since mid-2025, about ten names at weekends |
 | AMM-1: concentrated-liquidity range exits | Data: an indexer or a node |
-| ESQ-1: Ethereum's validator exit queue | Power and data: a handful of large queues; the sold fraction unobserved |
+| ESQ-1: Ethereum's validator exit queue | **Dropped on 2026-11-23** (below): four or five large queues in all, and the wait spreads the selling over weeks |
 | PGL-1: South African load shedding and platinum | Its mechanism: no load shedding for over a year |
 | CHL-1: China's price limits and Hong Kong the next day | Data: daily limit hits per stock |
 
@@ -446,6 +446,14 @@ for a stage; UDL-1 waits for the owner's word. It is in `research/inventions.jso
 | Idea | Why it was dropped |
 |---|---|
 | LXR-1: a bitcoin CFD in the day's direction into the US close, when the 2x bitcoin ETFs must rebalance | Power and known: the mechanism is published for equities, BITX rebalances in CME futures where basis traders spread it (search results), and some $240 million on a 4% day plausibly moves bitcoin 5 to 15 bp against the 24 bp t 3.0 needs on about 100 days; only a forward stage would be unseen, most of a decade long |
+
+**Checked on 2026-11-23, 07:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word, so the cycle took ESQ-1 from round 2's waiting list. It is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| ESQ-1: ether after a large validator exit queue | Power, whatever the data: four or five large queues (2023, January 2024, the 2025 record of about 2.6 million ETH and a 44-day wait), no study of later prices, analysts divided, and the wait throttles the selling over weeks (search results) |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
