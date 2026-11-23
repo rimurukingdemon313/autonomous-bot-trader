@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-23 11:00 UTC**, run 1113, version `radar-1.0.0`. State from: cache. Quotes this hour: 2370.
+Updated **2026-11-23 12:00 UTC**, run 1114, version `radar-1.0.0`. State from: cache. Quotes this hour: 2370.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,30 +17,31 @@ Updated **2026-11-23 11:00 UTC**, run 1113, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 46.62
+- days: 46.67
 - run_coverage: 0.9938
 - closed_positions: 257
-- open_positions: 4
-- utilisation: 0.2537
+- open_positions: 5
+- utilisation: 0.2539
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.6158
-- book_excess_pct: -2.7747
-- ann_excess_deployed_pct: -86.072
-- ann_excess_deployed_costs_x1.5_pct: -155.595
-- ann_excess_deployed_costs_x2_pct: -225.118
+- book_pnl_pct: -2.6316
+- book_excess_pct: -2.7989
+- ann_excess_deployed_pct: -86.699
+- ann_excess_deployed_costs_x1.5_pct: -156.379
+- ann_excess_deployed_costs_x2_pct: -226.06
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.229
+- book_excess_without_best_coin_pct: -3.2532
 - max_dd_pct: 2.64
-- t_excess_daily: -4.154
+- t_excess_daily: -4.185
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| SOXL | mexc | gate | 2026-11-22 11:00 | 28.3% | 20.8 | -3.5 | 17.0 | **0.3** |
-| PIEVERSE | mexc | gate | 2026-11-22 17:00 | 31.8% | 4.0 | 7.5 | 17.0 | **-5.5** |
-| SOXS | gate | mexc | 2026-11-23 02:00 | 26.7% | 15.1 | 1.6 | 17.0 | **-0.3** |
-| EVAA | mexc | gate | 2026-11-23 07:00 | 50.7% | 2.3 | -19.7 | 17.0 | **-34.4** |
+| SOXL | mexc | gate | 2026-11-22 11:00 | 28.3% | 20.9 | -6.3 | 17.0 | **-2.4** |
+| PIEVERSE | mexc | gate | 2026-11-22 17:00 | 31.8% | 4.1 | -5.2 | 17.0 | **-18.1** |
+| SOXS | gate | mexc | 2026-11-23 02:00 | 26.7% | 15.8 | 0.2 | 17.0 | **-1.0** |
+| EVAA | mexc | gate | 2026-11-23 07:00 | 50.7% | 3.0 | -19.3 | 17.0 | **-33.3** |
+| ACE | hyperliquid | mexc | 2026-11-23 12:00 | 56.8% | 0.0 | 0.0 | 16.5 | **-16.5** |
 
 ## Closed positions (257)
 
@@ -81,8 +82,8 @@ Updated **2026-11-23 11:00 UTC**, run 1113, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 50.1% | 55.6% |
-| SOXS | gate | mexc | 42.3% | 67.8% |
-| PIEVERSE | mexc | gate | 29.6% | 16.2% |
+| ACE | hyperliquid | mexc | 56.8% | 1000.0% |
+| EVAA | mexc | gate | 50.0% | 62.2% |
+| SOXS | gate | mexc | 42.8% | 58.8% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
