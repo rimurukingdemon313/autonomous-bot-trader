@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-23 02:37 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-23 00:37 UTC · decision system `dual_ai`
+Updated 2026-11-23 02:52 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-23 00:37 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,242.50، الربح أو الخسارة $-757.50، صفقات مسكّرة 4 ($-757.50)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,827.51.
-- آخر قرار: AUDUSD لا صفقة (TRADER2_UNAVAILABLE).
+- آخر قرار: USDCAD لا صفقة (TRADER2_UNAVAILABLE).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 10، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف $8.50 من $95.00.
 - آلة الزمن لآخر اتفاق (GBPUSD، 10000 إعادة): الهدف أول 33%، الستوب أول 67%، ولا واحد 0%: يميل للستوب.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
@@ -72,8 +72,9 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 01:00 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (8011 so far)
+## Latest decisions, NO TRADE included (8012 so far)
 
+- 11-23 02:45 USDCAD NO_TRADE: Trader 2's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on on
 - 11-23 02:30 AUDUSD NO_TRADE: Trader 2's model gave no usable answer (INVALID: no JSON object in the reply): nobody stands in for it, and there is no decision on one trader alone
 - 11-23 02:30 USDJPY NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error baidu/ernie-5.5-flash-preview:free is temporarily rate-limited upstream. Please retry shortly, or add your own p
 - 11-23 02:17 GBPUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 54): no trade unless both are that sure; followed forward in shadow, not traded
@@ -85,7 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-23 01:31 EURGBP NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model particle-ai/particle-1:free is resting (rate_limited) for 253 s more; no other model stands in for it): nobody stands in for it, 
 - 11-23 01:30 NZDUSD NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error particle-ai/particle-1:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider
 - 11-23 01:16 USDCHF NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model inclusionai/ling-3.2-flash:free is resting (rate_limited) for 227 s more; no other model stands in for it): nobody stands in for 
-- 11-23 01:15 USDCAD NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error inclusionai/ling-3.2-flash:free is temporarily rate-limited upstream. Please retry shortly, or add your own prov
 
 ## Open paper positions
 
@@ -119,7 +119,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `recursive/flint-v1.0:free` · debate `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · calls today 32/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `recursive/flint-v1.0:free` · debate `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · calls today 36/900
 
 Paid trial `senior-2026-11-04` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $8.50 of $95.00, today $0.00 of $7.50 (the key's own reading)
 
@@ -139,6 +139,7 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-23 02:45 | USDCAD | BUY 52 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 02:30 | AUDUSD | SELL 60 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 02:30 | USDJPY | SELL 61 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 02:17 | GBPUSD | SELL 58 | SELL 54 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 33% / S 67% / - 0%: leans toward the stop |
@@ -150,7 +151,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-23 01:31 | EURGBP | SELL 57 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 01:30 | NZDUSD | SELL 58 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 01:16 | USDCHF | BUY 52 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
-| 11-23 01:15 | USDCAD | BUY 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
