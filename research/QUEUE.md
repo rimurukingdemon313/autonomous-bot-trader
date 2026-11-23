@@ -377,7 +377,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | Hypothesis | What it waits for |
 |---|---|
 | TGA-1: Treasury cash-balance drains and risk assets | Power: a daily information coefficient near 0.06 would be needed over 2015-2026 |
-| HPS-1: miners' cash stress and bitcoin | Power: about ten capitulations since 2012; a panel of proof-of-work coins could give it |
+| HPS-1: miners' cash stress and bitcoin | **Dropped on 2026-11-23** (below): the panel of proof-of-work coins does not carry the mechanism, and bitcoin alone gives about one signal a year |
 | JDR-1: Japanese index funds' dividend reinvestment | Power: two events a year |
 | NGW-1: weekend weather forecasts and natural gas | Data: archived weekend model runs |
 | AHP-1: the A-H premium and the H-share index | Power at the index level the owner can trade |
@@ -431,6 +431,14 @@ for a stage; UDL-1 waits for the owner's word. It is in `research/inventions.jso
 | Idea | Why it was dropped |
 |---|---|
 | TQB-1: long bitcoin into the quarter-ends when Tether books 15% of its profits into bitcoin | Not dated: Tether accumulates through the quarter and moves the coins to its reserve wallet at the end (search result), so the quarter-end is a transfer, not market buying. And about 13 quarter-ends need +4% each for t 3.0, on a path the designer has seen |
+
+**Checked on 2026-11-23, 01:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word, so the cycle took HPS-1 from round 2's waiting list, whose note said
+what was to be checked. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power | The hash-ribbon evidence is bitcoin's alone and its promoter's own (nine signals, hypothetical); no altcoin study; the free tier's altcoin hash rates unconfirmed (search results). The panel's hash rates move with miners switching between coins of one algorithm and with merge-mining, not with cash stress, so they add events without the mechanism; bitcoin alone gives about one signal a year |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second

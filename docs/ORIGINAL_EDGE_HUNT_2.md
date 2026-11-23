@@ -392,6 +392,7 @@ none of those: it only earns the holdout its single look.
 - **TGA-1, HPS-1, JDR-1, PPS-1, AHP-1, XST-1:** power. HPS-1 can gain it from a panel of proof-of-work coins (hash
   rates for several coins are in Coin Metrics' free tier, to be checked); XST-1 from time (about 50 weekends a year
   with ten names); the others need decades and are kept as written, not failed.
+  (2026-11-23: HPS-1 was checked and dropped: the coin panel's hash rates move with miners switching between coins and with merge-mining, not with cash stress; `research/QUEUE.md`.)
 - **NGW-1, AMM-1, ESQ-1, CHL-1:** data. NGW-1 needs archived weekend weather forecasts; AMM-1 and ESQ-1 an indexer or
   a node; CHL-1 a mainland source of daily limit hits.
 - **PGL-1:** the mechanism has to come back (load shedding of stage 4 or more).

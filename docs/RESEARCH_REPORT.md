@@ -2,33 +2,23 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 3 انحكمت (1 نجحت)، و7 فحص قبل البناء رفض 11 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 1 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-22 22:49 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-23 01:49 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-22, UTC)
+## Today (2026-11-23, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **KRP-1**: KRP-1: the Korean coin premium and the global price, dev stage. A coin whose price in bitcoin on Upbit stands at least theta above its price in bitcoin on Binance at the 00:00 UTC close, after 30 days with the median gap below theta/2, bought on Binance spot an hour later against a short of bitcoin and closed 24 hours after that, earns a positive net return after 0.6% a round trip, averaged over days, more than the same coin on ordinary days and more than Korean discounts of the same size. (`research/preregistrations/KRP-1.md`, 2 tests counted)
-- **SCX-1**: SCX-1: stablecoins while their primary market is shut, dev stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 2 tests counted)
-- **SCX-1-V**: SCX-1-V: stablecoins while their primary market is shut, validation stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 1 test counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **SCX-1: PASSED** (t 3.021214961382649). Evidence: `research/knowledge/SCX-1.json`; matches its verdict: yes
-- **SCX-1-V: FAILED** (t -0.2524623549484536). Evidence: `research/knowledge/SCX-1-V.json`; matches its verdict: yes
-- **KRP-1: FAILED** (t -0.8697910228458722). Evidence: `research/knowledge/KRP-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-22, 02:20 UTC (the original edge hunt, round 2: `docs/ORIGINAL_EDGE_HUNT_2.md`), and dropped: AIB-1: aggregate insider buying and the US 500; MGN-1: exchange margin hikes as forced deleveraging; BWT-1: Brent against WTI under the Cushing constraint; RBP-1: the rebalancing return; ANC-1: the 52-week-high anchor in the index.
-- Checked on 2026-11-22, 04:55 UTC (the edge hunt), and dropped before building: QTG-1: buy a coin when Binance removes its Seed or Monitoring Tag.
-- Checked on 2026-11-22, 07:50 UTC (the edge hunt), and dropped before building: MSTR-1: long bitcoin in the weeks after Strategy announces a purchase.
-- Checked on 2026-11-22, 10:54 UTC (the edge hunt), and dropped before building: LPB-1: BNB around Binance's Launchpool announcements, the dated demand of users who lock BNB to farm.
-- Checked on 2026-11-22, 13:48 UTC (the edge hunt), and dropped before building: UWD-1: record Upbit's investment-warning flags forward, buy the coin on Binance after a designation or its lifting.
-- Checked on 2026-11-22, 19:49 UTC (the edge hunt), and dropped before building: SGC-1: the HK50 index CFD while Southbound Stock Connect is shut for mainland holidays (the largest net buyer absent).
-- Checked on 2026-11-22, 22:49 UTC (the edge hunt), and dropped before building: TQB-1: long bitcoin into the quarter-ends when Tether books 15% of its profits into bitcoin.
+- Checked on 2026-11-23, 01:49 UTC (the edge hunt), and dropped before building: HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power.
 
 ## Cumulative (since the registry began)
 
@@ -36,7 +26,7 @@ Generated 2026-11-22 22:49 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 106 in the tables of 32 dated checks, on 9 days |
+| Ideas dropped before building (no test spent) | 107 in the tables of 33 dated checks, on 10 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
