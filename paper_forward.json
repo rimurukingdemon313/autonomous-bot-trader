@@ -2546,6 +2546,20 @@
  ],
  "last_decisions": [
   {
+   "symbol": "AUDUSD",
+   "decision": "NO_TRADE",
+   "t": 1795432617,
+   "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded",
+   "data_flags": []
+  },
+  {
+   "symbol": "USDJPY",
+   "decision": "NO_TRADE",
+   "t": 1795432519,
+   "reason": "both traders chose BUY, but not both at 65 or more (Trader 1 56, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded",
+   "data_flags": []
+  },
+  {
    "symbol": "GBPUSD",
    "decision": "NO_TRADE",
    "t": 1795431787,
@@ -2698,23 +2712,9 @@
    "t": 1795421719,
    "reason": "Trader 2's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on on",
    "data_flags": []
-  },
-  {
-   "symbol": "AUDUSD",
-   "decision": "NO_TRADE",
-   "t": 1795420877,
-   "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 62, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded",
-   "data_flags": []
-  },
-  {
-   "symbol": "USDJPY",
-   "decision": "NO_TRADE",
-   "t": 1795420818,
-   "reason": "Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error particle-ai/particle-1:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider",
-   "data_flags": []
   }
  ],
- "decisions_total": 8077,
+ "decisions_total": 8079,
  "shift": {
   "started": "2026-11-23 06:13 UTC",
   "decision_mode": "dual_ai",
@@ -2739,25 +2739,25 @@
    "paid_trial_off": false,
    "version": "openrouter-1.15.0",
    "status": "READY",
-   "calls_today": 86,
+   "calls_today": 93,
    "last_call": {
-    "t": 1795431984,
-    "role": "verifier",
-    "model": "dots-studio/dots-3-note-preview:free",
+    "t": 1795432694,
+    "role": "judge",
+    "model": "particle-ai/particle-1:free",
     "status": "OK",
     "ok": true,
     "error": null,
-    "request_id": "9709d3d8e974469888ca3de9ec2095d4",
-    "provider_id": "gen-1795431933-hFnuvKIucV3NylqybNlh",
-    "attempts": 1,
-    "latency_ms": 50916.6,
+    "request_id": "9bd50e4798f146df88694243cbcb3648",
+    "provider_id": "gen-1795432676-k1DIAYmDBDoNNvM04biJ",
+    "attempts": 3,
+    "latency_ms": 20538.5,
     "cached": false,
-    "tokens": 26519,
+    "tokens": 20903,
     "cost": 0.0,
     "tried": []
    },
    "key": {
-    "checked": 1795430721,
+    "checked": 1795432522,
     "ok": true,
     "is_free_tier": false,
     "usage_at_start": 9.457762864,
@@ -2770,7 +2770,7 @@
    "data_policy": null,
    "vision_model": "nvidia/nemotron-3.5-super-vl:free",
    "judge_model": "particle-ai/particle-1:free",
-   "verifier_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+   "verifier_model": "dots-studio/dots-3-note-preview:free",
    "selection": {
     "vision": [
      {
@@ -2802,7 +2802,7 @@
      {
       "id": "particle-ai/particle-1:free",
       "name": "Particle AI: Particle-1 (free)",
-      "score": 48.71,
+      "score": 49.0,
       "context": 1048576,
       "image": true,
       "intelligence_index": null,
@@ -2815,7 +2815,7 @@
      {
       "id": "dots-studio/dots-3-note-preview:free",
       "name": "Dots Studio: Dots3-Note Preview (free)",
-      "score": 46.5,
+      "score": 48.0,
       "context": 512000,
       "image": true,
       "intelligence_index": null,
@@ -2843,7 +2843,7 @@
      {
       "id": "particle-ai/particle-1:free",
       "name": "Particle AI: Particle-1 (free)",
-      "score": 24.71,
+      "score": 25.0,
       "context": 1048576,
       "image": true,
       "intelligence_index": null,
@@ -2852,6 +2852,19 @@
       "reasoning": true,
       "family": "particle-ai",
       "expires": null
+     },
+     {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 24.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
      },
      {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
@@ -2865,19 +2878,6 @@
       "reasoning": true,
       "family": "nvidia",
       "expires": null
-     },
-     {
-      "id": "dots-studio/dots-3-note-preview:free",
-      "name": "Dots Studio: Dots3-Note Preview (free)",
-      "score": 22.5,
-      "context": 512000,
-      "image": true,
-      "intelligence_index": null,
-      "params_b": null,
-      "structured": true,
-      "reasoning": true,
-      "family": "dots-studio",
-      "expires": "2026-12-31"
      },
      {
       "id": "recursive/flint-v1.0:free",
@@ -2908,6 +2908,19 @@
     ],
     "verifier": [
      {
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "score": 25.0,
+      "context": 512000,
+      "image": true,
+      "intelligence_index": null,
+      "params_b": null,
+      "structured": true,
+      "reasoning": true,
+      "family": "dots-studio",
+      "expires": "2026-12-31"
+     },
+     {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
       "score": 23.78,
@@ -2919,19 +2932,6 @@
       "reasoning": true,
       "family": "nvidia",
       "expires": null
-     },
-     {
-      "id": "dots-studio/dots-3-note-preview:free",
-      "name": "Dots Studio: Dots3-Note Preview (free)",
-      "score": 23.5,
-      "context": 512000,
-      "image": true,
-      "intelligence_index": null,
-      "params_b": null,
-      "structured": true,
-      "reasoning": true,
-      "family": "dots-studio",
-      "expires": "2026-12-31"
      },
      {
       "id": "recursive/flint-v1.0:free",
@@ -2975,7 +2975,7 @@
     ],
     "free_total": 8,
     "catalog_total": 477,
-    "refreshed": 1795431933.6816752,
+    "refreshed": 1795432673.5396755,
     "error": null,
     "record_excluded": {
      "nvidia/nemotron-3-ultra-550b-a55b:free": "dual_ai forward record, 2026-10-12 to 2026-10-23: 125 agreements as Trader 2 followed forward, 30% won, -0.35 R each, against 175 with another model in that seat, 50% won, +0.09 R; within 3 h of the others -0.39 R (standard error 0.15), worse on 6 of the 8 days both sat"
@@ -3008,7 +3008,7 @@
    },
    "model_stats": {
     "nvidia/nemotron-3.5-super-vl:free": {
-     "ok": 34,
+     "ok": 36,
      "failed": 0
     },
     "google/gemma-4-26b-a4b-it:free": {
@@ -3024,7 +3024,7 @@
      "failed": 3
     },
     "particle-ai/particle-1:free": {
-     "ok": 14,
+     "ok": 16,
      "failed": 3
     },
     "baidu/ernie-5.5-flash-preview:free": {
@@ -3074,34 +3074,34 @@
     "last_bar_available": 1795431600
    },
    "USDJPY": {
-    "t": 1795426219,
-    "decision_id": "39c23a4830f1eb83d4879cf3",
+    "t": 1795432519,
+    "decision_id": "630a68115c0a8d74eeb7b7be",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 30827,
-    "sha256": "78fa5176b358012257c52d493a13f88606e387d72a05ff734fce1de25cb04add",
-    "as_of": 1795426219,
+    "bytes": 30608,
+    "sha256": "5aa0bca03764328f2427b24f8333f52730c8901dec4f5b9dae873e783795d487",
+    "as_of": 1795432519,
     "execution_timeframe": "H1",
     "higher_timeframe": "H4",
-    "last_bar_open": 1795420800,
-    "last_bar_available": 1795424400
+    "last_bar_open": 1795428000,
+    "last_bar_available": 1795431600
    },
    "AUDUSD": {
-    "t": 1795426509,
-    "decision_id": "5aa20cdabd848644817b80ec",
+    "t": 1795432617,
+    "decision_id": "161d04b3ea201727b2d302bf",
     "version": "chart-render-1.0.0",
     "annotate_version": "chart-annotate-1.0.0",
     "width": 1280,
     "height": 1000,
-    "bytes": 29687,
-    "sha256": "1151d7e6d43e82ea2b20ba58c5aa1b7e4c838f686888edd268a595c2249dfb39",
-    "as_of": 1795426509,
+    "bytes": 29526,
+    "sha256": "8c0d8b4866b1e57dc346d5ba7a218635edfdb9da2b8cf0eb7f753e88aee40886",
+    "as_of": 1795432617,
     "execution_timeframe": "H1",
     "higher_timeframe": "H4",
-    "last_bar_open": 1795420800,
-    "last_bar_available": 1795424400
+    "last_bar_open": 1795428000,
+    "last_bar_available": 1795431600
    },
    "USDCAD": {
     "t": 1795427121,
@@ -3225,71 +3225,67 @@
    }
   },
   "last_analysis": {
-   "decision_id": "e22fbe36f379538014e98c12",
-   "symbol": "GBPUSD",
-   "t": 1795431787,
+   "decision_id": "161d04b3ea201727b2d302bf",
+   "symbol": "AUDUSD",
+   "t": 1795432617,
    "decision": "NO_TRADE",
-   "reason": "the traders disagree (Trader 1 BUY 58, Trader 2 SELL 60): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shadow, not traded",
+   "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded",
    "consensus": {
-    "debate_pick": "SELL",
+    "agreed": "SELL",
+    "desk_confidence": 0.58,
     "direction": null,
+    "floor": 65,
     "levels_from": null,
-    "loser": "trader1",
+    "more_confident": "trader2",
     "outcome": "NO_TRADE",
-    "pick_from": "trader2",
-    "reason": "the traders disagree (Trader 1 BUY 58, Trader 2 SELL 60): no trade unless both choose the same side; the debate (dots-studio/dots-3-note-preview:free) would have chosen SELL: followed forward in shadow, not traded",
-    "rule": "DISAGREE"
+    "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded",
+    "rule": "LOW_CONFIDENCE"
    },
    "models": {
     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-    "trader2": "particle-ai/particle-1:free",
-    "verifier": "dots-studio/dots-3-note-preview:free"
+    "trader2": "particle-ai/particle-1:free"
    },
    "trader1": {
     "confidence": 58,
-    "direction": "BUY",
-    "entry": 1.31076,
-    "invalidation": 1.30957,
-    "liquidity": "A bullish sweep of lows at 1.31053 just completed (0 bars ago) and price is reclaiming from the ask; an open bearish FVG at 1.31153-1.31185 sits above as near-term resistance, with EQH far above at 1.32807.",
-    "market_structure": "H1 is UP (HH+HL) with a fresh HH at 1.31442 and bullish CHOCH at 1.3128; H4 is DOWN (LH+LL) with bearish BOS, so the execution timeframe is bullish against a bearish higher-timeframe context.",
-    "momentum": "M1/M5/M15 are all near the bottom of their 20-bar ranges while H1 just printed a higher high, suggesting a mean-reversion bounce; the last H1 displacement candle is bearish, capping immediate upside conviction.",
-    "reason": "H1 structure is bullish with a fresh HH at 1.31442, bullish CHOCH at 1.3128, and a just-completed bullish sweep of lows at 1.31053 that price is reclaiming from the ask. H4 remains in a downtrend and the last H1 displacement candle is bearish, so this is an execution-timeframe mean-reversion buy rather than a trend trade. A break below today's low at 1.30957 invalidates the reclaim; the target is the retest of today's high/HH at 1.31442. Desk history penalizes BUYs and low R:R, but neither losing condition applies here (regime is TRANSITION, not TRENDING_UP; R:R is ~3.1).",
+    "direction": "SELL",
+    "entry": 0.66385,
+    "invalidation": 0.6655,
+    "liquidity": "No untested liquidity is marked; repeated sweeps of highs at 0.66534 show sell-side liquidity being taken, and an untested supply order block sits at 0.66653-0.6672 above price.",
+    "market_structure": "H4 is in a confirmed downtrend (LH+LL) with bearish BOS at 0.66653 and 0.66489; H1 is a mixed range but shows a bearish CHoCH at 0.66582 and repeated bearish high sweeps at 0.66534.",
+    "momentum": "Bearish displacement bars are present; M1, M5 and M15 are all at the bottom of their 20-bar ranges with negative change_atr, indicating near-term downside pressure.",
+    "reason": "H4 is in a confirmed downtrend with an untested supply order block above price, while H1 shows repeated bearish high sweeps at 0.66534. Desk memory strongly disfavors BUY on AUDUSD (0.312 win rate) while SELL wins 0.521 on H1. Stop at 0.6655 sits above the recent LH that invalidates the short; target 0.6612 targets the prior-week low within 48 hours. H1 is ranging and price is near today's low, so reversal risk is moderate but the higher-timeframe bearish bias dominates.",
     "reversal_probability": 42,
-    "risk_reward": 3.08,
-    "stop_loss": 1.30957,
-    "take_profit": 1.31442,
-    "trend": "H1 trend UP, H4 trend DOWN, regime TRANSITION with trend_direction -1; mixed but the execution-timeframe structure is the decisive bias for this intraday decision."
+    "risk_reward": 1.61,
+    "stop_loss": 0.6655,
+    "take_profit": 0.6612,
+    "trend": "H4 DOWN (LH+LL), H1 RANGE (MIXED SWINGS), regime TRENDING_DOWN with HIGH_VOL."
    },
    "trader2": {
     "confidence": 60,
     "direction": "SELL",
-    "entry": 1.31064,
-    "invalidation": 1.31225,
-    "liquidity": "The equal lows at 1.31048-1.31053 were swept (bullish signal) but the reclaim failed at the H1 bearish FVG 1.31153; downside liquidity sits at today's low 1.30957 and the prior-day level 1.30814.",
-    "market_structure": "H4 is DOWN (LH+LL) with bearish BOS at 1.31389 and 1.31215, and the 23 06:00 H4 bar rejected 1.31442 with a long upper wick closing at its low; H1's 'up' structure is a counter-trend bounce that reversed, with M15 bearish CHoCH at 1.31185 and M5 bearish BOS at 1.31132.",
-    "momentum": "M1/M5/M15 momentum is down after the failed bounce; the last H1 bar was a bearish displacement closing near its low and the M5 FVG 1.31106-1.31115 caps any bounce.",
-    "reason": "H4 and D1 are in downtrends and the H4 06:00 bar rejected 1.31442 with a long upper wick, while M15 printed a bearish CHoCH at 1.31185 and M5 a bearish BOS at 1.31132. The bullish sweep of the 1.31048-1.31053 equal lows failed at the H1 bearish FVG (1.31153) and price is resuming down, so I sell the bid. The stop sits above the H1 FVG and the 1.31217 S/R, beyond the structure that would invalidate the bearish continuation, with the target at the prior-day level 1.30814. The desk's strong BUY losing record (32% win, -0.33R) and the counter-trend HTF objection keep me off the long side, though t",
-    "reversal_probability": 42,
-    "risk_reward": 1.55,
-    "stop_loss": 1.31225,
-    "take_profit": 1.30814,
-    "trend": "H4 and D1 are down; H1's up-trend is a counter-trend bounce now reversing, so the larger trend favours the short side."
+    "entry": 0.66385,
+    "invalidation": 0.6655,
+    "liquidity": "Equal lows at 0.66366 and today's low 0.66353 sit just below as the first magnet, with the prior-week low 0.66124 the larger draw; untested supply at 0.66653-0.6672 caps the upside.",
+    "market_structure": "H4 is a confirmed downtrend (LH+LL) with bearish BOS at 0.66653/0.66489; H1 is a mixed range but printed a bearish CHoCH at 0.66582 and a bearish sweep of the 0.66534 high, and M5 just made a fresh bearish BOS at 0.66397.",
+    "momentum": "Bearish: M1, M5 and M15 are all pinned at the bottom of their 20-bar ranges with negative change_atr, and the last H1 bars are a steady slide off the 0.66587 high.",
+    "reason": "The H4 downtrend plus the rejection/sweep of the 0.66534-0.66587 highs and fresh M5 bearish BOS put the near-term path lower, and the desk's own AUDUSD H1 SELL record (0.521 win, +0.166R, n=73) is its one positive edge here while BUY is strongly negative (t -4.51). Price is near 0.66353/0.66366 support, so I keep the stop above the 0.66534 LH and M15 CHoCH at 0.6655 rather than tight, giving RR 1.61 which clears the 1.3 threshold the journal flags as losing. A break and hold above 0.6655 proves the rejection failed and voids the short; the target 0.6612 sits at the prior-week low, reachable wi",
+    "reversal_probability": 40,
+    "risk_reward": 1.61,
+    "stop_loss": 0.6655,
+    "take_profit": 0.6612,
+    "trend": "H4 DOWN (LH+LL), H1 RANGE (MIXED SWINGS), regime TRENDING_DOWN / HIGH_VOL."
    },
-   "verifier": {
-    "confidence": 72,
-    "direction": "SELL",
-    "reason": "Trader 2's SELL side is stronger because it aligns with the dominant bearish trend on the higher timeframes (H4 and D1 are down), whereas Trader 1's BUY is a counter-trend bounce. The H1 bullish structure has shown a failure with a bearish displacement candle closing near its low, and the price remains below key resistance zones like the broken demand block and the open bearish FVG at 1.31153. The recent sweep of the equal lows at 1.31048-1.31053 failed to break the bearish FVG, suggesting a resumption of the downtrend toward the 1.30814 target. This is further supported by the historical perf"
-   },
+   "verifier": null,
    "chart": {
     "annotate_version": "chart-annotate-1.0.0",
-    "as_of": 1795431787,
-    "bytes": 29315,
+    "as_of": 1795432617,
+    "bytes": 29526,
     "execution_timeframe": "H1",
     "height": 1000,
     "higher_timeframe": "H4",
     "last_bar_available": 1795431600,
     "last_bar_open": 1795428000,
-    "sha256": "d9cd3bf065df8f5cc81891e8ac68fa7cb0e8c1acdf4f89d364f1b178bd9bb291",
+    "sha256": "8c0d8b4866b1e57dc346d5ba7a218635edfdb9da2b8cf0eb7f753e88aee40886",
     "version": "chart-render-1.0.0",
     "width": 1280
    },
@@ -3299,55 +3295,917 @@
      "cached": false,
      "cost": 0.0,
      "error": null,
-     "latency_ms": 82804.3,
+     "latency_ms": 53255.0,
      "model": "nvidia/nemotron-3.5-super-vl:free",
      "ok": true,
-     "provider_id": "gen-1795431790-gu2XFpYI2KEctp1sAr5L",
-     "request_id": "bf9f8c4d0e2143fe96b1f6818138c24a",
+     "provider_id": "gen-1795432620-EsDakcR6iuxNlM9emTjo",
+     "request_id": "7fc86f4584d84780a9aeff7d4e86e1d0",
      "role": "vision",
      "status": "OK",
-     "tokens": 24241,
+     "tokens": 22444,
      "tried": []
     },
     {
-     "attempts": 2,
+     "attempts": 3,
      "cached": false,
      "cost": 0.0,
      "error": null,
-     "latency_ms": 60373.9,
+     "latency_ms": 20538.5,
      "model": "particle-ai/particle-1:free",
      "ok": true,
-     "provider_id": "gen-1795431875-xHvzk223FE9FKsUAjt6H",
-     "request_id": "f1db58e5d2fe491f83664ea15c09d2c2",
+     "provider_id": "gen-1795432676-k1DIAYmDBDoNNvM04biJ",
+     "request_id": "9bd50e4798f146df88694243cbcb3648",
      "role": "judge",
      "status": "OK",
-     "tokens": 30356,
-     "tried": []
-    },
-    {
-     "attempts": 1,
-     "cached": false,
-     "cost": 0.0,
-     "error": null,
-     "latency_ms": 50916.6,
-     "model": "dots-studio/dots-3-note-preview:free",
-     "ok": true,
-     "provider_id": "gen-1795431933-hFnuvKIucV3NylqybNlh",
-     "request_id": "9709d3d8e974469888ca3de9ec2095d4",
-     "role": "verifier",
-     "status": "OK",
-     "tokens": 26519,
+     "tokens": 20903,
      "tried": []
     }
    ],
    "trader1_input": "image",
    "version": "dual-ai-1.21.0",
-   "time_machine": null,
+   "time_machine": {
+    "based_on": "712 H1 bars, 2026-10-12 to 2026-11-23, each hour drawn from the same hour of day plus or minus 1; a simulation of the recent past, not a forecast",
+    "entry": 0.66385,
+    "fan": {
+     "columns": [
+      "hour",
+      "p05",
+      "p25",
+      "p50",
+      "p75",
+      "p95"
+     ],
+     "rows": [
+      [
+       2,
+       0.662174,
+       0.663166,
+       0.663666,
+       0.664169,
+       0.664865
+      ],
+      [
+       4,
+       0.660379,
+       0.662464,
+       0.663481,
+       0.664362,
+       0.665709
+      ],
+      [
+       6,
+       0.659527,
+       0.661798,
+       0.663086,
+       0.664253,
+       0.66587
+      ],
+      [
+       8,
+       0.659292,
+       0.661594,
+       0.66298,
+       0.664225,
+       0.666023
+      ],
+      [
+       10,
+       0.65913,
+       0.661444,
+       0.662876,
+       0.664201,
+       0.666051
+      ],
+      [
+       12,
+       0.659018,
+       0.661333,
+       0.662784,
+       0.66415,
+       0.666082
+      ],
+      [
+       14,
+       0.658688,
+       0.66118,
+       0.662754,
+       0.664264,
+       0.666313
+      ],
+      [
+       16,
+       0.658351,
+       0.660998,
+       0.662676,
+       0.664304,
+       0.666536
+      ],
+      [
+       18,
+       0.658047,
+       0.660785,
+       0.662531,
+       0.664229,
+       0.666615
+      ],
+      [
+       20,
+       0.657848,
+       0.660673,
+       0.662509,
+       0.664313,
+       0.666853
+      ],
+      [
+       22,
+       0.657694,
+       0.660648,
+       0.662603,
+       0.664479,
+       0.667106
+      ],
+      [
+       24,
+       0.657511,
+       0.660534,
+       0.662568,
+       0.664468,
+       0.667265
+      ],
+      [
+       26,
+       0.656954,
+       0.660225,
+       0.662342,
+       0.664353,
+       0.667244
+      ],
+      [
+       28,
+       0.656313,
+       0.659791,
+       0.662066,
+       0.664295,
+       0.66741
+      ],
+      [
+       30,
+       0.655618,
+       0.659289,
+       0.661622,
+       0.663995,
+       0.667336
+      ],
+      [
+       32,
+       0.655476,
+       0.659122,
+       0.661559,
+       0.663975,
+       0.667266
+      ],
+      [
+       34,
+       0.655348,
+       0.659016,
+       0.661479,
+       0.663964,
+       0.6673
+      ],
+      [
+       36,
+       0.655256,
+       0.658931,
+       0.661404,
+       0.66387,
+       0.667266
+      ],
+      [
+       38,
+       0.655074,
+       0.658907,
+       0.661383,
+       0.663969,
+       0.667377
+      ],
+      [
+       40,
+       0.654821,
+       0.658766,
+       0.661329,
+       0.663976,
+       0.66754
+      ],
+      [
+       42,
+       0.654505,
+       0.658547,
+       0.661227,
+       0.663867,
+       0.667478
+      ],
+      [
+       44,
+       0.65442,
+       0.658489,
+       0.661211,
+       0.66391,
+       0.66759
+      ],
+      [
+       46,
+       0.654385,
+       0.658493,
+       0.661363,
+       0.66407,
+       0.66785
+      ],
+      [
+       48,
+       0.654249,
+       0.658363,
+       0.661246,
+       0.664047,
+       0.667886
+      ]
+     ]
+    },
+    "hours": 48,
+    "mean_r": 0.5892,
+    "mean_r_after_costs": 0.474,
+    "neither": 0.016,
+    "replays": 10000,
+    "reward_risk": 1.606,
+    "seed": 371000499,
+    "side": "SELL",
+    "stop": 0.6655,
+    "stop_first": 0.3818,
+    "target": 0.6612,
+    "target_first": 0.6022,
+    "target_share_of_decided": 0.612,
+    "verdict": "strongly toward the target",
+    "version": "time-machine-1.0.0",
+    "win_rate_needed": 0.4279
+   },
    "senior": null,
    "senior_shadow": null,
    "risk": null
   },
   "analyses": [
+   {
+    "decision_id": "161d04b3ea201727b2d302bf",
+    "symbol": "AUDUSD",
+    "t": 1795432617,
+    "decision": "NO_TRADE",
+    "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded",
+    "consensus": {
+     "agreed": "SELL",
+     "desk_confidence": 0.58,
+     "direction": null,
+     "floor": 65,
+     "levels_from": null,
+     "more_confident": "trader2",
+     "outcome": "NO_TRADE",
+     "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded",
+     "rule": "LOW_CONFIDENCE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "particle-ai/particle-1:free"
+    },
+    "trader1": {
+     "confidence": 58,
+     "direction": "SELL",
+     "entry": 0.66385,
+     "invalidation": 0.6655,
+     "liquidity": "No untested liquidity is marked; repeated sweeps of highs at 0.66534 show sell-side liquidity being taken, and an untested supply order block sits at 0.66653-0.6672 above price.",
+     "market_structure": "H4 is in a confirmed downtrend (LH+LL) with bearish BOS at 0.66653 and 0.66489; H1 is a mixed range but shows a bearish CHoCH at 0.66582 and repeated bearish high sweeps at 0.66534.",
+     "momentum": "Bearish displacement bars are present; M1, M5 and M15 are all at the bottom of their 20-bar ranges with negative change_atr, indicating near-term downside pressure.",
+     "reason": "H4 is in a confirmed downtrend with an untested supply order block above price, while H1 shows repeated bearish high sweeps at 0.66534. Desk memory strongly disfavors BUY on AUDUSD (0.312 win rate) while SELL wins 0.521 on H1. Stop at 0.6655 sits above the recent LH that invalidates the short; target 0.6612 targets the prior-week low within 48 hours. H1 is ranging and price is near today's low, so reversal risk is moderate but the higher-timeframe bearish bias dominates.",
+     "reversal_probability": 42,
+     "risk_reward": 1.61,
+     "stop_loss": 0.6655,
+     "take_profit": 0.6612,
+     "trend": "H4 DOWN (LH+LL), H1 RANGE (MIXED SWINGS), regime TRENDING_DOWN with HIGH_VOL."
+    },
+    "trader2": {
+     "confidence": 60,
+     "direction": "SELL",
+     "entry": 0.66385,
+     "invalidation": 0.6655,
+     "liquidity": "Equal lows at 0.66366 and today's low 0.66353 sit just below as the first magnet, with the prior-week low 0.66124 the larger draw; untested supply at 0.66653-0.6672 caps the upside.",
+     "market_structure": "H4 is a confirmed downtrend (LH+LL) with bearish BOS at 0.66653/0.66489; H1 is a mixed range but printed a bearish CHoCH at 0.66582 and a bearish sweep of the 0.66534 high, and M5 just made a fresh bearish BOS at 0.66397.",
+     "momentum": "Bearish: M1, M5 and M15 are all pinned at the bottom of their 20-bar ranges with negative change_atr, and the last H1 bars are a steady slide off the 0.66587 high.",
+     "reason": "The H4 downtrend plus the rejection/sweep of the 0.66534-0.66587 highs and fresh M5 bearish BOS put the near-term path lower, and the desk's own AUDUSD H1 SELL record (0.521 win, +0.166R, n=73) is its one positive edge here while BUY is strongly negative (t -4.51). Price is near 0.66353/0.66366 support, so I keep the stop above the 0.66534 LH and M15 CHoCH at 0.6655 rather than tight, giving RR 1.61 which clears the 1.3 threshold the journal flags as losing. A break and hold above 0.6655 proves the rejection failed and voids the short; the target 0.6612 sits at the prior-week low, reachable wi",
+     "reversal_probability": 40,
+     "risk_reward": 1.61,
+     "stop_loss": 0.6655,
+     "take_profit": 0.6612,
+     "trend": "H4 DOWN (LH+LL), H1 RANGE (MIXED SWINGS), regime TRENDING_DOWN / HIGH_VOL."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1795432617,
+     "bytes": 29526,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1795431600,
+     "last_bar_open": 1795428000,
+     "sha256": "8c0d8b4866b1e57dc346d5ba7a218635edfdb9da2b8cf0eb7f753e88aee40886",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 53255.0,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1795432620-EsDakcR6iuxNlM9emTjo",
+      "request_id": "7fc86f4584d84780a9aeff7d4e86e1d0",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 22444,
+      "tried": []
+     },
+     {
+      "attempts": 3,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 20538.5,
+      "model": "particle-ai/particle-1:free",
+      "ok": true,
+      "provider_id": "gen-1795432676-k1DIAYmDBDoNNvM04biJ",
+      "request_id": "9bd50e4798f146df88694243cbcb3648",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 20903,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.21.0",
+    "time_machine": {
+     "based_on": "712 H1 bars, 2026-10-12 to 2026-11-23, each hour drawn from the same hour of day plus or minus 1; a simulation of the recent past, not a forecast",
+     "entry": 0.66385,
+     "fan": {
+      "columns": [
+       "hour",
+       "p05",
+       "p25",
+       "p50",
+       "p75",
+       "p95"
+      ],
+      "rows": [
+       [
+        2,
+        0.662174,
+        0.663166,
+        0.663666,
+        0.664169,
+        0.664865
+       ],
+       [
+        4,
+        0.660379,
+        0.662464,
+        0.663481,
+        0.664362,
+        0.665709
+       ],
+       [
+        6,
+        0.659527,
+        0.661798,
+        0.663086,
+        0.664253,
+        0.66587
+       ],
+       [
+        8,
+        0.659292,
+        0.661594,
+        0.66298,
+        0.664225,
+        0.666023
+       ],
+       [
+        10,
+        0.65913,
+        0.661444,
+        0.662876,
+        0.664201,
+        0.666051
+       ],
+       [
+        12,
+        0.659018,
+        0.661333,
+        0.662784,
+        0.66415,
+        0.666082
+       ],
+       [
+        14,
+        0.658688,
+        0.66118,
+        0.662754,
+        0.664264,
+        0.666313
+       ],
+       [
+        16,
+        0.658351,
+        0.660998,
+        0.662676,
+        0.664304,
+        0.666536
+       ],
+       [
+        18,
+        0.658047,
+        0.660785,
+        0.662531,
+        0.664229,
+        0.666615
+       ],
+       [
+        20,
+        0.657848,
+        0.660673,
+        0.662509,
+        0.664313,
+        0.666853
+       ],
+       [
+        22,
+        0.657694,
+        0.660648,
+        0.662603,
+        0.664479,
+        0.667106
+       ],
+       [
+        24,
+        0.657511,
+        0.660534,
+        0.662568,
+        0.664468,
+        0.667265
+       ],
+       [
+        26,
+        0.656954,
+        0.660225,
+        0.662342,
+        0.664353,
+        0.667244
+       ],
+       [
+        28,
+        0.656313,
+        0.659791,
+        0.662066,
+        0.664295,
+        0.66741
+       ],
+       [
+        30,
+        0.655618,
+        0.659289,
+        0.661622,
+        0.663995,
+        0.667336
+       ],
+       [
+        32,
+        0.655476,
+        0.659122,
+        0.661559,
+        0.663975,
+        0.667266
+       ],
+       [
+        34,
+        0.655348,
+        0.659016,
+        0.661479,
+        0.663964,
+        0.6673
+       ],
+       [
+        36,
+        0.655256,
+        0.658931,
+        0.661404,
+        0.66387,
+        0.667266
+       ],
+       [
+        38,
+        0.655074,
+        0.658907,
+        0.661383,
+        0.663969,
+        0.667377
+       ],
+       [
+        40,
+        0.654821,
+        0.658766,
+        0.661329,
+        0.663976,
+        0.66754
+       ],
+       [
+        42,
+        0.654505,
+        0.658547,
+        0.661227,
+        0.663867,
+        0.667478
+       ],
+       [
+        44,
+        0.65442,
+        0.658489,
+        0.661211,
+        0.66391,
+        0.66759
+       ],
+       [
+        46,
+        0.654385,
+        0.658493,
+        0.661363,
+        0.66407,
+        0.66785
+       ],
+       [
+        48,
+        0.654249,
+        0.658363,
+        0.661246,
+        0.664047,
+        0.667886
+       ]
+      ]
+     },
+     "hours": 48,
+     "mean_r": 0.5892,
+     "mean_r_after_costs": 0.474,
+     "neither": 0.016,
+     "replays": 10000,
+     "reward_risk": 1.606,
+     "seed": 371000499,
+     "side": "SELL",
+     "stop": 0.6655,
+     "stop_first": 0.3818,
+     "target": 0.6612,
+     "target_first": 0.6022,
+     "target_share_of_decided": 0.612,
+     "verdict": "strongly toward the target",
+     "version": "time-machine-1.0.0",
+     "win_rate_needed": 0.4279
+    },
+    "senior": null,
+    "senior_shadow": null,
+    "risk": null
+   },
+   {
+    "decision_id": "630a68115c0a8d74eeb7b7be",
+    "symbol": "USDJPY",
+    "t": 1795432519,
+    "decision": "NO_TRADE",
+    "reason": "both traders chose BUY, but not both at 65 or more (Trader 1 56, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded",
+    "consensus": {
+     "agreed": "BUY",
+     "desk_confidence": 0.55,
+     "direction": null,
+     "floor": 65,
+     "levels_from": null,
+     "more_confident": "trader1",
+     "outcome": "NO_TRADE",
+     "reason": "both traders chose BUY, but not both at 65 or more (Trader 1 56, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded",
+     "rule": "LOW_CONFIDENCE"
+    },
+    "models": {
+     "trader1": "nvidia/nemotron-3.5-super-vl:free",
+     "trader2": "particle-ai/particle-1:free"
+    },
+    "trader1": {
+     "confidence": 56,
+     "direction": "BUY",
+     "entry": 159.064,
+     "invalidation": 158.91,
+     "liquidity": "Untested demand order block at 158.91\u2013159.014 below price; EQH liquidity at 159.841 is overhead but distant; recent bearish sweeps of highs at 159.04 show sellers defending nearby.",
+     "market_structure": "H1 just printed a bullish CHoCH at 159.059 with HH/HL sequence; H4 is ranging/mixed but execution timeframe structure is bullish.",
+     "momentum": "Price is retesting the bullish CHoCH breakout inside a mitigated bullish FVG (159.045\u2013159.087), suggesting acceptance of higher levels on H1.",
+     "reason": "H1 shows a fresh bullish CHoCH at 159.059 with an untested demand order block at 158.91\u2013159.014 below, making the execution timeframe bullish despite H4 ranging. Price is retesting the breakout inside a mitigated bullish FVG, favoring continuation toward the 159.284 resistance level. A break below 158.91 invalidates the bullish order block and structure. Generic desk BUYs have lost, but this structured breakout with reward:risk above 1.3 differs from that losing pattern.",
+     "reversal_probability": 45,
+     "risk_reward": 1.43,
+     "stop_loss": 158.91,
+     "take_profit": 159.284,
+     "trend": "H1 UP (HH+HL); H4 RANGE (mixed swings); near-term bias favors longs on the execution timeframe."
+    },
+    "trader2": {
+     "confidence": 55,
+     "direction": "BUY",
+     "entry": 159.064,
+     "invalidation": 158.87,
+     "liquidity": "Untested H1 demand order block at 158.91-159.014 sits just below price as support; nearby supply at 159.104-159.127 overhead is the first hurdle; EQH liquidity at 159.841 is distant.",
+     "market_structure": "H1 is UP (HH+HL) with a fresh bullish CHoCH at 159.059 two bars back; H4 is a range with mixed swings. M5/M15 show a short-term bearish pullback (M5 BOS at 159.067, M15 CHoCH at 159.087) into the H1 breakout zone.",
+     "momentum": "Short-term momentum is down (M5 LH+LL, M15 CHoCH), but this is a corrective pullback within an H1 uptrend, not a trend reversal.",
+     "reason": "The H1 structure is bullish with a fresh CHoCH at 159.059 and an untested demand order block at 158.91-159.014 just below, so the current dip is a pullback into support rather than a reversal. The M5/M15 bearish signals are the corrective leg that offers the entry, and the stop below the H1 swing low (158.887) keeps it beyond the structure that would prove the long wrong. The desk's generic BUY loss was tied to October's falling majors, a cause absent now that H1 is trending up, and this instrument's own BUY record is positive. Target 159.44 (open bearish FVG / H4 resistance) gives reward:risk",
+     "reversal_probability": 40,
+     "risk_reward": 1.94,
+     "stop_loss": 158.87,
+     "take_profit": 159.44,
+     "trend": "H1 UP (HH+HL); H4 RANGE (mixed). Execution-timeframe bias is long."
+    },
+    "verifier": null,
+    "chart": {
+     "annotate_version": "chart-annotate-1.0.0",
+     "as_of": 1795432519,
+     "bytes": 30608,
+     "execution_timeframe": "H1",
+     "height": 1000,
+     "higher_timeframe": "H4",
+     "last_bar_available": 1795431600,
+     "last_bar_open": 1795428000,
+     "sha256": "5aa0bca03764328f2427b24f8333f52730c8901dec4f5b9dae873e783795d487",
+     "version": "chart-render-1.0.0",
+     "width": 1280
+    },
+    "calls": [
+     {
+      "attempts": 1,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 67424.1,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "ok": true,
+      "provider_id": "gen-1795432523-EWdm3YqxHjHCTqc2YNxE",
+      "request_id": "edd1328c6ce841f6897facac5bbb3603",
+      "role": "vision",
+      "status": "OK",
+      "tokens": 23767,
+      "tried": []
+     },
+     {
+      "attempts": 2,
+      "cached": false,
+      "cost": 0.0,
+      "error": null,
+      "latency_ms": 27131.6,
+      "model": "particle-ai/particle-1:free",
+      "ok": true,
+      "provider_id": "gen-1795432592-R0e9krDacYyyHAkNJXT8",
+      "request_id": "e093f504bd874095be0e4693449660d0",
+      "role": "judge",
+      "status": "OK",
+      "tokens": 21137,
+      "tried": []
+     }
+    ],
+    "trader1_input": "image",
+    "version": "dual-ai-1.21.0",
+    "time_machine": {
+     "based_on": "712 H1 bars, 2026-10-09 to 2026-11-23, each hour drawn from the same hour of day plus or minus 1; a simulation of the recent past, not a forecast",
+     "entry": 159.064,
+     "fan": {
+      "columns": [
+       "hour",
+       "p05",
+       "p25",
+       "p50",
+       "p75",
+       "p95"
+      ],
+      "rows": [
+       [
+        2,
+        158.832397,
+        159.011522,
+        159.109286,
+        159.1948,
+        159.397866
+       ],
+       [
+        4,
+        158.726326,
+        158.999441,
+        159.1711,
+        159.34234,
+        159.611574
+       ],
+       [
+        6,
+        158.668668,
+        158.983405,
+        159.186812,
+        159.391525,
+        159.698362
+       ],
+       [
+        8,
+        158.585419,
+        158.949435,
+        159.177294,
+        159.399966,
+        159.706636
+       ],
+       [
+        10,
+        158.522061,
+        158.904267,
+        159.149623,
+        159.383563,
+        159.716082
+       ],
+       [
+        12,
+        158.480139,
+        158.868294,
+        159.123445,
+        159.365265,
+        159.709966
+       ],
+       [
+        14,
+        158.373091,
+        158.813411,
+        159.103509,
+        159.37457,
+        159.748565
+       ],
+       [
+        16,
+        158.238722,
+        158.73673,
+        159.052806,
+        159.349864,
+        159.76418
+       ],
+       [
+        18,
+        158.179443,
+        158.694078,
+        159.026852,
+        159.342831,
+        159.768633
+       ],
+       [
+        20,
+        158.158734,
+        158.68716,
+        159.037125,
+        159.372505,
+        159.835726
+       ],
+       [
+        22,
+        158.12082,
+        158.678855,
+        159.041727,
+        159.402066,
+        159.902334
+       ],
+       [
+        24,
+        158.119181,
+        158.703723,
+        159.083507,
+        159.457794,
+        159.985203
+       ],
+       [
+        26,
+        158.119666,
+        158.730415,
+        159.130165,
+        159.509151,
+        160.073315
+       ],
+       [
+        28,
+        158.139724,
+        158.772003,
+        159.198225,
+        159.595229,
+        160.189287
+       ],
+       [
+        30,
+        158.115048,
+        158.773722,
+        159.205242,
+        159.616403,
+        160.230986
+       ],
+       [
+        32,
+        158.073559,
+        158.746682,
+        159.183961,
+        159.61266,
+        160.237952
+       ],
+       [
+        34,
+        158.036382,
+        158.70636,
+        159.147347,
+        159.591449,
+        160.227278
+       ],
+       [
+        36,
+        157.981133,
+        158.675025,
+        159.128609,
+        159.570756,
+        160.214361
+       ],
+       [
+        38,
+        157.899827,
+        158.634059,
+        159.111341,
+        159.560061,
+        160.236062
+       ],
+       [
+        40,
+        157.79915,
+        158.56082,
+        159.06177,
+        159.528421,
+        160.206043
+       ],
+       [
+        42,
+        157.749337,
+        158.531557,
+        159.038967,
+        159.505149,
+        160.20733
+       ],
+       [
+        44,
+        157.753677,
+        158.537024,
+        159.051967,
+        159.530314,
+        160.247727
+       ],
+       [
+        46,
+        157.735312,
+        158.541002,
+        159.053417,
+        159.543811,
+        160.310842
+       ],
+       [
+        48,
+        157.74311,
+        158.563996,
+        159.098287,
+        159.604316,
+        160.373972
+       ]
+      ]
+     },
+     "hours": 48,
+     "mean_r": 0.3117,
+     "mean_r_after_costs": 0.1883,
+     "neither": 0.0,
+     "replays": 10000,
+     "reward_risk": 1.429,
+     "seed": 1661626385,
+     "side": "BUY",
+     "stop": 158.91,
+     "stop_first": 0.4599,
+     "target": 159.284,
+     "target_first": 0.5401,
+     "target_share_of_decided": 0.5401,
+     "verdict": "leans toward the target",
+     "version": "time-machine-1.0.0",
+     "win_rate_needed": 0.4626
+    },
+    "senior": null,
+    "senior_shadow": null,
+    "risk": null
+   },
    {
     "decision_id": "e22fbe36f379538014e98c12",
     "symbol": "GBPUSD",
@@ -5723,422 +6581,6 @@
     "senior": null,
     "senior_shadow": null,
     "risk": null
-   },
-   {
-    "decision_id": "5aa20cdabd848644817b80ec",
-    "symbol": "AUDUSD",
-    "t": 1795426509,
-    "decision": "NO_TRADE",
-    "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded",
-    "consensus": {
-     "agreed": "SELL",
-     "desk_confidence": 0.55,
-     "direction": null,
-     "floor": 65,
-     "levels_from": null,
-     "more_confident": "trader1",
-     "outcome": "NO_TRADE",
-     "reason": "both traders chose SELL, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded",
-     "rule": "LOW_CONFIDENCE"
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "recursive/flint-v1.0:free"
-    },
-    "trader1": {
-     "confidence": 55,
-     "direction": "SELL",
-     "entry": 0.66565,
-     "invalidation": 0.66735,
-     "liquidity": "Untested supply order block 0.66653-0.66720 above price; recent highs swept at 0.66534",
-     "market_structure": "H4 downtrend (LH+LL); H1 range/mixed with recent bearish CHoCH at 0.66582 and sweep of highs at 0.66534 one bar ago",
-     "momentum": "Bearish displacement 16 bars ago; price trading below the bearish CHoCH level",
-     "reason": "H4 downtrend with an untested supply order block above and recent bearish sweep favor SELL. Desk memory shows AUDUSD SELL on H1 has positive expectancy (+0.166 R, 52.1% win rate) while BUY carries a strong negative expectancy (-0.332 R). A stop above the recent LH at 0.66729 invalidates the short; target is today's low at 0.66353.",
-     "reversal_probability": 45,
-     "risk_reward": 1.25,
-     "stop_loss": 0.66735,
-     "take_profit": 0.66353,
-     "trend": "H4 DOWN; H1 RANGE (MIXED SWINGS)"
-    },
-    "trader2": {
-     "confidence": 55,
-     "direction": "SELL",
-     "entry": 0.66565,
-     "invalidation": 0.66735,
-     "liquidity": "Untested supply above and prior highs; stop beyond invalidation",
-     "market_structure": "H4 downtrend with H1 range/mixed; bearish CHoCH and sweep retain seller pressure",
-     "momentum": "Bearish displacement and price below bearish CHoCH, but short-term M5/M15 bullish overlap",
-     "reason": "The H4 downtrend and bearish CHoCH/sweep decide the sell, while the desk H1 SELL edge supports it; mixed H1 caps confidence. The stop is beyond the supply/invalidation zone and the target is in the low-0.663 area. Short-term bullish overlap keeps reversal risk alive, hence only moderate confidence.",
-     "reversal_probability": 45,
-     "risk_reward": 1.23,
-     "stop_loss": 0.66745,
-     "take_profit": 0.66344,
-     "trend": "H4 DOWN; H1 RANGE (MIXED SWINGS)"
-    },
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1795426509,
-     "bytes": 29687,
-     "execution_timeframe": "H1",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1795424400,
-     "last_bar_open": 1795420800,
-     "sha256": "1151d7e6d43e82ea2b20ba58c5aa1b7e4c838f686888edd268a595c2249dfb39",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 47190.5,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1795426513-bVRpK3nHIS2s9hBesDc6",
-      "request_id": "1128ec29149a471db87981b5df46a2bc",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 21137,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 170752.8,
-      "model": "recursive/flint-v1.0:free",
-      "ok": true,
-      "provider_id": "gen-1795426565-iLNSE9SzscVrxSXIHv6t",
-      "request_id": "2e28cd9d0c0a4c07b4c8ebde6c8c7fe4",
-      "role": "judge",
-      "status": "OK",
-      "tokens": 27266,
-      "tried": [
-       {
-        "model": "particle-ai/particle-1:free",
-        "status": "RATE_LIMITED"
-       }
-      ]
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.21.0",
-    "time_machine": {
-     "based_on": "712 H1 bars, 2026-10-12 to 2026-11-23, each hour drawn from the same hour of day plus or minus 1; a simulation of the recent past, not a forecast",
-     "entry": 0.66565,
-     "fan": {
-      "columns": [
-       "hour",
-       "p05",
-       "p25",
-       "p50",
-       "p75",
-       "p95"
-      ],
-      "rows": [
-       [
-        2,
-        0.664294,
-        0.665115,
-        0.66565,
-        0.666165,
-        0.666885
-       ],
-       [
-        4,
-        0.663287,
-        0.664673,
-        0.665461,
-        0.666199,
-        0.667176
-       ],
-       [
-        6,
-        0.661987,
-        0.664095,
-        0.665272,
-        0.666334,
-        0.667797
-       ],
-       [
-        8,
-        0.661133,
-        0.663468,
-        0.664859,
-        0.666131,
-        0.66798
-       ],
-       [
-        10,
-        0.660858,
-        0.663247,
-        0.664763,
-        0.666106,
-        0.668059
-       ],
-       [
-        12,
-        0.660701,
-        0.663146,
-        0.664663,
-        0.666093,
-        0.668079
-       ],
-       [
-        14,
-        0.660556,
-        0.663038,
-        0.664552,
-        0.666051,
-        0.668068
-       ],
-       [
-        16,
-        0.660297,
-        0.662927,
-        0.664557,
-        0.666118,
-        0.668343
-       ],
-       [
-        18,
-        0.659998,
-        0.66271,
-        0.664512,
-        0.666196,
-        0.668554
-       ],
-       [
-        20,
-        0.659707,
-        0.662516,
-        0.66438,
-        0.666132,
-        0.668622
-       ],
-       [
-        22,
-        0.659579,
-        0.662456,
-        0.664341,
-        0.666209,
-        0.668769
-       ],
-       [
-        24,
-        0.659428,
-        0.662454,
-        0.664449,
-        0.666393,
-        0.669071
-       ],
-       [
-        26,
-        0.659255,
-        0.662359,
-        0.664423,
-        0.6664,
-        0.669162
-       ],
-       [
-        28,
-        0.658786,
-        0.661991,
-        0.664164,
-        0.66623,
-        0.669195
-       ],
-       [
-        30,
-        0.658099,
-        0.661568,
-        0.663868,
-        0.666163,
-        0.66927
-       ],
-       [
-        32,
-        0.657491,
-        0.661049,
-        0.663491,
-        0.665861,
-        0.669104
-       ],
-       [
-        34,
-        0.657259,
-        0.660884,
-        0.663372,
-        0.665829,
-        0.669131
-       ],
-       [
-        36,
-        0.657143,
-        0.660786,
-        0.663298,
-        0.665795,
-        0.66911
-       ],
-       [
-        38,
-        0.657026,
-        0.660708,
-        0.663238,
-        0.665738,
-        0.669113
-       ],
-       [
-        40,
-        0.656838,
-        0.660635,
-        0.66325,
-        0.665793,
-        0.669254
-       ],
-       [
-        42,
-        0.656646,
-        0.660499,
-        0.66318,
-        0.665785,
-        0.669293
-       ],
-       [
-        44,
-        0.656345,
-        0.660314,
-        0.663039,
-        0.665654,
-        0.669333
-       ],
-       [
-        46,
-        0.656259,
-        0.660297,
-        0.663024,
-        0.665724,
-        0.669431
-       ],
-       [
-        48,
-        0.656257,
-        0.660287,
-        0.663184,
-        0.665828,
-        0.669737
-       ]
-      ]
-     },
-     "hours": 48,
-     "mean_r": 0.3857,
-     "mean_r_after_costs": 0.274,
-     "neither": 0.0061,
-     "replays": 10000,
-     "reward_risk": 1.247,
-     "seed": 1520569562,
-     "side": "SELL",
-     "stop": 0.66735,
-     "stop_first": 0.3795,
-     "target": 0.66353,
-     "target_first": 0.6144,
-     "target_share_of_decided": 0.6182,
-     "verdict": "leans toward the target",
-     "version": "time-machine-1.0.0",
-     "win_rate_needed": 0.4948
-    },
-    "senior": null,
-    "senior_shadow": null,
-    "risk": null
-   },
-   {
-    "decision_id": "39c23a4830f1eb83d4879cf3",
-    "symbol": "USDJPY",
-    "t": 1795426219,
-    "decision": "NO_TRADE",
-    "reason": "Trader 2's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone",
-    "consensus": {
-     "outcome": "NO_TRADE",
-     "reason": "Trader 2's model gave no usable answer (INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)): nobody stands in for it, and there is no decision on one trader alone",
-     "rule": "TRADER2_UNAVAILABLE"
-    },
-    "models": {
-     "trader1": "nvidia/nemotron-3.5-super-vl:free",
-     "trader2": "recursive/flint-v1.0:free"
-    },
-    "trader1": {
-     "confidence": 55,
-     "direction": "BUY",
-     "entry": 159.174,
-     "invalidation": 158.9,
-     "liquidity": "EQH at 159.841 and 160.063 above, EQL at 157.866 below; bullish sweep of lows at 158.706 supports buyers",
-     "market_structure": "H1 bullish CHoCH at 159.059 with HH+HL uptrend; untested demand order block at 158.91-159.014; H4 remains ranged with mixed swings",
-     "momentum": "Bullish displacement on H1 after CHoCH; price near top of short-term range but structure just flipped bullish",
-     "reason": "Fresh bullish CHoCH at 159.059 with an untested demand order block at 158.91-159.014 shifts H1 structure to bullish, supported by a bullish sweep of lows at 158.706. Price sits inside the entry zone above the breakout level, though H4 remains ranged and desk memory shows BUYs have historically underperformed. This setup differs because the structure shift is immediate and the demand OB is untested, making a retracement to test it likely before continuation. A break below 158.90 invalidates the bullish thesis; target the prior-day high/EQH at 159.841.",
-     "reversal_probability": 40,
-     "risk_reward": 2.43,
-     "stop_loss": 158.9,
-     "take_profit": 159.841,
-     "trend": "H1 UP (HH+HL), H4 RANGE (mixed swings)"
-    },
-    "trader2": null,
-    "verifier": null,
-    "chart": {
-     "annotate_version": "chart-annotate-1.0.0",
-     "as_of": 1795426219,
-     "bytes": 30827,
-     "execution_timeframe": "H1",
-     "height": 1000,
-     "higher_timeframe": "H4",
-     "last_bar_available": 1795424400,
-     "last_bar_open": 1795420800,
-     "sha256": "78fa5176b358012257c52d493a13f88606e387d72a05ff734fce1de25cb04add",
-     "version": "chart-render-1.0.0",
-     "width": 1280
-    },
-    "calls": [
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 56404.6,
-      "model": "nvidia/nemotron-3.5-super-vl:free",
-      "ok": true,
-      "provider_id": "gen-1795426222-MwAWF2VcbFbddz4u3bqW",
-      "request_id": "c2f3360ad87142279f7b61662f6636d3",
-      "role": "vision",
-      "status": "OK",
-      "tokens": 23778,
-      "tried": []
-     },
-     {
-      "attempts": 1,
-      "cached": false,
-      "cost": 0.0,
-      "error": null,
-      "latency_ms": 230861.9,
-      "model": "recursive/flint-v1.0:free",
-      "ok": false,
-      "provider_id": "gen-1795426279-mGZ7CROIzaywkFCBwCou",
-      "request_id": "10c8b20f50ed485da7260ab6097b09b1",
-      "role": "judge",
-      "status": "INVALID: the reply was cut at max_tokens before its JSON (a reasoning model spent the budget thinking)",
-      "tokens": 31790,
-      "tried": []
-     }
-    ],
-    "trader1_input": "image",
-    "version": "dual-ai-1.21.0",
-    "time_machine": null,
-    "senior": null,
-    "senior_shadow": null,
-    "risk": null
    }
   ],
   "open_positions": [],
@@ -6834,7 +7276,7 @@
     "AGREE": 485,
     "DEBATE": 5,
     "DISAGREE": 370,
-    "LOW_CONFIDENCE": 1160,
+    "LOW_CONFIDENCE": 1162,
     "MARKET_UNAVAILABLE": 887,
     "NOT_ASKED": 4455,
     "SENIOR_VETO": 10,
@@ -6849,7 +7291,7 @@
     "note": "from dual-ai 1.20.0 to 1.21.0 (2026-11-04 and 05) the senior judged each agreement below the floor in shadow (never traded); counts only. It approved none, and CONF-2 was abandoned on that count before any outcome was read"
    },
    "agreement_rate": 0.24,
-   "decisions_with_both_traders": 2020,
+   "decisions_with_both_traders": 2022,
    "unavailable": 5723
   },
   "recent_trades": [
@@ -7577,8 +8019,8 @@
   ]
  },
  "health": {
-  "last_cycle": 1795431615,
+  "last_cycle": 1795432518,
   "last_cycle_error": null,
-  "cycles": 19
+  "cycles": 20
  }
 }
