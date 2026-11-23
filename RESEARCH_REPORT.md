@@ -2,32 +2,27 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 3 فرضية جديدة انسجلت، 3 انحكمت (1 نجحت)، و6 فحص قبل البناء رفض 10 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و5 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-22 21:51 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-23 15:26 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-22, UTC)
+## Today (2026-11-23, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
-- **KRP-1**: KRP-1: the Korean coin premium and the global price, dev stage. A coin whose price in bitcoin on Upbit stands at least theta above its price in bitcoin on Binance at the 00:00 UTC close, after 30 days with the median gap below theta/2, bought on Binance spot an hour later against a short of bitcoin and closed 24 hours after that, earns a positive net return after 0.6% a round trip, averaged over days, more than the same coin on ordinary days and more than Korean discounts of the same size. (`research/preregistrations/KRP-1.md`, 2 tests counted)
-- **SCX-1**: SCX-1: stablecoins while their primary market is shut, dev stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 2 tests counted)
-- **SCX-1-V**: SCX-1-V: stablecoins while their primary market is shut, validation stage. A stablecoin pair standing at least theta from par at 22:00 UTC on Sunday, swapped into its cheap side and back at 21:00 UTC on Monday, earns a positive net return after 1 bp a fill, averaged over weeks, more than the same pair at random hours with the same deviation and more than the same rule from Wednesday to Thursday. (`research/preregistrations/SCX-1.md`, 1 test counted)
+- none
 
 **Verdicts recorded** (each judged once):
 
-- **SCX-1: PASSED** (t 3.021214961382649). Evidence: `research/knowledge/SCX-1.json`; matches its verdict: yes
-- **SCX-1-V: FAILED** (t -0.2524623549484536). Evidence: `research/knowledge/SCX-1-V.json`; matches its verdict: yes
-- **KRP-1: FAILED** (t -0.8697910228458722). Evidence: `research/knowledge/KRP-1.json`; matches its verdict: yes
+- none
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-22, 02:20 UTC (the original edge hunt, round 2: `docs/ORIGINAL_EDGE_HUNT_2.md`), and dropped: AIB-1: aggregate insider buying and the US 500; MGN-1: exchange margin hikes as forced deleveraging; BWT-1: Brent against WTI under the Cushing constraint; RBP-1: the rebalancing return; ANC-1: the 52-week-high anchor in the index.
-- Checked on 2026-11-22, 04:55 UTC (the edge hunt), and dropped before building: QTG-1: buy a coin when Binance removes its Seed or Monitoring Tag.
-- Checked on 2026-11-22, 07:50 UTC (the edge hunt), and dropped before building: MSTR-1: long bitcoin in the weeks after Strategy announces a purchase.
-- Checked on 2026-11-22, 10:54 UTC (the edge hunt), and dropped before building: LPB-1: BNB around Binance's Launchpool announcements, the dated demand of users who lock BNB to farm.
-- Checked on 2026-11-22, 13:48 UTC (the edge hunt), and dropped before building: UWD-1: record Upbit's investment-warning flags forward, buy the coin on Binance after a designation or its lifting.
-- Checked on 2026-11-22, 19:49 UTC (the edge hunt), and dropped before building: SGC-1: the HK50 index CFD while Southbound Stock Connect is shut for mainland holidays (the largest net buyer absent).
+- Checked on 2026-11-23, 01:49 UTC (the edge hunt), and dropped before building: HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power.
+- Checked on 2026-11-23, 04:50 UTC (the edge hunt), and dropped before building: LXR-1: a bitcoin CFD in the day's direction into the US close, when the 2x bitcoin ETFs must rebalance.
+- Checked on 2026-11-23, 07:49 UTC (the edge hunt), and dropped before building: ESQ-1: ether after a large validator exit queue.
+- Checked on 2026-11-23, 10:49 UTC (the edge hunt), and dropped before building: XST-1: tokenized stocks bought at a weekend discount and sold at Monday's open.
+- Checked on 2026-11-23, 13:50 UTC (the edge hunt), and dropped before building: TGA-1: the index after the Treasury's cash balance drains (reserves added) or rebuilds (reserves drained).
 
 ## Cumulative (since the registry began)
 
@@ -35,7 +30,7 @@ Generated 2026-11-22 21:51 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 105 in the tables of 31 dated checks, on 9 days |
+| Ideas dropped before building (no test spent) | 111 in the tables of 37 dated checks, on 10 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
@@ -44,16 +39,16 @@ Generated 2026-11-22 21:51 UTC from the committed record · research-report-1.1.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-22 12:53 UTC, OK
-- Last successful idea step: 2026-11-22 12:53 UTC
+- Last cycle: 2026-11-23 15:26 UTC, OK
+- Last successful idea step: 2026-11-23 15:26 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 39 ideas: DROPPED_POWER 10, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 24
+- All time: 42 ideas: DROPPED_POWER 11, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 26
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: Tax-Loss Harvesting Seasonality in Long-Only Equity Index CFDs (us-equity-etf, position). The mechanism relies on the repurchase of constituents after the wash-sale window, but the hypothesis trades the index CFD itself. The turnover pressure of individual constituents in an ETF/index does not translate into a predictable seasonal drift for the index CFD at the scale required to overcome costs, especially since the repurchase is a distributed, non-directional flow relative to the index's overall momentum. (critic: google/gemma-4-26b-a4b-it:free) Class: NO_MECHANISM.
-- **REJECTED_BY_CRITIC**: Basel Endgame Dealer Hedging Demand in Equity Index Futures (equity-index-forward, swing). Dealer net gamma and specific dealer hedging positions resulting from Basel Endgame regulatory constraints are not publicly available data; they are proprietary bank internal metrics. (critic: google/gemma-4-26b-a4b-it:free) Class: INSUFFICIENT_DATA.
-- **REJECTED_BY_CRITIC**: CBDC Pilot Settlement Flows in Swap-Free FX (new:cbdc-pilot-fx, intraday). The universe 'new:cbdc-pilot-fx' is not a recognized market in the provided list, and the specific timing and flow impact of central bank digital currency pilot announcements are not available in a structured, tradable format. (critic: google/gemma-4-26b-a4b-it:free) Class: INSUFFICIENT_DATA.
+- **REJECTED_BY_CRITIC**: Central bank gold purchases as a forced flow signal for precious metals (metals-futures-daily, position). The signal is degenerate: central banks have been net buyers in essentially every month since 2010-2011, so 'above the historical median' (a median set in the 1990s-2000s selling era) is almost always true and the rule collapses into a static long precious-metals position, not a forced-flow signal. The spillover leg has no channel either: monetary authorities do not hold or buy platinum and palladium, and there is no substitution or rebalancing mechanism that would transmit their gold demand into those two industrial metals. What remains is a directional bet on gold dressed as a flow rule. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
+- **REJECTED_BY_CRITIC**: Post-gap continuation bias in emerging market FX (em-fx-daily, swing). The stated mechanism does not fix the sign of the trade: it says traders 'overreact to the gap (continuation bias) or underreact', which are opposite predictions (overreaction implies reversal, underreaction implies continuation). A mechanism that can justify either direction justifies neither, so the rule's continuation leg is a coin flip with a stop attached. Nothing in the text identifies why EM FX gaps should be under-reacted to rather than reversed, and the family's own prior drop was for power, not for a settled sign. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
+- **DROPPED_POWER**: Cross-sectional short-term reversal in emerging market FX (em-fx-daily, swing). even at its claimed strength it expects t 2.828 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 9 years of fresh data at the claimed strength, against the 8 it has; or the same mechanism on about 2 independent instruments over those 8 years, tested as one book Class: INSUFFICIENT_POWER.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
