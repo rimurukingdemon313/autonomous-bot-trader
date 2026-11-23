@@ -4,13 +4,11 @@
 
 **بالعربي:** هذا تقرير المختبر الذاتي: بحث فقط، ما بيه تداول ولا وعد بربح. لحد هسه المختبر سوّى 3 فحص اكتشاف وصنّف 660 قاعدة، وكلها محفوظة ويا سبب تصنيفها. القواعد اللي وصلت اختبار التحقق المستقل: 0، ونجح منها 0. بالطابور هسه 0 مهمة. سجل البحث سليم.
 
-Updated 2026-11-23 01:38 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 44
+Updated 2026-11-23 13:38 UTC · lab-cycle-1.1.0 · dlab-1.2.0 · cycles so far: 45
 
 ## This cycle
 
-| Task | Result |
-|---|---|
-| `sources:2026-W48` | **DONE** · {"new": 51, "query": "transfer entropy information flow asset returns predictability out-of-sample", "by_origin": {"arxiv": 27, "openalex": 24}} |
+No task ran: nothing was due, or nothing could run yet (see the queue).
 
 **Why nothing is queued.** The lab does not invent work. As things stand:
 
@@ -150,11 +148,11 @@ None.
 
 | Cycle | Seconds | Tasks run | Failed |
 |---|---|---|---|
-| 2026-11-21T21:05 | 0.8 | 0 | 0 |
 | 2026-11-22T01:13 | 0.9 | 0 | 0 |
 | 2026-11-22T11:58 | 0.7 | 0 | 0 |
 | 2026-11-22T17:47 | 1.0 | 0 | 0 |
 | 2026-11-22T21:14 | 0.6 | 0 | 0 |
 | 2026-11-23T01:38 | 32.1 | 1 | 0 |
+| 2026-11-23T13:38 | 1.0 | 0 | 0 |
 
 No model call and no paid service is used by a cycle. Its data come from public archives.
