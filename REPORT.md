@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-23 18:24 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-23 17:24 UTC · decision system `dual_ai`
+Updated 2026-11-23 18:39 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-23 17:24 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,242.50، الربح أو الخسارة $-757.50، صفقات مسكّرة 4 ($-757.50)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,827.51.
-- آخر قرار: EURGBP لا صفقة (TRADER2_UNAVAILABLE).
+- آخر قرار: GBPJPY لا صفقة (TRADER2_UNAVAILABLE).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 10، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف $8.50 من $95.00.
 - آلة الزمن لآخر اتفاق (NZDUSD، 10000 إعادة): الهدف أول 22%، الستوب أول 22%، ولا واحد 56%: قريب من التعادل.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
@@ -72,8 +72,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 01:00 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (8134 so far)
+## Latest decisions, NO TRADE included (8136 so far)
 
+- 11-23 18:31 GBPJPY NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model particle-ai/particle-1:free is resting (rate_limited) for 243 s more; no other model stands in for it): nobody stands in for it, 
+- 11-23 18:30 EURJPY NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error particle-ai/particle-1:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider
 - 11-23 18:19 EURGBP NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error inclusionai/ling-3.2-flash:free is temporarily rate-limited upstream. Please retry shortly, or add your own prov
 - 11-23 18:15 NZDUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 61, Trader 2 60): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-23 18:05 USDCHF NO_TRADE: Trader 2's model gave no usable answer (HTTP_400: HTTP 400: Provider returned error {"code":400,"msg":"bad request","request_id":"a3bb342f-dac8-4622-b7fc-eedbdc1497c1"}): nobody stands in for it, and 
@@ -84,8 +86,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-23 17:30 EURUSD NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provi
 - 11-23 17:18 EURGBP NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 45, Trader 2 48): no trade unless both are that sure; followed forward in shadow, not traded
 - 11-23 17:15 NZDUSD NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 58, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-23 17:04 USDCHF NO_TRADE: both traders chose SELL, but not both at 65 or more (Trader 1 56, Trader 2 65): no trade unless both are that sure; followed forward in shadow, not traded
-- 11-23 17:00 USDCAD NO_TRADE: both traders chose BUY, but not both at 65 or more (Trader 1 55, Trader 2 55): no trade unless both are that sure; followed forward in shadow, not traded
 
 ## Open paper positions
 
@@ -119,7 +119,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `particle-ai/particle-1:free` · debate `particle-ai/particle-1:free` · calls today 18/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `particle-ai/particle-1:free` · debate `recursive/flint-v1.0:free` · calls today 24/900
 
 Paid trial `senior-2026-11-04` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $8.50 of $95.00, today $0.00 of $7.50 (the key's own reading)
 
@@ -139,6 +139,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-23 18:31 | GBPJPY | SELL 58 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
+| 11-23 18:30 | EURJPY | SELL 50 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 18:19 | EURGBP | SELL 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 18:15 | NZDUSD | SELL 61 | SELL 60 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 22% / S 22% / - 56%: close to break-even |
 | 11-23 18:05 | USDCHF | SELL 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
@@ -149,8 +151,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-23 17:30 | EURUSD | SELL 58 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-23 17:18 | EURGBP | SELL 45 | SELL 48 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 19% / S 23% / - 58%: close to break-even |
 | 11-23 17:15 | NZDUSD | SELL 58 | SELL 65 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 46% / S 54% / - 0%: leans toward the stop |
-| 11-23 17:04 | USDCHF | SELL 56 | SELL 65 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 30% / S 66% / - 5%: close to break-even |
-| 11-23 17:00 | USDCAD | BUY 55 | BUY 55 | - | -  | LOW_CONFIDENCE | NO_TRADE | - | T 37% / S 63% / - 0%: leans toward the stop |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
