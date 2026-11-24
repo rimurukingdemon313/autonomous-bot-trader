@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-24 08:00 UTC**, run 1134, version `radar-1.0.0`. State from: cache. Quotes this hour: 2371.
+Updated **2026-11-24 09:00 UTC**, run 1135, version `radar-1.0.0`. State from: cache. Quotes this hour: 2371.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,33 +17,33 @@ Updated **2026-11-24 08:00 UTC**, run 1134, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 47.5
+- days: 47.54
 - run_coverage: 0.9939
-- closed_positions: 264
-- open_positions: 2
-- utilisation: 0.2551
+- closed_positions: 265
+- open_positions: 1
+- utilisation: 0.255
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.6335
-- book_excess_pct: -2.7786
-- ann_excess_deployed_pct: -84.077
-- ann_excess_deployed_costs_x1.5_pct: -153.166
-- ann_excess_deployed_costs_x2_pct: -222.255
+- book_pnl_pct: -2.638
+- book_excess_pct: -2.7747
+- ann_excess_deployed_pct: -83.901
+- ann_excess_deployed_costs_x1.5_pct: -152.942
+- ann_excess_deployed_costs_x2_pct: -221.983
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.2329
+- book_excess_without_best_coin_pct: -3.229
 - max_dd_pct: 2.6959
-- t_excess_daily: -4.18
+- t_excess_daily: -4.189
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| EVAA | mexc | gate | 2026-11-24 04:00 | 43.5% | 1.0 | 12.3 | 17.0 | **-3.7** |
-| SNXX | mexc | gate | 2026-11-24 05:00 | 50.3% | 0.7 | -9.5 | 17.0 | **-25.8** |
+| EVAA | mexc | gate | 2026-11-24 04:00 | 43.5% | 1.1 | 19.5 | 17.0 | **3.6** |
 
-## Closed positions (264)
+## Closed positions (265)
 
 | Coin | Short | Long | Days | Reason | Net bp |
 |---|---|---|---|---|---|
+| SNXX | mexc | gate | 0.2 | spread_decayed | -42.2 |
 | PIEVERSE | mexc | gate | 1.6 | spread_reversed | -30.4 |
 | ACE | hyperliquid | mexc | 0.4 | spread_reversed | 159.9 |
 | EVAA | mexc | gate | 0.9 | rebalance | -47.2 |
@@ -73,7 +73,6 @@ Updated **2026-11-24 08:00 UTC**, run 1134, version `radar-1.0.0`. State from: c
 | BLESS | mexc | gate | 2.3 | spread_decayed | -1.8 |
 | KORU | mexc | gate | 0.0 | spread_decayed | -32.2 |
 | KORU | mexc | gate | 0.0 | spread_decayed | -42.9 |
-| KORU | mexc | gate | 0.0 | spread_decayed | -26.3 |
 
 ## Top opportunities this hour (passing the entry rule)
 
