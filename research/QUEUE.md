@@ -549,6 +549,13 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | GSZ-1: bitcoin while seized or estate coins are being sold | Germany's 2024 sale, the largest, was about $100 million a day and its effect is disputed; since a March 2025 executive order the US keeps what it seizes; a transfer does not confirm a sale (search results); perhaps 10 to 20 episodes since 2019 ask about 9% each for t 3.0; bitcoin's daily history is read, and a forward stage would see a few small episodes a year |
 
+**Checked on 2026-11-24, 23:05 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| PED-1: the German and euro-area index CFDs the day before an ECB press conference | Published (a Quantpedia article; search results), of a family that failed here (FOMC-1A), and the Fed's drift has been found gone after 2015; the GER40's daily history is read, so a forward stage of eight meetings a year would need about 0.57% a meeting over five years for t 3.0 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
