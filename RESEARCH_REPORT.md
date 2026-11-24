@@ -2,11 +2,11 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و5 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 1 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-23 15:26 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-24 02:55 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-23, UTC)
+## Today (2026-11-24, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
@@ -18,11 +18,7 @@ Generated 2026-11-23 15:26 UTC from the committed record · research-report-1.1.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-23, 01:49 UTC (the edge hunt), and dropped before building: HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power.
-- Checked on 2026-11-23, 04:50 UTC (the edge hunt), and dropped before building: LXR-1: a bitcoin CFD in the day's direction into the US close, when the 2x bitcoin ETFs must rebalance.
-- Checked on 2026-11-23, 07:49 UTC (the edge hunt), and dropped before building: ESQ-1: ether after a large validator exit queue.
-- Checked on 2026-11-23, 10:49 UTC (the edge hunt), and dropped before building: XST-1: tokenized stocks bought at a weekend discount and sold at Monday's open.
-- Checked on 2026-11-23, 13:50 UTC (the edge hunt), and dropped before building: TGA-1: the index after the Treasury's cash balance drains (reserves added) or rebuilds (reserves drained).
+- Checked on 2026-11-24, 01:49 UTC (the edge hunt), and dropped before building: NGW-1: natural gas after the weekend's weather-model changes, while NYMEX is shut.
 
 ## Cumulative (since the registry began)
 
@@ -30,7 +26,7 @@ Generated 2026-11-23 15:26 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 111 in the tables of 37 dated checks, on 10 days |
+| Ideas dropped before building (no test spent) | 115 in the tables of 41 dated checks, on 11 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
@@ -39,16 +35,16 @@ Generated 2026-11-23 15:26 UTC from the committed record · research-report-1.1.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-23 15:26 UTC, OK
-- Last successful idea step: 2026-11-23 15:26 UTC
+- Last cycle: 2026-11-24 02:55 UTC, OK
+- Last successful idea step: 2026-11-24 02:55 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 42 ideas: DROPPED_POWER 11, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 26
+- All time: 45 ideas: DROPPED_POWER 13, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 27
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: Central bank gold purchases as a forced flow signal for precious metals (metals-futures-daily, position). The signal is degenerate: central banks have been net buyers in essentially every month since 2010-2011, so 'above the historical median' (a median set in the 1990s-2000s selling era) is almost always true and the rule collapses into a static long precious-metals position, not a forced-flow signal. The spillover leg has no channel either: monetary authorities do not hold or buy platinum and palladium, and there is no substitution or rebalancing mechanism that would transmit their gold demand into those two industrial metals. What remains is a directional bet on gold dressed as a flow rule. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
-- **REJECTED_BY_CRITIC**: Post-gap continuation bias in emerging market FX (em-fx-daily, swing). The stated mechanism does not fix the sign of the trade: it says traders 'overreact to the gap (continuation bias) or underreact', which are opposite predictions (overreaction implies reversal, underreaction implies continuation). A mechanism that can justify either direction justifies neither, so the rule's continuation leg is a coin flip with a stop attached. Nothing in the text identifies why EM FX gaps should be under-reacted to rather than reversed, and the family's own prior drop was for power, not for a settled sign. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
-- **DROPPED_POWER**: Cross-sectional short-term reversal in emerging market FX (em-fx-daily, swing). even at its claimed strength it expects t 2.828 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 9 years of fresh data at the claimed strength, against the 8 it has; or the same mechanism on about 2 independent instruments over those 8 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: Cross-sectional hedging-pressure risk premium in commodity futures (new:commodity-futures-daily, swing). even at its claimed strength it expects t 1.897 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 25 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 3 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: Sector rotation lead-lag among 30 US equity ETFs (us-etf-broad-daily, swing). even at its claimed strength it expects t 1.5 against a bar of 3.9398: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 62 years of fresh data at the claimed strength, against the 9 it has; or the same mechanism on about 7 independent instruments over those 9 years, tested as one book Class: INSUFFICIENT_POWER.
+- **REJECTED_BY_CRITIC**: Volatility-managed country equity ETFs (us-equity-etf, swing). This is a volatility sort of country equity ETFs, which the registry already closed on evidence, not on power: 'A volatility sort of thirty country ETFs' was dropped because DLAB-ETF-D1 had already ranked its 31 funds (eleven of them country funds) on past volatility and found nothing above about 1 bp a day, and LVOL-1 (the low-volatility anomaly through its ETFs) and VOLM-1 (volatility-managed exposure) were tested and judged. The 'lack of power' opening in the dropped entry does not apply, because that family was not dropped for power. The mechanism is also incoherent as stated: loss aversion causing high-volatility countries to underperform is a low-volatility-anomaly claim, not volatility management, and the rule (long the three lowest-vol country ETFs, short the three highest) is the same past-volatility ranking already measured. (critic: particle-ai/particle-1:free) Class: REPEATS_CLOSED_FAMILY.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
