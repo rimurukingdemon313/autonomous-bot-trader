@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-24 20:00 UTC**, run 1146, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
+Updated **2026-11-24 21:00 UTC**, run 1147, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-11-24 20:00 UTC**, run 1146, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 48.0
+- days: 48.04
 - run_coverage: 0.9939
 - closed_positions: 267
 - open_positions: 1
-- utilisation: 0.2537
+- utilisation: 0.2535
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.6725
-- book_excess_pct: -2.8097
-- ann_excess_deployed_pct: -84.581
-- ann_excess_deployed_costs_x1.5_pct: -153.826
-- ann_excess_deployed_costs_x2_pct: -223.07
+- book_pnl_pct: -2.6639
+- book_excess_pct: -2.8012
+- ann_excess_deployed_pct: -84.294
+- ann_excess_deployed_costs_x1.5_pct: -153.515
+- ann_excess_deployed_costs_x2_pct: -222.736
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.264
+- book_excess_without_best_coin_pct: -3.2555
 - max_dd_pct: 2.6959
-- t_excess_daily: -4.249
+- t_excess_daily: -4.235
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| EVAA | mexc | gate | 2026-11-24 04:00 | 43.5% | 4.3 | 14.9 | 17.0 | **2.2** |
+| EVAA | mexc | gate | 2026-11-24 04:00 | 43.5% | 4.3 | 32.1 | 17.0 | **19.4** |
 
 ## Closed positions (267)
 
