@@ -387,7 +387,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | AMM-1: concentrated-liquidity range exits | **Dropped on 2026-11-24** (below): the re-centring flow is a fraction of a percent of ether's daily volume, too small for t 3.0 or the costs |
 | ESQ-1: Ethereum's validator exit queue | **Dropped on 2026-11-23** (below): four or five large queues in all, and the wait spreads the selling over weeks |
 | PGL-1: South African load shedding and platinum | Its mechanism: no load shedding for over a year |
-| CHL-1: China's price limits and Hong Kong the next day | Data: daily limit hits per stock |
+| CHL-1: China's price limits and Hong Kong the next day | **Dropped on 2026-11-24** (below): a few dozen days at the index's level, a mechanism Stock Connect has weakened, and the Hang Seng's history is read |
 
 **Checked on 2026-11-22, 04:55 UTC (the edge hunt), and dropped before building.** No edge-hunt experiment was
 running or waiting for a stage (KRP-1 and SCX-1 FAILED; UDL-1, first in the backlog, waits for data), so the cycle
@@ -510,6 +510,15 @@ for a stage; UDL-1 waits for the owner's word, so the cycle took AMM-1 from roun
 | Idea | Why it was dropped |
 |---|---|
 | AMM-1: ether after Uniswap v3 positions leave their range and are re-centred | Ether's price is discovered on the centralized venues (search results); t 3.0 needs about 1.2% a trade on roughly 100 to 150 big up days since 2021 (0.9% with short sales), while a generous bound on the re-centring buy, about $90 million against roughly $20 billion traded a day (estimates), gives about 0.25%, mostly within the hours of the move; costs ask 0.6% |
+
+**Checked on 2026-11-24, 07:50 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word, so the cycle took CHL-1 from round 2's waiting list. It is in
+`research/inventions.jsonl`. Round 2's waiting list is now down to PGL-1 (its mechanism is absent) and PAXG-1 (the
+owner's decision on the gold seal); the next cycles invent.
+
+| Idea | Why it was dropped |
+|---|---|
+| CHL-1: the Hang Seng the day after mass limit hits on the mainland | Studies of the A, H and N shares find the limits' spillover insignificant among the large, active names, and Stock Connect alleviates it (search results); roughly 25 to 70 such days, depending on the start (estimates), ask about 1.2% to 1.6% a trade for t 3.0, while dual-listed names carry roughly a third of the index; the Hang Seng's daily history is read by the lab |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
