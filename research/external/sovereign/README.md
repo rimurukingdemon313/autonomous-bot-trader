@@ -29,3 +29,7 @@ hashes are the ones above.
 
 The replay on real daily bars is `scripts/sovereign_redteam.py`; its data come from `scripts/sovereign_data.py`
 (the `sovereign-data` branch).
+
+**What the replay showed (2026-11-24):** `docs/SOVEREIGN.md` and `research/results/SOVEREIGN-redteam.md`. Its last
+year and its printed weights reproduce; before 2025 its profits do not, on daily bars; over 2008-2026 its best rule
+earns 2.3% a year at t 1.46, and its own live layer would have stopped it in March 2008. No paper desk is built.
