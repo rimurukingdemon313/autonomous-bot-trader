@@ -528,6 +528,13 @@ for a stage, and nothing left on round 2's list that can be checked, so the cycl
 |---|---|
 | DAT-1: crypto treasury companies whose shares trade below their coins' value, as sellers of bitcoin and ether | The sales reported in 2026 are tens of millions of dollars each, about $218 million by Strategy in the year, disclosed after they are done (search results); a $50 million sale against roughly $30 billion traded a day moves bitcoin about 0.1%, a fifth of the cost gate; the regime began in 2026, so only a forward stage of a few regime changes would be unseen; it would need short sales |
 
+**Checked on 2026-11-24, 13:51 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| GRL-1: energy CFDs in the commodity-index roll window (the Goldman roll) | The roll's effect lives in the calendar spread, and a study of the oil ETFs' rolls finds over 99% of its temporary impact reversed within ten minutes (search results); on a front-month CFD it is buried in the price's volatility (about 1.2% a window for t 3.0); the spread itself needs two expiring CFDs, a short sale and about 0.16% in fills, against at most the 0.3% the ETFs paid before 2011 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
