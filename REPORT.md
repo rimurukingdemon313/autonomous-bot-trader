@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-24 00:00 UTC**, run 1126, version `radar-1.0.0`. State from: cache. Quotes this hour: 2370.
+Updated **2026-11-24 01:00 UTC**, run 1127, version `radar-1.0.0`. State from: cache. Quotes this hour: 2370.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-24 00:00 UTC**, run 1126, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 47.17
+- days: 47.21
 - run_coverage: 0.9938
 - closed_positions: 261
 - open_positions: 3
 - utilisation: 0.255
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.5885
-- book_excess_pct: -2.7408
-- ann_excess_deployed_pct: -83.599
-- ann_excess_deployed_costs_x1.5_pct: -152.723
-- ann_excess_deployed_costs_x2_pct: -221.847
+- book_pnl_pct: -2.5781
+- book_excess_pct: -2.7305
+- ann_excess_deployed_pct: -83.199
+- ann_excess_deployed_costs_x1.5_pct: -152.25
+- ann_excess_deployed_costs_x2_pct: -221.302
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.1951
+- book_excess_without_best_coin_pct: -3.1849
 - max_dd_pct: 2.6959
-- t_excess_daily: -4.083
+- t_excess_daily: -4.059
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| PIEVERSE | mexc | gate | 2026-11-22 17:00 | 31.8% | 6.7 | -4.2 | 17.0 | **-14.5** |
-| EVAA | mexc | gate | 2026-11-23 07:00 | 50.7% | 10.3 | -21.7 | 17.0 | **-28.4** |
-| ACE | hyperliquid | mexc | 2026-11-23 18:00 | 89.1% | 98.9 | 103.2 | 16.5 | **185.6** |
+| PIEVERSE | mexc | gate | 2026-11-22 17:00 | 31.8% | 7.1 | -5.9 | 17.0 | **-15.8** |
+| EVAA | mexc | gate | 2026-11-23 07:00 | 50.7% | 10.9 | -24.4 | 17.0 | **-30.6** |
+| ACE | hyperliquid | mexc | 2026-11-23 18:00 | 89.1% | 113.3 | 113.1 | 16.5 | **209.9** |
 
 ## Closed positions (261)
 
@@ -80,6 +80,7 @@ Updated **2026-11-24 00:00 UTC**, run 1126, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 45.5% | 51.9% |
+| EVAA | mexc | gate | 44.7% | 52.3% |
+| PIEVERSE | mexc | gate | 27.8% | 30.7% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
