@@ -520,6 +520,14 @@ owner's decision on the gold seal); the next cycles invent.
 |---|---|
 | CHL-1: the Hang Seng the day after mass limit hits on the mainland | Studies of the A, H and N shares find the limits' spillover insignificant among the large, active names, and Stock Connect alleviates it (search results); roughly 25 to 70 such days, depending on the start (estimates), ask about 1.2% to 1.6% a trade for t 3.0, while dual-listed names carry roughly a third of the index; the Hang Seng's daily history is read by the lab |
 
+**Checked on 2026-11-24, 10:54 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, and nothing left on round 2's list that can be checked, so the cycle invented one. It is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| DAT-1: crypto treasury companies whose shares trade below their coins' value, as sellers of bitcoin and ether | The sales reported in 2026 are tens of millions of dollars each, about $218 million by Strategy in the year, disclosed after they are done (search results); a $50 million sale against roughly $30 billion traded a day moves bitcoin about 0.1%, a fifth of the cost gate; the regime began in 2026, so only a forward stage of a few regime changes would be unseen; it would need short sales |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
