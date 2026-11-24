@@ -384,7 +384,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | PPS-1: platinum against palladium | **Dropped on 2026-11-23** (below): four or five swings since 1990, and the ratio's mean moves after structural breaks |
 | PAXG-1: tokenized gold while the gold market is shut | The owner's decision: gold is sealed from 2017, forward months included, until the seal has an end date |
 | XST-1: tokenized stocks at the weekend | **Dropped on 2026-11-23** (below): weekend token prices already carry most of Monday's move, and the residual cannot pay a thin token's round trip |
-| AMM-1: concentrated-liquidity range exits | Data: an indexer or a node |
+| AMM-1: concentrated-liquidity range exits | **Dropped on 2026-11-24** (below): the re-centring flow is a fraction of a percent of ether's daily volume, too small for t 3.0 or the costs |
 | ESQ-1: Ethereum's validator exit queue | **Dropped on 2026-11-23** (below): four or five large queues in all, and the wait spreads the selling over weeks |
 | PGL-1: South African load shedding and platinum | Its mechanism: no load shedding for over a year |
 | CHL-1: China's price limits and Hong Kong the next day | Data: daily limit hits per stock |
@@ -502,6 +502,14 @@ for a stage; UDL-1 waits for the owner's word, so the cycle took NGW-1 from roun
 | Idea | Why it was dropped |
 |---|---|
 | NGW-1: natural gas after the weekend's weather-model changes, while NYMEX is shut | Known and priced at the open: the trade press describes the Monday gap after each weekend's GFS and European changes, and the reversals it mentions are anecdotes (search results); the gas-weighted degree days traded on are sold, not free; gas's daily history is read by the lab, so only a forward stage of about 50 weekends a year would be unseen |
+
+**Checked on 2026-11-24, 04:51 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; UDL-1 waits for the owner's word, so the cycle took AMM-1 from round 2's waiting list. It is in
+`research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| AMM-1: ether after Uniswap v3 positions leave their range and are re-centred | Ether's price is discovered on the centralized venues (search results); t 3.0 needs about 1.2% a trade on roughly 100 to 150 big up days since 2021 (0.9% with short sales), while a generous bound on the re-centring buy, about $90 million against roughly $20 billion traded a day (estimates), gives about 0.25%, mostly within the hours of the move; costs ask 0.6% |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
