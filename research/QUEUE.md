@@ -542,6 +542,13 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | BWS-1: the Brent-WTI spread outside the export arbitrage band | The spread is a long-memory process that reverts slowly, and exporters trade it in futures as their hedge (search results); about 70 ten-day episodes since 2016 ask about 0.6% each for t 3.0, against a few tenths of a percent (an estimate); it needs a short sale, and two oil CFDs cost about 0.2% a round trip, so the cost gate asks 0.6%. The data were unread: Brent here, WTI's daily rows from 2012 in the lab's panel |
 
+**Checked on 2026-11-24, 19:50 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| GSZ-1: bitcoin while seized or estate coins are being sold | Germany's 2024 sale, the largest, was about $100 million a day and its effect is disputed; since a March 2025 executive order the US keeps what it seizes; a transfer does not confirm a sale (search results); perhaps 10 to 20 episodes since 2019 ask about 9% each for t 3.0; bitcoin's daily history is read, and a forward stage would see a few small episodes a year |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
