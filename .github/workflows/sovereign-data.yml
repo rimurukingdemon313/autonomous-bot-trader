@@ -1,0 +1,48 @@
+# The daily bars of the owner's SOVEREIGN package (research/external/sovereign/, 2026-11-24), fetched on GitHub's
+# runner because the price hosts are not reachable from the research director's session (scripts/sovereign_data.py).
+# RESEARCH ONLY: no account, no key, no order, no model call, no paid service. It writes history/ to the
+# sovereign-data branch and nothing else; main is not touched.
+name: SOVEREIGN data (daily bars, research only)
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: sovereign-data
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Fetch the history (a failed fetch is retried)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            python scripts/sovereign_data.py --out fetched 2>&1 | tee data.log && break
+            echo "attempt $i failed"; sleep $((i * 30))
+          done
+          test -f fetched/history/manifest.json
+      - name: Publish to sovereign-data
+        run: |
+          git config user.name "sovereign-data"; git config user.email "sovereign-data@users.noreply.github.com"
+          if git fetch -q origin sovereign-data; then
+            git worktree add -q pub FETCH_HEAD
+          else
+            git worktree add -q --detach pub
+            (cd pub && git checkout -q --orphan sovereign-data && git rm -rq --cached . && git clean -fdxq)
+          fi
+          rm -rf pub/history && cp -r fetched/history pub/history
+          cd pub
+          git add -A history
+          if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+          git commit -qm "sovereign data $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3 4; do git push -q origin HEAD:refs/heads/sovereign-data && exit 0; sleep $((i * 15)); done
+          exit 1
