@@ -2,11 +2,11 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و8 فحص قبل البناء رفض 8 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و1 فحص قبل البناء رفض 1 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-23 22:48 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-24 01:49 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-23, UTC)
+## Today (2026-11-24, UTC)
 
 **New hypotheses registered** (each preregistered before any data was read):
 
@@ -18,14 +18,7 @@ Generated 2026-11-23 22:48 UTC from the committed record · research-report-1.1.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-23, 01:49 UTC (the edge hunt), and dropped before building: HPS-1: buying bitcoin after miners' capitulation, with a panel of proof-of-work coins for power.
-- Checked on 2026-11-23, 04:50 UTC (the edge hunt), and dropped before building: LXR-1: a bitcoin CFD in the day's direction into the US close, when the 2x bitcoin ETFs must rebalance.
-- Checked on 2026-11-23, 07:49 UTC (the edge hunt), and dropped before building: ESQ-1: ether after a large validator exit queue.
-- Checked on 2026-11-23, 10:49 UTC (the edge hunt), and dropped before building: XST-1: tokenized stocks bought at a weekend discount and sold at Monday's open.
-- Checked on 2026-11-23, 13:50 UTC (the edge hunt), and dropped before building: TGA-1: the index after the Treasury's cash balance drains (reserves added) or rebuilds (reserves drained).
-- Checked on 2026-11-23, 16:48 UTC (the edge hunt), and dropped before building: JDR-1: the Japanese index into the March and September record dates, when index funds reinvest dividends.
-- Checked on 2026-11-23, 19:49 UTC (the edge hunt), and dropped before building: PPS-1: long the cheap metal and short the dear one when the platinum-palladium ratio is extreme (the short stated).
-- Checked on 2026-11-23, 22:48 UTC (the edge hunt), and dropped before building: AHP-1: the HK50 index when the A-H premium is extreme.
+- Checked on 2026-11-24, 01:49 UTC (the edge hunt), and dropped before building: NGW-1: natural gas after the weekend's weather-model changes, while NYMEX is shut.
 
 ## Cumulative (since the registry began)
 
@@ -33,7 +26,7 @@ Generated 2026-11-23 22:48 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 114 in the tables of 40 dated checks, on 10 days |
+| Ideas dropped before building (no test spent) | 115 in the tables of 41 dated checks, on 11 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |

@@ -395,7 +395,7 @@ none of those: it only earns the holdout its single look.
   (2026-11-23: HPS-1 was checked and dropped: the coin panel's hash rates move with miners switching between coins and with merge-mining, not with cash stress; `research/QUEUE.md`.) (2026-11-23: XST-1 was checked and dropped: weekend token prices already carry most of Monday's move, and the rest cannot pay a thin token's round trip.) (2026-11-23: TGA-1 was checked and dropped: commentary on both sides, no study, and a forward stage of about ten years.) (2026-11-23: JDR-1 was checked and dropped: a trade brokers sell, which dividend futures let anyone pre-position.) (2026-11-23: PPS-1 was checked and dropped: the ratio's mean moves, and the swings are four or five.) (2026-11-23: AHP-1 was checked and dropped: no study finds the premium predicts returns, and the dollar moves it.)
 - **NGW-1, AMM-1, ESQ-1, CHL-1:** data. NGW-1 needs archived weekend weather forecasts; AMM-1 and ESQ-1 an indexer or
   a node; CHL-1 a mainland source of daily limit hits.
-  (2026-11-23: ESQ-1 was checked and dropped: four or five large queues, whatever the data; `research/QUEUE.md`.)
+  (2026-11-23: ESQ-1 was checked and dropped: four or five large queues, whatever the data; `research/QUEUE.md`.) (2026-11-24: NGW-1 was checked and dropped: the Monday gap prices the weekend's model changes, and the degree-day forecasts traded on are sold.)
 - **PGL-1:** the mechanism has to come back (load shedding of stage 4 or more).
 
 ## 7. Sources
