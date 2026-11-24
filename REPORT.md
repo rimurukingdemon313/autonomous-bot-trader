@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-24 15:00 UTC**, run 1141, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
+Updated **2026-11-24 16:00 UTC**, run 1142, version `radar-1.0.0`. State from: cache. Quotes this hour: 2374.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,28 @@ Updated **2026-11-24 15:00 UTC**, run 1141, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 47.79
+- days: 47.83
 - run_coverage: 0.9939
 - closed_positions: 265
-- open_positions: 1
-- utilisation: 0.2542
+- open_positions: 2
+- utilisation: 0.2541
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.6442
-- book_excess_pct: -2.7811
-- ann_excess_deployed_pct: -83.923
-- ann_excess_deployed_costs_x1.5_pct: -152.822
-- ann_excess_deployed_costs_x2_pct: -221.72
+- book_pnl_pct: -2.6501
+- book_excess_pct: -2.7955
+- ann_excess_deployed_pct: -84.329
+- ann_excess_deployed_costs_x1.5_pct: -153.46
+- ann_excess_deployed_costs_x2_pct: -222.591
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.2355
+- book_excess_without_best_coin_pct: -3.2499
 - max_dd_pct: 2.6959
-- t_excess_daily: -4.201
+- t_excess_daily: -4.211
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| EVAA | mexc | gate | 2026-11-24 04:00 | 43.5% | 2.4 | 5.8 | 17.0 | **-8.8** |
+| EVAA | mexc | gate | 2026-11-24 04:00 | 43.5% | 3.2 | 10.3 | 17.0 | **-3.6** |
+| SOXL | mexc | gate | 2026-11-24 16:00 | 36.6% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (265)
 
@@ -78,6 +79,7 @@ Updated **2026-11-24 15:00 UTC**, run 1141, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 38.3% | 68.1% |
+| EVAA | mexc | gate | 38.6% | 73.1% |
+| SOXL | mexc | gate | 36.6% | 23.2% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
