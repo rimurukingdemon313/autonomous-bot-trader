@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-24 01:00 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-23 23:00 UTC · decision system `dual_ai`
+Updated 2026-11-24 01:15 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-23 23:00 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -8,7 +8,7 @@ Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical 
 
 - الحساب الجديد (من 2026-11-01 22:00 UTC): الرصيد $199,242.50، الربح أو الخسارة $-757.50، صفقات مسكّرة 4 ($-757.50)، مفتوحة 0.
 - الحساب الكامل من البداية: $191,827.51.
-- آخر قرار: GBPUSD لا صفقة (ما انسألوا: قاعدة منعت قبلها).
+- آخر قرار: AUDUSD لا صفقة (TRADER2_UNAVAILABLE).
 - المتداول الكبير (‎claude-opus-5.5‎، مدفوع): رفض 10، ما جاوب 0؛ حكم بالظل على 71 اتفاق تحت الحد ووافق على 0؛ صرف $8.50 من $95.00.
 - حساب ورقي للاختبار، مو فلوس حقيقية. التفاصيل الكاملة بالإنكليزي تحت.
 
@@ -71,8 +71,10 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 10-30 01:00 EURGBP SELL: AI DECISION → RISK APPROVED → PAPER EXECUTED
 - 10-29 17:02 GBPJPY BUY: AI DECISION → RISK APPROVED → PAPER EXECUTED
 
-## Latest decisions, NO TRADE included (8184 so far)
+## Latest decisions, NO TRADE included (8186 so far)
 
+- 11-24 01:01 AUDUSD NO_TRADE: Trader 2's model gave no usable answer (SEAT_RESTING: the seat's model google/gemma-4-26b-a4b-it:free is resting (rate_limited) for 220 s more; no other model stands in for it): nobody stands in for i
+- 11-24 01:00 USDJPY NO_TRADE: Trader 2's model gave no usable answer (RATE_LIMITED: HTTP 429: Provider returned error google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provi
 - 11-24 00:45 GBPUSD NO_TRADE: risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-24 00:45 EURUSD NO_TRADE: risk engine: quiet_hours (19:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-24 00:30 AUDJPY NO_TRADE: risk engine: quiet_hours (19:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
@@ -83,8 +85,6 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 - 11-24 00:00 NZDUSD NO_TRADE: risk engine: quiet_hours (19:00 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-23 23:45 USDCHF NO_TRADE: risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 - 11-23 23:45 USDCAD NO_TRADE: risk engine: quiet_hours (18:45 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
-- 11-23 23:30 AUDUSD NO_TRADE: risk engine: quiet_hours (18:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
-- 11-23 23:30 USDJPY NO_TRADE: risk engine: quiet_hours (18:30 New York: no new position from 16:00 to 20:00 New York (the rollover to the Tokyo open: the thinnest liquidity of the day)): the model was not consulted
 
 ## Open paper positions
 
@@ -118,7 +118,7 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-26b-a4b-it:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 1/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `google/gemma-4-26b-a4b-it:free` · debate `dots-studio/dots-3-note-preview:free` · calls today 4/900
 
 Paid trial `senior-2026-11-04` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $8.50 of $95.00, today $0.00 of $7.50 (the key's own reading)
 
@@ -138,6 +138,8 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 
 | Time | Symbol | Trader 1 | Trader 2 | Debate (shadow) | Senior | Rule | Final | Risk | Time machine |
 |---|---|---|---|---|---|---|---|---|---|
+| 11-24 01:01 | AUDUSD | SELL 60 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
+| 11-24 01:00 | USDJPY | BUY 55 | -  | - | -  | TRADER2_UNAVAILABLE | NO_TRADE | - | - |
 | 11-24 00:45 | GBPUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-24 00:45 | EURUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-24 00:30 | AUDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
@@ -148,8 +150,6 @@ Agreements the senior trader did not approve (dual-ai 1.18.0; vetoed, or no usab
 | 11-24 00:00 | NZDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-23 23:45 | USDCHF | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 | 11-23 23:45 | USDCAD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-23 23:30 | AUDUSD | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
-| 11-23 23:30 | USDJPY | -  | -  | - | -  | NOT_ASKED | NO_TRADE | - | - |
 
 The chart Trader 1 read last: `last_chart.png`. (numbers): until dual-ai 1.17.0, when no free vision model answered, Trader 1 read the same chart from its numbers on another model.
 
