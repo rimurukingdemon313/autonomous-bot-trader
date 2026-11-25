@@ -2,9 +2,9 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و3 فحص قبل البناء رفض 3 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و4 فحص قبل البناء رفض 4 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-25 07:49 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-25 10:49 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-25, UTC)
 
@@ -21,6 +21,7 @@ Generated 2026-11-25 07:49 UTC from the committed record · research-report-1.1.
 - Checked on 2026-11-25, 01:49 UTC (the edge hunt), and dropped before building: BRV-1: bitcoin's rebound after a burst of aggressive selling on spot.
 - Checked on 2026-11-25, 04:49 UTC (the edge hunt), and dropped before building: ORW-1: a weekend risk premium in crude oil, Friday's close to Monday's, on Brent.
 - Checked on 2026-11-25, 07:49 UTC (the edge hunt), and dropped before building: PAXG-1: tokenized gold while the gold market is shut.
+- Checked on 2026-11-25, 10:49 UTC (the edge hunt), and dropped before building: TMB-1: bitcoin after large Tether mints.
 
 ## Cumulative (since the registry began)
 
@@ -28,7 +29,7 @@ Generated 2026-11-25 07:49 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 125 in the tables of 51 dated checks, on 12 days |
+| Ideas dropped before building (no test spent) | 126 in the tables of 52 dated checks, on 12 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |

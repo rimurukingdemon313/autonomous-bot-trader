@@ -579,6 +579,13 @@ PGL-1 (its mechanism is absent); UDL-1 waits for the owner's word.
 |---|---|
 | PAXG-1: tokenized gold while the gold market is shut | PAXG's price is a copy of gold's, so its history is spent with gold's and only weekends from now are unseen; ordinary weekends show small premiums or discounts to Monday's open, sometimes in Monday's direction and sometimes not (search results, crypto media); a round trip costs about 0.2% plus the weekend spread, so the cost gate asks 0.6% or more; the rare big deviation is a premium, which needs a short sale |
 
+**Checked on 2026-11-25, 10:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| TMB-1: bitcoin after large Tether mints | The one supporting study used data from before November 2018, and later work finds mints move volume, not later returns (search results); bitcoin's daily history is read, so a forward stage of perhaps 50 to 100 large mints a year would need about 1% a mint for t 3.0 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
