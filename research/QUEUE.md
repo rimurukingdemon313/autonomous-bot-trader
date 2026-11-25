@@ -612,6 +612,13 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | BDL-1: a coin after its Binance spot delisting date, when the forced selling stops | A dataset of 101 Binance delistings finds the fall still going a week after the notice, and the month after a delisting was a coin flip in a small sample (search results); Binance's holders can move their coins, unlike Upbit's (UDL-1); about 25 a year, bought on thin venues after the date, would need about 15% an event for t 3.0 |
 
+**Checked on 2026-11-25, 22:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| CIR-1: commodities in the commodity indices' January reweighting window | Over 289 rebalancings of the Bloomberg and S&P GSCI indices (2006-2021) a study finds effects in volume and open interest, not prices, and front-running the roll earns nothing after costs (search results); one window a year, at most six of the owner's instruments in it, so even 1% an instrument would take about 37 years for t 3.0 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
