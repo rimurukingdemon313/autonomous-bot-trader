@@ -33,3 +33,5 @@ The replay on real daily bars is `scripts/sovereign_redteam.py`; its data come f
 **What the replay showed (2026-11-24):** `docs/SOVEREIGN.md` and `research/results/SOVEREIGN-redteam.md`. Its last
 year and its printed weights reproduce; before 2025 its profits do not, on daily bars; over 2008-2026 its best rule
 earns 2.3% a year at t 1.46, and its own live layer would have stopped it in March 2008. No paper desk is built.
+
+**Tried on everything (2026-11-25):** `docs/SOVEREIGN.md` (its last section) and `research/results/SOVEREIGN-everything.md`. Every setting the specification names and the other markets the owner trades, descriptively: on the seven funds no rule reaches t 1.6; the package's drawdown brake holds the account at half size or less on 87% to 97% of days from 2008; and what profit the other markets add is bitcoin's and ether's trend, the family the lab's registered XTS-1 already failed. Still not validated; no paper desk.
