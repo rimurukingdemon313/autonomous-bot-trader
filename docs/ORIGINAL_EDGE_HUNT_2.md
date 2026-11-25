@@ -389,6 +389,8 @@ none of those: it only earns the holdout its single look.
 ## 6. What the others need
 
 - **PAXG-1:** the owner closes the gold seal at a date; tokenized-gold weekends after it are then fresh data.
+  (2026-11-25: PAXG-1 was checked and dropped: gold's sealed months were spent on 2026-11-24, PAXG is a copy of
+  gold's price, and an ordinary weekend's deviation is smaller than a round trip; `research/QUEUE.md`.)
 - **TGA-1, HPS-1, JDR-1, PPS-1, AHP-1, XST-1:** power. HPS-1 can gain it from a panel of proof-of-work coins (hash
   rates for several coins are in Coin Metrics' free tier, to be checked); XST-1 from time (about 50 weekends a year
   with ten names); the others need decades and are kept as written, not failed.

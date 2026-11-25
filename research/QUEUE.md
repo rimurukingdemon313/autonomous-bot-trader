@@ -382,7 +382,7 @@ failed for want of data. Each waits for what is written beside it (`docs/ORIGINA
 | NGW-1: weekend weather forecasts and natural gas | **Dropped on 2026-11-24** (below): the Monday gap prices the weekend's model changes, and the forecasts traded on are a paid product |
 | AHP-1: the A-H premium and the H-share index | **Dropped on 2026-11-23** (below): no evidence it predicts returns, a premium moved by the dollar, and a handful of swings |
 | PPS-1: platinum against palladium | **Dropped on 2026-11-23** (below): four or five swings since 1990, and the ratio's mean moves after structural breaks |
-| PAXG-1: tokenized gold while the gold market is shut | The owner's decision: gold is sealed from 2017, forward months included, until the seal has an end date |
+| PAXG-1: tokenized gold while the gold market is shut | **Dropped on 2026-11-25** (below): its blocker is gone (gold's sealed months were spent on 2026-11-24), it is a copy of gold's price, and an ordinary weekend's deviation is smaller than a round trip |
 | XST-1: tokenized stocks at the weekend | **Dropped on 2026-11-23** (below): weekend token prices already carry most of Monday's move, and the residual cannot pay a thin token's round trip |
 | AMM-1: concentrated-liquidity range exits | **Dropped on 2026-11-24** (below): the re-centring flow is a fraction of a percent of ether's daily volume, too small for t 3.0 or the costs |
 | ESQ-1: Ethereum's validator exit queue | **Dropped on 2026-11-23** (below): four or five large queues in all, and the wait spreads the selling over weeks |
@@ -569,6 +569,15 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 | Idea | Why it was dropped |
 |---|---|
 | ORW-1: a weekend risk premium in crude oil, Friday's close to Monday's, on Brent | The studies find Monday's oil returns lower, not higher, and the pattern unstable (search results); Brent's daily history is unread here, but about 600 weekends need about 0.3% each for t 3.0, some 15% a year from weekends alone |
+
+**Checked on 2026-11-25, 07:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage; the director's decision of 2026-11-24 spent gold's sealed months, which is what PAXG-1 waited for, so
+the cycle took it from round 2's waiting list. It is in `research/inventions.jsonl`. Round 2's list now holds only
+PGL-1 (its mechanism is absent); UDL-1 waits for the owner's word.
+
+| Idea | Why it was dropped |
+|---|---|
+| PAXG-1: tokenized gold while the gold market is shut | PAXG's price is a copy of gold's, so its history is spent with gold's and only weekends from now are unseen; ordinary weekends show small premiums or discounts to Monday's open, sometimes in Monday's direction and sometimes not (search results, crypto media); a round trip costs about 0.2% plus the weekend spread, so the cost gate asks 0.6% or more; the rare big deviation is a premium, which needs a short sale |
 
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
