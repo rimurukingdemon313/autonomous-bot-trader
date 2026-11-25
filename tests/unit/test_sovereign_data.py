@@ -53,3 +53,13 @@ def test_write_stores_what_is_served_and_names_what_is_not(tmp_path):
     assert (s["rows"], s["first"], s["last"]) == (2, "2026-11-20", "2026-11-23")
     assert s["sha256"] == hashlib.sha256((tmp_path / "history" / "QQQ.json").read_bytes()).hexdigest()
     assert json.loads((tmp_path / "history" / "manifest.json").read_text())["failed"] == man["failed"]
+
+
+def test_the_extra_set_writes_safe_names_in_its_own_folder(tmp_path):
+    good = _res([(datetime(2026, 11, 20, 14, 30, tzinfo=timezone.utc), 10, 11, 9, 10.5, 100, 10.4)])
+    man = sd.write(tmp_path, NOW, fetch=lambda sym, first, now: good, symbols=sd.EXTRA, folder="history_extra")
+    assert not man["failed"] and set(man["series"]) == set(sd.EXTRA)
+    assert (tmp_path / "history_extra" / "_GDAXI.json").exists() and (tmp_path / "history_extra" / "BTC-USD.json").exists()
+    assert man["series"]["^N225"]["file"] == "history_extra/_N225.json"
+    assert not (tmp_path / "history").exists()
+    assert [sd.file_name(s) for s in sd.SYMBOLS] == list(sd.SYMBOLS)  # the core files keep their names

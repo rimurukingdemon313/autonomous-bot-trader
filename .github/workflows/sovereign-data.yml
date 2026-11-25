@@ -1,10 +1,16 @@
 # The daily bars of the owner's SOVEREIGN package (research/external/sovereign/, 2026-11-24), fetched on GitHub's
 # runner because the price hosts are not reachable from the research director's session (scripts/sovereign_data.py).
-# RESEARCH ONLY: no account, no key, no order, no model call, no paid service. It writes history/ to the
-# sovereign-data branch and nothing else; main is not touched.
+# RESEARCH ONLY: no account, no key, no order, no model call, no paid service. It writes history/ (or, with the
+# input set=extra, history_extra/: the other markets, 2026-11-25) to the sovereign-data branch and nothing else; main
+# is not touched.
 name: SOVEREIGN data (daily bars, research only)
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "core (the package's seven funds) or extra (the other markets, 2026-11-25)"
+        required: false
+        default: core
 permissions:
   contents: write
 concurrency:
@@ -22,14 +28,21 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
+      - name: Check the set
+        env:
+          SET: ${{ github.event.inputs.set || 'core' }}
+        run: |
+          case "$SET" in core) echo "DIR=history" >> "$GITHUB_ENV" ;; extra) echo "DIR=history_extra" >> "$GITHUB_ENV" ;;
+            *) echo "unknown set: $SET"; exit 1 ;; esac
+          echo "SET=$SET" >> "$GITHUB_ENV"
       - name: Fetch the history (a failed fetch is retried)
         run: |
           set -o pipefail
           for i in 1 2 3; do
-            python scripts/sovereign_data.py --out fetched 2>&1 | tee data.log && break
+            python scripts/sovereign_data.py --out fetched --set "$SET" 2>&1 | tee data.log && break
             echo "attempt $i failed"; sleep $((i * 30))
           done
-          test -f fetched/history/manifest.json
+          test -f "fetched/$DIR/manifest.json"
       - name: Publish to sovereign-data
         run: |
           git config user.name "sovereign-data"; git config user.email "sovereign-data@users.noreply.github.com"
@@ -39,10 +52,10 @@ jobs:
             git worktree add -q --detach pub
             (cd pub && git checkout -q --orphan sovereign-data && git rm -rq --cached . && git clean -fdxq)
           fi
-          rm -rf pub/history && cp -r fetched/history pub/history
+          rm -rf "pub/$DIR" && cp -r "fetched/$DIR" "pub/$DIR"
           cd pub
-          git add -A history
+          git add -A "$DIR"
           if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
-          git commit -qm "sovereign data $(date -u +%Y-%m-%dT%H:%MZ)"
+          git commit -qm "sovereign data ($SET) $(date -u +%Y-%m-%dT%H:%MZ)"
           for i in 1 2 3 4; do git push -q origin HEAD:refs/heads/sovereign-data && exit 0; sleep $((i * 15)); done
           exit 1
