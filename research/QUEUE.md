@@ -556,6 +556,13 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | PED-1: the German and euro-area index CFDs the day before an ECB press conference | Published (a Quantpedia article; search results), of a family that failed here (FOMC-1A), and the Fed's drift has been found gone after 2015; the GER40's daily history is read, so a forward stage of eight meetings a year would need about 0.57% a meeting over five years for t 3.0 |
 
+**Checked on 2026-11-25, 01:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| BRV-1: bitcoin's rebound after a burst of aggressive selling on spot | Binance's zero taker fee on BTC/FDUSD ended on 2026-01-29 (search results), so a taker entry and a maker exit cost about 0.1% and the cost gate asks 0.23% to 0.3% a trade, against a rebound of a few basis points; a zero-fee resting bid is filled when the flow is informed, and no free order-book history can replay its fills |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
