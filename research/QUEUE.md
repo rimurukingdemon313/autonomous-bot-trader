@@ -593,6 +593,18 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | DVS-1: bitcoin after spikes of its implied volatility (DVOL) | Its support is three bottoms and a newsletter, and implied volatility has moved with the price since 2023 (search results); the forced-deleveraging rebound failed here (LIQ-1); bitcoin's daily history is read, so three to six spikes a year would need more than 8% each over five years for t 3.0 |
 
+**Checked on 2026-11-25, 16:57 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| BOJ-1: the Nikkei's afternoon session when the Bank of Japan trades index funds by rule | Its rule-bound buyer, whose afternoon support studies found, stopped in March 2024 (search results); its seller since January 2026, about 0.1% of the day's trading on days nobody is told, would move the index about 0.05% a day: about ten years for t 3.0, and the cost gate passed only at the tightest spread. It would sell short |
+
+**Read since the previous check, so no longer unread for any hypothesis:** the SOVEREIGN runs (2026-11-24 and 25,
+`docs/SOVEREIGN.md`) read the daily bars of USO (WTI's front month, 2006-2026), UNG (natural gas, 2007-2026), CPER
+(copper, 2011-2026), the GER40, UK100, JP225 and HK50 indices (2006-2026) and bitcoin from 2014 and ether from 2017
+(Yahoo). The energy years INV-1 counted as unread (2019 on) are now read for WTI and natural gas.
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
