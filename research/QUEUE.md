@@ -586,6 +586,13 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | TMB-1: bitcoin after large Tether mints | The one supporting study used data from before November 2018, and later work finds mints move volume, not later returns (search results); bitcoin's daily history is read, so a forward stage of perhaps 50 to 100 large mints a year would need about 1% a mint for t 3.0 |
 
+**Checked on 2026-11-25, 13:49 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| DVS-1: bitcoin after spikes of its implied volatility (DVOL) | Its support is three bottoms and a newsletter, and implied volatility has moved with the price since 2023 (search results); the forced-deleveraging rebound failed here (LIQ-1); bitcoin's daily history is read, so three to six spikes a year would need more than 8% each over five years for t 3.0 |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
