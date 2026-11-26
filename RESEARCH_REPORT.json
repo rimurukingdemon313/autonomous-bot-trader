@@ -350,9 +350,9 @@
    "INCONCLUSIVE": 1,
    "PASSED": 10
   },
-  "drop_checks": 53,
+  "drop_checks": 56,
   "drop_days": 12,
-  "dropped_before_building": 127,
+  "dropped_before_building": 130,
   "evidence_changed": [],
   "evidence_checked": 67,
   "evidence_unchanged": 67,
@@ -432,48 +432,54 @@
   "trials": 97,
   "verdicts": 87
  },
- "day": "2026-11-25",
+ "day": "2026-11-26",
  "engine": {
   "built": [],
   "by_decision": {
    "DROPPED_POWER": 13,
    "QUEUED_FOR_BUILD": 5,
-   "REJECTED_BY_CRITIC": 29
+   "REJECTED_BY_CRITIC": 32
   },
   "integrity": {
-   "at": "2026-11-25T15:01:46.227441+00:00",
-   "cycle": "2026-11-25",
+   "at": "2026-11-26T00:27:17.118276+00:00",
+   "cycle": "2026-11-26",
    "detail": null,
    "status": "OK",
    "step": "integrity",
    "version": "research-engine-1.2.0"
   },
   "last": {
-   "at": "2026-11-25T00:49:08.087250+00:00",
-   "cycle": "2026-11-25",
+   "at": "2026-11-26T00:27:17.118276+00:00",
+   "cycle": "2026-11-26",
    "detail": {
     "attempts": [
      {
       "model": "baidu/ernie-5.5-flash-preview:free",
       "role": "researcher",
-      "status": "OK"
+      "status": "TIMEOUT"
      },
      {
       "model": "recursive/flint-v1.0:free",
+      "role": "researcher",
+      "status": "OK"
+     },
+     {
+      "model": "particle-ai/particle-1:free",
       "role": "critic",
       "status": "OK"
      }
     ],
     "ideas": [
-     "c56d1a808dc6dc525028",
-     "a9628704e3a9f4d23b18"
+     "a1b2ae45eec4ab32a2fb",
+     "5c9f7b29cc738311c2b3",
+     "e248cebfa6455b035c91"
     ]
    },
    "status": "OK",
    "step": "ideas",
    "version": "research-engine-1.2.0"
   },
-  "last_ok": "2026-11-25T00:49:08.087250+00:00",
+  "last_ok": "2026-11-26T00:27:17.118276+00:00",
   "queued": [
    {
     "at": "2026-11-17T00:17:15.024042+00:00",
@@ -658,69 +664,99 @@
   ],
   "today": [
    {
-    "at": "2026-11-25T00:49:08.087250+00:00",
-    "claimed_sharpe_annual": 0.7,
+    "at": "2026-11-26T00:27:17.118276+00:00",
+    "claimed_sharpe_annual": 0.8,
     "conditions_flag": null,
-    "critic": "recursive/flint-v1.0:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "Claims a net Sharpe of 0.7 with no supporting evidence; the effect size is not credible and far below the validation bar.",
+    "critic": "particle-ai/particle-1:free",
+    "critic_category": "data_cannot_be_had",
+    "critic_reason": "The rule needs two things no feed here carries: the composition of ETF creation/redemption baskets (only daily shares outstanding is public, and that is a proxy, not the basket) and opening-cross execution/imbalance data, which is exchange/participant-only. The exit is also incoherent: 'the next scheduled creation unit settlement' is a T+1/T+2 settlement event, not an intraday one, so an 'intraday' rule cannot be closed on it. What is left is a daily flow proxy on index CFDs, which is the ETF-flow family already spent (ETF-FLOW-1, ETF-NAV), and an intraday CFD round trip that took the whole gross edge of every intraday family tested here.",
     "critic_verdict": "REJECT",
-    "cycle": "2026-11-25",
-    "data_source": "National statistics offices for CPI releases; daily closes of 20 developed-market equity index CFDs.",
+    "cycle": "2026-11-26",
+    "data_source": "US ETF creation/redemption reports and opening cross execution data",
     "decision": "REJECTED_BY_CRITIC",
     "duplicate_of": null,
     "evidence": "none: a new idea",
-    "fingerprint": "c56d1a808dc6dc525028",
-    "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "Local inflation surprises are public but global allocators update slowly; the affected country's equity index underreacts for several days while information diffuses through global risk models. Slow-moving global investors and index-tracking allocators are willing to hold stale exposure, and the effect persists because CPI releases are frequent but attention is limited.",
-    "mechanism_class": "information diffusion",
-    "needs_short_or_leverage": "Needs short selling for the bottom-quintile leg; no leverage required.",
+    "fingerprint": "a1b2ae45eec4ab32a2fb",
+    "horizon": "intraday",
+    "idea_class": "INSUFFICIENT_DATA",
+    "mechanism": "Large ETF creation baskets executed through the opening cross create temporary dealer and arbitrageur hedging pressure because basket obligations must be met at settlement; the forced buy pressure from arbitrageurs front-running the cross depletes liquidity and leaves a settlement imbalance.",
+    "mechanism_class": "market microstructure",
+    "needs_short_or_leverage": "Yes, needs short; no leverage",
     "power": null,
-    "proposer": "baidu/ernie-5.5-flash-preview:free",
-    "rule": "For each of 20 developed-market equity index CFDs, on each local CPI release compute y/y CPI minus the average of the previous three monthly y/y readings, using only data available before the release. At the next market open after the release, rank the 20 surprises; buy equal-weight the top 5 and sell equal-weight the bottom 5. Exit at the close five trading days later. Do not add positions if a new release occurs before exit. No leverage.",
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "Across the four largest US equity ETFs, if the prior session's net creation units exceed the prior 20-day median net creation units, enter a short position in the underlying index CFD; exit at the next scheduled creation unit settlement or when the net creation unit delta returns to its prior median.",
     "source": "engine",
-    "title": "Local CPI surprise diffusion across global equity index CFDs",
-    "universe": "equity-index-daily",
+    "title": "Opening-cross creation basket imbalance in US equity ETFs",
+    "universe": "us-equity-etf",
     "version": "research-engine-1.2.0",
-    "why": "Claims a net Sharpe of 0.7 with no supporting evidence; the effect size is not credible and far below the validation bar.",
-    "why_new": "New evidence: a 20-country CPI-surprise panel on equity-index CFDs never loaded here. It is not the dropped one-index macro announcement-day premium; it tests slow information diffusion over a five-day hold across many instruments as one book.",
-    "years_of_fresh_data": 20
+    "why": "The rule needs two things no feed here carries: the composition of ETF creation/redemption baskets (only daily shares outstanding is public, and that is a proxy, not the basket) and opening-cross execution/imbalance data, which is exchange/participant-only. The exit is also incoherent: 'the next scheduled creation unit settlement' is a T+1/T+2 settlement event, not an intraday one, so an 'intraday' rule cannot be closed on it. What is left is a daily flow proxy on index CFDs, which is the ETF-flow family already spent (ETF-FLOW-1, ETF-NAV), and an intraday CFD round trip that took the whole gross edge of every intraday family tested here.",
+    "why_new": "No test here has used opening-cross settlement imbalance as a trade rule; prior ETF flow tests focused on next-day returns.",
+    "years_of_fresh_data": 12
    },
    {
-    "at": "2026-11-25T00:49:08.087250+00:00",
-    "claimed_sharpe_annual": 0.7,
+    "at": "2026-11-26T00:27:17.118276+00:00",
+    "claimed_sharpe_annual": 0.6,
     "conditions_flag": null,
-    "critic": "recursive/flint-v1.0:free",
-    "critic_category": "implausible_claim",
-    "critic_reason": "Claims a net Sharpe of 0.7 from a sparse regulatory event panel with no evidence; the claim exceeds what the evidence could support.",
+    "critic": "particle-ai/particle-1:free",
+    "critic_category": "no_mechanism",
+    "critic_reason": "The signal is a four-week average of the runoff series compared with its own one-week average: that is a lag artefact of the same number, not a measure of 'runoff exceeding policy-implied absorption', and it flips on any week-to-week wiggle. Worse, the direction contradicts the stated mechanism: if runoff absorbs reserves and pressures equities, the rule should be short when runoff accelerates, yet it goes long. No economic content survives, and at a claimed net Sharpe of 0.6 over 15 years it also could not clear a bar of 3.0.",
     "critic_verdict": "REJECT",
-    "cycle": "2026-11-25",
-    "data_source": "ESMA and national regulator announcements; daily closes of 15 country equity index CFDs.",
+    "cycle": "2026-11-26",
+    "data_source": "Federal Reserve H.4.1 and FRED weekly balance sheet data",
     "decision": "REJECTED_BY_CRITIC",
     "duplicate_of": null,
     "evidence": "none: a new idea",
-    "fingerprint": "a9628704e3a9f4d23b18",
-    "horizon": "swing",
-    "idea_class": "IMPLAUSIBLE_CLAIM",
-    "mechanism": "Regulators impose bans or lifts that force short sellers to buy or re-enter; the affected country's index experiences temporary price pressure. The pressure persists because the rules are exogenous and binding for leveraged short sellers, and the reversal occurs as forced flows complete.",
-    "mechanism_class": "structural or regulatory",
-    "needs_short_or_leverage": "Needs short selling for lift events; no leverage required.",
+    "fingerprint": "5c9f7b29cc738311c2b3",
+    "horizon": "position",
+    "idea_class": "NO_MECHANISM",
+    "mechanism": "The Fed's balance sheet runoff absorbs reserves and increases Treasury issuance, reducing the liquidity available to global equity markets; when the runoff pace persistently exceeds the policy-implied absorption, dealers and funds rebalance, pressuring equity indices.",
+    "mechanism_class": "macro and policy",
+    "needs_short_or_leverage": "No; long-only",
     "power": null,
-    "proposer": "baidu/ernie-5.5-flash-preview:free",
-    "rule": "For each announced short-selling ban or ban lift affecting a country's equities, at the next open trade that country's equity index CFD: long on a ban announcement, short on a lift announcement. Hold 10 trading days and exit at the close. Equal-weight all active country events; do not add if a position is open. No leverage.",
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "Across the five broad global index CFDs, when the four-week average of the Fed's weekly balance sheet runoff exceeds its one-week average, take a long position; exit when the four-week average falls below the one-week average.",
     "source": "engine",
-    "title": "Short-selling ban and lift announcements across country equity index CFDs",
-    "universe": "new:regulatory-short-selling-ban-panel",
+    "title": "Federal reserve balance sheet runoff and global equity liquidity footprint",
+    "universe": "equity-index-b",
     "version": "research-engine-1.2.0",
-    "why": "Claims a net Sharpe of 0.7 from a sparse regulatory event panel with no evidence; the claim exceeds what the evidence could support.",
-    "why_new": "New evidence: a cross-country regulatory event panel on 15 index CFDs, not single stocks and not the dropped macro announcement premium. It tests structural forced flows from short-selling rules.",
-    "years_of_fresh_data": 18
+    "why": "The signal is a four-week average of the runoff series compared with its own one-week average: that is a lag artefact of the same number, not a measure of 'runoff exceeding policy-implied absorption', and it flips on any week-to-week wiggle. Worse, the direction contradicts the stated mechanism: if runoff absorbs reserves and pressures equities, the rule should be short when runoff accelerates, yet it goes long. No economic content survives, and at a claimed net Sharpe of 0.6 over 15 years it also could not clear a bar of 3.0.",
+    "why_new": "No test here has used the Fed balance sheet runoff pace as a continuous liquidity signal; prior tests used cash balance or announcements.",
+    "years_of_fresh_data": 15
+   },
+   {
+    "at": "2026-11-26T00:27:17.118276+00:00",
+    "claimed_sharpe_annual": 1.0,
+    "conditions_flag": null,
+    "critic": "particle-ai/particle-1:free",
+    "critic_category": "no_mechanism",
+    "critic_reason": "The mechanism does not fix a sign ('dealers may hedge by buying back or selling'), and the rule's short direction is the opposite of the only documented prediction of the hedging-pressure literature: when producers are heavily net short, futures trade cheap and longs earn the premium. The stated data source cannot supply the signal either \u2014 EIA publishes open interest and inventories, not producer hedging volume; that is CFTC COT commercial positioning, weekly and three days stale. And the three legs (crude, heating oil, RBOB) are one near-collinear complex, so this is not the multi-instrument book that the dropped hedging-pressure family was left open for.",
+    "critic_verdict": "REJECT",
+    "cycle": "2026-11-26",
+    "data_source": "EIA energy futures open interest and price data",
+    "decision": "REJECTED_BY_CRITIC",
+    "duplicate_of": "Commodity futures hedging-pressure risk premium",
+    "evidence": "none: a new idea",
+    "fingerprint": "e248cebfa6455b035c91",
+    "horizon": "swing",
+    "idea_class": "NO_MECHANISM",
+    "mechanism": "Producers and swap dealers hedge long crude oil exposure by selling futures; when producer hedging pressure increases alongside spot price, dealer inventory risk rises and dealers may hedge by buying back or selling, creating transient liquidity and price effects.",
+    "mechanism_class": "liquidity provision",
+    "needs_short_or_leverage": "Yes, needs short; no leverage",
+    "power": null,
+    "proposer": "recursive/flint-v1.0:free",
+    "rule": "Across the three energy futures in the EIA crude-oil complex, when the weekly producer hedging volume proxy exceeds its 60-day median, enter a short position in the front-month CFD; exit when the proxy falls below the median.",
+    "source": "engine",
+    "title": "Dealer inventory risk from commodity producer hedging in crude oil",
+    "universe": "energy-futures-eia",
+    "version": "research-engine-1.2.0",
+    "why": "The mechanism does not fix a sign ('dealers may hedge by buying back or selling'), and the rule's short direction is the opposite of the only documented prediction of the hedging-pressure literature: when producers are heavily net short, futures trade cheap and longs earn the premium. The stated data source cannot supply the signal either \u2014 EIA publishes open interest and inventories, not producer hedging volume; that is CFTC COT commercial positioning, weekly and three days stale. And the three legs (crude, heating oil, RBOB) are one near-collinear complex, so this is not the multi-instrument book that the dropped hedging-pressure family was left open for.",
+    "why_new": "No test here has used producer hedging inventory pressure as a liquidity provision signal; prior energy tests used term structure or inventory surprises.",
+    "years_of_fresh_data": 20
    }
   ],
-  "total": 47
+  "total": 50
  },
- "generated": "2026-11-25T15:01:46.227441+00:00",
+ "generated": "2026-11-26T00:27:17.118276+00:00",
  "recent_verdicts": [
   {
    "evidence": {
@@ -1036,43 +1072,7 @@
   "universe": "fx-majors"
  },
  "today": {
-  "dropped_before_building": [
-   {
-    "date": "2026-11-25",
-    "heading": "Checked on 2026-11-25, 01:49 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "BRV-1: bitcoin's rebound after a burst of aggressive selling on spot"
-    ]
-   },
-   {
-    "date": "2026-11-25",
-    "heading": "Checked on 2026-11-25, 04:49 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "ORW-1: a weekend risk premium in crude oil, Friday's close to Monday's, on Brent"
-    ]
-   },
-   {
-    "date": "2026-11-25",
-    "heading": "Checked on 2026-11-25, 07:49 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "PAXG-1: tokenized gold while the gold market is shut"
-    ]
-   },
-   {
-    "date": "2026-11-25",
-    "heading": "Checked on 2026-11-25, 10:49 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "TMB-1: bitcoin after large Tether mints"
-    ]
-   },
-   {
-    "date": "2026-11-25",
-    "heading": "Checked on 2026-11-25, 13:49 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "DVS-1: bitcoin after spikes of its implied volatility (DVOL)"
-    ]
-   }
-  ],
+  "dropped_before_building": [],
   "registered": [],
   "verdicts": []
  },

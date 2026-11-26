@@ -2,11 +2,13 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و5 فحص قبل البناء رفض 5 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-25 15:01 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-26 00:27 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-25, UTC)
+## Today (2026-11-26, UTC)
+
+Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
@@ -18,11 +20,7 @@ Generated 2026-11-25 15:01 UTC from the committed record · research-report-1.1.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-25, 01:49 UTC (the edge hunt), and dropped before building: BRV-1: bitcoin's rebound after a burst of aggressive selling on spot.
-- Checked on 2026-11-25, 04:49 UTC (the edge hunt), and dropped before building: ORW-1: a weekend risk premium in crude oil, Friday's close to Monday's, on Brent.
-- Checked on 2026-11-25, 07:49 UTC (the edge hunt), and dropped before building: PAXG-1: tokenized gold while the gold market is shut.
-- Checked on 2026-11-25, 10:49 UTC (the edge hunt), and dropped before building: TMB-1: bitcoin after large Tether mints.
-- Checked on 2026-11-25, 13:49 UTC (the edge hunt), and dropped before building: DVS-1: bitcoin after spikes of its implied volatility (DVOL).
+- none
 
 ## Cumulative (since the registry began)
 
@@ -30,7 +28,7 @@ Generated 2026-11-25 15:01 UTC from the committed record · research-report-1.1.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 127 in the tables of 53 dated checks, on 12 days |
+| Ideas dropped before building (no test spent) | 130 in the tables of 56 dated checks, on 12 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
@@ -39,15 +37,16 @@ Generated 2026-11-25 15:01 UTC from the committed record · research-report-1.1.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-25 00:49 UTC, OK
-- Last successful idea step: 2026-11-25 00:49 UTC
+- Last cycle: 2026-11-26 00:27 UTC, OK
+- Last successful idea step: 2026-11-26 00:27 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 47 ideas: DROPPED_POWER 13, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 29
+- All time: 50 ideas: DROPPED_POWER 13, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 32
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: Local CPI surprise diffusion across global equity index CFDs (equity-index-daily, swing). Claims a net Sharpe of 0.7 with no supporting evidence; the effect size is not credible and far below the validation bar. (critic: recursive/flint-v1.0:free) Class: IMPLAUSIBLE_CLAIM.
-- **REJECTED_BY_CRITIC**: Short-selling ban and lift announcements across country equity index CFDs (new:regulatory-short-selling-ban-panel, swing). Claims a net Sharpe of 0.7 from a sparse regulatory event panel with no evidence; the claim exceeds what the evidence could support. (critic: recursive/flint-v1.0:free) Class: IMPLAUSIBLE_CLAIM.
+- **REJECTED_BY_CRITIC**: Opening-cross creation basket imbalance in US equity ETFs (us-equity-etf, intraday). The rule needs two things no feed here carries: the composition of ETF creation/redemption baskets (only daily shares outstanding is public, and that is a proxy, not the basket) and opening-cross execution/imbalance data, which is exchange/participant-only. The exit is also incoherent: 'the next scheduled creation unit settlement' is a T+1/T+2 settlement event, not an intraday one, so an 'intraday' rule cannot be closed on it. What is left is a daily flow proxy on index CFDs, which is the ETF-flow family already spent (ETF-FLOW-1, ETF-NAV), and an intraday CFD round trip that took the whole gross edge of every intraday family tested here. (critic: particle-ai/particle-1:free) Class: INSUFFICIENT_DATA.
+- **REJECTED_BY_CRITIC**: Federal reserve balance sheet runoff and global equity liquidity footprint (equity-index-b, position). The signal is a four-week average of the runoff series compared with its own one-week average: that is a lag artefact of the same number, not a measure of 'runoff exceeding policy-implied absorption', and it flips on any week-to-week wiggle. Worse, the direction contradicts the stated mechanism: if runoff absorbs reserves and pressures equities, the rule should be short when runoff accelerates, yet it goes long. No economic content survives, and at a claimed net Sharpe of 0.6 over 15 years it also could not clear a bar of 3.0. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
+- **REJECTED_BY_CRITIC**: Dealer inventory risk from commodity producer hedging in crude oil (energy-futures-eia, swing). The mechanism does not fix a sign ('dealers may hedge by buying back or selling'), and the rule's short direction is the opposite of the only documented prediction of the hedging-pressure literature: when producers are heavily net short, futures trade cheap and longs earn the premium. The stated data source cannot supply the signal either — EIA publishes open interest and inventories, not producer hedging volume; that is CFTC COT commercial positioning, weekly and three days stale. And the three legs (crude, heating oil, RBOB) are one near-collinear complex, so this is not the multi-instrument book that the dropped hedging-pressure family was left open for. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
