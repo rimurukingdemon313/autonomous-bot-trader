@@ -10,8 +10,8 @@
 | Equity | $200,000 (P/L $0); balance $200,000 |
 | Risk | ACTIVE (ACTIVE) |
 | Rule | TRINITY-MASTER promoted for PAPER as EXPERIMENTAL on 2026-11-21 |
-| Last session | 2026-11-24; next rebalance about 2026-12-14 |
-| Updated | 2026-11-25T17:38:35.567475+00:00 |
+| Last session | 2026-11-25; next rebalance about 2026-12-14 |
+| Updated | 2026-11-26T04:25:10.507476+00:00 |
 
 ## Positions
 
@@ -28,6 +28,11 @@
 ## The design book: the package's weights at their own size (measured, never traded)
 
 From 2026-11-23: equity $200,000 (P/L $0), worst fall at the lows $0. A firm's 10% maximum loss: not reached; its 5% daily loss: not reached. This is what the package claims to do, measured on the four funds it was written for. It is kept apart from the account above and never added to it.
+
+## Data problems
+
+- CL=F 2026-11-25: a second row for the same day; the first is kept
+- GC=F 2026-11-25: a second row for the same day; the first is kept
 
 ## How it trades
 
