@@ -627,6 +627,13 @@ above and was not counted again). It is in `research/inventions.jsonl`.
 |---|---|
 | SPR-1: crude oil near the price the Energy Department will refill its reserve at | Its solicitations (2022 to early 2025, none found later) bought at the month's average settlement below $79, about 50,000 barrels a day against about 100 million of world supply (search results; an estimate), a handful a year, on WTI's daily path that is read |
 
+**Checked on 2026-11-26, 04:48 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| MXH-1: crude oil while Mexico's annual oil hedge is being placed | Its puts pay on a whole year's average price and are spread over seven banks, the program is no longer disclosed, and no study of its price effect was found (search results); one placement a year would take about two centuries to reach t 3.0 even at 3% each (an estimate). It would sell short |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
