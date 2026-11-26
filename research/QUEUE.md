@@ -619,6 +619,14 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | CIR-1: commodities in the commodity indices' January reweighting window | Over 289 rebalancings of the Bloomberg and S&P GSCI indices (2006-2021) a study finds effects in volume and open interest, not prices, and front-running the roll earns nothing after costs (search results); one window a year, at most six of the owner's instruments in it, so even 1% an instrument would take about 37 years for t 3.0 |
 
+**Checked on 2026-11-26, 01:51 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one (a first idea, bitcoin after Wikipedia attention spikes, was already ATT-1
+above and was not counted again). It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| SPR-1: crude oil near the price the Energy Department will refill its reserve at | Its solicitations (2022 to early 2025, none found later) bought at the month's average settlement below $79, about 50,000 barrels a day against about 100 million of world supply (search results; an estimate), a handful a year, on WTI's daily path that is read |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
