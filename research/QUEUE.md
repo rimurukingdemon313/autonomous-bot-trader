@@ -641,6 +641,13 @@ for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
 |---|---|
 | HKR-1: ether while coins stolen in a large hack are being laundered | In the largest case (Bybit, 2025) the coins were swapped into bitcoin over about ten days while the victim bought back about $740 million of ether, and the day's fall was judged sentiment, not selling (search results); a few such thefts a year would need more than 12% each for t 3.0, on ether's daily history that is read |
 
+**Checked on 2026-11-26, 10:48 UTC (the edge hunt), and dropped before building.** No experiment running or waiting
+for a stage, so the cycle invented one. It is in `research/inventions.jsonl`.
+
+| Idea | Why it was dropped |
+|---|---|
+| EFS-1: ether around the Ethereum Foundation's own sales | Its sales follow a treasury rule, quarterly and split, 0.08% to 0.25% of a day's volume, and ether was on average 1.3% higher a week after them (search results, a reported study); a handful a year would need about 6% each for t 3.0, on ether's daily history that is read |
+
 **The cadence from 2026-11-09, 13:30 UTC.** The published ideas for these instruments are exhausted, and hourly
 searches were repeating dropped families. The check-ins now run twice a day, at 11:26 and 23:26 UTC. The second
 follows the trend desk's nightly session, so each report carries its real net. Each still takes one research step.
