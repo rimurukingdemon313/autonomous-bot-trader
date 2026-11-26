@@ -2,13 +2,11 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و4 فحص قبل البناء رفض 4 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-26 00:27 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-26 14:32 UTC from the committed record · research-report-1.1.0
 
 ## Today (2026-11-26, UTC)
-
-Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
@@ -20,7 +18,10 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- none
+- Checked on 2026-11-26, 01:51 UTC (the edge hunt), and dropped before building: SPR-1: crude oil near the price the Energy Department will refill its reserve at.
+- Checked on 2026-11-26, 04:48 UTC (the edge hunt), and dropped before building: MXH-1: crude oil while Mexico's annual oil hedge is being placed.
+- Checked on 2026-11-26, 07:49 UTC (the edge hunt), and dropped before building: HKR-1: ether while coins stolen in a large hack are being laundered.
+- Checked on 2026-11-26, 10:48 UTC (the edge hunt), and dropped before building: EFS-1: ether around the Ethereum Foundation's own sales.
 
 ## Cumulative (since the registry began)
 
@@ -28,7 +29,7 @@ Nothing new today: no idea checked, no test registered, no verdict.
 |---|---|
 | Hypotheses registered | 97 |
 | Verdicts | 87: ABANDONED 2, FAILED 74, INCONCLUSIVE 1, PASSED 10 |
-| Ideas dropped before building (no test spent) | 130 in the tables of 56 dated checks, on 12 days |
+| Ideas dropped before building (no test spent) | 134 in the tables of 60 dated checks, on 13 days |
 | Status of every judged hypothesis (the edge classification) | PROMISING 4, REJECTED 153, UNCERTAIN 5, VALIDATED 1 |
 | Evidence files that still match their verdict | 67 of 67 checked |
 | Specs whose hash is missing from their preregistration | none |
