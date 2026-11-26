@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-26 11:00 UTC**, run 1185, version `radar-1.0.0`. State from: cache. Quotes this hour: 2385.
+Updated **2026-11-26 12:00 UTC**, run 1186, version `radar-1.0.0`. State from: cache. Quotes this hour: 2385.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,27 +17,27 @@ Updated **2026-11-26 11:00 UTC**, run 1185, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 49.63
+- days: 49.67
 - run_coverage: 0.9941
 - closed_positions: 275
 - open_positions: 1
-- utilisation: 0.2551
+- utilisation: 0.255
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.7899
-- book_excess_pct: -2.9323
-- ann_excess_deployed_pct: -84.887
-- ann_excess_deployed_costs_x1.5_pct: -153.446
-- ann_excess_deployed_costs_x2_pct: -222.005
+- book_pnl_pct: -2.7906
+- book_excess_pct: -2.933
+- ann_excess_deployed_pct: -84.88
+- ann_excess_deployed_costs_x1.5_pct: -153.416
+- ann_excess_deployed_costs_x2_pct: -221.952
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.3866
+- book_excess_without_best_coin_pct: -3.3873
 - max_dd_pct: 2.7938
-- t_excess_daily: -4.424
+- t_excess_daily: -4.425
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| EVAA | mexc | gate | 2026-11-25 11:00 | 31.8% | 18.1 | -47.4 | 17.0 | **-46.3** |
+| EVAA | mexc | gate | 2026-11-25 11:00 | 31.8% | 18.7 | -49.4 | 17.0 | **-47.7** |
 
 ## Closed positions (275)
 
@@ -78,6 +78,6 @@ Updated **2026-11-26 11:00 UTC**, run 1185, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 44.5% | 49.3% |
+| EVAA | mexc | gate | 44.5% | 57.8% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
