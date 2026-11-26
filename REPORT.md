@@ -1,6 +1,6 @@
 # PAPER FORWARD TEST — NOT REAL MONEY
 
-Updated 2026-11-26 17:48 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-26 12:32 UTC · decision system `dual_ai`
+Updated 2026-11-26 18:04 UTC · mode `PAPER_FORWARD` · profile `PAPER-FORWARD-200K` · shift started 2026-11-26 12:32 UTC · decision system `dual_ai`
 
 Research status (historical, unchanged): **NO EDGE — DO NOT TRADE (historical research; this test measures forward)**. This run measures the system forward; it is not evidence of an edge until it has a sample and the forward-eligibility rules say so.
 
@@ -119,13 +119,13 @@ The 4 trade(s) taken out of the account, checked the same way: 4 ours (DESK: not
 
 ## Dual AI desk (two OpenRouter traders: free, or the paid trial while it runs; a trade only when they agree, both at 65 or more)
 
-OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `recursive/flint-v1.0:free` · debate `recursive/flint-v1.0:free` · calls today 38/900
+OpenRouter `READY` · key set · trader 1 `nvidia/nemotron-3.5-super-vl:free` · trader 2 `recursive/flint-v1.0:free` · debate `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` · calls today 40/900
 
 Paid trial `senior-2026-11-04` (2026-11-02T15:00:00Z to 2026-12-01T00:00:00Z): ACTIVE · the senior `anthropic/claude-opus-5.5` (paid only) · spent $8.60 of $95.00, today $0.00 of $7.50 (the key's own reading)
 
 Agreement trades 141 (adequate) · wins 54 · losses 87 · net $-8,172.49 · expectancy -0.145R · profit factor 0.71 · old DEBATE rule (stopped in dual-ai-1.2.0): 4 trade(s), net $-1,416.51, removed from the account
 
-Disagreements (not traded; the debate runs in shadow): 416 · the debate's pick if taken: 343 resolved (adequate), expectancy -0.144R · the side it rejected if taken: 348 resolved (adequate), expectancy -0.200R
+Disagreements (not traded; the debate runs in shadow): 416 · the debate's pick if taken: 344 resolved (adequate), expectancy -0.147R · the side it rejected if taken: 349 resolved (adequate), expectancy -0.203R
 
 Exits in shadow (the same trades, followed again; measured, never traded): break-even at +1R -0.210R vs -0.182R as taken (128, adequate) · closed at 24 h -1.055R vs -1.055R as taken (1, insufficient) · held 24 h (before forward 1.3.0) -0.116R vs -0.175R as taken (127, adequate) · stop and target twice as far -0.051R vs -0.182R as taken (128, adequate) · closed at 8 h (the exit before dual-ai 1.7.0) -0.345R vs -0.325R as taken (74, adequate)
 
