@@ -432,34 +432,34 @@
   "trials": 97,
   "verdicts": 87
  },
- "day": "2026-11-26",
+ "day": "2026-11-27",
  "engine": {
   "built": [],
   "by_decision": {
-   "DROPPED_POWER": 13,
+   "DROPPED_POWER": 16,
    "QUEUED_FOR_BUILD": 5,
    "REJECTED_BY_CRITIC": 32
   },
   "integrity": {
-   "at": "2026-11-26T14:32:01.905912+00:00",
-   "cycle": "2026-11-26",
+   "at": "2026-11-27T00:38:19.901641+00:00",
+   "cycle": "2026-11-27",
    "detail": null,
    "status": "OK",
    "step": "integrity",
    "version": "research-engine-1.2.0"
   },
   "last": {
-   "at": "2026-11-26T00:27:17.118276+00:00",
-   "cycle": "2026-11-26",
+   "at": "2026-11-27T00:38:19.901641+00:00",
+   "cycle": "2026-11-27",
    "detail": {
     "attempts": [
      {
-      "model": "baidu/ernie-5.5-flash-preview:free",
+      "model": "particle-ai/particle-1:free",
       "role": "researcher",
       "status": "TIMEOUT"
      },
      {
-      "model": "recursive/flint-v1.0:free",
+      "model": "baidu/ernie-5.5-flash-preview:free",
       "role": "researcher",
       "status": "OK"
      },
@@ -470,16 +470,16 @@
      }
     ],
     "ideas": [
-     "a1b2ae45eec4ab32a2fb",
-     "5c9f7b29cc738311c2b3",
-     "e248cebfa6455b035c91"
+     "24552973066767668c06",
+     "9a078389848e51e7460a",
+     "46305990c9a6eb36b7fa"
     ]
    },
    "status": "OK",
    "step": "ideas",
    "version": "research-engine-1.2.0"
   },
-  "last_ok": "2026-11-26T00:27:17.118276+00:00",
+  "last_ok": "2026-11-27T00:38:19.901641+00:00",
   "queued": [
    {
     "at": "2026-11-17T00:17:15.024042+00:00",
@@ -664,99 +664,141 @@
   ],
   "today": [
    {
-    "at": "2026-11-26T00:27:17.118276+00:00",
-    "claimed_sharpe_annual": 0.8,
+    "at": "2026-11-27T00:38:19.901641+00:00",
+    "claimed_sharpe_annual": 0.5,
     "conditions_flag": null,
     "critic": "particle-ai/particle-1:free",
-    "critic_category": "data_cannot_be_had",
-    "critic_reason": "The rule needs two things no feed here carries: the composition of ETF creation/redemption baskets (only daily shares outstanding is public, and that is a proxy, not the basket) and opening-cross execution/imbalance data, which is exchange/participant-only. The exit is also incoherent: 'the next scheduled creation unit settlement' is a T+1/T+2 settlement event, not an intraday one, so an 'intraday' rule cannot be closed on it. What is left is a daily flow proxy on index CFDs, which is the ETF-flow family already spent (ETF-FLOW-1, ETF-NAV), and an intraday CFD round trip that took the whole gross edge of every intraday family tested here.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-26",
-    "data_source": "US ETF creation/redemption reports and opening cross execution data",
-    "decision": "REJECTED_BY_CRITIC",
+    "critic_category": null,
+    "critic_reason": "The CTA de-risking family was dropped for lack of power ONLY, and its entry explicitly opens the door to the same mechanism on about 2 independent instruments over the 12 years it has. This version runs four commodity CFDs as one book over 12 fresh years, which answers that lack. The forced-flow mechanism (rule-based CTA mandates cutting exposure into a trend break, temporary price impact) is coherent and documented in the trend-following literature; the rule uses only prior closes and next-open entries, so it is testable without look-ahead, and public settlement prices for WTI, Brent, gold and silver exist. Claimed Sharpe 0.5 is modest, not implausible. Power is for the statistics to judge.",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-27",
+    "data_source": "Public daily settlement prices for WTI, Brent, gold and silver from EIA, COMEX/LME and public CFD feeds.",
+    "decision": "DROPPED_POWER",
     "duplicate_of": null,
-    "evidence": "none: a new idea",
-    "fingerprint": "a1b2ae45eec4ab32a2fb",
-    "horizon": "intraday",
-    "idea_class": "INSUFFICIENT_DATA",
-    "mechanism": "Large ETF creation baskets executed through the opening cross create temporary dealer and arbitrageur hedging pressure because basket obligations must be met at settlement; the forced buy pressure from arbitrageurs front-running the cross depletes liquidity and leaves a settlement imbalance.",
-    "mechanism_class": "market microstructure",
-    "needs_short_or_leverage": "Yes, needs short; no leverage",
-    "power": null,
-    "proposer": "recursive/flint-v1.0:free",
-    "rule": "Across the four largest US equity ETFs, if the prior session's net creation units exceed the prior 20-day median net creation units, enter a short position in the underlying index CFD; exit at the next scheduled creation unit settlement or when the net creation unit delta returns to its prior median.",
+    "evidence": "None: a new idea; the forced-flow mechanism is documented for rule-based trend-following CTAs (Fung & Hsieh 2001, Journal of Finance), but no direct test of this shock rule.",
+    "fingerprint": "24552973066767668c06",
+    "horizon": "swing",
+    "idea_class": "INSUFFICIENT_POWER",
+    "mechanism": "Rule-based trend-following CTAs hold large long commodity positions. When a broad commodity price index falls below its 200-day average and has a sharp 20-day loss, CTAs cut exposure mechanically, creating temporary forced selling. The sellers are CTAs following mandates; the buyers are liquidity providers and longer-horizon investors. The pressure persists because CTA mandates are rule-based and the assets under management are large, but the price impact is temporary.",
+    "mechanism_class": "forced flows",
+    "needs_short_or_leverage": "No; long-only and unleveraged.",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 0.5,
+     "expected_t": 1.732,
+     "p_pass": 0.102,
+     "plan": {
+      "independent_instruments_needed": 4,
+      "ways": [
+       "about 36 years of fresh data at the claimed strength, against the 12 it has",
+       "or the same mechanism on about 4 independent instruments over those 12 years, tested as one book"
+      ],
+      "years_of_fresh_data_needed": 36.0
+     },
+     "years": 12
+    },
+    "proposer": "baidu/ernie-5.5-flash-preview:free",
+    "rule": "At each daily close t, compute an equal-weight price index of WTI, Brent, gold and silver and its 200-day moving average and 20-day return. If the index is below its 200-day moving average and its 20-day return is below -5%, then at the next open buy one unit of each of the four CFDs whose own close is below its own 200-day moving average. Exit at the next open after the equal-weight index closes above its 200-day moving average or after 20 trading days, whichever comes first. No sizing; one unit per instrument.",
     "source": "engine",
-    "title": "Opening-cross creation basket imbalance in US equity ETFs",
-    "universe": "us-equity-etf",
+    "title": "CTA commodity de-risking shock across four commodity CFDs as one book",
+    "universe": "new:commodity-cfd-book",
     "version": "research-engine-1.2.0",
-    "why": "The rule needs two things no feed here carries: the composition of ETF creation/redemption baskets (only daily shares outstanding is public, and that is a proxy, not the basket) and opening-cross execution/imbalance data, which is exchange/participant-only. The exit is also incoherent: 'the next scheduled creation unit settlement' is a T+1/T+2 settlement event, not an intraday one, so an 'intraday' rule cannot be closed on it. What is left is a daily flow proxy on index CFDs, which is the ETF-flow family already spent (ETF-FLOW-1, ETF-NAV), and an intraday CFD round trip that took the whole gross edge of every intraday family tested here.",
-    "why_new": "No test here has used opening-cross settlement imbalance as a trade rule; prior ETF flow tests focused on next-day returns.",
+    "why": "even at its claimed strength it expects t 1.732 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 12 it has; or the same mechanism on about 4 independent instruments over those 12 years, tested as one book",
+    "why_new": "The dropped CTA de-risking family had one instrument and 12 years; this version tests four independent commodity instruments as one book over 12 fresh years, about 48 instrument-years, answering the lack of power.",
     "years_of_fresh_data": 12
    },
    {
-    "at": "2026-11-26T00:27:17.118276+00:00",
-    "claimed_sharpe_annual": 0.6,
+    "at": "2026-11-27T00:38:19.901641+00:00",
+    "claimed_sharpe_annual": 0.4,
     "conditions_flag": null,
     "critic": "particle-ai/particle-1:free",
-    "critic_category": "no_mechanism",
-    "critic_reason": "The signal is a four-week average of the runoff series compared with its own one-week average: that is a lag artefact of the same number, not a measure of 'runoff exceeding policy-implied absorption', and it flips on any week-to-week wiggle. Worse, the direction contradicts the stated mechanism: if runoff absorbs reserves and pressures equities, the rule should be short when runoff accelerates, yet it goes long. No economic content survives, and at a claimed net Sharpe of 0.6 over 15 years it also could not clear a bar of 3.0.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-26",
-    "data_source": "Federal Reserve H.4.1 and FRED weekly balance sheet data",
-    "decision": "REJECTED_BY_CRITIC",
+    "critic_category": null,
+    "critic_reason": "Both prior hedging-pressure entries (single-instrument and cross-sectional) were dropped for lack of power ONLY, and each names the answer: about 4 independent instruments over 9-10 years, or about 25-36 years of fresh data. This version is a four-instrument cross-sectional book over 25 fresh years, which satisfies both. The hedging-pressure risk premium is a documented mechanism (De Roon/Nijman/Veld; Basu & Miffre), the COT report is public and the rule uses only reports published before the decision date, so no look-ahead. Shorting two legs is allowed and needs no financing on a swap-free account. Claimed Sharpe 0.4 is not implausible.",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-27",
+    "data_source": "CFTC Commitments of Traders reports (public, released Fridays) and daily futures settlement prices for WTI, Brent, gold and silver.",
+    "decision": "DROPPED_POWER",
     "duplicate_of": null,
-    "evidence": "none: a new idea",
-    "fingerprint": "5c9f7b29cc738311c2b3",
+    "evidence": "De Roon, Nijman & Veld (1995, Journal of Finance) and Basu & Miffre (2013, Journal of Banking & Finance) document a hedging-pressure premium in commodity futures; this is a cross-sectional four-instrument version.",
+    "fingerprint": "9a078389848e51e7460a",
     "horizon": "position",
-    "idea_class": "NO_MECHANISM",
-    "mechanism": "The Fed's balance sheet runoff absorbs reserves and increases Treasury issuance, reducing the liquidity available to global equity markets; when the runoff pace persistently exceeds the policy-implied absorption, dealers and funds rebalance, pressuring equity indices.",
-    "mechanism_class": "macro and policy",
-    "needs_short_or_leverage": "No; long-only",
-    "power": null,
-    "proposer": "recursive/flint-v1.0:free",
-    "rule": "Across the five broad global index CFDs, when the four-week average of the Fed's weekly balance sheet runoff exceeds its one-week average, take a long position; exit when the four-week average falls below the one-week average.",
+    "idea_class": "INSUFFICIENT_POWER",
+    "mechanism": "Producers hedge by shorting commodity futures. When commercial hedging pressure is high, speculators demand a premium for bearing the producers' price risk. The producers are willing to pay the premium to stabilise revenue; speculators earn it for providing liquidity. It persists because hedging demand is structural and limits to arbitrage prevent immediate elimination.",
+    "mechanism_class": "risk premium",
+    "needs_short_or_leverage": "Yes; short two of the four instruments.",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 0.4,
+     "expected_t": 2.0,
+     "p_pass": 0.159,
+     "plan": {
+      "independent_instruments_needed": 3,
+      "ways": [
+       "about 56 years of fresh data at the claimed strength, against the 25 it has",
+       "or the same mechanism on about 3 independent instruments over those 25 years, tested as one book"
+      ],
+      "years_of_fresh_data_needed": 56.2
+     },
+     "years": 25
+    },
+    "proposer": "baidu/ernie-5.5-flash-preview:free",
+    "rule": "At each month-end, using the latest CFTC Commitments of Traders report published before that date, compute for each of WTI, Brent, gold and silver the trailing 12-month average of commercial net short contracts divided by open interest. Rank the four instruments. At the next open, long one unit of the two with the highest ratio and short one unit of the two with the lowest ratio. Exit at the next month-end. No sizing; one unit per leg.",
     "source": "engine",
-    "title": "Federal reserve balance sheet runoff and global equity liquidity footprint",
-    "universe": "equity-index-b",
+    "title": "Commodity hedging-pressure risk premium across four commodity futures as one book",
+    "universe": "new:commodity-futures-cot",
     "version": "research-engine-1.2.0",
-    "why": "The signal is a four-week average of the runoff series compared with its own one-week average: that is a lag artefact of the same number, not a measure of 'runoff exceeding policy-implied absorption', and it flips on any week-to-week wiggle. Worse, the direction contradicts the stated mechanism: if runoff absorbs reserves and pressures equities, the rule should be short when runoff accelerates, yet it goes long. No economic content survives, and at a claimed net Sharpe of 0.6 over 15 years it also could not clear a bar of 3.0.",
-    "why_new": "No test here has used the Fed balance sheet runoff pace as a continuous liquidity signal; prior tests used cash balance or announcements.",
-    "years_of_fresh_data": 15
+    "why": "even at its claimed strength it expects t 2.0 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 56 years of fresh data at the claimed strength, against the 25 it has; or the same mechanism on about 3 independent instruments over those 25 years, tested as one book",
+    "why_new": "The dropped hedging-pressure family had one instrument and 9 years; this version tests four independent commodity futures as one book over 25 fresh years, about 100 instrument-years, answering the lack of power.",
+    "years_of_fresh_data": 25
    },
    {
-    "at": "2026-11-26T00:27:17.118276+00:00",
-    "claimed_sharpe_annual": 1.0,
+    "at": "2026-11-27T00:38:19.901641+00:00",
+    "claimed_sharpe_annual": 0.5,
     "conditions_flag": null,
     "critic": "particle-ai/particle-1:free",
-    "critic_category": "no_mechanism",
-    "critic_reason": "The mechanism does not fix a sign ('dealers may hedge by buying back or selling'), and the rule's short direction is the opposite of the only documented prediction of the hedging-pressure literature: when producers are heavily net short, futures trade cheap and longs earn the premium. The stated data source cannot supply the signal either \u2014 EIA publishes open interest and inventories, not producer hedging volume; that is CFTC COT commercial positioning, weekly and three days stale. And the three legs (crude, heating oil, RBOB) are one near-collinear complex, so this is not the multi-instrument book that the dropped hedging-pressure family was left open for.",
-    "critic_verdict": "REJECT",
-    "cycle": "2026-11-26",
-    "data_source": "EIA energy futures open interest and price data",
-    "decision": "REJECTED_BY_CRITIC",
-    "duplicate_of": "Commodity futures hedging-pressure risk premium",
-    "evidence": "none: a new idea",
-    "fingerprint": "e248cebfa6455b035c91",
-    "horizon": "swing",
-    "idea_class": "NO_MECHANISM",
-    "mechanism": "Producers and swap dealers hedge long crude oil exposure by selling futures; when producer hedging pressure increases alongside spot price, dealer inventory risk rises and dealers may hedge by buying back or selling, creating transient liquidity and price effects.",
-    "mechanism_class": "liquidity provision",
-    "needs_short_or_leverage": "Yes, needs short; no leverage",
-    "power": null,
-    "proposer": "recursive/flint-v1.0:free",
-    "rule": "Across the three energy futures in the EIA crude-oil complex, when the weekly producer hedging volume proxy exceeds its 60-day median, enter a short position in the front-month CFD; exit when the proxy falls below the median.",
+    "critic_category": null,
+    "critic_reason": "The US high-yield-to-EM-FX family was dropped for lack of power ONLY, with the answer stated as about 4 independent instruments over the 10 years it has. This version is exactly that: four EM currency CFDs traded as one book over 10 fresh years. The global-financial-cycle transmission (Rey 2015; Miranda-Agrippino & Rey 2020) is a real cross-asset mechanism, FRED's BAMLH0A0HYM2 and the em-fx-daily prices are obtainable, and the month-end rule uses only data available at the close, so it is cleanly testable. Long USD / short EM currencies is permitted and carries no financing on a swap-free account. Claimed Sharpe 0.5 is not implausible; power is for the statistics.",
+    "critic_verdict": "PASS",
+    "cycle": "2026-11-27",
+    "data_source": "FRED series BAMLH0A0HYM2 for US high-yield option-adjusted spread and em-fx-daily CFD prices for USDTRY, USDMXN, USDZAR and USDBRL.",
+    "decision": "DROPPED_POWER",
+    "duplicate_of": null,
+    "evidence": "Rey (2015, Journal of Economic Perspectives) and Miranda-Agrippino & Rey (2020, American Economic Review) document a global financial cycle transmitting US credit conditions to EM assets; no direct test of HY OAS diffusion into EM FX.",
+    "fingerprint": "46305990c9a6eb36b7fa",
+    "horizon": "position",
+    "idea_class": "INSUFFICIENT_POWER",
+    "mechanism": "A widening of US high-yield credit spreads signals global risk aversion and forces leveraged credit funds to delever. Emerging-market currencies with high external financing needs depreciate as those funds sell EM assets. The sellers are leveraged credit funds facing funding constraints; the buyers are liquidity providers. The transmission persists because of the global financial cycle and the common funding channel.",
+    "mechanism_class": "cross-asset linkage",
+    "needs_short_or_leverage": "Yes; long USD and short the four EM currencies.",
+    "power": {
+     "bar": 3.0,
+     "claimed_sharpe": 0.5,
+     "expected_t": 1.581,
+     "p_pass": 0.078,
+     "plan": {
+      "independent_instruments_needed": 4,
+      "ways": [
+       "about 36 years of fresh data at the claimed strength, against the 10 it has",
+       "or the same mechanism on about 4 independent instruments over those 10 years, tested as one book"
+      ],
+      "years_of_fresh_data_needed": 36.0
+     },
+     "years": 10
+    },
+    "proposer": "baidu/ernie-5.5-flash-preview:free",
+    "rule": "At each month-end, compute the 60-day change in FRED series BAMLH0A0HYM2 and its standard deviation over the prior 60 months. If the change exceeds +0.5 standard deviations, then at the next open buy one unit each of USDTRY, USDMXN, USDZAR and USDBRL CFDs, which is long USD and short the four EM currencies. Exit at the next open after the 60-day change falls below zero or after three months, whichever comes first. No sizing; one unit per pair.",
     "source": "engine",
-    "title": "Dealer inventory risk from commodity producer hedging in crude oil",
-    "universe": "energy-futures-eia",
+    "title": "US high-yield credit spread diffusion into four EM FX currencies as one book",
+    "universe": "em-fx-daily",
     "version": "research-engine-1.2.0",
-    "why": "The mechanism does not fix a sign ('dealers may hedge by buying back or selling'), and the rule's short direction is the opposite of the only documented prediction of the hedging-pressure literature: when producers are heavily net short, futures trade cheap and longs earn the premium. The stated data source cannot supply the signal either \u2014 EIA publishes open interest and inventories, not producer hedging volume; that is CFTC COT commercial positioning, weekly and three days stale. And the three legs (crude, heating oil, RBOB) are one near-collinear complex, so this is not the multi-instrument book that the dropped hedging-pressure family was left open for.",
-    "why_new": "No test here has used producer hedging inventory pressure as a liquidity provision signal; prior energy tests used term structure or inventory surprises.",
-    "years_of_fresh_data": 20
+    "why": "even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book",
+    "why_new": "The dropped US HY-to-EM-FX family had one currency and 10 years; this version tests four independent EM currencies as one book over 10 fresh years, about 40 instrument-years, answering the lack of power.",
+    "years_of_fresh_data": 10
    }
   ],
-  "total": 50
+  "total": 53
  },
- "generated": "2026-11-26T14:32:01.905912+00:00",
+ "generated": "2026-11-27T00:38:19.901641+00:00",
  "recent_verdicts": [
   {
    "evidence": {
@@ -1072,36 +1114,7 @@
   "universe": "fx-majors"
  },
  "today": {
-  "dropped_before_building": [
-   {
-    "date": "2026-11-26",
-    "heading": "Checked on 2026-11-26, 01:51 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "SPR-1: crude oil near the price the Energy Department will refill its reserve at"
-    ]
-   },
-   {
-    "date": "2026-11-26",
-    "heading": "Checked on 2026-11-26, 04:48 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "MXH-1: crude oil while Mexico's annual oil hedge is being placed"
-    ]
-   },
-   {
-    "date": "2026-11-26",
-    "heading": "Checked on 2026-11-26, 07:49 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "HKR-1: ether while coins stolen in a large hack are being laundered"
-    ]
-   },
-   {
-    "date": "2026-11-26",
-    "heading": "Checked on 2026-11-26, 10:48 UTC (the edge hunt), and dropped before building",
-    "ideas": [
-     "EFS-1: ether around the Ethereum Foundation's own sales"
-    ]
-   }
-  ],
+  "dropped_before_building": [],
   "registered": [],
   "verdicts": []
  },

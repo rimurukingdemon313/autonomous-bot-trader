@@ -2,11 +2,13 @@
 
 **RESEARCH ONLY · NO MONEY · NOT A TRADING RESULT.** Every figure here is a test of an idea on history (a backtest), judged once against rules fixed before it ran, or a sealed out-of-sample check. Paper-trading results are in the trend desk's TRADING_REPORT.md (`trend-desk-data` branch) and are never added here.
 
-**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم: 0 فرضية جديدة انسجلت، 0 انحكمت (0 نجحت)، و4 فحص قبل البناء رفض 4 فكرة من غير ما نصرف عليها اختبار. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
+**بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-26 14:32 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-27 00:38 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-26, UTC)
+## Today (2026-11-27, UTC)
+
+Nothing new today: no idea checked, no test registered, no verdict.
 
 **New hypotheses registered** (each preregistered before any data was read):
 
@@ -18,10 +20,7 @@ Generated 2026-11-26 14:32 UTC from the committed record · research-report-1.1.
 
 **Ideas checked and dropped before building** (no test spent; the reasons are in `research/QUEUE.md`):
 
-- Checked on 2026-11-26, 01:51 UTC (the edge hunt), and dropped before building: SPR-1: crude oil near the price the Energy Department will refill its reserve at.
-- Checked on 2026-11-26, 04:48 UTC (the edge hunt), and dropped before building: MXH-1: crude oil while Mexico's annual oil hedge is being placed.
-- Checked on 2026-11-26, 07:49 UTC (the edge hunt), and dropped before building: HKR-1: ether while coins stolen in a large hack are being laundered.
-- Checked on 2026-11-26, 10:48 UTC (the edge hunt), and dropped before building: EFS-1: ether around the Ethereum Foundation's own sales.
+- none
 
 ## Cumulative (since the registry began)
 
@@ -38,16 +37,16 @@ Generated 2026-11-26 14:32 UTC from the committed record · research-report-1.1.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-26 00:27 UTC, OK
-- Last successful idea step: 2026-11-26 00:27 UTC
+- Last cycle: 2026-11-27 00:38 UTC, OK
+- Last successful idea step: 2026-11-27 00:38 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 50 ideas: DROPPED_POWER 13, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 32
+- All time: 53 ideas: DROPPED_POWER 16, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 32
 
 **Today:**
 
-- **REJECTED_BY_CRITIC**: Opening-cross creation basket imbalance in US equity ETFs (us-equity-etf, intraday). The rule needs two things no feed here carries: the composition of ETF creation/redemption baskets (only daily shares outstanding is public, and that is a proxy, not the basket) and opening-cross execution/imbalance data, which is exchange/participant-only. The exit is also incoherent: 'the next scheduled creation unit settlement' is a T+1/T+2 settlement event, not an intraday one, so an 'intraday' rule cannot be closed on it. What is left is a daily flow proxy on index CFDs, which is the ETF-flow family already spent (ETF-FLOW-1, ETF-NAV), and an intraday CFD round trip that took the whole gross edge of every intraday family tested here. (critic: particle-ai/particle-1:free) Class: INSUFFICIENT_DATA.
-- **REJECTED_BY_CRITIC**: Federal reserve balance sheet runoff and global equity liquidity footprint (equity-index-b, position). The signal is a four-week average of the runoff series compared with its own one-week average: that is a lag artefact of the same number, not a measure of 'runoff exceeding policy-implied absorption', and it flips on any week-to-week wiggle. Worse, the direction contradicts the stated mechanism: if runoff absorbs reserves and pressures equities, the rule should be short when runoff accelerates, yet it goes long. No economic content survives, and at a claimed net Sharpe of 0.6 over 15 years it also could not clear a bar of 3.0. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
-- **REJECTED_BY_CRITIC**: Dealer inventory risk from commodity producer hedging in crude oil (energy-futures-eia, swing). The mechanism does not fix a sign ('dealers may hedge by buying back or selling'), and the rule's short direction is the opposite of the only documented prediction of the hedging-pressure literature: when producers are heavily net short, futures trade cheap and longs earn the premium. The stated data source cannot supply the signal either — EIA publishes open interest and inventories, not producer hedging volume; that is CFTC COT commercial positioning, weekly and three days stale. And the three legs (crude, heating oil, RBOB) are one near-collinear complex, so this is not the multi-instrument book that the dropped hedging-pressure family was left open for. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
+- **DROPPED_POWER**: CTA commodity de-risking shock across four commodity CFDs as one book (new:commodity-cfd-book, swing). even at its claimed strength it expects t 1.732 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 12 it has; or the same mechanism on about 4 independent instruments over those 12 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: Commodity hedging-pressure risk premium across four commodity futures as one book (new:commodity-futures-cot, position). even at its claimed strength it expects t 2.0 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 56 years of fresh data at the claimed strength, against the 25 it has; or the same mechanism on about 3 independent instruments over those 25 years, tested as one book Class: INSUFFICIENT_POWER.
+- **DROPPED_POWER**: US high-yield credit spread diffusion into four EM FX currencies as one book (em-fx-daily, position). even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
