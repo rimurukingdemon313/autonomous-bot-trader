@@ -11,7 +11,7 @@
 | Risk | ACTIVE (ACTIVE) |
 | Rule | TRINITY-MASTER promoted for PAPER as EXPERIMENTAL on 2026-11-21 |
 | Last session | 2026-11-25; next rebalance about 2026-12-14 |
-| Updated | 2026-11-27T04:34:31.463305+00:00 |
+| Updated | 2026-11-27T09:44:23.729171+00:00 |
 
 ## Positions
 
