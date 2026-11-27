@@ -4,7 +4,7 @@
 
 **بالعربي:** مكتب TRND-1: الرصيد $194,784.79، المحقّق -$2,660.70، غير المحقّق -$2,554.51، الصفقات المسكّرة 1. رادار RADAR-1: دفتره -2.86% من رأس ماله الورقي، 281 صفقة مسكّرة، الرابح منها 49. المطابقة: كل الأرقام تطابقت من مصدرين. تجربة التحسين: غير حاسمة لأن العيّنة صغيرة. المنافسين المسجّلين: 0. النظام الأصلي ما انلمس.
 
-Updated 2026-11-27 21:17 UTC · perf-1.0.1 · cycles so far: 60
+Updated 2026-11-27 23:33 UTC · perf-1.0.1 · cycles so far: 61
 
 ## 1. TRND-1: the trend desk's paper account
 
@@ -62,15 +62,15 @@ Concentration: 3 positions, the largest 33.7% of the gross; by size that is 3.0 
 
 **Reconciled: 24 of 24 checks hold.** Each compares two routes to the same figure.
 
-Marks from 2026-10-07 20:00 UTC to 2026-11-27 21:00 UTC (51.04 days). Paper only: no order is ever sent. Its preregistered single look is on 2026-12-06 and is read as registered, whatever this audit says.
+Marks from 2026-10-07 20:00 UTC to 2026-11-27 23:00 UTC (51.12 days). Paper only: no order is ever sent. Its preregistered single look is on 2026-12-06 and is read as registered, whatever this audit says.
 
 Capital: ten slots of 2N: 20N. The radar has no cash account; N is not a dollar amount. P&L is in basis points (bp) of one leg's notional; 2,000 bp summed over positions is 1% of the book.
 
 | | In bp of N | In % of the book | On a $100,000 book (illustration) |
 |---|---|---|---|
 | **Realized** (closed positions, after every fill) | -5,716.4 | -2.8582% | -$2,858.21 |
-| **Unrealized** (open positions at their marks, entry fills paid) | -2.9 | -0.0015% | -$1.46 |
-| The book if every open position were closed now | -5,736.3 | -2.8682% | -$2,868.17 |
+| **Unrealized** (open positions at their marks, entry fills paid) | -0.4 | -0.0002% | -$0.18 |
+| The book if every open position were closed now | -5,733.8 | -2.8669% | -$2,866.89 |
 
 | | |
 |---|---|
@@ -80,13 +80,13 @@ Capital: ten slots of 2N: 20N. The radar has no cash account; N is not a dollar 
 | Profit factor | 0.38 |
 | Mean net a position | -20.3 bp (t -4.94) |
 | Open positions | 1 of 10 slots; on average 25.4% of the capital was deployed |
-| Book P&L | -2.8597% |
-| Book excess over cash (3.875%/yr on the capital in use) | -3.0053% |
-| Annualised excess on the capital deployed | -84.9%/yr |
-| The same with costs x1.5 / x2 | -153.3% / -221.7% |
+| Book P&L | -2.8584% |
+| Book excess over cash (3.875%/yr on the capital in use) | -3.0041% |
+| Annualised excess on the capital deployed | -84.8%/yr |
+| The same with costs x1.5 / x2 | -153.2% / -221.5% |
 | Maximum drawdown of the book (hourly marks) | 2.8682% |
 | t of the daily excess | -4.53 |
-| Best coin, and the book's excess without it | INIT: -3.4311% |
+| Best coin, and the book's excess without it | INIT: -3.4299% |
 
 ### Where it came from
 
@@ -146,7 +146,7 @@ Concentration: the most traded coin (AKE) is 9.2% of the positions; by count the
 
 | Open now | Short / long | Opened | Entry spread | Funding | Price | Fills paid | Net at the marks | Net if closed now |
 |---|---|---|---|---|---|---|---|---|
-| SOXS | gate / mexc | 2026-11-27 08:00 UTC | 25.5%/yr | 10.4 | 3.7 | 17.0 | -2.9 bp | -19.9 bp |
+| SOXS | gate / mexc | 2026-11-27 08:00 UTC | 25.5%/yr | 11.1 | 5.5 | 17.0 | -0.4 bp | -17.4 bp |
 
 ## 3. The weakness, the hypothesis and the experiment
 
@@ -160,21 +160,21 @@ Concentration: the most traded coin (AKE) is 9.2% of the positions; by count the
 
 Stored hours in hand: 547 (2026-11-04 23:00 UTC to 2026-11-27 21:00 UTC); days archived: 23; added this cycle: none.
 
-Fidelity: the replay of the original rules reproduces 101 of the radar's 101 real positions opened in these hours to the hundredth of a basis point (101 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
+Fidelity: the replay of the original rules reproduces 100 of the radar's 101 real positions opened in these hours to the hundredth of a basis point (101 matched by entry). Differences: 0 only in the real ledger, 2 only in the replay; 2 of them on a coin the radar already held when the replay began (AKE, IDOL, SOL, SOXL, UAI). The replay is taken as faithful.
 
 Earlier part 2026-11-07 22:00 UTC to 2026-11-17 00:00 UTC; later part to 2026-11-27 22:00 UTC. Excess over cash in % of the book.
 
 | Variant | What changes | Earlier: excess | positions | Later: excess | positions | closed | t (daily) | Later, less the original | its t |
 |---|---|---|---|---|---|---|---|---|---|
+| `all-three` | entry_now_apr=0.3, entry_trailing_apr=0.5, exit_now_apr=-1.0, trailing_entry_h=24 | 0.3646% | 31 | -0.1842% | 27 | 25 | -2.56 | 0.6728% | 3.37 |
 | `original` | nothing: the registered rules | 0.1026% | 40 | -0.8571% | 63 | 62 | -3.54 | 0.0000% | n/a |
-| `same-window` | trailing_entry_h=24 | -0.0994% | 62 | -0.8365% | 60 | 58 | -4.64 | 0.0205% | 0.08 |
-| `thick-entry` | entry_trailing_apr=0.5, entry_now_apr=0.3 | 0.2366% | 29 | -0.1905% | 16 | 16 | -2.04 | 0.6665% | 3.44 |
 | `patient-exit` | exit_now_apr=-1.0 | 0.2996% | 33 | -0.7547% | 61 | 57 | -3.53 | 0.1024% | 1.75 |
-| `all-three` | trailing_entry_h=24, entry_trailing_apr=0.5, entry_now_apr=0.3, exit_now_apr=-1.0 | 0.3646% | 31 | -0.1842% | 27 | 25 | -2.56 | 0.6728% | 3.37 |
+| `same-window` | trailing_entry_h=24 | -0.0994% | 62 | -0.8365% | 60 | 58 | -4.64 | 0.0205% | 0.08 |
+| `thick-entry` | entry_now_apr=0.3, entry_trailing_apr=0.5 | 0.2366% | 29 | -0.1905% | 16 | 16 | -2.04 | 0.6665% | 3.44 |
 
 Candidate, chosen on the earlier part only: `all-three` (4 variants compared). **INCONCLUSIVE**: the later part holds 11 days and 25 closed positions: 30 and 30 are needed before anything is judged.
 
-Gates on the later part: enough days no, enough positions no, excess over cash no, beats the original yes, costs x1.5 no, without best coin no.
+Gates on the later part: beats the original yes, costs x1.5 no, enough days no, enough positions no, excess over cash no, without best coin no.
 
 A variant is proposed as a registered challenger only when every gate holds. A proposal is a request for a preregistered forward test, never a replacement of the original.
 
