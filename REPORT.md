@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-27 05:00 UTC**, run 1203, version `radar-1.0.0`. State from: cache. Quotes this hour: 2386.
+Updated **2026-11-27 06:00 UTC**, run 1204, version `radar-1.0.0`. State from: cache. Quotes this hour: 2386.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,29 +17,29 @@ Updated **2026-11-27 05:00 UTC**, run 1203, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 50.38
+- days: 50.42
 - run_coverage: 0.9942
 - closed_positions: 276
 - open_positions: 3
 - utilisation: 0.2538
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.8158
-- book_excess_pct: -2.9764
-- ann_excess_deployed_pct: -85.374
-- ann_excess_deployed_costs_x1.5_pct: -154.035
-- ann_excess_deployed_costs_x2_pct: -222.697
+- book_pnl_pct: -2.8277
+- book_excess_pct: -2.9884
+- ann_excess_deployed_pct: -85.635
+- ann_excess_deployed_costs_x1.5_pct: -154.229
+- ann_excess_deployed_costs_x2_pct: -222.823
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.399
+- book_excess_without_best_coin_pct: -3.4099
 - max_dd_pct: 2.8515
-- t_excess_daily: -4.46
+- t_excess_daily: -4.481
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
 | EVAA | mexc | gate | 2026-11-25 11:00 | 31.8% | 22.9 | -36.3 | 17.0 | **-30.4** |
-| INIT | gate | mexc | 2026-11-27 00:00 | 163.0% | 2.9 | -31.8 | 17.0 | **-45.9** |
-| BULLA | mexc | gate | 2026-11-27 03:00 | 34.9% | 9.2 | 56.4 | 17.0 | **48.5** |
+| INIT | gate | mexc | 2026-11-27 00:00 | 163.0% | 3.7 | -34.8 | 17.0 | **-48.2** |
+| BULLA | mexc | gate | 2026-11-27 03:00 | 34.9% | 12.0 | 31.9 | 17.0 | **27.0** |
 
 ## Closed positions (276)
 
@@ -80,7 +80,7 @@ Updated **2026-11-27 05:00 UTC**, run 1203, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| INIT | gate | mexc | 187.3% | 27.0% |
-| BULLA | mexc | gate | 47.3% | 343.1% |
+| INIT | gate | hyperliquid | 215.1% | 88.8% |
+| BULLA | mexc | gate | 50.1% | 161.9% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
