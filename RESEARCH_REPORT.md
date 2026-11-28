@@ -4,9 +4,9 @@
 
 **بالعربي:** هذا تقرير البحث وحده: اختبارات أفكار على بيانات تاريخية، مو أرباح تداول، وما بيه ولا رقم من الحساب الورقي. اليوم ما صار شي جديد بالبحث. المجموع من البداية: 97 فرضية مسجلة، 74 فشلت. المعتمد (VALIDATED): TRND-1.
 
-Generated 2026-11-27 14:26 UTC from the committed record · research-report-1.1.0
+Generated 2026-11-28 00:04 UTC from the committed record · research-report-1.1.0
 
-## Today (2026-11-27, UTC)
+## Today (2026-11-28, UTC)
 
 Nothing new today: no idea checked, no test registered, no verdict.
 
@@ -37,16 +37,16 @@ Nothing new today: no idea checked, no test registered, no verdict.
 
 A proposer model suggests hypotheses; a critic on another model can only reject; arithmetic drops any that cannot reach their market's bar even at the strength claimed. A queued idea is built only after its claim is checked at the source, then preregistered and judged once. The engine itself registers, tests and approves nothing.
 
-- Last cycle: 2026-11-27 00:38 UTC, OK
-- Last successful idea step: 2026-11-27 00:38 UTC
+- Last cycle: 2026-11-28 00:04 UTC, OK
+- Last successful idea step: 2026-11-28 00:04 UTC
 - Integrity of the record at the last cycle: OK
-- All time: 53 ideas: DROPPED_POWER 16, QUEUED_FOR_BUILD 5, REJECTED_BY_CRITIC 32
+- All time: 56 ideas: DROPPED_POWER 16, QUEUED_FOR_BUILD 6, REJECTED_BY_CRITIC 34
 
 **Today:**
 
-- **DROPPED_POWER**: CTA commodity de-risking shock across four commodity CFDs as one book (new:commodity-cfd-book, swing). even at its claimed strength it expects t 1.732 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 12 it has; or the same mechanism on about 4 independent instruments over those 12 years, tested as one book Class: INSUFFICIENT_POWER.
-- **DROPPED_POWER**: Commodity hedging-pressure risk premium across four commodity futures as one book (new:commodity-futures-cot, position). even at its claimed strength it expects t 2.0 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 56 years of fresh data at the claimed strength, against the 25 it has; or the same mechanism on about 3 independent instruments over those 25 years, tested as one book Class: INSUFFICIENT_POWER.
-- **DROPPED_POWER**: US high-yield credit spread diffusion into four EM FX currencies as one book (em-fx-daily, position). even at its claimed strength it expects t 1.581 against a bar of 3.0: as it stands it cannot pass, so it is not built as it stands. It is kept with a plan: about 36 years of fresh data at the claimed strength, against the 10 it has; or the same mechanism on about 4 independent instruments over those 10 years, tested as one book Class: INSUFFICIENT_POWER.
+- **QUEUED_FOR_BUILD**: Loss-Aversion Capitulation at Perpetual Funding Resets (crypto-binance-usdtm, swing). at its claimed strength it expects t 3.429 against 3.0 (passes 67% of the time); the claim must be verified at its source before it is built Class: UNTESTED_HYPOTHESIS. Flagged for the loop to check: needs_overnight_financing.
+- **REJECTED_BY_CRITIC**: Regulatory Short-Disclosure Hedging Diffusion into Index Futures (equity-index-forward, intraday). There is no such data. The SEC does not publish short positions: Form SH was a temporary 2008 emergency rule and was discontinued, and the EU/UK net-short regimes disclose individual equity positions, not the dealer hedging flow in S&P 500 and Nasdaq-100 futures that the rule needs. The claimed 'SEC short-disclosure reports, 2020-2026' do not exist, and even if they did, a single stock's disclosed short would not map to an index-futures entry. (critic: particle-ai/particle-1:free) Class: INSUFFICIENT_DATA.
+- **REJECTED_BY_CRITIC**: Volatility-Linked Dealer Gamma Hedging Shock in Crypto Perpetuals (crypto-binance-usdtm, intraday). The mechanism does not fix a sign or a channel. Dealer gamma hedging is a two-sided flow whose direction depends on the dealers' net delta, and crypto options open interest is small next to the perpetual market it is said to move; nothing connects 'IV rank above 80' to a fall in the perp. The funding condition (within 25 bp of its 90-day low, i.e. shorts crowded and paying) points the opposite way from the short the rule takes, so the trade is shorting into the crowded side on a story that does not explain why. No economic link survives scrutiny. (critic: particle-ai/particle-1:free) Class: NO_MECHANISM.
 
 **Queued for building** (each waits for its claim to be checked at the source):
 
@@ -55,6 +55,7 @@ A proposer model suggests hypotheses; a critic on another model can only reject;
 - International sector rotation lead-lag among equity ETFs (new:international-sector-etfs; queued 2026-11-20; claimed net Sharpe 1.2 over 10 fresh years): none: a new idea
 - Volatility-managed global equity factor ETFs (new:global-equity-etfs; queued 2026-11-20; claimed net Sharpe 1.5 over 12 fresh years): none: a new idea
 - ETF premium/discount mean reversion across many ETFs (new:many-etfs; queued 2026-11-20; claimed net Sharpe 1.2 over 8 fresh years): none: a new idea
+- Loss-Aversion Capitulation at Perpetual Funding Resets (crypto-binance-usdtm; queued 2026-11-28; claimed net Sharpe 1.4 over 6.0 fresh years): none: a new idea
 
 ## Validation status
 
