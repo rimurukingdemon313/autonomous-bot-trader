@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-28 11:00 UTC**, run 1233, version `radar-1.0.0`. State from: cache. Quotes this hour: 2389.
+Updated **2026-11-28 12:00 UTC**, run 1234, version `radar-1.0.0`. State from: cache. Quotes this hour: 2389.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,29 @@ Updated **2026-11-28 11:00 UTC**, run 1233, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 51.62
+- days: 51.67
 - run_coverage: 0.9944
 - closed_positions: 284
-- open_positions: 2
+- open_positions: 3
 - utilisation: 0.2533
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.8943
-- book_excess_pct: -3.0496
-- ann_excess_deployed_pct: -85.485
-- ann_excess_deployed_costs_x1.5_pct: -154.248
-- ann_excess_deployed_costs_x2_pct: -223.01
+- book_pnl_pct: -2.9085
+- book_excess_pct: -3.0724
+- ann_excess_deployed_pct: -86.069
+- ann_excess_deployed_costs_x1.5_pct: -155.026
+- ann_excess_deployed_costs_x2_pct: -223.983
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.4753
+- book_excess_without_best_coin_pct: -3.4981
 - max_dd_pct: 2.9102
-- t_excess_daily: -4.584
+- t_excess_daily: -4.607
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| SOXS | gate | mexc | 2026-11-27 08:00 | 25.5% | 11.6 | 1.8 | 17.0 | **-3.5** |
-| EVAA | mexc | gate | 2026-11-28 08:00 | 34.6% | 1.8 | -1.8 | 17.0 | **-17.0** |
+| SOXS | gate | mexc | 2026-11-27 08:00 | 25.5% | 11.6 | 1.9 | 17.0 | **-3.5** |
+| EVAA | mexc | gate | 2026-11-28 08:00 | 34.6% | 2.3 | -13.8 | 17.0 | **-28.4** |
+| WLFI | gate | mexc | 2026-11-28 12:00 | 25.8% | 0.0 | 0.0 | 17.0 | **-17.0** |
 
 ## Closed positions (284)
 
@@ -79,6 +80,7 @@ Updated **2026-11-28 11:00 UTC**, run 1233, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| EVAA | mexc | gate | 32.8% | 33.3% |
+| EVAA | mexc | gate | 32.9% | 62.4% |
+| WLFI | gate | mexc | 25.8% | 33.5% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
