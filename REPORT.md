@@ -1,6 +1,6 @@
 # TRINITY DESK · TRINITY-MASTER on paper · PAPER ONLY · NOT REAL MONEY · NOT VALIDATED
 
-**بالعربي:** حساب ورقي بـ$200,000 يتداول بيه النظام قاعدة TRINITY-MASTER اللي بعثها المالك. القاعدة تجريبية ما انعتمدت، فمحرك المخاطر يحدد حجم كل صفقة بحد 0.25% من الرصيد. الرصيد الحالي $200,000، يعني من البداية $0. ما ماسك شي هسه. إعادة التوازن الجاية: 2026-12-14. هذا ورق، مو فلوس حقيقية.
+**بالعربي:** حساب ورقي بـ$200,000 يتداول بيه النظام قاعدة TRINITY-MASTER اللي بعثها المالك. القاعدة تجريبية ما انعتمدت، فمحرك المخاطر يحدد حجم كل صفقة بحد 0.25% من الرصيد. الرصيد الحالي $200,000، يعني من البداية $0. ما ماسك شي هسه. إعادة التوازن الجاية: 2026-12-15. هذا ورق، مو فلوس حقيقية.
 
 **What this is.** The owner's TRINITY-MASTER (research/external/trinity/), traded on paper so its record starts now. It is **EXPERIMENTAL**: its 20-year figures come from a backtest on 288 dates its author chose, and on real daily prices they did not hold as stated (research/results/TRINITY-MASTER-redteam.json, docs/TRINITY.md). The risk engine sizes every position as it sizes any unvalidated rule: at most 0.25% of the starting balance lost at its stop. No DEMO, no live account, no real money.
 
@@ -10,8 +10,8 @@
 | Equity | $200,000 (P/L $0); balance $200,000 |
 | Risk | ACTIVE (ACTIVE) |
 | Rule | TRINITY-MASTER promoted for PAPER as EXPERIMENTAL on 2026-11-21 |
-| Last session | 2026-11-25; next rebalance about 2026-12-14 |
-| Updated | 2026-11-27T17:00:01.460170+00:00 |
+| Last session | 2026-11-27; next rebalance about 2026-12-15 |
+| Updated | 2026-11-28T04:16:03.834857+00:00 |
 
 ## Positions
 
