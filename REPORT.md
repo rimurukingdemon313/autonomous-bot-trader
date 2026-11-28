@@ -1,6 +1,6 @@
 # Funding radar: live paper ledger
 
-Updated **2026-11-28 04:00 UTC**, run 1226, version `radar-1.0.0`. State from: cache. Quotes this hour: 2389.
+Updated **2026-11-28 05:00 UTC**, run 1227, version `radar-1.0.0`. State from: cache. Quotes this hour: 2389.
 
 **PAPER ONLY.** No order is ever sent. Every number is computed from public live quotes. Positions are short the perpetual on the venue paying more funding and long it on the other, on the same coin. Costs are each venue's taker fee plus 5 bp per fill.
 
@@ -17,28 +17,28 @@ Updated **2026-11-28 04:00 UTC**, run 1226, version `radar-1.0.0`. State from: c
 
 ## Performance (paper; capital = 2N per slot x 10 slots; excess = net P&L minus cash on 2N while open)
 
-- days: 51.33
+- days: 51.38
 - run_coverage: 0.9943
 - closed_positions: 281
 - open_positions: 2
 - utilisation: 0.2534
 - rf_apr_pct_declared: 3.875
-- book_pnl_pct: -2.869
-- book_excess_pct: -3.0235
-- ann_excess_deployed_pct: -85.192
-- ann_excess_deployed_costs_x1.5_pct: -153.597
-- ann_excess_deployed_costs_x2_pct: -222.002
+- book_pnl_pct: -2.8553
+- book_excess_pct: -3.0099
+- ann_excess_deployed_pct: -84.753
+- ann_excess_deployed_costs_x1.5_pct: -153.114
+- ann_excess_deployed_costs_x2_pct: -221.475
 - best_coin: INIT
-- book_excess_without_best_coin_pct: -3.4493
+- book_excess_without_best_coin_pct: -3.4357
 - max_dd_pct: 2.869
-- t_excess_daily: -4.535
+- t_excess_daily: -4.507
 
 ## Open positions
 
 | Coin | Short | Long | Opened | Entry spread APR | Funding bp | Basis bp | Cost bp | Net bp |
 |---|---|---|---|---|---|---|---|---|
-| SOXS | gate | mexc | 2026-11-27 08:00 | 25.5% | 11.5 | 0.0 | 17.0 | **-5.5** |
-| EVAA | mexc | gate | 2026-11-28 02:00 | 34.5% | 0.2 | 0.7 | 17.0 | **-16.1** |
+| SOXS | gate | mexc | 2026-11-27 08:00 | 25.5% | 11.6 | 1.8 | 17.0 | **-3.5** |
+| EVAA | mexc | gate | 2026-11-28 02:00 | 34.5% | 0.2 | 26.2 | 17.0 | **9.4** |
 
 ## Closed positions (281)
 
@@ -79,6 +79,5 @@ Updated **2026-11-28 04:00 UTC**, run 1226, version `radar-1.0.0`. State from: c
 
 | Coin | Short | Long | 72 h spread APR | Now APR |
 |---|---|---|---|---|
-| SOXS | gate | mexc | 29.4% | 20.5% |
 
 Rules and success criteria: `research/preregistrations/RADAR-1.md` on main.
