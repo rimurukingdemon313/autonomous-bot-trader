@@ -1,6 +1,6 @@
 # FUNDED-P — a funded-account paper track of TRND-1 · PAPER ONLY, NOT REAL MONEY
 
-Updated 2026-11-28 03:56 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
+Updated 2026-11-28 08:58 UTC · funded-paper-1.1.2 · started 2026-11-09 · public daily closes · no broker
 
 ## ملخص بالعربي
 
@@ -37,7 +37,7 @@ Updated 2026-11-28 03:56 UTC · funded-paper-1.1.2 · started 2026-11-09 · publ
 | 2026-11-24 | 1 | $195,446.12 | -969.72 |
 | 2026-11-25 | 1 | $194,811.56 | -634.56 |
 | 2026-11-26 | 1 | $195,768.47 | +956.91 |
-| 2026-11-27 | 1 | $197,254.60 | +1,486.12 |
+| 2026-11-27 | 1 | $197,254.60 | +1,486.13 |
 
 ### FULL: events
 
